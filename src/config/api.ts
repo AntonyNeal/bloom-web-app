@@ -5,7 +5,7 @@
 
 export const API_BASE_URL =
   import.meta.env.MODE === 'production'
-    ? 'https://lpa-bloom-functions.azurewebsites.net/api'
+    ? 'https://bloom-platform-functions-v2.azurewebsites.net/api'
     : 'http://localhost:7071/api';
 
 export const API_ENDPOINTS = {

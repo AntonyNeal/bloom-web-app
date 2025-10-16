@@ -10,6 +10,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { API_ENDPOINTS } from "@/config/api";
+import LoadingState from "@/components/common/LoadingState";
+import EmptyState from "@/components/common/EmptyState";
+import NetworkErrorState from "@/components/common/NetworkErrorState";
+import ServerErrorState from "@/components/common/ServerErrorState";
 
 interface Application {
   id: number;
@@ -27,34 +31,44 @@ interface Application {
   cover_letter: string;
 }
 
+type ErrorType = 'network' | 'server' | null;
+
 export function Admin() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<ErrorType>(null);
+  const [errorCode, setErrorCode] = useState<number | undefined>(undefined);
+  const [lastAttempt, setLastAttempt] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     fetchApplications();
   }, []);
 
   const fetchApplications = async () => {
+    setIsLoading(true);
+    setError(null);
+    setErrorCode(undefined);
+    setLastAttempt(new Date());
+    
     try {
-      setLoading(true);
-      setError(null);
       const response = await fetch(API_ENDPOINTS.applications);
       
       if (!response.ok) {
-        throw new Error("Failed to fetch applications");
+        // Server returned an error
+        setError('server');
+        setErrorCode(response.status);
+        return;
       }
       
       const data = await response.json();
       setApplications(data);
-    } catch (error: unknown) {
-      console.error("Failed to fetch applications:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to load applications";
-      setError(errorMessage);
+    } catch (err) {
+      // Network error (offline, CORS, refused connection)
+      console.error("Network error:", err);
+      setError('network');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -112,28 +126,42 @@ export function Admin() {
     };
   };
 
-  if (loading) {
+  // Loading state
+  if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto py-8 px-4">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-lg text-neutral-600">Loading applications...</p>
-        </div>
+        <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
+        <LoadingState />
       </div>
     );
   }
 
-  if (error) {
+  // Network error state
+  if (error === 'network') {
     return (
       <div className="max-w-7xl mx-auto py-8 px-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-red-600">Error</CardTitle>
-            <CardDescription>{error}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={fetchApplications}>Retry</Button>
-          </CardContent>
-        </Card>
+        <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
+        <NetworkErrorState onRetry={fetchApplications} lastAttempt={lastAttempt} />
+      </div>
+    );
+  }
+
+  // Server error state
+  if (error === 'server') {
+    return (
+      <div className="max-w-7xl mx-auto py-8 px-4">
+        <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
+        <ServerErrorState onRetry={fetchApplications} errorCode={errorCode} />
+      </div>
+    );
+  }
+
+  // Empty state
+  if (applications.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto py-8 px-4">
+        <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
+        <EmptyState />
       </div>
     );
   }

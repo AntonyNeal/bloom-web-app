@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { ArrowLeft } from "lucide-react";
 import { API_ENDPOINTS } from "@/config/api";
 import LoadingState from "@/components/common/LoadingState";
 import EmptyState from "@/components/common/EmptyState";
@@ -130,6 +131,13 @@ export function Admin() {
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto py-8 px-4">
+        <a
+          href="#/admin"
+          className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Back to Dashboard
+        </a>
         <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
         <LoadingState />
       </div>
@@ -140,6 +148,13 @@ export function Admin() {
   if (error === 'network') {
     return (
       <div className="max-w-7xl mx-auto py-8 px-4">
+        <a
+          href="#/admin"
+          className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Back to Dashboard
+        </a>
         <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
         <NetworkErrorState onRetry={fetchApplications} lastAttempt={lastAttempt} />
       </div>
@@ -150,6 +165,13 @@ export function Admin() {
   if (error === 'server') {
     return (
       <div className="max-w-7xl mx-auto py-8 px-4">
+        <a
+          href="#/admin"
+          className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Back to Dashboard
+        </a>
         <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
         <ServerErrorState onRetry={fetchApplications} errorCode={errorCode} />
       </div>
@@ -160,6 +182,13 @@ export function Admin() {
   if (applications.length === 0) {
     return (
       <div className="max-w-7xl mx-auto py-8 px-4">
+        <a
+          href="#/admin"
+          className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Back to Dashboard
+        </a>
         <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
         <EmptyState />
       </div>
@@ -170,6 +199,13 @@ export function Admin() {
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
+      <a
+        href="#/admin"
+        className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Back to Dashboard
+      </a>
       <div className="mb-8">
         <h1 className="text-3xl font-semibold mb-4">Application Management</h1>
         

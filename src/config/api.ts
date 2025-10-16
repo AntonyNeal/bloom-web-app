@@ -1,12 +1,9 @@
 /**
  * API Configuration
- * Automatically switches between local and production API endpoints
+ * Uses production API endpoint for both development and production
  */
 
-export const API_BASE_URL =
-  import.meta.env.MODE === 'production'
-    ? 'https://bloom-platform-functions-v2.azurewebsites.net/api'
-    : 'http://localhost:7071/api';
+export const API_BASE_URL = 'https://bloom-platform-functions-v2.azurewebsites.net/api';
 
 export const API_ENDPOINTS = {
   applications: `${API_BASE_URL}/applications`,

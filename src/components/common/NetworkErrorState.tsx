@@ -21,10 +21,18 @@ const NetworkErrorState = ({ onRetry, lastAttempt }: NetworkErrorStateProps) => 
       </h2>
 
       {/* Helpful copy */}
-      <p className="text-text-secondary max-w-md mb-8 leading-loose font-body">
+      <p className="text-text-secondary max-w-md mb-4 leading-loose font-body">
         We're having trouble reaching the server. This usually resolves quickly. 
         Check your internet connection and try again.
       </p>
+
+      {/* Developer hint */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mb-8">
+        <p className="text-sm text-amber-900 font-body">
+          <strong className="font-semibold">For developers:</strong> The Azure Functions backend may not be running. 
+          Run <code className="bg-amber-100 px-2 py-0.5 rounded font-mono text-xs">cd api && func start</code> to start the local backend.
+        </p>
+      </div>
 
       {/* Primary action: Retry */}
       <button

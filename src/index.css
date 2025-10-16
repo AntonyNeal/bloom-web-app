@@ -53,18 +53,7 @@
     font-family: 'Poppins', 'Inter', system-ui, sans-serif;
   }
   
-  /* Typography utilities */
-  .text-display-lg {
-    @apply text-display-lg font-display;
-  }
-  
-  .text-display-md {
-    @apply text-display-md font-display;
-  }
-  
-  .text-display-sm {
-    @apply text-display-sm font-display;
-  }
+  /* Typography utilities removed - use Tailwind classes directly */
 }
 
 @layer utilities {

@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS } from "@/config/api";
+import { QualificationCheck } from "@/components/common/QualificationCheck";
+import { Sparkles } from "lucide-react";
 
 interface FormData {
   first_name: string;
@@ -26,6 +28,7 @@ interface FormData {
 
 export function JoinUs() {
   const { toast } = useToast();
+  const [hasPassedQualificationCheck, setHasPassedQualificationCheck] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     first_name: "",
     last_name: "",
@@ -122,65 +125,91 @@ export function JoinUs() {
 
   if (submitted) {
     return (
-      <div className="max-w-2xl mx-auto py-12 px-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Application Submitted!</CardTitle>
-            <CardDescription className="text-base">
-              Thank you for your interest in joining Life Psychology Australia.
-              We'll review your application and be in touch within 5 business
-              days.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              onClick={() => {
-                setSubmitted(false);
-                setFormData({
-                  first_name: "",
-                  last_name: "",
-                  email: "",
-                  phone: "",
-                  ahpra_registration: "",
-                  specializations: [],
-                  experience_years: 0,
-                  cover_letter: "",
-                });
-                setFiles({ cv: null, certificate: null, photo: null });
-              }}
-              variant="outline"
-            >
-              Submit Another Application
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-cream-100 py-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <Card className="border-sage-200 shadow-lg bg-white">
+            <CardHeader className="text-center space-y-4">
+              <div className="mx-auto w-20 h-20 bg-gradient-to-br from-success to-sage-600 rounded-full flex items-center justify-center shadow-md">
+                <Sparkles className="w-10 h-10 text-white" />
+              </div>
+              <CardTitle className="font-display text-h1 text-text-primary">
+                Application Submitted!
+              </CardTitle>
+              <CardDescription className="font-body text-body-lg text-text-secondary leading-loose">
+                Thank you for your interest in joining Life Psychology Australia.
+                We'll review your application and be in touch within 5 business
+                days.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex justify-center">
+              <Button
+                onClick={() => {
+                  setSubmitted(false);
+                  setHasPassedQualificationCheck(false);
+                  setFormData({
+                    first_name: "",
+                    last_name: "",
+                    email: "",
+                    phone: "",
+                    ahpra_registration: "",
+                    specializations: [],
+                    experience_years: 0,
+                    cover_letter: "",
+                  });
+                  setFiles({ cv: null, certificate: null, photo: null });
+                }}
+                variant="outline"
+                className="border-sage-300 text-sage-700 hover:bg-sage-50 font-display"
+              >
+                Submit Another Application
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="max-w-3xl mx-auto py-12 px-4">
-      <div className="mb-8">
-        <h1 className="text-4xl font-semibold text-neutral-950 mb-2">
-          Join Our Team
-        </h1>
-        <p className="text-lg text-neutral-600">
-          We're looking for exceptional psychologists who share our commitment
-          to clinical excellence and compassionate care.
-        </p>
-      </div>
+  // Show qualification check first
+  if (!hasPassedQualificationCheck) {
+    return (
+      <QualificationCheck 
+        onEligible={() => setHasPassedQualificationCheck(true)} 
+      />
+    );
+  }
 
-      <form onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Application Form</CardTitle>
-            <CardDescription>All fields marked with * are required</CardDescription>
+  // Show application form after passing qualification check
+  return (
+    <div className="min-h-screen bg-cream-100 py-12 px-4">
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-8">
+          <h1 className="font-display text-display-md text-text-primary mb-3">
+            Join Our Team
+          </h1>
+          <p className="font-body text-body-lg text-text-secondary leading-loose">
+            We're looking for exceptional psychologists who share our commitment
+            to clinical excellence and compassionate care.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <Card className="border-sage-200 shadow-lg bg-white">
+            <CardHeader>
+              <CardTitle className="font-display text-h2 text-text-primary">
+                Application Form
+              </CardTitle>
+              <CardDescription className="font-body text-body text-text-secondary">
+                All fields marked with <span className="text-error">*</span> are required
+              </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Personal Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="first_name">First Name *</Label>
+                <Label htmlFor="first_name" className="font-display text-body-sm text-text-primary">
+                  First Name <span className="text-error">*</span>
+                </Label>
                 <Input
                   id="first_name"
                   required
@@ -189,10 +218,13 @@ export function JoinUs() {
                     setFormData({ ...formData, first_name: e.target.value })
                   }
                   placeholder="Jane"
+                  className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="last_name">Last Name *</Label>
+                <Label htmlFor="last_name" className="font-display text-body-sm text-text-primary">
+                  Last Name <span className="text-error">*</span>
+                </Label>
                 <Input
                   id="last_name"
                   required
@@ -201,12 +233,15 @@ export function JoinUs() {
                     setFormData({ ...formData, last_name: e.target.value })
                   }
                   placeholder="Smith"
+                  className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email" className="font-display text-body-sm text-text-primary">
+                Email <span className="text-error">*</span>
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -216,11 +251,14 @@ export function JoinUs() {
                   setFormData({ ...formData, email: e.target.value })
                 }
                 placeholder="jane.smith@email.com"
+                className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone" className="font-display text-body-sm text-text-primary">
+                Phone
+              </Label>
               <Input
                 id="phone"
                 type="tel"
@@ -229,12 +267,15 @@ export function JoinUs() {
                   setFormData({ ...formData, phone: e.target.value })
                 }
                 placeholder="+61 400 000 000"
+                className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
               />
             </div>
 
             {/* Professional Information */}
             <div className="space-y-2">
-              <Label htmlFor="ahpra">AHPRA Registration Number *</Label>
+              <Label htmlFor="ahpra" className="font-display text-body-sm text-text-primary">
+                AHPRA Registration Number <span className="text-error">*</span>
+              </Label>
               <Input
                 id="ahpra"
                 required
@@ -246,11 +287,14 @@ export function JoinUs() {
                   })
                 }
                 placeholder="PSY0001234567"
+                className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="experience">Years of Experience *</Label>
+              <Label htmlFor="experience" className="font-display text-body-sm text-text-primary">
+                Years of Experience <span className="text-error">*</span>
+              </Label>
               <Input
                 id="experience"
                 type="number"
@@ -264,11 +308,14 @@ export function JoinUs() {
                   })
                 }
                 placeholder="5"
+                className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cover_letter">Cover Letter *</Label>
+              <Label htmlFor="cover_letter" className="font-display text-body-sm text-text-primary">
+                Cover Letter <span className="text-error">*</span>
+              </Label>
               <Textarea
                 id="cover_letter"
                 required
@@ -278,60 +325,74 @@ export function JoinUs() {
                 onChange={(e) =>
                   setFormData({ ...formData, cover_letter: e.target.value })
                 }
-                className="resize-none"
+                className="resize-none border-sage-200 focus:border-sage-600 focus:ring-sage-600 font-body leading-loose"
               />
             </div>
 
             {/* File Uploads */}
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="cv">CV/Resume *</Label>
-                <Input
-                  id="cv"
-                  type="file"
-                  required
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileChange("cv")}
-                />
-                <p className="text-xs text-neutral-500">
-                  Accepted formats: PDF, DOC, DOCX
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="certificate">AHPRA Certificate *</Label>
-                <Input
-                  id="certificate"
-                  type="file"
-                  required
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleFileChange("certificate")}
-                />
-                <p className="text-xs text-neutral-500">
-                  Accepted formats: PDF, JPG, PNG
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="photo">Professional Photo (Optional)</Label>
-                <Input
-                  id="photo"
-                  type="file"
-                  accept=".jpg,.jpeg,.png"
-                  onChange={handleFileChange("photo")}
-                />
-                <p className="text-xs text-neutral-500">
-                  Accepted formats: JPG, PNG
-                </p>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="cv" className="font-display text-body-sm text-text-primary">
+                CV/Resume <span className="text-error">*</span>
+              </Label>
+              <Input
+                id="cv"
+                type="file"
+                required
+                accept=".pdf,.doc,.docx"
+                onChange={handleFileChange("cv")}
+                className="border-sage-200 focus:border-sage-600"
+              />
+              <p className="font-body text-body-xs text-text-tertiary">
+                Accepted formats: PDF, DOC, DOCX
+              </p>
             </div>
 
-            <Button type="submit" disabled={uploading} className="w-full">
-              {uploading ? "Submitting..." : "Submit Application"}
-            </Button>
-          </CardContent>
-        </Card>
-      </form>
+            <div className="space-y-2">
+              <Label htmlFor="certificate" className="font-display text-body-sm text-text-primary">
+                AHPRA Certificate <span className="text-error">*</span>
+              </Label>
+              <Input
+                id="certificate"
+                type="file"
+                required
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={handleFileChange("certificate")}
+                className="border-sage-200 focus:border-sage-600"
+              />
+              <p className="font-body text-body-xs text-text-tertiary">
+                Accepted formats: PDF, JPG, PNG
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="photo" className="font-display text-body-sm text-text-primary">
+                Professional Photo (Optional)
+              </Label>
+              <Input
+                id="photo"
+                type="file"
+                accept=".jpg,.jpeg,.png"
+                onChange={handleFileChange("photo")}
+                className="border-sage-200 focus:border-sage-600"
+              />
+              <p className="font-body text-body-xs text-text-tertiary">
+                Accepted formats: JPG, PNG
+              </p>
+            </div>
+          </div>
+
+          <Button 
+            type="submit" 
+            disabled={uploading} 
+            className="w-full bg-sage-600 hover:bg-sage-700 text-white font-display text-body font-semibold py-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-normal"
+          >
+            {uploading ? "Submitting..." : "Submit Application"}
+          </Button>
+        </CardContent>
+      </Card>
+    </form>
+      </div>
     </div>
   );
 }

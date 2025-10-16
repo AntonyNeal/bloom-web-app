@@ -7,21 +7,21 @@ interface ServerErrorStateProps {
 
 const ServerErrorState = ({ onRetry, errorCode }: ServerErrorStateProps) => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] text-center px-4">
+    <div className="flex flex-col items-center justify-center min-h-[400px] text-center px-6">
       {/* Tool/wrench icon - suggesting we're fixing it */}
       <div className="mb-6">
-        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
-          <Wrench className="w-8 h-8 text-gray-500" />
+        <div className="w-20 h-20 rounded-full bg-cream-200 flex items-center justify-center">
+          <Wrench className="w-10 h-10 text-text-tertiary" />
         </div>
       </div>
 
       {/* Warm headline */}
-      <h2 className="text-2xl font-semibold text-gray-800 mb-3 font-poppins">
+      <h2 className="text-2xl font-semibold text-text-primary mb-3 font-display">
         Something Went Wrong
       </h2>
 
       {/* Reassuring copy */}
-      <p className="text-gray-600 max-w-md mb-8 leading-relaxed">
+      <p className="text-text-secondary max-w-md mb-8 leading-loose font-body">
         Don't worry—your applications are safe. We're looking into this. 
         Try refreshing the page or come back shortly.
       </p>
@@ -31,7 +31,7 @@ const ServerErrorState = ({ onRetry, errorCode }: ServerErrorStateProps) => {
         {/* Primary: Refresh */}
         <button
           onClick={onRetry}
-          className="bg-[#8B9E87] hover:bg-[#7a8c78] text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+          className="bg-sage-600 hover:bg-sage-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md font-body"
         >
           Refresh
         </button>
@@ -39,7 +39,7 @@ const ServerErrorState = ({ onRetry, errorCode }: ServerErrorStateProps) => {
         {/* Secondary: Contact Support */}
         <a
           href="mailto:support@lifepsychology.com.au"
-          className="text-[#8B9E87] hover:text-[#7a8c78] font-medium underline"
+          className="text-sage-600 hover:text-sage-700 font-medium underline font-body"
         >
           Contact Support
         </a>
@@ -47,7 +47,7 @@ const ServerErrorState = ({ onRetry, errorCode }: ServerErrorStateProps) => {
 
       {/* Optional: Error code for support reference */}
       {errorCode && (
-        <p className="text-xs text-gray-400 mt-6">
+        <p className="text-xs text-text-tertiary mt-6 font-mono">
           Error code: {errorCode} (for support reference)
         </p>
       )}

@@ -4,6 +4,7 @@ import ApplicationsList from './pages/admin/ApplicationsList';
 import ApplicationDetail from './pages/admin/ApplicationDetail';
 import { JoinUs } from './pages/JoinUs';
 import { Admin } from './pages/admin/ApplicationManagement';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 
@@ -40,7 +41,18 @@ function App() {
     );
   }
 
+  // Admin Dashboard (home)
   if (route === '/admin') {
+    return (
+      <ErrorBoundary>
+        <AdminDashboard />
+        <Toaster />
+      </ErrorBoundary>
+    );
+  }
+
+  // Admin - Application Management
+  if (route === '/admin/applications') {
     return (
       <ErrorBoundary>
         <Admin />

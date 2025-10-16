@@ -174,7 +174,7 @@ export function JoinUs() {
   if (!hasPassedQualificationCheck) {
     return (
       <QualificationCheck 
-        onEligible={() => setHasPassedQualificationCheck(true)} 
+        onEligible={() => setHasPassedQualificationCheck(true)}
       />
     );
   }

@@ -21,10 +21,21 @@ const ServerErrorState = ({ onRetry, errorCode }: ServerErrorStateProps) => {
       </h2>
 
       {/* Reassuring copy */}
-      <p className="text-text-secondary max-w-md mb-8 leading-loose font-body">
+      <p className="text-text-secondary max-w-md mb-4 leading-loose font-body">
         Don't worry—your applications are safe. We're looking into this. 
         Try refreshing the page or come back shortly.
       </p>
+
+      {/* 404 specific message */}
+      {errorCode === 404 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mb-8">
+          <p className="text-sm text-amber-900 font-body">
+            <strong className="font-semibold">API Endpoint Not Found (404)</strong>
+            <br />
+            The backend API endpoint may not be deployed yet. Please check the Azure Function App deployment status.
+          </p>
+        </div>
+      )}
 
       {/* Action buttons */}
       <div className="flex flex-col sm:flex-row gap-3 items-center">

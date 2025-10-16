@@ -28,10 +28,14 @@ const NetworkErrorState = ({ onRetry, lastAttempt }: NetworkErrorStateProps) => 
 
       {/* Developer hint */}
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mb-8">
-        <p className="text-sm text-amber-900 font-body">
-          <strong className="font-semibold">For developers:</strong> The Azure Functions backend may not be running. 
-          Run <code className="bg-amber-100 px-2 py-0.5 rounded font-mono text-xs">cd api && func start</code> to start the local backend.
+        <p className="text-sm text-amber-900 font-body mb-2">
+          <strong className="font-semibold">For developers:</strong>
         </p>
+        <ul className="text-sm text-amber-900 font-body space-y-1 list-disc list-inside">
+          <li>The Azure Functions backend may not be deployed to production</li>
+          <li>Or run locally: <code className="bg-amber-100 px-2 py-0.5 rounded font-mono text-xs">cd api && func start</code></li>
+          <li>Check Azure Portal for function app deployment status</li>
+        </ul>
       </div>
 
       {/* Primary action: Retry */}

@@ -178,21 +178,22 @@ const httpTrigger: AzureFunction = async function (
         body: { error: "Method not allowed" },
       };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     context.log.error("Database error:", error);
     
     // Handle duplicate email error
-    if (error.number === 2627) {
+    if (error && typeof error === 'object' && 'number' in error && error.number === 2627) {
       context.res = {
         ...context.res,
         status: 409,
         body: { error: "An application with this email already exists" },
       };
     } else {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       context.res = {
         ...context.res,
         status: 500,
-        body: { error: "Internal server error", details: error.message },
+        body: { error: "Internal server error", details: errorMessage },
       };
     }
   }

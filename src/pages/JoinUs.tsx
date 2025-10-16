@@ -108,10 +108,11 @@ export function JoinUs() {
         title: "Application submitted!",
         description: "We'll review your application and be in touch soon.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit application. Please try again.';
       toast({
         title: "Error",
-        description: error.message || "Failed to submit application. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

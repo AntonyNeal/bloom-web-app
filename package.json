@@ -36,6 +36,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.37.0",
     "@types/node": "^20.11.30",
     "@types/react": "^18.3.24",
     "@types/react-dom": "^18.3.7",
@@ -43,12 +44,17 @@
     "@typescript-eslint/parser": "^7.7.0",
     "@vitejs/plugin-react": "^5.0.2",
     "autoprefixer": "^10.4.21",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.4.0",
     "husky": "^8.0.3",
     "lint-staged": "^15.2.0",
     "postcss": "^8.5.6",
     "prettier": "^3.2.5",
-    "tailwindcss": "^3.4.18"
+    "tailwindcss": "^3.4.18",
+    "typescript-eslint": "^8.46.1"
   },
   "husky": {
     "hooks": {

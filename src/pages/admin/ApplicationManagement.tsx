@@ -49,9 +49,10 @@ export function Admin() {
       
       const data = await response.json();
       setApplications(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to fetch applications:", error);
-      setError(error.message || "Failed to load applications");
+      const errorMessage = error instanceof Error ? error.message : "Failed to load applications";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

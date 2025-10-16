@@ -103,12 +103,13 @@ const httpTrigger: AzureFunction = async function (
         size: file.data.length,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     context.log.error("Upload error:", error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     context.res = {
       ...context.res,
       status: 500,
-      body: { error: "Upload failed", details: error.message },
+      body: { error: "Upload failed", details: errorMessage },
     };
   }
 };

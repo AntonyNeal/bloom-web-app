@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Bloom Design System - CSS Variables for shadcn/ui */
+    --background: 60 9% 98%; /* Neutral-50 */
+    --foreground: 20 14% 11%; /* Neutral-950 */
+    
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 20 14% 11%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14% 11%;
+    
+    --primary: 147 45% 39%; /* Primary-500 Sage Green */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 16 38% 60%; /* Secondary-500 Terracotta */
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 60 5% 96%; /* Neutral-100 */
+    --muted-foreground: 25 5% 45%; /* Neutral-600 */
+    
+    --accent: 36 44% 64%; /* Accent-500 Gold */
+    --accent-foreground: 20 14% 11%;
+    
+    --destructive: 348 77% 50%; /* Error-500 */
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 20 6% 90%; /* Neutral-200 */
+    --input: 20 6% 90%; /* Neutral-200 */
+    --ring: 147 45% 39%; /* Primary-500 for focus rings */
+    
+    --radius: 0.5rem; /* 8px default */
+  }
+  
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  }
+  
+  /* Typography utilities */
+  .text-display-lg {
+    @apply text-display-lg font-display;
+  }
+  
+  .text-display-md {
+    @apply text-display-md font-display;
+  }
+  
+  .text-display-sm {
+    @apply text-display-sm font-display;
+  }
+}
+
+@layer utilities {
+  /* Reduced motion support - accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  /* Custom utilities for Bloom */
+  .transition-bloom {
+    @apply transition-all duration-normal ease-out;
+  }
+  
+  .shadow-bloom {
+    box-shadow: 0 1px 3px 0 rgba(68, 64, 60, 0.08), 0 1px 2px 0 rgba(68, 64, 60, 0.06);
+  }
+  
+  .shadow-bloom-hover {
+    box-shadow: 0 4px 6px -1px rgba(68, 64, 60, 0.08), 0 2px 4px -1px rgba(68, 64, 60, 0.06);
+  }
+}

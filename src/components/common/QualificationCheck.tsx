@@ -163,6 +163,13 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   // Phase 3: Focus state tracking for interactions
   const [isYearsInputFocused, setIsYearsInputFocused] = useState(false);
 
+  // Phase 4: Button interaction states
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [inkSpreadOrigin, setInkSpreadOrigin] = useState({ x: 0, y: 0 });
+  const [showInkSpread, setShowInkSpread] = useState(false);
+  const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([]);
+
   // Phase 2: Mobile-first entrance animations
   const isMobile = useIsMobile();
   const shouldReduceMotion = useReducedMotion();
@@ -222,14 +229,51 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   }, [isMobile]);
 
   const handleCheckEligibility = () => {
-    const eligible = isRegisteredPsychologist || hasPhd || yearsRegistered >= 8;
-    setIsEligible(eligible);
+    // Phase 4: Add loading state for dramatic effect
+    setIsLoading(true);
     
-    if (eligible) {
-      // Trigger parent callback after showing success message
-      // 5 second delay to let the celebration animations complete and user to feel the pride
-      setTimeout(() => onEligible(), 5000);
-    }
+    // Simulate processing time for better UX (500ms)
+    setTimeout(() => {
+      const eligible = isRegisteredPsychologist || hasPhd || yearsRegistered >= 8;
+      setIsEligible(eligible);
+      setIsLoading(false);
+      
+      if (eligible) {
+        // Trigger parent callback after showing success message
+        // 5 second delay to let the celebration animations complete and user to feel the pride
+        setTimeout(() => onEligible(), 5000);
+      }
+    }, 500);
+  };
+
+  // Phase 4: Handle mobile touch ripple effect
+  const handleTouchRipple = (e: React.TouchEvent<HTMLButtonElement>) => {
+    if (!isMobile) return;
+    
+    const button = e.currentTarget;
+    const rect = button.getBoundingClientRect();
+    const x = e.touches[0].clientX - rect.left;
+    const y = e.touches[0].clientY - rect.top;
+    
+    const rippleId = Date.now();
+    setRipples(prev => [...prev, { id: rippleId, x, y }]);
+    
+    // Remove ripple after animation completes
+    setTimeout(() => {
+      setRipples(prev => prev.filter(r => r.id !== rippleId));
+    }, 600);
+  };
+
+  // Phase 4: Handle desktop ink-spread effect from cursor position
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (isMobile || !isButtonHovered) return;
+    
+    const button = e.currentTarget;
+    const rect = button.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    setInkSpreadOrigin({ x, y });
   };
 
   // Ambient background configuration - Studio Ghibli watercolor atmosphere
@@ -1536,32 +1580,41 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                 delay: animationConfig.contentDelay + (isMobile ? 0.6 : 1.2),
                 ease: animationConfig.bounceEasing,
               }}
-              whileHover={{ scale: 1.01 }}
+              whileHover={{ scale: isMobile ? 1 : 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <Button
                 onClick={handleCheckEligibility}
+                onMouseEnter={() => {
+                  setIsButtonHovered(true);
+                  setShowInkSpread(true);
+                }}
+                onMouseLeave={() => {
+                  setIsButtonHovered(false);
+                  setShowInkSpread(false);
+                }}
+                onMouseMove={handleMouseMove}
+                onTouchStart={handleTouchRipple}
+                disabled={isLoading}
                 className="w-full relative overflow-hidden group font-semibold flex items-center justify-center gap-2"
                 style={{
                   height: '56px',
+                  minHeight: '48px', // Touch target size
                   background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softFern} 100%)`,
                   color: '#FEFDFB',
                   borderRadius: '8px',
                   fontSize: '16px',
                   border: 'none',
-                  boxShadow: `0 4px 16px ${bloomStyles.colors.eucalyptusSage}25`,
-                  opacity: 0.95,
-                  transition: 'all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = `0 8px 24px ${bloomStyles.colors.eucalyptusSage}35`;
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = `0 4px 16px ${bloomStyles.colors.eucalyptusSage}25`;
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  boxShadow: isButtonHovered 
+                    ? `0 8px 28px ${bloomStyles.colors.eucalyptusSage}40`
+                    : `0 4px 16px ${bloomStyles.colors.eucalyptusSage}25`,
+                  opacity: isLoading ? 0.7 : 0.95,
+                  transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                  cursor: isLoading ? 'wait' : 'pointer',
+                  transform: isButtonHovered ? 'translateY(-2px)' : 'translateY(0)',
                 }}
               >
+                {/* Phase 4: Paper texture overlay */}
                 <div 
                   className="absolute inset-0 opacity-10 pointer-events-none"
                   style={{
@@ -1570,22 +1623,98 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                   }}
                 />
                 
-                <motion.div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-20 pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(90deg, transparent 0%, white 50%, transparent 100%)',
-                  }}
-                  initial={{ x: '-100%' }}
-                  whileHover={{ x: '100%' }}
-                  transition={{ duration: 0.8, ease: 'easeInOut' }}
-                />
-                
-                <span className="relative z-10 flex items-center gap-2">
-                  <Sparkles 
-                    className="w-5 h-5" 
-                    style={{ opacity: 0.95 }}
+                {/* Phase 4: Ink-spread effect (desktop only) */}
+                {!isMobile && showInkSpread && (
+                  <motion.div
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: `${inkSpreadOrigin.x}%`,
+                      top: `${inkSpreadOrigin.y}%`,
+                      width: '300%',
+                      height: '300%',
+                      background: `radial-gradient(circle at center, ${bloomStyles.colors.softFern}30 0%, transparent 70%)`,
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
                   />
-                  Check Eligibility
+                )}
+                
+                {/* Phase 4: Shimmer sweep effect (desktop hover) */}
+                {!isMobile && (
+                  <motion.div
+                    className="absolute inset-0 opacity-0 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+                    }}
+                    animate={isButtonHovered ? { 
+                      x: ['-100%', '100%'],
+                      opacity: [0, 1, 0]
+                    } : {}}
+                    transition={{ 
+                      duration: 1.2, 
+                      ease: 'easeInOut',
+                      repeat: isButtonHovered ? Infinity : 0,
+                      repeatDelay: 0.5
+                    }}
+                  />
+                )}
+
+                {/* Phase 4: Mobile touch ripples */}
+                {isMobile && ripples.map(ripple => (
+                  <motion.div
+                    key={ripple.id}
+                    className="absolute rounded-full pointer-events-none"
+                    style={{
+                      left: ripple.x,
+                      top: ripple.y,
+                      width: '10px',
+                      height: '10px',
+                      background: 'rgba(255, 255, 255, 0.5)',
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                    initial={{ scale: 0, opacity: 1 }}
+                    animate={{ scale: 20, opacity: 0 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                  />
+                ))}
+                
+                {/* Phase 4: Button content with loading state */}
+                <span className="relative z-10 flex items-center gap-2">
+                  {isLoading ? (
+                    <>
+                      {/* Loading spinner */}
+                      <motion.div
+                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                      />
+                      <span>Checking...</span>
+                    </>
+                  ) : (
+                    <>
+                      {/* Phase 4: Animated sparkle icon */}
+                      <motion.div
+                        animate={isButtonHovered ? {
+                          rotate: [0, -15, 15, -10, 10, 0],
+                          scale: [1, 1.2, 1.2, 1.1, 1.1, 1]
+                        } : {}}
+                        transition={{ 
+                          duration: 0.6,
+                          repeat: isButtonHovered ? Infinity : 0,
+                          repeatDelay: 1
+                        }}
+                      >
+                        <Sparkles 
+                          className="w-5 h-5" 
+                          style={{ opacity: 0.95 }}
+                        />
+                      </motion.div>
+                      Check Eligibility
+                    </>
+                  )}
                 </span>
               </Button>
             </motion.div>

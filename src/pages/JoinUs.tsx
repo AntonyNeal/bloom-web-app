@@ -1,19 +1,41 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS } from "@/config/api";
 import { QualificationCheck } from "@/components/common/QualificationCheck";
-import { Sparkles } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+
+// Mobile detection hook for performance optimizations
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  return isMobile;
+};
+
+// Bloom design system colors
+const bloomStyles = {
+  colors: {
+    eucalyptusSage: '#6B8E7F',
+    softFern: '#8FA892',
+    paleAmber: '#F5E6D3',
+    softTerracotta: '#D4A28F',
+    honeyAmber: '#E8B77D',
+    clayTerracotta: '#C89B7B',
+    warmCream: '#FAF7F2',
+    paperWhite: '#FEFDFB',
+  },
+};
 
 interface FormData {
   first_name: string;
@@ -28,6 +50,9 @@ interface FormData {
 
 export function JoinUs() {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const shouldReduceMotion = useReducedMotion();
+  
   const [hasPassedQualificationCheck, setHasPassedQualificationCheck] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     first_name: "",
@@ -48,6 +73,34 @@ export function JoinUs() {
 
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // Calculate form completion percentage for progress indicator
+  const completionPercentage = useMemo(() => {
+    const fields = [
+      formData.first_name,
+      formData.last_name,
+      formData.email,
+      formData.ahpra_registration,
+      formData.experience_years > 0,
+      formData.cover_letter,
+      files.cv,
+      files.certificate,
+    ];
+    const completed = fields.filter(Boolean).length;
+    return Math.round((completed / fields.length) * 100);
+  }, [formData, files]);
+
+  // Stable random values for floating particles
+  const particleValues = useMemo(() => {
+    const count = isMobile ? 6 : 10;
+    return Array.from({ length: count }, (_, i) => ({
+      startX: (i / count) * 100 + (Math.random() - 0.5) * 20,
+      endX: (i / count) * 100 + (Math.random() - 0.5) * 30,
+      duration: 15 + Math.random() * 10,
+      delay: Math.random() * 2,
+      size: 4 + Math.random() * 4,
+    }));
+  }, [isMobile]);
 
   const handleFileChange =
     (type: "cv" | "certificate" | "photo") =>
@@ -125,48 +178,103 @@ export function JoinUs() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-cream-100 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          <Card className="border-sage-200 shadow-lg bg-white">
-            <CardHeader className="text-center space-y-4">
-              <div className="mx-auto w-20 h-20 bg-gradient-to-br from-success to-sage-600 rounded-full flex items-center justify-center shadow-md">
-                <Sparkles className="w-10 h-10 text-white" />
-              </div>
-              <CardTitle className="font-display text-h1 text-text-primary">
-                Application Submitted!
-              </CardTitle>
-              <CardDescription className="font-body text-body-lg text-text-secondary leading-loose">
-                Thank you for your interest in joining Life Psychology Australia.
-                We'll review your application and be in touch within 5 business
-                days.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-center">
-              <Button
-                onClick={() => {
-                  setSubmitted(false);
-                  setHasPassedQualificationCheck(false);
-                  setFormData({
-                    first_name: "",
-                    last_name: "",
-                    email: "",
-                    phone: "",
-                    ahpra_registration: "",
-                    specializations: [],
-                    experience_years: 0,
-                    cover_letter: "",
-                  });
-                  setFiles({ cv: null, certificate: null, photo: null });
-                }}
-                variant="outline"
-                className="border-sage-300 text-sage-700 hover:bg-sage-50 font-display"
-              >
-                Submit Another Application
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1000,
+          background: 'linear-gradient(135deg, #F0F9F3 0%, #FAF7F2 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          padding: '24px',
+        }}
+      >
+        {/* Garden illustration grows */}
+        <motion.div
+          initial={{ scale: 0, opacity: 0, rotate: -20 }}
+          animate={{ scale: 1, opacity: 1, rotate: 0 }}
+          transition={{ duration: 1, ease: 'easeOut', type: 'spring', bounce: 0.4 }}
+          style={{
+            fontSize: isMobile ? '80px' : '120px',
+            marginBottom: '24px',
+          }}
+        >
+          🌺
+        </motion.div>
+        
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+          style={{
+            fontSize: isMobile ? '28px' : '36px',
+            fontWeight: 600,
+            color: '#3A3A3A',
+            marginBottom: '16px',
+            textAlign: 'center',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          Your Story is Planted
+        </motion.h2>
+        
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          style={{
+            fontSize: isMobile ? '16px' : '18px',
+            color: '#5A5A5A',
+            textAlign: 'center',
+            maxWidth: '500px',
+            lineHeight: 1.6,
+            marginBottom: '32px',
+          }}
+        >
+          We'll nurture your application with care. 
+          Expect to hear from us within 5-7 days.
+        </motion.p>
+
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            setSubmitted(false);
+            setHasPassedQualificationCheck(false);
+            setFormData({
+              first_name: "",
+              last_name: "",
+              email: "",
+              phone: "",
+              ahpra_registration: "",
+              specializations: [],
+              experience_years: 0,
+              cover_letter: "",
+            });
+            setFiles({ cv: null, certificate: null, photo: null });
+          }}
+          style={{
+            padding: '12px 32px',
+            borderRadius: '8px',
+            border: `2px solid ${bloomStyles.colors.eucalyptusSage}`,
+            background: 'white',
+            color: bloomStyles.colors.eucalyptusSage,
+            fontSize: '16px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+        >
+          Return Home
+        </motion.button>
+      </motion.div>
     );
   }
 
@@ -181,218 +289,692 @@ export function JoinUs() {
 
   // Show application form after passing qualification check
   return (
-    <div className="min-h-screen bg-cream-100 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
-          <h1 className="font-display text-display-md text-text-primary mb-3">
-            Join Our Team
-          </h1>
-          <p className="font-body text-body-lg text-text-secondary leading-loose">
-            We're looking for exceptional psychologists who share our commitment
-            to clinical excellence and compassionate care.
-          </p>
-        </div>
+    <div style={{ position: 'relative', minHeight: '100vh', background: bloomStyles.colors.warmCream }}>
+      {/* Ambient Background Layer - same as qualification check */}
+      <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+        {/* Watercolor Blobs */}
+        {[
+          { size: '850px', color: bloomStyles.colors.eucalyptusSage, opacity: 0.08, top: '-20%', right: '-10%', blur: isMobile ? 100 : 150 },
+          { size: '950px', color: bloomStyles.colors.softTerracotta, opacity: 0.05, bottom: '-25%', left: '-15%', blur: isMobile ? 110 : 160 },
+          { size: '750px', color: bloomStyles.colors.paleAmber, opacity: 0.06, top: '40%', left: '-10%', blur: isMobile ? 120 : 180 },
+        ].map((blob, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: blob.opacity, scale: [1, 1.02, 1] }}
+            transition={{
+              opacity: { duration: shouldReduceMotion ? 0.1 : 0.6, delay: i * 0.15 },
+              scale: { duration: 60 + i * 10, repeat: Infinity, ease: 'easeInOut' },
+            }}
+            style={{
+              position: 'absolute',
+              width: blob.size,
+              height: blob.size,
+              borderRadius: '50%',
+              background: blob.color,
+              filter: `blur(${blob.blur}px)`,
+              ...(blob.top && { top: blob.top }),
+              ...(blob.bottom && { bottom: blob.bottom }),
+              ...(blob.left && { left: blob.left }),
+              ...(blob.right && { right: blob.right }),
+            }}
+          />
+        ))}
 
-        <form onSubmit={handleSubmit}>
-          <Card className="border-sage-200 shadow-lg bg-white">
-            <CardHeader>
-              <CardTitle className="font-display text-h2 text-text-primary">
-                Application Form
-              </CardTitle>
-              <CardDescription className="font-body text-body text-text-secondary">
-                All fields marked with <span className="text-error">*</span> are required
-              </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Personal Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first_name" className="font-display text-body-sm text-text-primary">
-                  First Name <span className="text-error">*</span>
-                </Label>
-                <Input
-                  id="first_name"
-                  required
-                  value={formData.first_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, first_name: e.target.value })
-                  }
-                  placeholder="Jane"
-                  className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="last_name" className="font-display text-body-sm text-text-primary">
-                  Last Name <span className="text-error">*</span>
-                </Label>
-                <Input
-                  id="last_name"
-                  required
-                  value={formData.last_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, last_name: e.target.value })
-                  }
-                  placeholder="Smith"
-                  className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email" className="font-display text-body-sm text-text-primary">
-                Email <span className="text-error">*</span>
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                placeholder="jane.smith@email.com"
-                className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="font-display text-body-sm text-text-primary">
-                Phone
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                placeholder="+61 400 000 000"
-                className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
-              />
-            </div>
-
-            {/* Professional Information */}
-            <div className="space-y-2">
-              <Label htmlFor="ahpra" className="font-display text-body-sm text-text-primary">
-                AHPRA Registration Number <span className="text-error">*</span>
-              </Label>
-              <Input
-                id="ahpra"
-                required
-                value={formData.ahpra_registration}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    ahpra_registration: e.target.value,
-                  })
-                }
-                placeholder="PSY0001234567"
-                className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="experience" className="font-display text-body-sm text-text-primary">
-                Years of Experience <span className="text-error">*</span>
-              </Label>
-              <Input
-                id="experience"
-                type="number"
-                required
-                min="0"
-                value={formData.experience_years || ""}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    experience_years: parseInt(e.target.value) || 0,
-                  })
-                }
-                placeholder="5"
-                className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="cover_letter" className="font-display text-body-sm text-text-primary">
-                Cover Letter <span className="text-error">*</span>
-              </Label>
-              <Textarea
-                id="cover_letter"
-                required
-                rows={6}
-                placeholder="Tell us why you'd like to join Life Psychology Australia..."
-                value={formData.cover_letter}
-                onChange={(e) =>
-                  setFormData({ ...formData, cover_letter: e.target.value })
-                }
-                className="resize-none border-sage-200 focus:border-sage-600 focus:ring-sage-600 font-body leading-loose"
-              />
-            </div>
-
-            {/* File Uploads */}
-            <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="cv" className="font-display text-body-sm text-text-primary">
-                CV/Resume <span className="text-error">*</span>
-              </Label>
-              <Input
-                id="cv"
-                type="file"
-                required
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileChange("cv")}
-                className="border-sage-200 focus:border-sage-600"
-              />
-              <p className="font-body text-body-xs text-text-tertiary">
-                Accepted formats: PDF, DOC, DOCX
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="certificate" className="font-display text-body-sm text-text-primary">
-                AHPRA Certificate <span className="text-error">*</span>
-              </Label>
-              <Input
-                id="certificate"
-                type="file"
-                required
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleFileChange("certificate")}
-                className="border-sage-200 focus:border-sage-600"
-              />
-              <p className="font-body text-body-xs text-text-tertiary">
-                Accepted formats: PDF, JPG, PNG
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="photo" className="font-display text-body-sm text-text-primary">
-                Professional Photo (Optional)
-              </Label>
-              <Input
-                id="photo"
-                type="file"
-                accept=".jpg,.jpeg,.png"
-                onChange={handleFileChange("photo")}
-                className="border-sage-200 focus:border-sage-600"
-              />
-              <p className="font-body text-body-xs text-text-tertiary">
-                Accepted formats: JPG, PNG
-              </p>
-            </div>
-          </div>
-
-          <Button 
-            type="submit" 
-            disabled={uploading} 
-            className="w-full bg-sage-600 hover:bg-sage-700 text-white font-display text-body font-semibold py-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-normal"
-          >
-            {uploading ? "Submitting..." : "Submit Application"}
-          </Button>
-        </CardContent>
-      </Card>
-    </form>
+        {/* Floating Particles */}
+        {particleValues.map((particle, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: [0, 0.6, 0.6, 0],
+              x: [`${particle.startX}%`, `${particle.endX}%`],
+              y: ['100%', '-10%'],
+            }}
+            transition={{
+              duration: particle.duration,
+              delay: particle.delay,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+            style={{
+              position: 'absolute',
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+              borderRadius: '50%',
+              background: bloomStyles.colors.eucalyptusSage,
+              filter: 'blur(1px)',
+            }}
+          />
+        ))}
       </div>
+
+      {/* Main Content */}
+      <div style={{ position: 'relative', zIndex: 1, padding: isMobile ? '40px 16px' : '60px 24px' }}>
+        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+          
+          {/* Header - "Plant Your Story" */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            style={{
+              textAlign: 'center',
+              marginBottom: '48px',
+            }}
+          >
+            {/* Animated Seedling */}
+            <motion.div
+              animate={{
+                rotate: [0, 5, 0, -5, 0],
+                scale: [1, 1.05, 1],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+              style={{
+                fontSize: '48px',
+                marginBottom: '16px',
+              }}
+            >
+              🌱
+            </motion.div>
+            
+            <h1 style={{
+              fontSize: isMobile ? '24px' : '32px',
+              fontWeight: 600,
+              color: '#3A3A3A',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.3,
+              marginBottom: '12px',
+            }}>
+              Plant Your Story
+            </h1>
+            
+            <p style={{
+              fontSize: isMobile ? '15px' : '16px',
+              lineHeight: 1.6,
+              color: '#5A5A5A',
+              maxWidth: '500px',
+              margin: '0 auto',
+            }}>
+              Share your journey with us. Each field is a seed - take your time, 
+              and let your story grow naturally.
+            </p>
+          </motion.div>
+
+          {/* Form Card */}
+          <motion.form
+            onSubmit={handleSubmit}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <div
+              style={{
+                padding: isMobile ? '32px 24px' : '48px',
+                background: `linear-gradient(to bottom, #FFFFFF 0%, ${bloomStyles.colors.paperWhite} 100%)`,
+                borderRadius: '12px',
+                boxShadow: `0 4px 24px rgba(107, 142, 127, 0.08)`,
+                border: `1px solid rgba(107, 142, 127, 0.15)`,
+                position: 'relative',
+              }}
+            >
+              {/* Paper Texture Overlay */}
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                opacity: 0.03,
+                borderRadius: '12px',
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'white\' fill-opacity=\'0.3\'%3E%3Cpath d=\'M0 0h20v20H0V0zm20 20h20v20H20V20z\'/%3E%3C/g%3E%3C/svg%3E")',
+                mixBlendMode: 'multiply',
+                pointerEvents: 'none',
+              }} />
+
+              {/* Section: Your Roots 🌸 */}
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                style={{ marginBottom: '32px' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                  <span style={{ fontSize: '24px' }}>🌸</span>
+                  <h2 style={{
+                    fontSize: '20px',
+                    fontWeight: 600,
+                    color: '#3A3A3A',
+                    letterSpacing: '-0.01em',
+                  }}>
+                    Your Roots
+                  </h2>
+                </div>
+
+                {/* Personal Information Fields */}
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                  <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
+                    <Label htmlFor="first_name" style={{
+                      display: 'block',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      color: '#3A3A3A',
+                      marginBottom: '8px',
+                    }}>
+                      First Name <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
+                    </Label>
+                    <Input
+                      id="first_name"
+                      required
+                      value={formData.first_name}
+                      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                      placeholder="Jane"
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        fontSize: '16px',
+                        borderRadius: '8px',
+                        border: `2px solid rgba(107, 142, 127, 0.3)`,
+                        background: bloomStyles.colors.paperWhite,
+                        outline: 'none',
+                        transition: 'all 0.2s',
+                      }}
+                    />
+                  </motion.div>
+
+                  <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} transition={{ delay: 0.05 }}>
+                    <Label htmlFor="last_name" style={{
+                      display: 'block',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      color: '#3A3A3A',
+                      marginBottom: '8px',
+                    }}>
+                      Last Name <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
+                    </Label>
+                    <Input
+                      id="last_name"
+                      required
+                      value={formData.last_name}
+                      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                      placeholder="Smith"
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        fontSize: '16px',
+                        borderRadius: '8px',
+                        border: `2px solid rgba(107, 142, 127, 0.3)`,
+                        background: bloomStyles.colors.paperWhite,
+                        outline: 'none',
+                        transition: 'all 0.2s',
+                      }}
+                    />
+                  </motion.div>
+                </div>
+
+                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '16px' }}>
+                  <Label htmlFor="email" style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#3A3A3A',
+                    marginBottom: '8px',
+                  }}>
+                    Email <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="jane.smith@email.com"
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '16px',
+                      borderRadius: '8px',
+                      border: `2px solid rgba(107, 142, 127, 0.3)`,
+                      background: bloomStyles.colors.paperWhite,
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                    }}
+                  />
+                </motion.div>
+
+                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
+                  <Label htmlFor="phone" style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#3A3A3A',
+                    marginBottom: '8px',
+                  }}>
+                    Phone
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="+61 400 000 000"
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '16px',
+                      borderRadius: '8px',
+                      border: `2px solid rgba(107, 142, 127, 0.3)`,
+                      background: bloomStyles.colors.paperWhite,
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                    }}
+                  />
+                </motion.div>
+              </motion.div>
+
+              {/* Section: Your Growth 🍃 */}
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                style={{ marginTop: '40px', marginBottom: '32px' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                  <span style={{ fontSize: '24px' }}>🍃</span>
+                  <h2 style={{
+                    fontSize: '20px',
+                    fontWeight: 600,
+                    color: '#3A3A3A',
+                    letterSpacing: '-0.01em',
+                  }}>
+                    Your Growth
+                  </h2>
+                </div>
+
+                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '16px' }}>
+                  <Label htmlFor="ahpra" style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#3A3A3A',
+                    marginBottom: '8px',
+                  }}>
+                    AHPRA Registration Number <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
+                  </Label>
+                  <Input
+                    id="ahpra"
+                    required
+                    value={formData.ahpra_registration}
+                    onChange={(e) => setFormData({ ...formData, ahpra_registration: e.target.value })}
+                    placeholder="PSY0001234567"
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '16px',
+                      borderRadius: '8px',
+                      border: `2px solid rgba(107, 142, 127, 0.3)`,
+                      background: bloomStyles.colors.paperWhite,
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                    }}
+                  />
+                </motion.div>
+
+                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
+                  <Label htmlFor="experience" style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#3A3A3A',
+                    marginBottom: '8px',
+                  }}>
+                    Years of Experience <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
+                  </Label>
+                  <Input
+                    id="experience"
+                    type="number"
+                    required
+                    min="0"
+                    value={formData.experience_years || ""}
+                    onChange={(e) => setFormData({ ...formData, experience_years: parseInt(e.target.value) || 0 })}
+                    placeholder="5"
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '16px',
+                      borderRadius: '8px',
+                      border: `2px solid rgba(107, 142, 127, 0.3)`,
+                      background: bloomStyles.colors.paperWhite,
+                      outline: 'none',
+                      transition: 'all 0.2s',
+                    }}
+                  />
+                </motion.div>
+              </motion.div>
+
+              {/* Section: Your Heart 💚 */}
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                style={{ marginTop: '40px', marginBottom: '32px' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                  <span style={{ fontSize: '24px' }}>💚</span>
+                  <h2 style={{
+                    fontSize: '20px',
+                    fontWeight: 600,
+                    color: '#3A3A3A',
+                    letterSpacing: '-0.01em',
+                  }}>
+                    Your Heart
+                  </h2>
+                </div>
+
+                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
+                  <Label htmlFor="cover_letter" style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#3A3A3A',
+                    marginBottom: '8px',
+                  }}>
+                    Cover Letter <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
+                  </Label>
+                  <Textarea
+                    id="cover_letter"
+                    required
+                    rows={6}
+                    value={formData.cover_letter}
+                    onChange={(e) => setFormData({ ...formData, cover_letter: e.target.value })}
+                    placeholder="Share what draws you to Life Psychology Australia. What kind of garden do you hope to help grow?"
+                    style={{
+                      width: '100%',
+                      minHeight: '200px',
+                      padding: '16px',
+                      fontSize: '16px',
+                      lineHeight: 1.6,
+                      borderRadius: '8px',
+                      border: `2px solid rgba(107, 142, 127, 0.3)`,
+                      background: bloomStyles.colors.paperWhite,
+                      outline: 'none',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.2s',
+                    }}
+                  />
+                </motion.div>
+              </motion.div>
+
+              {/* Section: Your Documents 📋 */}
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                style={{ marginTop: '40px', marginBottom: '32px' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                  <span style={{ fontSize: '24px' }}>📋</span>
+                  <h2 style={{
+                    fontSize: '20px',
+                    fontWeight: 600,
+                    color: '#3A3A3A',
+                    letterSpacing: '-0.01em',
+                  }}>
+                    Your Documents
+                  </h2>
+                </div>
+
+                {/* CV/Resume */}
+                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '24px' }}>
+                  <Label htmlFor="cv" style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#3A3A3A',
+                    marginBottom: '8px',
+                  }}>
+                    CV/Resume <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
+                  </Label>
+                  <div style={{
+                    border: `2px dashed rgba(107, 142, 127, 0.3)`,
+                    borderRadius: '8px',
+                    padding: '24px',
+                    textAlign: 'center',
+                    background: 'rgba(107, 142, 127, 0.03)',
+                    cursor: 'pointer',
+                  }}>
+                    <motion.div
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      style={{ fontSize: '32px', marginBottom: '12px' }}
+                    >
+                      📄
+                    </motion.div>
+                    <p style={{ fontSize: '16px', color: '#3A3A3A', marginBottom: '8px', fontWeight: 500 }}>
+                      {files.cv ? files.cv.name : 'Choose file or drag here'}
+                    </p>
+                    <p style={{ fontSize: '14px', color: '#5A5A5A' }}>
+                      PDF, DOC, DOCX (Max 10MB)
+                    </p>
+                    <input
+                      id="cv"
+                      type="file"
+                      required
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleFileChange("cv")}
+                      style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+                    />
+                  </div>
+                </motion.div>
+
+                {/* AHPRA Certificate */}
+                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '24px' }}>
+                  <Label htmlFor="certificate" style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#3A3A3A',
+                    marginBottom: '8px',
+                  }}>
+                    AHPRA Certificate <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
+                  </Label>
+                  <div style={{
+                    border: `2px dashed rgba(107, 142, 127, 0.3)`,
+                    borderRadius: '8px',
+                    padding: '24px',
+                    textAlign: 'center',
+                    background: 'rgba(107, 142, 127, 0.03)',
+                    cursor: 'pointer',
+                  }}>
+                    <motion.div
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+                      style={{ fontSize: '32px', marginBottom: '12px' }}
+                    >
+                      📄
+                    </motion.div>
+                    <p style={{ fontSize: '16px', color: '#3A3A3A', marginBottom: '8px', fontWeight: 500 }}>
+                      {files.certificate ? files.certificate.name : 'Choose file or drag here'}
+                    </p>
+                    <p style={{ fontSize: '14px', color: '#5A5A5A' }}>
+                      PDF, JPG, PNG (Max 10MB)
+                    </p>
+                    <input
+                      id="certificate"
+                      type="file"
+                      required
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleFileChange("certificate")}
+                      style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+                    />
+                  </div>
+                </motion.div>
+
+                {/* Professional Photo (Optional) */}
+                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
+                  <Label htmlFor="photo" style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#3A3A3A',
+                    marginBottom: '8px',
+                  }}>
+                    Professional Photo (Optional)
+                  </Label>
+                  <div style={{
+                    border: `2px dashed rgba(107, 142, 127, 0.3)`,
+                    borderRadius: '8px',
+                    padding: '24px',
+                    textAlign: 'center',
+                    background: 'rgba(107, 142, 127, 0.03)',
+                    cursor: 'pointer',
+                  }}>
+                    <motion.div
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
+                      style={{ fontSize: '32px', marginBottom: '12px' }}
+                    >
+                      📸
+                    </motion.div>
+                    <p style={{ fontSize: '16px', color: '#3A3A3A', marginBottom: '8px', fontWeight: 500 }}>
+                      {files.photo ? files.photo.name : 'Choose file or drag here'}
+                    </p>
+                    <p style={{ fontSize: '14px', color: '#5A5A5A' }}>
+                      JPG, PNG (Max 5MB)
+                    </p>
+                    <input
+                      id="photo"
+                      type="file"
+                      accept=".jpg,.jpeg,.png"
+                      onChange={handleFileChange("photo")}
+                      style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+                    />
+                  </div>
+                </motion.div>
+              </motion.div>
+
+              {/* Submit Button - "Plant Your Application" */}
+              <motion.button
+                type="submit"
+                disabled={uploading}
+                whileHover={!isMobile && !uploading ? {
+                  scale: 1.02,
+                  boxShadow: `0 8px 28px rgba(107, 142, 127, 0.35)`,
+                } : {}}
+                whileTap={{ scale: uploading ? 1 : 0.98 }}
+                style={{
+                  width: '100%',
+                  height: '56px',
+                  minHeight: '48px',
+                  background: uploading 
+                    ? `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage}80 0%, ${bloomStyles.colors.softFern}80 100%)`
+                    : `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softFern} 100%)`,
+                  color: bloomStyles.colors.paperWhite,
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: uploading ? 'wait' : 'pointer',
+                  marginTop: '40px',
+                  boxShadow: `0 4px 16px rgba(107, 142, 127, 0.25)`,
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                {uploading ? (
+                  <>
+                    <motion.div
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        border: '2px solid white',
+                        borderTop: '2px solid transparent',
+                        borderRadius: '50%',
+                      }}
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                    />
+                    <span>Planting...</span>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ fontSize: '20px' }}>🌸</span>
+                    <span>Plant Your Application</span>
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </motion.form>
+        </div>
+      </div>
+
+      {/* Progress Indicator - Floating bottom right */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1 }}
+        style={{
+          position: 'fixed',
+          bottom: isMobile ? '16px' : '24px',
+          right: isMobile ? '16px' : '24px',
+          zIndex: 100,
+        }}
+      >
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: 'rgba(255, 255, 255, 0.95)',
+          boxShadow: '0 4px 16px rgba(107, 142, 127, 0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}>
+          {/* Progress ring */}
+          <svg width="80" height="80" style={{ position: 'absolute', transform: 'rotate(-90deg)' }}>
+            <circle
+              cx="40"
+              cy="40"
+              r="36"
+              fill="none"
+              stroke="rgba(107, 142, 127, 0.2)"
+              strokeWidth="4"
+            />
+            <motion.circle
+              cx="40"
+              cy="40"
+              r="36"
+              fill="none"
+              stroke={bloomStyles.colors.eucalyptusSage}
+              strokeWidth="4"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: completionPercentage / 100 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                strokeDasharray: `${2 * Math.PI * 36}`,
+              }}
+            />
+          </svg>
+          
+          {/* Growing plant icon */}
+          <motion.div
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            style={{ fontSize: '28px', position: 'relative', zIndex: 1 }}
+          >
+            {completionPercentage < 33 ? '🌱' : 
+             completionPercentage < 66 ? '🌿' : 
+             completionPercentage < 100 ? '🌸' : '🌺'}
+          </motion.div>
+        </div>
+      </motion.div>
     </div>
   );
 }

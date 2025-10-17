@@ -1329,208 +1329,180 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                         className="absolute left-1/2 transform -translate-x-1/2"
                         style={{ 
                           bottom: isMobile ? '200px' : '280px',
-                          width: isMobile ? '200px' : '280px',
-                          height: isMobile ? '200px' : '280px',
+                          width: isMobile ? '180px' : '240px',
+                          height: isMobile ? '180px' : '240px',
                         }}
                       >
-                        {/* Outer petal layer */}
-                        {[...Array(8)].map((_, i) => {
-                          const angle = (i / 8) * 360;
-                          const angleRad = (i / 8) * Math.PI * 2;
-                          const distance = isMobile ? 45 : 65;
-                          const colors = ['#FFB6C1', '#DDA0DD', '#B5EAD7', '#FFDAC1'];
-                          
-                          return (
-                            <motion.div
-                              key={`outer-petal-${i}`}
-                              className="absolute left-1/2 top-1/2"
-                              style={{
-                                width: isMobile ? '55px' : '75px',
-                                height: isMobile ? '75px' : '105px',
-                                borderRadius: '45% 55% 50% 50% / 60% 60% 40% 40%',
-                                backgroundColor: colors[i % 4],
-                                opacity: 0.4,
-                                filter: 'blur(2px)',
-                                transformOrigin: 'center center',
-                                transform: `translate(-50%, -50%) translate(${Math.cos(angleRad) * distance}px, ${Math.sin(angleRad) * distance}px) rotate(${angle}deg)`,
-                              }}
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ 
-                                scale: 1,
-                                opacity: 0.4,
-                              }}
-                              transition={{
-                                duration: 1.5,
-                                delay: 0.8 + (i * 0.08),
-                                ease: [0.34, 1.56, 0.64, 1],
-                              }}
-                            />
-                          );
-                        })}
-
-                        {/* Main petal layer */}
-                        {[...Array(6)].map((_, i) => {
-                          const angle = (i / 6) * 360;
-                          const angleRad = (i / 6) * Math.PI * 2;
-                          const distance = isMobile ? 30 : 42;
-                          const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#B5EAD7', '#C7CEEA'];
-                          
-                          return (
-                            <motion.div
-                              key={`main-petal-${i}`}
-                              className="absolute left-1/2 top-1/2"
-                              style={{
-                                width: isMobile ? '45px' : '60px',
-                                height: isMobile ? '60px' : '85px',
-                                borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
-                                background: `linear-gradient(135deg, ${colors[i % colors.length]} 0%, ${colors[(i + 1) % colors.length]} 100%)`,
-                                opacity: 0.85,
-                                boxShadow: `0 4px 15px ${colors[i % colors.length]}30`,
-                                transformOrigin: 'center center',
-                                transform: `translate(-50%, -50%) translate(${Math.cos(angleRad) * distance}px, ${Math.sin(angleRad) * distance}px) rotate(${angle + 30}deg)`,
-                              }}
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ 
-                                scale: 1,
-                                opacity: 0.85,
-                              }}
-                              transition={{
-                                duration: 1.2,
-                                delay: 1.0 + (i * 0.1),
-                                ease: [0.34, 1.56, 0.64, 1],
-                              }}
-                            >
-                              {/* Petal highlight */}
-                              <div
-                                className="absolute inset-0 rounded-[inherit]"
-                                style={{
-                                  background: `linear-gradient(to top, transparent 40%, rgba(255, 255, 255, 0.4) 70%, transparent 100%)`,
-                                }}
-                              />
-                            </motion.div>
-                          );
-                        })}
-
-                        {/* Flower center - pistil and stamens */}
-                        <motion.div
-                          className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                          style={{
-                            width: isMobile ? '60px' : '80px',
-                            height: isMobile ? '60px' : '80px',
-                            borderRadius: '50%',
-                            background: `radial-gradient(circle at 35% 35%, #FFFACD 0%, ${bloomStyles.colors.honeyAmber} 100%)`,
-                            boxShadow: `
-                              0 0 25px ${bloomStyles.colors.honeyAmber}50,
-                              inset 0 -8px 20px rgba(0, 0, 0, 0.08),
-                              inset 0 8px 20px rgba(255, 255, 255, 0.5)
-                            `,
-                          }}
-                          initial={{ scale: 0 }}
-                          animate={{ scale: [0, 1.15, 1] }}
+                        {/* Simple SVG flower - reliable rendering */}
+                        <motion.svg
+                          viewBox="0 0 200 200"
+                          className="absolute inset-0 w-full h-full"
+                          initial={{ scale: 0, rotate: -45 }}
+                          animate={{ scale: 1, rotate: 0 }}
                           transition={{
-                            duration: 1.0,
-                            delay: 1.4,
+                            duration: 1.5,
+                            delay: 0.8,
                             ease: [0.34, 1.56, 0.64, 1],
                           }}
                         >
-                          {/* Center texture details */}
-                          {[...Array(12)].map((_, i) => {
-                            const angle = (i / 12) * Math.PI * 2;
-                            const distance = isMobile ? 18 : 24;
+                          {/* Outer petal ring */}
+                          {[...Array(8)].map((_, i) => {
+                            const angle = (i / 8) * 360 - 90;
+                            const x = 100 + Math.cos((angle * Math.PI) / 180) * 60;
+                            const y = 100 + Math.sin((angle * Math.PI) / 180) * 60;
+                            const colors = ['#FFB6C1', '#DDA0DD', '#FFE4E1', '#E6E6FA'];
                             
                             return (
-                              <motion.div
-                                key={`stamen-${i}`}
-                                className="absolute left-1/2 top-1/2"
-                                style={{
-                                  width: '3px',
-                                  height: isMobile ? '12px' : '16px',
-                                  backgroundColor: bloomStyles.colors.honeyAmber,
-                                  opacity: 0.6,
-                                  transformOrigin: 'bottom center',
-                                  transform: `
-                                    translate(-50%, 0)
-                                    translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)
-                                  `,
-                                }}
-                                initial={{ scaleY: 0, opacity: 0 }}
-                                animate={{ scaleY: 1, opacity: 0.6 }}
+                              <motion.ellipse
+                                key={`outer-${i}`}
+                                cx={x}
+                                cy={y}
+                                rx="25"
+                                ry="35"
+                                fill={colors[i % 4]}
+                                opacity="0.5"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 0.5 }}
                                 transition={{
-                                  duration: 0.5,
-                                  delay: 1.8 + (i * 0.03),
+                                  duration: 0.8,
+                                  delay: 1.0 + (i * 0.08),
+                                  ease: [0.34, 1.56, 0.64, 1],
                                 }}
-                              >
-                                <div
-                                  className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                                  style={{
-                                    width: '4px',
-                                    height: '4px',
-                                    backgroundColor: '#FFD700',
-                                    borderRadius: '50%',
-                                    boxShadow: '0 0 6px rgba(255, 215, 0, 0.6)',
-                                  }}
-                                />
-                              </motion.div>
+                                style={{
+                                  transformOrigin: `${x}px ${y}px`,
+                                  filter: 'blur(1px)',
+                                }}
+                              />
                             );
                           })}
-
-                          {/* Central sparkle */}
-                          <motion.div
-                            className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                            initial={{ opacity: 0, scale: 0 }}
-                            animate={{ 
-                              opacity: [0, 1, 0.9],
-                              scale: [0, 1.2, 1],
-                              rotate: 360,
-                            }}
+                          
+                          {/* Main petal ring */}
+                          {[...Array(6)].map((_, i) => {
+                            const angle = (i / 6) * 360 - 90;
+                            const x = 100 + Math.cos((angle * Math.PI) / 180) * 45;
+                            const y = 100 + Math.sin((angle * Math.PI) / 180) * 45;
+                            
+                            return (
+                              <motion.ellipse
+                                key={`main-${i}`}
+                                cx={x}
+                                cy={y}
+                                rx="22"
+                                ry="32"
+                                fill={`url(#gradient-${i})`}
+                                opacity="0.9"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 0.9 }}
+                                transition={{
+                                  duration: 0.8,
+                                  delay: 1.2 + (i * 0.1),
+                                  ease: [0.34, 1.56, 0.64, 1],
+                                }}
+                                style={{
+                                  transformOrigin: `${x}px ${y}px`,
+                                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                                }}
+                              />
+                            );
+                          })}
+                          
+                          {/* Gradients for main petals */}
+                          <defs>
+                            {['#FF9AA2', '#FFB7B2', '#FFDAC1', '#B5EAD7', '#C7CEEA', '#FFB6C1'].map((color, i) => (
+                              <linearGradient key={`gradient-${i}`} id={`gradient-${i}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor={color} stopOpacity="1" />
+                                <stop offset="100%" stopColor={color} stopOpacity="0.7" />
+                              </linearGradient>
+                            ))}
+                          </defs>
+                          
+                          {/* Center */}
+                          <motion.circle
+                            cx="100"
+                            cy="100"
+                            r={isMobile ? "28" : "35"}
+                            fill={`url(#centerGradient)`}
+                            initial={{ scale: 0 }}
+                            animate={{ scale: [0, 1.15, 1] }}
                             transition={{
-                              duration: 2.5,
-                              delay: 2.2,
-                              repeat: Infinity,
-                              repeatDelay: 1,
+                              duration: 0.8,
+                              delay: 1.6,
+                              ease: [0.34, 1.56, 0.64, 1],
                             }}
-                          >
-                            <Sparkles 
-                              style={{ 
-                                width: isMobile ? '28px' : '38px',
-                                height: isMobile ? '28px' : '38px',
-                                color: '#FFFFFF',
-                                filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))',
-                              }}
-                            />
-                          </motion.div>
+                            style={{
+                              filter: `drop-shadow(0 0 15px ${bloomStyles.colors.honeyAmber}60)`,
+                            }}
+                          />
+                          
+                          <defs>
+                            <radialGradient id="centerGradient">
+                              <stop offset="0%" stopColor="#FFFACD" />
+                              <stop offset="100%" stopColor={bloomStyles.colors.honeyAmber} />
+                            </radialGradient>
+                          </defs>
+                        </motion.svg>
+
+                        {/* Central sparkle overlay */}
+                        <motion.div
+                          className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                          initial={{ opacity: 0, scale: 0 }}
+                          animate={{ 
+                            opacity: [0, 1, 0.9],
+                            scale: [0, 1.2, 1],
+                            rotate: [0, 180, 360],
+                          }}
+                          transition={{
+                            duration: 2.5,
+                            delay: 2.0,
+                            repeat: Infinity,
+                            repeatDelay: 1,
+                          }}
+                        >
+                          <Sparkles 
+                            style={{ 
+                              width: isMobile ? '32px' : '42px',
+                              height: isMobile ? '32px' : '42px',
+                              color: '#FFFFFF',
+                              filter: 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.9))',
+                            }}
+                          />
                         </motion.div>
                       </div>
 
-                      {/* Light rays from center */}
-                      {[...Array(8)].map((_, i) => {
-                        const angle = (i / 8) * 360;
-                        
-                        return (
-                          <motion.div
-                            key={`ray-${i}`}
-                            className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                            style={{
-                              width: '2px',
-                              height: isMobile ? '150px' : '220px',
-                              background: `linear-gradient(to bottom, ${bloomStyles.colors.honeyAmber}00, ${bloomStyles.colors.honeyAmber}20, ${bloomStyles.colors.honeyAmber}00)`,
-                              transformOrigin: 'top center',
-                              filter: 'blur(2px)',
-                            }}
-                            initial={{ opacity: 0, scaleY: 0, rotate: angle }}
-                            animate={{ 
-                              opacity: 0.5,
-                              scaleY: 1,
-                              rotate: angle,
-                            }}
-                            transition={{
-                              duration: 1.5,
-                              delay: 2.5 + (i * 0.05),
-                              ease: "easeOut",
-                            }}
-                          />
-                        );
-                      })}
+                      {/* Light rays from flower center */}
+                      <motion.div
+                        className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                        style={{
+                          width: isMobile ? '300px' : '400px',
+                          height: isMobile ? '300px' : '400px',
+                          bottom: isMobile ? '100px' : '140px',
+                        }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: [0, 0.3, 0.2], scale: 1, rotate: 360 }}
+                        transition={{
+                          opacity: { duration: 2, delay: 2.3 },
+                          scale: { duration: 2, delay: 2.3 },
+                          rotate: { duration: 40, repeat: Infinity, ease: "linear" },
+                        }}
+                      >
+                        {[...Array(8)].map((_, i) => {
+                          const angle = (i / 8) * 360;
+                          return (
+                            <div
+                              key={`ray-${i}`}
+                              className="absolute left-1/2 top-1/2"
+                              style={{
+                                width: '2px',
+                                height: '50%',
+                                background: `linear-gradient(to bottom, ${bloomStyles.colors.honeyAmber}40, transparent)`,
+                                transformOrigin: 'top center',
+                                transform: `translateX(-50%) rotate(${angle}deg)`,
+                                filter: 'blur(2px)',
+                              }}
+                            />
+                          );
+                        })}
+                      </motion.div>
                     </div>
 
                     {/* Minimal text - just essence */}

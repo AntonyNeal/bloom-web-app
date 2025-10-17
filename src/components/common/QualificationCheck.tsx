@@ -9,7 +9,7 @@
  * 6. Would this work in Kiki's Delivery Service?
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -192,6 +192,34 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
     // Easing - use "easeOut" string for Framer Motion compatibility
     bounceEasing: 'easeOut' as const,
   };
+
+  // Stable random values for floating seeds (prevents recalculation on each render)
+  const seedValues = useMemo(() => {
+    const count = isMobile ? 15 : 25;
+    // eslint-disable-next-line react-hooks/rules-of-hooks, react-hooks/purity
+    return Array.from({ length: count }, (_, i) => {
+      const startX = (i / count) * 100 + (Math.random() - 0.5) * 20;
+      return {
+        startX,
+        endX: startX + (Math.random() - 0.5) * 30,
+        duration: 10 + Math.random() * 8,
+        delay: Math.random() * 2,
+        width: 2 + Math.random() * 3,
+        height: 2 + Math.random() * 3,
+        blur: 0.5 + Math.random() * 0.5,
+      };
+    });
+  }, [isMobile]);
+
+  // Stable random values for ground wildflowers (prevents recalculation on each render)
+  const wildflowerValues = useMemo(() => {
+    const count = isMobile ? 12 : 20;
+    // eslint-disable-next-line react-hooks/rules-of-hooks, react-hooks/purity
+    return Array.from({ length: count }, () => ({
+      stemHeight: 30 + Math.random() * 50,
+      flowerSize: 6 + Math.random() * 8,
+    }));
+  }, [isMobile]);
 
   const handleCheckEligibility = () => {
     const eligible = isRegisteredPsychologist || hasPhd || yearsRegistered >= 8;
@@ -393,7 +421,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
               ease: 'easeOut',
             }}
             style={{ willChange: 'transform, opacity' }}
-            onAnimationComplete={(definition: any) => {
+            onAnimationComplete={(definition: { opacity?: number }) => {
               if (definition.opacity === blob.opacity) {
                 const element = document.querySelector(`[data-blob="${index}"]`);
                 if (element instanceof HTMLElement) {
@@ -420,7 +448,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
               ease: 'easeOut',
             }}
             style={{ willChange: 'opacity' }}
-            onAnimationComplete={(definition: any) => {
+            onAnimationComplete={(definition: { opacity?: number }) => {
               if (definition.opacity === particle.opacity) {
                 const element = document.querySelector(`[data-particle="${index}"]`);
                 if (element instanceof HTMLElement) {
@@ -1140,41 +1168,34 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                   />
 
                   {/* Gentle floating seeds - reduced for performance */}
-                  {[...Array(isMobile ? 15 : 25)].map((_, i) => {
-                    const startX = Math.random() * 100;
-                    const endX = startX + (Math.random() - 0.5) * 30;
-                    const duration = 10 + Math.random() * 8;
-                    const delay = Math.random() * 2;
-                    
-                    return (
-                      <motion.div
-                        key={`seed-${i}`}
-                        className="absolute"
-                        style={{
-                          width: `${2 + Math.random() * 3}px`,
-                          height: `${2 + Math.random() * 3}px`,
-                          borderRadius: '50%',
-                          backgroundColor: ['#88C399', '#D9B380', '#FFB6C1', '#FFFFFF'][i % 4],
-                          opacity: 0.25,
-                          filter: `blur(${0.5 + Math.random() * 0.5}px)`,
-                          left: `${startX}%`,
-                          top: '-5%',
-                          willChange: 'transform',
-                        }}
-                        animate={{
-                          y: ['0vh', '105vh'],
-                          x: [`0vw`, `${endX - startX}vw`],
-                          opacity: [0, 0.3, 0.3, 0],
-                        }}
-                        transition={{
-                          duration,
-                          delay,
-                          repeat: Infinity,
-                          ease: "linear",
-                        }}
-                      />
-                    );
-                  })}
+                  {seedValues.map((seed, i) => (
+                    <motion.div
+                      key={`seed-${i}`}
+                      className="absolute"
+                      style={{
+                        width: `${seed.width}px`,
+                        height: `${seed.height}px`,
+                        borderRadius: '50%',
+                        backgroundColor: ['#88C399', '#D9B380', '#FFB6C1', '#FFFFFF'][i % 4],
+                        opacity: 0.25,
+                        filter: `blur(${seed.blur}px)`,
+                        left: `${seed.startX}%`,
+                        top: '-5%',
+                        willChange: 'transform',
+                      }}
+                      animate={{
+                        y: ['0vh', '105vh'],
+                        x: [`0vw`, `${seed.endX - seed.startX}vw`],
+                        opacity: [0, 0.3, 0.3, 0],
+                      }}
+                      transition={{
+                        duration: seed.duration,
+                        delay: seed.delay,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                    />
+                  ))}
 
                   {/* Main centered composition - proper container structure */}
                   <div 
@@ -1191,9 +1212,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                       className="absolute bottom-0 left-0 right-0 flex items-end justify-around"
                       style={{ height: '25%' }}
                     >
-                      {[...Array(isMobile ? 12 : 20)].map((_, i) => {
-                        const stemHeight = 30 + Math.random() * 50;
-                        const flowerSize = 6 + Math.random() * 8;
+                      {wildflowerValues.map((flower, i) => {
                         const flowerColor = ['#FFB6C1', '#DDA0DD', '#FFE4E1', '#E6E6FA'][i % 4];
                         
                         return (
@@ -1202,7 +1221,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                             className="relative"
                             style={{
                               width: '2px',
-                              height: `${stemHeight}px`,
+                              height: `${flower.stemHeight}px`,
                               backgroundColor: bloomStyles.colors.eucalyptusSage,
                               opacity: 0.5,
                             }}
@@ -1217,8 +1236,8 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                             <motion.div
                               className="absolute top-0 left-1/2 transform -translate-x-1/2"
                               style={{
-                                width: `${flowerSize}px`,
-                                height: `${flowerSize}px`,
+                                width: `${flower.flowerSize}px`,
+                                height: `${flower.flowerSize}px`,
                                 backgroundColor: flowerColor,
                                 borderRadius: '50%',
                                 opacity: 0.7,

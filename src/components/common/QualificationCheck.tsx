@@ -1199,19 +1199,22 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
 
                   {/* Main centered composition - proper container structure */}
                   <div 
-                    className="relative flex items-center justify-center"
-                    style={{ 
-                      width: '100%',
-                      height: '100%',
-                      maxWidth: isMobile ? '95vw' : '800px',
-                      maxHeight: isMobile ? '80vh' : '600px',
-                    }}
+                    className="absolute inset-0 flex items-center justify-center"
                   >
-                    {/* Ground layer - wildflower garden base */}
-                    <div 
-                      className="absolute bottom-0 left-0 right-0 flex items-end justify-around"
-                      style={{ height: '25%' }}
+                    <div
+                      className="relative"
+                      style={{ 
+                        width: isMobile ? '95vw' : '800px',
+                        height: isMobile ? '80vh' : '600px',
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                      }}
                     >
+                      {/* Ground layer - wildflower garden base */}
+                      <div 
+                        className="absolute bottom-0 left-0 right-0 flex items-end justify-around"
+                        style={{ height: '25%' }}
+                      >
                       {wildflowerValues.map((flower, i) => {
                         const flowerColor = ['#FFB6C1', '#DDA0DD', '#FFE4E1', '#E6E6FA'][i % 4];
                         
@@ -1545,6 +1548,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                         🌸
                       </p>
                     </motion.div>
+                    </div>
                   </div>
                 </motion.div>
               </>

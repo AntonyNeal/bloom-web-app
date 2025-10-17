@@ -101,48 +101,48 @@ jobs:
             "refs/heads/develop")
               echo "✅ Matched: develop branch"
               echo "🎯 Target Environment: development"
-              echo "🏗️ App Name: lpa-frontend-dev"
+              echo "🏗️ App Name: lpa-bloom-dev"
               echo "🚀 Should Deploy: true"
               echo "🧪 Should Test: true"
               echo ""
               echo "environment=development" >> $GITHUB_OUTPUT
-              echo "app-name=lpa-frontend-dev" >> $GITHUB_OUTPUT
+              echo "app-name=lpa-bloom-dev" >> $GITHUB_OUTPUT
               echo "should-deploy=true" >> $GITHUB_OUTPUT
               echo "should-test=true" >> $GITHUB_OUTPUT
               ;;
             "refs/heads/staging")
               echo "✅ Matched: staging branch"
               echo "🎯 Target Environment: staging"
-              echo "🏗️ App Name: lpa-frontend-staging"
+              echo "🏗️ App Name: lpa-bloom-staging"
               echo "🚀 Should Deploy: true"
               echo "🧪 Should Test: true"
               echo ""
               echo "environment=staging" >> $GITHUB_OUTPUT
-              echo "app-name=lpa-frontend-staging" >> $GITHUB_OUTPUT
+              echo "app-name=lpa-bloom-staging" >> $GITHUB_OUTPUT
               echo "should-deploy=true" >> $GITHUB_OUTPUT
               echo "should-test=true" >> $GITHUB_OUTPUT
               ;;
             "refs/heads/main")
               echo "✅ Matched: main branch"
               echo "🎯 Target Environment: production"
-              echo "🏗️ App Name: lpa-frontend-prod"
+              echo "🏗️ App Name: lpa-bloom-prod"
               echo "🚀 Should Deploy: true"
               echo "🧪 Should Test: true"
               echo ""
               echo "environment=production" >> $GITHUB_OUTPUT
-              echo "app-name=lpa-frontend-prod" >> $GITHUB_OUTPUT
+              echo "app-name=lpa-bloom-prod" >> $GITHUB_OUTPUT
               echo "should-deploy=true" >> $GITHUB_OUTPUT
               echo "should-test=true" >> $GITHUB_OUTPUT
               ;;
             *)
               echo "⚠️ No specific match found for branch: ${{ github.ref_name }}"
               echo "🎯 Defaulting to: development environment"
-              echo "🏗️ App Name: lpa-frontend-dev"
+              echo "🏗️ App Name: lpa-bloom-dev"
               echo "🚀 Should Deploy: false"
               echo "🧪 Should Test: false"
               echo ""
               echo "environment=development" >> $GITHUB_OUTPUT
-              echo "app-name=lpa-frontend-dev" >> $GITHUB_OUTPUT
+              echo "app-name=lpa-bloom-dev" >> $GITHUB_OUTPUT
               echo "should-deploy=false" >> $GITHUB_OUTPUT
               echo "should-test=false" >> $GITHUB_OUTPUT
               ;;
@@ -561,6 +561,31 @@ jobs:
             echo "ERROR: dist/index.html not found - aborting deploy"
             exit 1
           fi
+      - name: Verify deployment target (SAFETY CHECK)
+        run: |
+          echo "🔒 SAFETY CHECK: Verifying deployment target..."
+          echo "Target App: ${{ needs.determine-environment.outputs.app-name }}"
+          echo "Target Environment: ${{ needs.determine-environment.outputs.environment }}"
+          
+          # Ensure we NEVER deploy to any lpa-frontend-* apps (Life Psychology main site)
+          if [[ "${{ needs.determine-environment.outputs.app-name }}" == lpa-frontend-* ]]; then
+            echo "❌ CRITICAL ERROR: Attempted to deploy to ${{ needs.determine-environment.outputs.app-name }}!"
+            echo "❌ All lpa-frontend-* apps are for the main Life Psychology website!"
+            echo "❌ Bloom should ONLY deploy to lpa-bloom-* apps!"
+            echo "❌ Expected app-name pattern: lpa-bloom-dev, lpa-bloom-staging, or lpa-bloom-prod"
+            echo "❌ DEPLOYMENT ABORTED FOR SAFETY"
+            exit 1
+          fi
+          
+          # Verify it's a valid bloom app name
+          if [[ "${{ needs.determine-environment.outputs.app-name }}" != lpa-bloom-* ]]; then
+            echo "❌ CRITICAL ERROR: Invalid app name: ${{ needs.determine-environment.outputs.app-name }}"
+            echo "❌ Bloom deployments must target lpa-bloom-* apps only"
+            echo "❌ DEPLOYMENT ABORTED FOR SAFETY"
+            exit 1
+          fi
+          
+          echo "✅ Safety check passed: Deploying to correct Bloom app"
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:

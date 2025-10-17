@@ -154,6 +154,321 @@ const bloomStyles = {
   }
 };
 
+// Phase 6: Flower Recognition Components
+
+// Tier 1: Clinical Psychologist - Small pink wildflower
+interface Tier1FlowerProps {
+  isChecked: boolean;
+  isMobile: boolean;
+  shouldReduceMotion: boolean | null;
+}
+
+function Tier1Flower({ isChecked, isMobile, shouldReduceMotion }: Tier1FlowerProps) {
+  if (!isChecked) return null;
+
+  const size = isMobile ? 14 : 16;
+  const reduceMotion = shouldReduceMotion || false;
+  
+  return (
+    <motion.svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      initial={{ scale: 0, opacity: 0, rotate: -90 }}
+      animate={{ scale: 1, opacity: 1, rotate: 0 }}
+      exit={{ scale: 0, opacity: 0 }}
+      transition={{
+        delay: reduceMotion ? 0 : 0.5,
+        duration: reduceMotion ? 0.2 : 1.2,
+        ease: [0.34, 1.56, 0.64, 1],
+      }}
+      style={{
+        position: 'absolute',
+        left: 'calc(100% + 8px)',
+        top: '50%',
+        transform: 'translateY(-50%)',
+      }}
+      aria-hidden="true"
+    >
+      <motion.g
+        animate={reduceMotion ? {} : {
+          rotate: [0, 3, -2, 1, 0],
+          scale: [1, 1.05, 0.98, 1],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      >
+        {/* Center circle */}
+        <circle cx="12" cy="12" r="3" fill="#D4A5A5" />
+        
+        {/* 5 petals radiating from center */}
+        {[0, 72, 144, 216, 288].map((angle, i) => {
+          const x = 12 + Math.cos((angle * Math.PI) / 180) * 6;
+          const y = 12 + Math.sin((angle * Math.PI) / 180) * 6;
+          return (
+            <ellipse
+              key={i}
+              cx={x}
+              cy={y}
+              rx="4"
+              ry="6"
+              fill="#FFB6C1"
+              opacity="0.9"
+              transform={`rotate(${angle} ${x} ${y})`}
+            />
+          );
+        })}
+      </motion.g>
+    </motion.svg>
+  );
+}
+
+// Tier 2: 8+ Years - Larger purple flower with sparkles
+interface Tier2FlowerProps {
+  isChecked: boolean;
+  isMobile: boolean;
+  shouldReduceMotion: boolean | null;
+}
+
+function Tier2Flower({ isChecked, isMobile, shouldReduceMotion }: Tier2FlowerProps) {
+  if (!isChecked) return null;
+
+  const size = isMobile ? 16 : 20;
+  const sparkleCount = isMobile ? 2 : 4;
+  const reduceMotion = shouldReduceMotion || false;
+  
+  return (
+    <div style={{ position: 'absolute', left: 'calc(100% + 8px)', top: '50%', transform: 'translateY(-50%)' }}>
+      <motion.svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        initial={{ scale: 0, opacity: 0, rotate: -90 }}
+        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+        exit={{ scale: 0, opacity: 0 }}
+        transition={{
+          delay: reduceMotion ? 0 : 0.5,
+          duration: reduceMotion ? 0.2 : 1.4,
+          ease: [0.34, 1.56, 0.64, 1],
+        }}
+        aria-hidden="true"
+      >
+        <motion.g
+          animate={reduceMotion ? {} : {
+            rotate: [0, 5, -3, 2, 0],
+            scale: [1, 1.05, 0.98, 1],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        >
+          {/* Center circle - golden */}
+          <circle cx="12" cy="12" r="3.5" fill="#D9B380" />
+          
+          {/* 6 petals - purple */}
+          {[0, 60, 120, 180, 240, 300].map((angle, i) => {
+            const x = 12 + Math.cos((angle * Math.PI) / 180) * 7;
+            const y = 12 + Math.sin((angle * Math.PI) / 180) * 7;
+            return (
+              <ellipse
+                key={i}
+                cx={x}
+                cy={y}
+                rx="4.5"
+                ry="7"
+                fill="#9B72AA"
+                opacity="0.9"
+                transform={`rotate(${angle} ${x} ${y})`}
+              />
+            );
+          })}
+        </motion.g>
+      </motion.svg>
+      
+      {/* Sparkle burst */}
+      {!reduceMotion && [...Array(sparkleCount)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            x: 0, 
+            y: 0, 
+            opacity: 0.8,
+            scale: 1,
+          }}
+          animate={{
+            x: Math.random() * 20 - 10,
+            y: -30,
+            opacity: 0,
+            scale: 0.3,
+          }}
+          transition={{
+            duration: 1.5,
+            delay: 1.2 + (i * 0.1),
+            ease: 'easeOut',
+          }}
+          style={{
+            position: 'absolute',
+            width: '4px',
+            height: '4px',
+            borderRadius: '50%',
+            background: '#D9B380',
+            pointerEvents: 'none',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Tier 3: PhD - Golden flower with rotating halo
+interface Tier3FlowerProps {
+  isChecked: boolean;
+  isMobile: boolean;
+  shouldReduceMotion: boolean | null;
+}
+
+function Tier3Flower({ isChecked, isMobile, shouldReduceMotion }: Tier3FlowerProps) {
+  if (!isChecked) return null;
+
+  const size = isMobile ? 20 : 24;
+  const rayCount = isMobile ? 6 : 8;
+  const sparkleCount = isMobile ? 4 : 8;
+  const reduceMotion = shouldReduceMotion || false;
+  
+  return (
+    <div style={{ position: 'absolute', left: 'calc(100% + 8px)', top: '50%', transform: 'translateY(-50%)' }}>
+      <motion.svg
+        width={size}
+        height={size}
+        viewBox="0 0 32 32"
+        initial={{ scale: 0, opacity: 0, rotate: -90 }}
+        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+        exit={{ scale: 0, opacity: 0 }}
+        transition={{
+          delay: reduceMotion ? 0 : 0.6,
+          duration: reduceMotion ? 0.2 : 1.6,
+          ease: [0.34, 1.56, 0.64, 1],
+        }}
+        aria-hidden="true"
+      >
+        <defs>
+          <radialGradient id="goldGradient">
+            <stop offset="0%" stopColor="#FFFACD" />
+            <stop offset="100%" stopColor="#F4D03F" />
+          </radialGradient>
+        </defs>
+
+        {/* Rotating halo of light rays */}
+        {!reduceMotion && (
+          <motion.g
+            animate={{ rotate: 360 }}
+            transition={{
+              duration: 30,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+            style={{ transformOrigin: '16px 16px' }}
+          >
+            {[...Array(rayCount)].map((_, i) => {
+              const angle = (i * 360) / rayCount;
+              return (
+                <motion.line
+                  key={i}
+                  x1="16"
+                  y1="16"
+                  x2={16 + Math.cos((angle * Math.PI) / 180) * 12}
+                  y2={16 + Math.sin((angle * Math.PI) / 180) * 12}
+                  stroke="#F4D03F"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  opacity="0.4"
+                  animate={{ opacity: [0.2, 0.6, 0.2] }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: i * 0.1,
+                  }}
+                />
+              );
+            })}
+          </motion.g>
+        )}
+        
+        {/* Golden flower */}
+        <motion.g
+          animate={reduceMotion ? {} : {
+            scale: [1, 1.05, 1],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+          }}
+        >
+          {/* Center circle with gradient */}
+          <circle cx="16" cy="16" r="4" fill="url(#goldGradient)" />
+          
+          {/* 8 golden petals */}
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
+            const x = 16 + Math.cos((angle * Math.PI) / 180) * 8;
+            const y = 16 + Math.sin((angle * Math.PI) / 180) * 8;
+            return (
+              <ellipse
+                key={i}
+                cx={x}
+                cy={y}
+                rx="5"
+                ry="8"
+                fill="#F4D03F"
+                opacity="0.95"
+                transform={`rotate(${angle} ${x} ${y})`}
+              />
+            );
+          })}
+        </motion.g>
+      </motion.svg>
+      
+      {/* Continuous sparkle particles */}
+      {!reduceMotion && [...Array(sparkleCount)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            x: 0, 
+            y: 0, 
+            opacity: 0,
+            scale: 1,
+          }}
+          animate={{
+            x: (Math.random() - 0.5) * 30,
+            y: -40,
+            opacity: [0, 0.8, 0],
+            scale: [1, 1.2, 0.3],
+          }}
+          transition={{
+            duration: 2,
+            delay: 1.5 + (i * 0.2),
+            repeat: Infinity,
+            repeatDelay: 2,
+            ease: 'easeOut',
+          }}
+          style={{
+            position: 'absolute',
+            width: '4px',
+            height: '4px',
+            borderRadius: '50%',
+            background: '#F4D03F',
+            pointerEvents: 'none',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   const [isRegisteredPsychologist, setIsRegisteredPsychologist] = useState(false);
   const [hasPhd, setHasPhd] = useState(false);
@@ -169,6 +484,56 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   const [inkSpreadOrigin, setInkSpreadOrigin] = useState({ x: 0, y: 0 });
   const [showInkSpread, setShowInkSpread] = useState(false);
   const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([]);
+
+  // Phase 6: Garden recognition states
+  type YearsIcon = 'none' | 'leaf' | 'bud' | 'flower' | 'honored';
+  const [yearsIcon, setYearsIcon] = useState<YearsIcon>('none');
+  const [showDelayedBloom, setShowDelayedBloom] = useState(false);
+
+  // Phase 6: Calculate years-based recognition
+  useEffect(() => {
+    if (yearsRegistered >= 16) setYearsIcon('honored');
+    else if (yearsRegistered >= 8) setYearsIcon('flower');
+    else if (yearsRegistered >= 5) setYearsIcon('bud');
+    else if (yearsRegistered >= 3) setYearsIcon('leaf');
+    else setYearsIcon('none');
+  }, [yearsRegistered]);
+
+  // Phase 6: Track if qualifications are complete
+  const hasQualification = isRegisteredPsychologist || hasPhd;
+  const allQualified = hasQualification || yearsRegistered >= 8;
+
+  // Phase 6: Trigger delayed bloom when qualifications completed after years entered
+  useEffect(() => {
+    if (yearsRegistered >= 8 && hasQualification && !showDelayedBloom) {
+      setShowDelayedBloom(true);
+      setTimeout(() => setShowDelayedBloom(false), 2000);
+    }
+  }, [hasQualification, yearsRegistered, showDelayedBloom]);
+
+  // Phase 6: Screen reader announcements for qualification recognition
+  const [srAnnouncement, setSrAnnouncement] = useState('');
+  
+  useEffect(() => {
+    if (isRegisteredPsychologist) {
+      setSrAnnouncement('Clinical Psychologist qualification recognized');
+      setTimeout(() => setSrAnnouncement(''), 3000);
+    }
+  }, [isRegisteredPsychologist]);
+  
+  useEffect(() => {
+    if (hasPhd) {
+      setSrAnnouncement('PhD qualification recognized with highest honors');
+      setTimeout(() => setSrAnnouncement(''), 3000);
+    }
+  }, [hasPhd]);
+  
+  useEffect(() => {
+    if (yearsRegistered >= 8) {
+      setSrAnnouncement('Eight or more years of experience recognized');
+      setTimeout(() => setSrAnnouncement(''), 3000);
+    }
+  }, [yearsRegistered]);
 
   // Phase 2: Mobile-first entrance animations
   const isMobile = useIsMobile();
@@ -439,6 +804,16 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
         backgroundColor: bloomStyles.colors.creamBase,
       }}
     >
+      {/* Phase 6: Screen reader announcement region */}
+      <div 
+        role="status" 
+        aria-live="polite" 
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {srAnnouncement}
+      </div>
+      
       {/* Subtle paper texture overlay - wabi-sabi imperfection */}
       <div 
         className="fixed inset-0 -z-10 pointer-events-none opacity-[0.03]"
@@ -871,16 +1246,23 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                   </motion.svg>
                 </motion.div>
                 
-                <div className="flex-1">
+                <div className="flex-1" style={{ position: 'relative' }}>
                   <div 
                     className="font-semibold mb-1"
                     style={{
                       fontSize: '16px',
                       color: bloomStyles.colors.charcoalText,
                       lineHeight: 1.4,
+                      position: 'relative',
+                      display: 'inline-block',
                     }}
                   >
                     I am a Registered Clinical Psychologist
+                    <Tier1Flower 
+                      isChecked={isRegisteredPsychologist} 
+                      isMobile={isMobile} 
+                      shouldReduceMotion={shouldReduceMotion} 
+                    />
                   </div>
                   <p style={{
                     fontSize: '14px',
@@ -977,6 +1359,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                     style={{
                       width: '100%',
                       padding: '12px 16px',
+                      paddingRight: '48px', // Make room for icon
                       fontSize: '16px', // Prevents iOS zoom
                       minHeight: '48px',
                       borderRadius: '8px',
@@ -990,6 +1373,180 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                     }}
                     aria-label="Years Registered with AHPRA"
                   />
+                  
+                  {/* Phase 6: Progressive years recognition icon */}
+                  {yearsIcon !== 'none' && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: 'easeOut' }}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        zIndex: 3,
+                        pointerEvents: 'none',
+                      }}
+                      aria-hidden="true"
+                    >
+                      {yearsIcon === 'leaf' && (
+                        <motion.div
+                          animate={shouldReduceMotion ? {} : { 
+                            rotate: [0, -5, 5, 0],
+                            scale: [1, 1.05, 1],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                          }}
+                          style={{ fontSize: '14px' }}
+                        >
+                          🍃
+                        </motion.div>
+                      )}
+                      {yearsIcon === 'bud' && (
+                        <motion.div
+                          animate={shouldReduceMotion ? {} : { 
+                            scale: [1, 1.1, 1],
+                          }}
+                          transition={{
+                            duration: 1.5,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                          }}
+                          style={{ fontSize: '16px' }}
+                        >
+                          🌼
+                        </motion.div>
+                      )}
+                      {yearsIcon === 'flower' && (
+                        <motion.div
+                          animate={shouldReduceMotion ? {} : { 
+                            rotate: [0, 5, -5, 0],
+                            scale: [1, 1.08, 1],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                          }}
+                          style={{ fontSize: '18px', position: 'relative' }}
+                        >
+                          💜
+                          <Tier2Flower 
+                            isChecked={yearsRegistered >= 8} 
+                            isMobile={isMobile} 
+                            shouldReduceMotion={shouldReduceMotion} 
+                          />
+                        </motion.div>
+                      )}
+                      {yearsIcon === 'honored' && (
+                        <motion.div
+                          style={{ 
+                            fontSize: '20px', 
+                            position: 'relative',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <motion.div
+                            animate={shouldReduceMotion ? {} : { 
+                              scale: [1, 1.2, 1],
+                              opacity: [0.3, 0.6, 0.3],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: 'easeInOut',
+                            }}
+                            style={{
+                              position: 'absolute',
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '50%',
+                              background: 'radial-gradient(circle, rgba(244, 208, 63, 0.3) 0%, transparent 70%)',
+                            }}
+                          />
+                          💜✨
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  )}
+                  
+                  {/* "Not yet" state: High years but no credentials */}
+                  {yearsRegistered >= 8 && !hasQualification && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 0.6, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        zIndex: 3,
+                        pointerEvents: 'none',
+                      }}
+                      aria-hidden="true"
+                    >
+                      <motion.div
+                        animate={shouldReduceMotion ? {} : { 
+                          rotate: [0, -3, 3, 0],
+                          scale: [1, 0.95, 1],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        }}
+                        style={{ fontSize: '16px', opacity: 0.5 }}
+                      >
+                        🌼
+                      </motion.div>
+                    </motion.div>
+                  )}
+                  
+                  {/* Delayed bloom flourish */}
+                  {showDelayedBloom && !shouldReduceMotion && (
+                    <>
+                      {[...Array(6)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ 
+                            x: 0, 
+                            y: 0, 
+                            opacity: 0.9,
+                            scale: 1,
+                          }}
+                          animate={{
+                            x: Math.cos((i * 60 * Math.PI) / 180) * 40,
+                            y: Math.sin((i * 60 * Math.PI) / 180) * 40,
+                            opacity: 0,
+                            scale: 0.3,
+                          }}
+                          transition={{
+                            duration: 1.2,
+                            ease: 'easeOut',
+                          }}
+                          style={{
+                            position: 'absolute',
+                            right: '12px',
+                            top: '50%',
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            background: '#D9B380',
+                            pointerEvents: 'none',
+                            zIndex: 4,
+                          }}
+                        />
+                      ))}
+                    </>
+                  )}
                 </motion.div>
               </div>
               
@@ -1121,16 +1678,23 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                   </motion.svg>
                 </motion.div>
                 
-                <div className="flex-1">
+                <div className="flex-1" style={{ position: 'relative' }}>
                   <div 
                     className="font-semibold mb-1"
                     style={{
                       fontSize: '16px',
                       color: bloomStyles.colors.charcoalText,
                       lineHeight: 1.4,
+                      position: 'relative',
+                      display: 'inline-block',
                     }}
                   >
                     I hold a PhD in Psychology
+                    <Tier3Flower 
+                      isChecked={hasPhd} 
+                      isMobile={isMobile} 
+                      shouldReduceMotion={shouldReduceMotion} 
+                    />
                   </div>
                   <p style={{
                     fontSize: '14px',
@@ -1595,23 +2159,25 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                 }}
                 onMouseMove={handleMouseMove}
                 onTouchStart={handleTouchRipple}
-                disabled={isLoading}
+                disabled={isLoading || !allQualified}
                 className="w-full relative overflow-hidden group font-semibold flex items-center justify-center gap-2"
                 style={{
                   height: '56px',
                   minHeight: '48px', // Touch target size
-                  background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softFern} 100%)`,
+                  background: allQualified 
+                    ? `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softFern} 100%)`
+                    : 'linear-gradient(135deg, #9E9E9E 0%, #BDBDBD 100%)',
                   color: '#FEFDFB',
                   borderRadius: '8px',
                   fontSize: '16px',
                   border: 'none',
-                  boxShadow: isButtonHovered 
+                  boxShadow: (isButtonHovered && allQualified)
                     ? `0 8px 28px ${bloomStyles.colors.eucalyptusSage}40`
                     : `0 4px 16px ${bloomStyles.colors.eucalyptusSage}25`,
-                  opacity: isLoading ? 0.7 : 0.95,
-                  transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                  cursor: isLoading ? 'wait' : 'pointer',
-                  transform: isButtonHovered ? 'translateY(-2px)' : 'translateY(0)',
+                  opacity: (isLoading || !allQualified) ? 0.7 : 0.95,
+                  transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                  cursor: (isLoading || !allQualified) ? 'not-allowed' : 'pointer',
+                  transform: (isButtonHovered && allQualified) ? 'translateY(-2px)' : 'translateY(0)',
                 }}
               >
                 {/* Phase 4: Paper texture overlay */}
@@ -1693,9 +2259,9 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                       />
                       <span>Checking...</span>
                     </>
-                  ) : (
+                  ) : allQualified ? (
                     <>
-                      {/* Phase 4: Animated sparkle icon */}
+                      {/* Phase 6: Qualified - Animated sparkle icon */}
                       <motion.div
                         animate={isButtonHovered ? {
                           rotate: [0, -15, 15, -10, 10, 0],
@@ -1713,6 +2279,23 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                         />
                       </motion.div>
                       Check Eligibility
+                    </>
+                  ) : (
+                    <>
+                      {/* Phase 6: Not qualified - Seedling icon */}
+                      <motion.div
+                        animate={shouldReduceMotion ? {} : {
+                          y: [0, -2, 0],
+                        }}
+                        transition={{ 
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: 'easeInOut'
+                        }}
+                      >
+                        <span style={{ fontSize: '18px' }}>🌱</span>
+                      </motion.div>
+                      Complete Your Garden
                     </>
                   )}
                 </span>

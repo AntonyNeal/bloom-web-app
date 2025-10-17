@@ -1336,6 +1336,8 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                         {/* Outer petal layer */}
                         {[...Array(8)].map((_, i) => {
                           const angle = (i / 8) * 360;
+                          const angleRad = (i / 8) * Math.PI * 2;
+                          const distance = isMobile ? 45 : 65;
                           const colors = ['#FFB6C1', '#DDA0DD', '#B5EAD7', '#FFDAC1'];
                           
                           return (
@@ -1345,19 +1347,17 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                               style={{
                                 width: isMobile ? '55px' : '75px',
                                 height: isMobile ? '75px' : '105px',
-                                marginLeft: isMobile ? '-27.5px' : '-37.5px',
-                                marginTop: isMobile ? '-37.5px' : '-52.5px',
                                 borderRadius: '45% 55% 50% 50% / 60% 60% 40% 40%',
                                 backgroundColor: colors[i % 4],
                                 opacity: 0.4,
                                 filter: 'blur(2px)',
                                 transformOrigin: 'center center',
+                                transform: `translate(-50%, -50%) translate(${Math.cos(angleRad) * distance}px, ${Math.sin(angleRad) * distance}px) rotate(${angle}deg)`,
                               }}
                               initial={{ scale: 0, opacity: 0 }}
                               animate={{ 
                                 scale: 1,
                                 opacity: 0.4,
-                                rotate: angle,
                               }}
                               transition={{
                                 duration: 1.5,
@@ -1371,6 +1371,8 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                         {/* Main petal layer */}
                         {[...Array(6)].map((_, i) => {
                           const angle = (i / 6) * 360;
+                          const angleRad = (i / 6) * Math.PI * 2;
+                          const distance = isMobile ? 30 : 42;
                           const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#B5EAD7', '#C7CEEA'];
                           
                           return (
@@ -1380,19 +1382,17 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                               style={{
                                 width: isMobile ? '45px' : '60px',
                                 height: isMobile ? '60px' : '85px',
-                                marginLeft: isMobile ? '-22.5px' : '-30px',
-                                marginTop: isMobile ? '-30px' : '-42.5px',
                                 borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
                                 background: `linear-gradient(135deg, ${colors[i % colors.length]} 0%, ${colors[(i + 1) % colors.length]} 100%)`,
                                 opacity: 0.85,
                                 boxShadow: `0 4px 15px ${colors[i % colors.length]}30`,
                                 transformOrigin: 'center center',
+                                transform: `translate(-50%, -50%) translate(${Math.cos(angleRad) * distance}px, ${Math.sin(angleRad) * distance}px) rotate(${angle + 30}deg)`,
                               }}
                               initial={{ scale: 0, opacity: 0 }}
                               animate={{ 
                                 scale: 1,
                                 opacity: 0.85,
-                                rotate: angle + 30,
                               }}
                               transition={{
                                 duration: 1.2,

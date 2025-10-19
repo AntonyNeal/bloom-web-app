@@ -103,8 +103,8 @@ export const shadows = {
 
 export const typography = {
   fontFamily: {
-    sans: "'Inter', system-ui, sans-serif",
-    display: "'Poppins', 'Inter', system-ui, sans-serif",
+    sans: "system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif",
+    display: "system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif",
   },
   fontSize: {
     displayLg: '48px',

@@ -42,7 +42,7 @@
   
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
@@ -50,7 +50,8 @@
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+    font-family: system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 600;
   }
   
   /* Typography utilities removed - use Tailwind classes directly */

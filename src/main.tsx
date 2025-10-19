@@ -10,6 +10,7 @@ import './index.css'
 import './styles/typography.css'
 import './styles/blob.css'
 import './styles/landing-animations.css'
+import './styles/component-animations.css'
 
 console.log('[PERF] CSS loaded in', performance.now() - perfStart, 'ms');
 

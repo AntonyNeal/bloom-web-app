@@ -6,8 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Bloom - A community of psychologists building sustainable practices together. Professional development platform for mental health practitioners." />
     
-    <!-- DNS prefetch for external resources -->
+    <!-- DNS Prefetch: Start DNS lookup early (saves ~100-200ms) -->
     <link rel="dns-prefetch" href="https://www.life-psychology.com.au" />
+    <link rel="dns-prefetch" href="https://bloom-platform-functions-v2.azurewebsites.net" />
+    <link rel="dns-prefetch" href="https://yellow-cliff-0eb1c4000.3.azurestaticapps.net" />
+    
+    <!-- Preconnect: Complete connection handshake (saves ~200-300ms) -->
+    <link rel="preconnect" href="https://bloom-platform-functions-v2.azurewebsites.net" crossorigin />
+    
+    <!-- Preload Critical CSS: Prioritize landing page styles -->
+    <link rel="preload" href="/src/index.css" as="style" />
+    <link rel="preload" href="/src/styles/landing-animations.css" as="style" />
     
     <title>Bloom - Professional Development Platform</title>
   </head>

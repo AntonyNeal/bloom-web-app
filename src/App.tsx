@@ -10,17 +10,20 @@ const ApplicationDetail = lazy(() => import('./pages/admin/ApplicationDetail'));
 const JoinUs = lazy(() => import('./pages/JoinUs').then(m => ({ default: m.JoinUs })));
 const Admin = lazy(() => import('./pages/admin/ApplicationManagement').then(m => ({ default: m.Admin })));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
-import {
-  Tier1Flower,
-  Tier2Flower,
-  Tier3Flower,
-  useIsMobile,
-} from '@/components/common/QualificationCheck';
 
-// Memoized flower components to prevent re-renders
-const MemoizedTier1 = memo(Tier1Flower);
-const MemoizedTier2 = memo(Tier2Flower);
-const MemoizedTier3 = memo(Tier3Flower);
+// Create lazy-loaded flower components (from 2533-line QualificationCheck!)
+const MemoizedTier1 = memo(lazy(() => 
+  import('@/components/common/QualificationCheck').then(m => ({ default: m.Tier1Flower }))
+));
+const MemoizedTier2 = memo(lazy(() => 
+  import('@/components/common/QualificationCheck').then(m => ({ default: m.Tier2Flower }))
+));
+const MemoizedTier3 = memo(lazy(() => 
+  import('@/components/common/QualificationCheck').then(m => ({ default: m.Tier3Flower }))
+));
+
+// Import lightweight hooks directly
+import { useIsMobile } from '@/hooks/use-is-mobile';
 
 // Landing Page - Simple navigation, no Phase 8 transitions
 function LandingPage() {
@@ -69,11 +72,13 @@ function LandingPage() {
               transform: isMobile ? 'scale(1.08)' : 'scale(1.10)',
             }}
           >
-            <MemoizedTier1 
-              isChecked={true} 
-              isMobile={isMobile} 
-              shouldReduceMotion={true}
-            />
+            <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
+              <MemoizedTier1 
+                isChecked={true} 
+                isMobile={isMobile} 
+                shouldReduceMotion={true}
+              />
+            </Suspense>
           </div>
 
           {/* Purple rose - upper right area (The Observer)
@@ -88,13 +93,15 @@ function LandingPage() {
               transform: isMobile ? 'scale(0.92)' : 'scale(0.95)',
             }}
           >
-            <MemoizedTier2 
-              isChecked={true} 
-              isMobile={isMobile} 
-              shouldReduceMotion={true}
-              sparkleCount={0}
-              sparkleDelay={0}
-            />
+            <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
+              <MemoizedTier2 
+                isChecked={true} 
+                isMobile={isMobile} 
+                shouldReduceMotion={true}
+                sparkleCount={0}
+                sparkleDelay={0}
+              />
+            </Suspense>
           </div>
 
           {/* Golden daisy - right side, mid-low (The Anchor)
@@ -108,13 +115,15 @@ function LandingPage() {
               opacity: 0,
             }}
           >
-            <MemoizedTier3 
-              isChecked={true} 
-              isMobile={isMobile} 
-              shouldReduceMotion={true}
-              sparkleCount={0}
-              sparkleDelay={0}
-            />
+            <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
+              <MemoizedTier3 
+                isChecked={true} 
+                isMobile={isMobile} 
+                shouldReduceMotion={true}
+                sparkleCount={0}
+                sparkleDelay={0}
+              />
+            </Suspense>
           </div>
 
           {/* === COMPANION FLOWERS - Natural Scatter (6 companions) === */}
@@ -130,11 +139,13 @@ function LandingPage() {
               transform: isMobile ? 'scale(0.52)' : 'scale(0.62)',
             }}
           >
-            <MemoizedTier1 
-              isChecked={true} 
-              isMobile={false}
-              shouldReduceMotion={true}
-            />
+            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
+              <MemoizedTier1 
+                isChecked={true} 
+                isMobile={false}
+                shouldReduceMotion={true}
+              />
+            </Suspense>
           </div>
 
           {/* #2: Small golden daisy - upper left (creates depth) */}
@@ -148,13 +159,15 @@ function LandingPage() {
               transform: isMobile ? 'scale(0.48)' : 'scale(0.58)',
             }}
           >
-            <MemoizedTier3 
-              isChecked={true} 
-              isMobile={false}
-              shouldReduceMotion={true}
-              sparkleCount={0}
-              sparkleDelay={0}
-            />
+            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
+              <MemoizedTier3 
+                isChecked={true} 
+                isMobile={false}
+                shouldReduceMotion={true}
+                sparkleCount={0}
+                sparkleDelay={0}
+              />
+            </Suspense>
           </div>
 
           {/* #3: Small cherry blossom - center-left (mid-ground layer, changed from purple)
@@ -169,11 +182,13 @@ function LandingPage() {
               transform: isMobile ? 'scale(0.42)' : 'scale(0.52)',
             }}
           >
-            <MemoizedTier1 
-              isChecked={true} 
-              isMobile={false}
-              shouldReduceMotion={true}
-            />
+            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
+              <MemoizedTier1 
+                isChecked={true} 
+                isMobile={false}
+                shouldReduceMotion={true}
+              />
+            </Suspense>
           </div>
 
           {/* #4: Small cherry blossom - upper right (balance, changed from pink)
@@ -188,11 +203,13 @@ function LandingPage() {
               transform: isMobile ? 'scale(0.47)' : 'scale(0.57)',
             }}
           >
-            <MemoizedTier1 
-              isChecked={true} 
-              isMobile={false}
-              shouldReduceMotion={true}
-            />
+            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
+              <MemoizedTier1 
+                isChecked={true} 
+                isMobile={false}
+                shouldReduceMotion={true}
+              />
+            </Suspense>
           </div>
 
           {/* #5: Tiny golden daisy - bottom right (the welcome at the gate)
@@ -207,13 +224,15 @@ function LandingPage() {
               transform: isMobile ? 'scale(0.37)' : 'scale(0.44)',
             }}
           >
-            <MemoizedTier3 
-              isChecked={true} 
-              isMobile={false}
-              shouldReduceMotion={true}
-              sparkleCount={0}
-              sparkleDelay={0}
-            />
+            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
+              <MemoizedTier3 
+                isChecked={true} 
+                isMobile={false}
+                shouldReduceMotion={true}
+                sparkleCount={0}
+                sparkleDelay={0}
+              />
+            </Suspense>
           </div>
 
           {/* #6: Small golden daisy - upper-middle-left (adds warmth, changed from purple)
@@ -228,13 +247,15 @@ function LandingPage() {
               transform: isMobile ? 'scale(0.40)' : 'scale(0.50)',
             }}
           >
-            <MemoizedTier3 
-              isChecked={true} 
-              isMobile={false}
-              shouldReduceMotion={true}
-              sparkleCount={0}
-              sparkleDelay={0}
-            />
+            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
+              <MemoizedTier3 
+                isChecked={true} 
+                isMobile={false}
+                shouldReduceMotion={true}
+                sparkleCount={0}
+                sparkleDelay={0}
+              />
+            </Suspense>
           </div>
         </div>
 
@@ -402,13 +423,15 @@ function LandingPage() {
                 position: 'relative',
                 zIndex: 1
               }}>
-                <MemoizedTier2 
-                  isChecked={true} 
-                  isMobile={false}
-                  shouldReduceMotion={true}
-                  sparkleCount={0}
-                  sparkleDelay={0}
-                />
+                <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
+                  <MemoizedTier2 
+                    isChecked={true} 
+                    isMobile={false}
+                    shouldReduceMotion={true}
+                    sparkleCount={0}
+                    sparkleDelay={0}
+                  />
+                </Suspense>
               </div>
             </div>
             <span style={{ position: 'relative', zIndex: 0 }}>Bloom</span>

@@ -1,11 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS } from "@/config/api";
-import { QualificationCheck } from "@/components/common/QualificationCheck";
 import { motion, useReducedMotion } from "framer-motion";
+
+// Lazy load the massive QualificationCheck component
+const QualificationCheck = lazy(() => 
+  import("@/components/common/QualificationCheck").then(m => ({ default: m.QualificationCheck }))
+);
 
 // Mobile detection hook for performance optimizations
 const useIsMobile = () => {
@@ -281,9 +285,18 @@ export function JoinUs() {
   // Show qualification check first
   if (!hasPassedQualificationCheck) {
     return (
-      <QualificationCheck 
-        onEligible={() => setHasPassedQualificationCheck(true)}
-      />
+      <Suspense fallback={<div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '100vh',
+        fontSize: '18px',
+        color: '#6B8E7F'
+      }}>Loading...</div>}>
+        <QualificationCheck 
+          onEligible={() => setHasPassedQualificationCheck(true)}
+        />
+      </Suspense>
     );
   }
 

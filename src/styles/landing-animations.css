@@ -123,11 +123,11 @@
 }
 
 .headline {
-  animation: fadeInUp 0.7s ease-out 0.8s both;
+  animation: fadeInUp 0.7s ease-out 0s both; /* Removed delay for LCP */
 }
 
 .org-name {
-  animation: fadeIn 0.8s ease-out 0s both;
+  animation: fadeIn 0.6s ease-out 0.2s both; /* Shortened for quicker visibility */
 }
 
 .mission {

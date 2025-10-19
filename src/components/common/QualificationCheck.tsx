@@ -36,7 +36,7 @@ interface QualificationCheckProps {
   onEligible: () => void;
 }
 
-// Watercolor Blob Component - Studio Ghibli atmosphere
+// Watercolor Blob Component - Studio Ghibli atmosphere (static, no animation)
 interface WatercolorBlobProps {
   size: string;
   color: string;
@@ -44,9 +44,6 @@ interface WatercolorBlobProps {
   position: React.CSSProperties;
   blur: number;
   borderRadius: string;
-  animationDuration: number;
-  rotateSequence?: number[];
-  scaleSequence?: number[];
 }
 
 const WatercolorBlob = ({ 
@@ -56,34 +53,24 @@ const WatercolorBlob = ({
   position, 
   blur, 
   borderRadius, 
-  animationDuration,
-  rotateSequence = [0, 10, -5, 0],
-  scaleSequence = [1, 1.05, 0.98, 1],
-}: WatercolorBlobProps) => (
-  <motion.div
-    style={{
-      position: 'absolute',
-      width: size,
-      height: size,
-      background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-      opacity: opacity,
-      filter: `blur(${blur}px)`,
-      borderRadius: borderRadius,
-      ...position,
-      pointerEvents: 'none',
-      zIndex: 0,
-    }}
-    animate={{
-      rotate: rotateSequence,
-      scale: scaleSequence,
-    }}
-    transition={{
-      duration: animationDuration,
-      repeat: Infinity,
-      ease: 'easeInOut',
-    }}
-  />
-);
+}: WatercolorBlobProps) => {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        width: size,
+        height: size,
+        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+        opacity: opacity,
+        filter: `blur(${blur}px)`,
+        borderRadius: borderRadius,
+        ...position,
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    />
+  );
+};
 
 // Floating Particle Component - organic drift
 interface FloatingParticleProps {
@@ -108,33 +95,37 @@ const FloatingParticle = ({
   blur = 3,
   xSequence = [0, 30, -20, 15, 0],
   ySequence = [0, -40, -80, -120, -160],
-}: FloatingParticleProps) => (
-  <motion.div
-    style={{
-      position: 'absolute',
-      width: size,
-      height: size,
-      background: color,
-      opacity: opacity,
-      filter: `blur(${blur}px)`,
-      borderRadius: '50%',
-      ...position,
-      pointerEvents: 'none',
-      zIndex: 0,
-    }}
-    animate={{
-      x: xSequence,
-      y: ySequence,
-      rotate: [0, 360],
-    }}
-    transition={{
-      duration: duration,
-      repeat: Infinity,
-      ease: 'linear',
-      delay: delay,
-    }}
-  />
-);
+}: FloatingParticleProps) => {
+  return (
+    <motion.div
+      style={{
+        position: 'absolute',
+        width: size,
+        height: size,
+        background: color,
+        opacity: opacity,
+        filter: `blur(${blur}px)`,
+        borderRadius: '50%',
+        ...position,
+        pointerEvents: 'none',
+        zIndex: 0,
+        willChange: 'transform',
+      }}
+      initial={{ x: xSequence[0], y: ySequence[0], rotate: 0 }}
+      animate={{
+        x: xSequence,
+        y: ySequence,
+        rotate: [0, 360],
+      }}
+      transition={{
+        duration: duration,
+        repeat: Infinity,
+        ease: 'linear',
+        delay: delay,
+      }}
+    />
+  );
+};
 
 // Bloom/Ghibli design tokens
 const bloomStyles = {
@@ -166,63 +157,104 @@ interface Tier1FlowerProps {
 function Tier1Flower({ isChecked, isMobile, shouldReduceMotion }: Tier1FlowerProps) {
   if (!isChecked) return null;
 
-  const size = isMobile ? 14 : 16;
+  const size = isMobile ? 56 : 88; // Increased from 40/68 (~25% larger)
   const reduceMotion = shouldReduceMotion || false;
   
+  // Use plain SVG when reducing motion for performance
+  const SvgComponent = reduceMotion ? 'svg' : motion.svg;
+  
   return (
-    <motion.svg
+    <SvgComponent
       width={size}
       height={size}
-      viewBox="0 0 24 24"
-      initial={{ scale: 0, opacity: 0, rotate: -90 }}
-      animate={{ scale: 1, opacity: 1, rotate: 0 }}
-      exit={{ scale: 0, opacity: 0 }}
-      transition={{
-        delay: reduceMotion ? 0 : 0.5,
-        duration: reduceMotion ? 0.2 : 1.2,
-        ease: [0.34, 1.56, 0.64, 1],
-      }}
+      viewBox="0 0 32 32"
+      {...(!reduceMotion && {
+        initial: { scale: 0, opacity: 0 },
+        animate: { scale: 1, opacity: 1 },
+        exit: { scale: 0, opacity: 0 },
+        transition: {
+          delay: 0.5,
+          duration: 0.8,
+          ease: 'easeOut',
+        }
+      })}
       style={{
         position: 'absolute',
-        left: 'calc(100% + 8px)',
+        right: '12px',
         top: '50%',
         transform: 'translateY(-50%)',
+        willChange: 'transform, opacity',
       }}
       aria-hidden="true"
     >
-      <motion.g
-        animate={reduceMotion ? {} : {
-          rotate: [0, 3, -2, 1, 0],
-          scale: [1, 1.05, 0.98, 1],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      >
-        {/* Center circle */}
-        <circle cx="12" cy="12" r="3" fill="#D4A5A5" />
-        
-        {/* 5 petals radiating from center */}
+      <defs>
+        <radialGradient id="pinkPetalGradient">
+          <stop offset="0%" stopColor="#FFE5ED" />
+          <stop offset="30%" stopColor="#FFD4E0" />
+          <stop offset="60%" stopColor="#FFB6C1" />
+          <stop offset="100%" stopColor="#FF9BAD" />
+        </radialGradient>
+        <radialGradient id="pinkCenterGradient">
+          <stop offset="0%" stopColor="#FFF5F8" />
+          <stop offset="40%" stopColor="#E8B8C8" />
+          <stop offset="100%" stopColor="#D4A5A5" />
+        </radialGradient>
+        <radialGradient id="pinkPetalShadow">
+          <stop offset="0%" stopColor="#FF9BAD" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#E8668F" stopOpacity="0.8" />
+        </radialGradient>
+      </defs>
+      <g>
+        {/* 5 petals radiating from center with enhanced gradients */}
         {[0, 72, 144, 216, 288].map((angle, i) => {
-          const x = 12 + Math.cos((angle * Math.PI) / 180) * 6;
-          const y = 12 + Math.sin((angle * Math.PI) / 180) * 6;
+          const x = 16 + Math.cos((angle * Math.PI) / 180) * 8;
+          const y = 16 + Math.sin((angle * Math.PI) / 180) * 8;
           return (
-            <ellipse
-              key={i}
-              cx={x}
-              cy={y}
-              rx="4"
-              ry="6"
-              fill="#FFB6C1"
-              opacity="0.9"
-              transform={`rotate(${angle} ${x} ${y})`}
-            />
+            <g key={i}>
+              {/* Petal shadow/depth */}
+              <ellipse
+                cx={x + 0.5}
+                cy={y + 0.5}
+                rx="5.5"
+                ry="8"
+                fill="url(#pinkPetalShadow)"
+                opacity="0.6"
+                transform={`rotate(${angle} ${x} ${y})`}
+              />
+              {/* Main petal */}
+              <ellipse
+                cx={x}
+                cy={y}
+                rx="5"
+                ry="7.5"
+                fill="url(#pinkPetalGradient)"
+                opacity="0.95"
+                transform={`rotate(${angle} ${x} ${y})`}
+              />
+              {/* Petal highlight */}
+              <ellipse
+                cx={x - 0.8}
+                cy={y - 1.5}
+                rx="2"
+                ry="3.5"
+                fill="rgba(255, 255, 255, 0.6)"
+                opacity="0.85"
+                transform={`rotate(${angle} ${x} ${y})`}
+              />
+            </g>
           );
         })}
-      </motion.g>
-    </motion.svg>
+        
+        {/* Center circle with gradient */}
+        <circle cx="16" cy="16" r="4" fill="url(#pinkCenterGradient)" />
+        
+        {/* Center highlight */}
+        <ellipse cx="15" cy="14.5" rx="2" ry="1.5" fill="rgba(255, 255, 255, 0.8)" opacity="0.9" />
+        
+        {/* Center detail */}
+        <circle cx="16" cy="16" r="1.5" fill="#E8B8C8" opacity="0.6" />
+      </g>
+    </SvgComponent>
   );
 }
 
@@ -231,96 +263,167 @@ interface Tier2FlowerProps {
   isChecked: boolean;
   isMobile: boolean;
   shouldReduceMotion: boolean | null;
+  sparkleCount?: number; // Phase 7 optimization: Control sparkle count
+  sparkleDelay?: number; // Phase 7 optimization: Delay sparkle start
 }
 
-function Tier2Flower({ isChecked, isMobile, shouldReduceMotion }: Tier2FlowerProps) {
+function Tier2Flower({ 
+  isChecked, 
+  isMobile, 
+  shouldReduceMotion, 
+  sparkleCount: customSparkleCount,
+  sparkleDelay = 0 
+}: Tier2FlowerProps) {
   if (!isChecked) return null;
 
-  const size = isMobile ? 16 : 20;
-  const sparkleCount = isMobile ? 2 : 4;
+  const size = isMobile ? 60 : 80; // Increased from 48/64 (~25% larger)
+  const sparkleCount = customSparkleCount ?? (isMobile ? 2 : 4);
   const reduceMotion = shouldReduceMotion || false;
   
+  const SvgComponent = reduceMotion ? 'svg' : motion.svg;
+  
   return (
-    <div style={{ position: 'absolute', left: 'calc(100% + 8px)', top: '50%', transform: 'translateY(-50%)' }}>
-      <motion.svg
+    <div style={{ position: 'absolute', left: 'calc(100% + 16px)', top: '50%', transform: 'translateY(-50%)' }}>
+      <SvgComponent
         width={size}
         height={size}
-        viewBox="0 0 24 24"
-        initial={{ scale: 0, opacity: 0, rotate: -90 }}
-        animate={{ scale: 1, opacity: 1, rotate: 0 }}
-        exit={{ scale: 0, opacity: 0 }}
-        transition={{
-          delay: reduceMotion ? 0 : 0.5,
-          duration: reduceMotion ? 0.2 : 1.4,
-          ease: [0.34, 1.56, 0.64, 1],
-        }}
+        viewBox="0 0 40 40"
+        {...(!reduceMotion && {
+          initial: { scale: 0, opacity: 0 },
+          animate: { scale: 1, opacity: 1 },
+          exit: { scale: 0, opacity: 0 },
+          transition: {
+            delay: 0.5,
+            duration: 0.8,
+            ease: 'easeOut',
+          }
+        })}
+        style={{ willChange: 'transform, opacity' }}
         aria-hidden="true"
       >
-        <motion.g
-          animate={reduceMotion ? {} : {
-            rotate: [0, 5, -3, 2, 0],
-            scale: [1, 1.05, 0.98, 1],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        >
-          {/* Center circle - golden */}
-          <circle cx="12" cy="12" r="3.5" fill="#D9B380" />
-          
-          {/* 6 petals - purple */}
+        <defs>
+          <radialGradient id="purplePetalGradient">
+            <stop offset="0%" stopColor="#E8D9F5" />
+            <stop offset="20%" stopColor="#D4BEED" />
+            <stop offset="40%" stopColor="#C7ABD9" />
+            <stop offset="60%" stopColor="#B18FC7" />
+            <stop offset="75%" stopColor="#9B72AA" />
+            <stop offset="90%" stopColor="#85608F" />
+            <stop offset="100%" stopColor="#6F4C7A" />
+          </radialGradient>
+          <radialGradient id="purplePetalInner">
+            <stop offset="0%" stopColor="#B18FC7" />
+            <stop offset="50%" stopColor="#9B72AA" />
+            <stop offset="100%" stopColor="#7A5589" />
+          </radialGradient>
+          <radialGradient id="goldCenterGradient">
+            <stop offset="0%" stopColor="#FFFEF5" />
+            <stop offset="25%" stopColor="#FFF8DC" />
+            <stop offset="50%" stopColor="#F5E6B8" />
+            <stop offset="75%" stopColor="#E8D4A8" />
+            <stop offset="100%" stopColor="#D9B380" />
+          </radialGradient>
+          <radialGradient id="goldCenterOuter">
+            <stop offset="0%" stopColor="#E8D4A8" />
+            <stop offset="50%" stopColor="#D4AF37" />
+            <stop offset="100%" stopColor="#B8922E" />
+          </radialGradient>
+        </defs>
+        <g>
+          {/* 6 petals - purple with clustered, overlapping petals (rose-like) */}
           {[0, 60, 120, 180, 240, 300].map((angle, i) => {
-            const x = 12 + Math.cos((angle * Math.PI) / 180) * 7;
-            const y = 12 + Math.sin((angle * Math.PI) / 180) * 7;
+            // Slight variations for organic feel
+            const angleVariation = (i % 2 === 0 ? 3 : -3);
+            const sizeVariation = i % 3 === 0 ? 0.92 : i % 3 === 1 ? 1.0 : 1.05;
+            const adjustedAngle = angle + angleVariation;
+            const x = 20 + Math.cos((adjustedAngle * Math.PI) / 180) * 9.5; // Closer together
+            const y = 20 + Math.sin((adjustedAngle * Math.PI) / 180) * 9.5;
+            
             return (
-              <ellipse
-                key={i}
-                cx={x}
-                cy={y}
-                rx="4.5"
-                ry="7"
-                fill="#9B72AA"
-                opacity="0.9"
-                transform={`rotate(${angle} ${x} ${y})`}
-              />
+              <g key={i}>
+                {/* Soft shadow */}
+                <ellipse
+                  cx={x + 0.4}
+                  cy={y + 0.8}
+                  rx={6.8 * sizeVariation}
+                  ry={7.2 * sizeVariation} // Slightly taller than wide
+                  fill="#9B72AA"
+                  opacity="0.2"
+                  transform={`rotate(${adjustedAngle + 10} ${x} ${y})`}
+                />
+                
+                {/* Main petal - slightly oval, clustered */}
+                <ellipse
+                  cx={x}
+                  cy={y}
+                  rx={6.2 * sizeVariation}
+                  ry={6.8 * sizeVariation} // Slightly taller
+                  fill="url(#purplePetalGradient)"
+                  opacity="0.92"
+                  transform={`rotate(${adjustedAngle + 10} ${x} ${y})`}
+                />
+                
+                {/* Soft highlight - closer to center edge */}
+                <ellipse
+                  cx={x + (i % 2 === 0 ? -1.2 : 0.9)}
+                  cy={y - 1.5}
+                  rx={2.8 * sizeVariation}
+                  ry={3.2 * sizeVariation}
+                  fill="rgba(248, 240, 255, 0.75)"
+                  opacity="0.65"
+                  transform={`rotate(${adjustedAngle + 5} ${x} ${y})`}
+                />
+              </g>
             );
           })}
-        </motion.g>
-      </motion.svg>
+          
+          {/* Center circle - flat, low contrast */}
+          <circle cx="20" cy="20" r="4.5" fill="url(#goldCenterGradient)" opacity="0.7" />
+          
+          {/* Subtle center detail */}
+          <circle cx="20" cy="20" r="2.8" fill="#D4AF37" opacity="0.3" />
+        </g>
+      </SvgComponent>
       
       {/* Sparkle burst */}
-      {!reduceMotion && [...Array(sparkleCount)].map((_, i) => (
-        <motion.div
-          key={i}
-          initial={{ 
-            x: 0, 
-            y: 0, 
-            opacity: 0.8,
-            scale: 1,
-          }}
-          animate={{
-            x: Math.random() * 20 - 10,
-            y: -30,
-            opacity: 0,
-            scale: 0.3,
-          }}
-          transition={{
-            duration: 1.5,
-            delay: 1.2 + (i * 0.1),
-            ease: 'easeOut',
-          }}
-          style={{
-            position: 'absolute',
-            width: '4px',
-            height: '4px',
-            borderRadius: '50%',
-            background: '#D9B380',
-            pointerEvents: 'none',
-          }}
-        />
-      ))}
+      {!reduceMotion && sparkleCount > 0 && [...Array(sparkleCount)].map((_, i) => {
+        const angle = (i / sparkleCount) * 360;
+        const distance = 25;
+        return (
+          <motion.div
+            key={i}
+            initial={{ 
+              x: 0, 
+              y: 0, 
+              opacity: 0.8,
+              scale: 1,
+            }}
+            animate={{
+              x: Math.cos((angle * Math.PI) / 180) * distance,
+              y: Math.sin((angle * Math.PI) / 180) * distance,
+              opacity: [0.8, 0.8, 0],
+              scale: [1, 1, 0.3],
+            }}
+            transition={{
+              duration: 2.5,
+              delay: sparkleDelay + 1.2 + (i * 0.15),
+              repeat: Infinity,
+              repeatDelay: 3,
+              ease: 'easeOut',
+            }}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              width: '4px',
+              height: '4px',
+              borderRadius: '50%',
+              background: '#D9B380',
+              pointerEvents: 'none',
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -330,141 +433,170 @@ interface Tier3FlowerProps {
   isChecked: boolean;
   isMobile: boolean;
   shouldReduceMotion: boolean | null;
+  sparkleCount?: number; // Phase 7 optimization: Control sparkle count
+  sparkleDelay?: number; // Phase 7 optimization: Delay sparkle start
 }
 
-function Tier3Flower({ isChecked, isMobile, shouldReduceMotion }: Tier3FlowerProps) {
+function Tier3Flower({ 
+  isChecked, 
+  isMobile, 
+  shouldReduceMotion,
+  sparkleCount: customSparkleCount,
+  sparkleDelay = 0
+}: Tier3FlowerProps) {
   if (!isChecked) return null;
 
-  const size = isMobile ? 20 : 24;
-  const rayCount = isMobile ? 6 : 8;
-  const sparkleCount = isMobile ? 4 : 8;
+  const size = isMobile ? 58 : 74; // Increased from 44/56 (~25% larger)
+  const sparkleCount = customSparkleCount ?? (isMobile ? 4 : 8);
   const reduceMotion = shouldReduceMotion || false;
+  
+  const SvgComponent = reduceMotion ? 'svg' : motion.svg;
   
   return (
     <div style={{ position: 'absolute', left: 'calc(100% + 8px)', top: '50%', transform: 'translateY(-50%)' }}>
-      <motion.svg
+      <SvgComponent
         width={size}
         height={size}
-        viewBox="0 0 32 32"
-        initial={{ scale: 0, opacity: 0, rotate: -90 }}
-        animate={{ scale: 1, opacity: 1, rotate: 0 }}
-        exit={{ scale: 0, opacity: 0 }}
-        transition={{
-          delay: reduceMotion ? 0 : 0.6,
-          duration: reduceMotion ? 0.2 : 1.6,
-          ease: [0.34, 1.56, 0.64, 1],
-        }}
+        viewBox="0 0 40 40"
+        {...(!reduceMotion && {
+          initial: { scale: 0, opacity: 0 },
+          animate: { scale: 1, opacity: 1 },
+          exit: { scale: 0, opacity: 0 },
+          transition: {
+            delay: 0.6,
+            duration: 0.8,
+            ease: 'easeOut',
+          }
+        })}
+        style={{ willChange: 'transform, opacity' }}
         aria-hidden="true"
       >
         <defs>
-          <radialGradient id="goldGradient">
-            <stop offset="0%" stopColor="#FFFACD" />
-            <stop offset="100%" stopColor="#F4D03F" />
+          {/* Black-eyed Susan / Rudbeckia inspired gradients */}
+          <radialGradient id="rudbeckiaPetal">
+            <stop offset="0%" stopColor="#FFE082" />
+            <stop offset="30%" stopColor="#FFD54F" />
+            <stop offset="60%" stopColor="#FFCA28" />
+            <stop offset="85%" stopColor="#FFC107" />
+            <stop offset="100%" stopColor="#FFB300" />
+          </radialGradient>
+          <radialGradient id="rudbeckiaPetalBase">
+            <stop offset="0%" stopColor="#FFA726" />
+            <stop offset="50%" stopColor="#FF9800" />
+            <stop offset="100%" stopColor="#F57C00" />
+          </radialGradient>
+          <radialGradient id="rudbeckiaCenter">
+            <stop offset="0%" stopColor="#4A2C2A" />
+            <stop offset="40%" stopColor="#3E2723" />
+            <stop offset="70%" stopColor="#2C1810" />
+            <stop offset="100%" stopColor="#1A0F08" />
+          </radialGradient>
+          <radialGradient id="rudbeckiaCenterHighlight">
+            <stop offset="0%" stopColor="#6D4C41" />
+            <stop offset="50%" stopColor="#5D4037" />
+            <stop offset="100%" stopColor="#4E342E" />
           </radialGradient>
         </defs>
-
-        {/* Rotating halo of light rays */}
-        {!reduceMotion && (
-          <motion.g
-            animate={{ rotate: 360 }}
-            transition={{
-              duration: 30,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
-            style={{ transformOrigin: '16px 16px' }}
-          >
-            {[...Array(rayCount)].map((_, i) => {
-              const angle = (i * 360) / rayCount;
-              return (
-                <motion.line
-                  key={i}
-                  x1="16"
-                  y1="16"
-                  x2={16 + Math.cos((angle * Math.PI) / 180) * 12}
-                  y2={16 + Math.sin((angle * Math.PI) / 180) * 12}
-                  stroke="#F4D03F"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  opacity="0.4"
-                  animate={{ opacity: [0.2, 0.6, 0.2] }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: i * 0.1,
-                  }}
-                />
-              );
-            })}
-          </motion.g>
-        )}
         
-        {/* Golden flower */}
-        <motion.g
-          animate={reduceMotion ? {} : {
-            scale: [1, 1.05, 1],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-          }}
-        >
-          {/* Center circle with gradient */}
-          <circle cx="16" cy="16" r="4" fill="url(#goldGradient)" />
-          
-          {/* 8 golden petals */}
-          {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
-            const x = 16 + Math.cos((angle * Math.PI) / 180) * 8;
-            const y = 16 + Math.sin((angle * Math.PI) / 180) * 8;
+        {/* Black-eyed Susan flower */}
+        <g>
+          {/* 12 long, narrow petals radiating outward like sun rays */}
+          {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((angle, i) => {
+            const angleVariation = (i % 3 === 0 ? 2 : i % 3 === 1 ? -2 : 0);
+            const lengthVariation = 0.9 + (Math.sin(i * 1.7) * 0.15); // Natural variation
+            const adjustedAngle = angle + angleVariation;
+            
+            // Petal starts from center edge (r=5.5) and extends outward
+            const petalStartDist = 5.5; // Exactly at the dark center edge
+            const petalLength = 6.5 * lengthVariation; // How far it extends
+            const petalMidDist = petalStartDist + (petalLength / 2);
+            
+            const x = 20 + Math.cos((adjustedAngle * Math.PI) / 180) * petalMidDist;
+            const y = 20 + Math.sin((adjustedAngle * Math.PI) / 180) * petalMidDist;
+            
             return (
-              <ellipse
+              <g key={i}>
+                {/* Main petal with integrated shadow - long, narrow, radiating outward */}
+                <ellipse
+                  cx={x}
+                  cy={y}
+                  rx={1.3 * lengthVariation} // Narrow width
+                  ry={petalLength / 2} // Long (extends from center)
+                  fill="url(#rudbeckiaPetal)"
+                  stroke="url(#rudbeckiaPetalBase)"
+                  strokeWidth="0.4"
+                  opacity="0.95"
+                  transform={`rotate(${adjustedAngle + 90} ${x} ${y})`}
+                />
+              </g>
+            );
+          })}
+          
+          {/* Dark center disk with integrated texture (characteristic of Black-eyed Susan) */}
+          <circle cx="20" cy="20" r="5.5" fill="url(#rudbeckiaCenter)" />
+          
+          {/* Center highlight (subtle 3D depth) */}
+          <circle cx="19" cy="19" r="2.2" fill="url(#rudbeckiaCenterHighlight)" opacity="0.35" />
+          
+          {/* Minimal center texture (disk florets) - optimized to 8 dots */}
+          {[...Array(8)].map((_, i) => {
+            const centerAngle = (i / 8) * 360;
+            const centerDist = 2;
+            const cx = 20 + Math.cos((centerAngle * Math.PI) / 180) * centerDist;
+            const cy = 20 + Math.sin((centerAngle * Math.PI) / 180) * centerDist;
+            return (
+              <circle
                 key={i}
-                cx={x}
-                cy={y}
-                rx="5"
-                ry="8"
-                fill="#F4D03F"
-                opacity="0.95"
-                transform={`rotate(${angle} ${x} ${y})`}
+                cx={cx}
+                cy={cy}
+                r="0.5"
+                fill="#3E2723"
+                opacity="0.4"
               />
             );
           })}
-        </motion.g>
-      </motion.svg>
+        </g>
+      </SvgComponent>
       
       {/* Continuous sparkle particles */}
-      {!reduceMotion && [...Array(sparkleCount)].map((_, i) => (
-        <motion.div
-          key={i}
-          initial={{ 
-            x: 0, 
-            y: 0, 
-            opacity: 0,
-            scale: 1,
-          }}
-          animate={{
-            x: (Math.random() - 0.5) * 30,
-            y: -40,
-            opacity: [0, 0.8, 0],
-            scale: [1, 1.2, 0.3],
-          }}
-          transition={{
-            duration: 2,
-            delay: 1.5 + (i * 0.2),
-            repeat: Infinity,
-            repeatDelay: 2,
-            ease: 'easeOut',
-          }}
-          style={{
-            position: 'absolute',
-            width: '4px',
-            height: '4px',
-            borderRadius: '50%',
-            background: '#F4D03F',
-            pointerEvents: 'none',
-          }}
-        />
-      ))}
+      {!reduceMotion && sparkleCount > 0 && [...Array(sparkleCount)].map((_, i) => {
+        const angle = (i / sparkleCount) * 360;
+        const distance = 35;
+        return (
+          <motion.div
+            key={i}
+            initial={{ 
+              x: 0, 
+              y: 0, 
+              opacity: 0,
+              scale: 1,
+            }}
+            animate={{
+              x: Math.cos((angle * Math.PI) / 180) * distance,
+              y: Math.sin((angle * Math.PI) / 180) * distance,
+              opacity: [0, 0.9, 0.9, 0],
+              scale: [1, 1.3, 1.3, 0.3],
+            }}
+            transition={{
+              duration: 3,
+              delay: sparkleDelay + 1.5 + (i * 0.3),
+              repeat: Infinity,
+              repeatDelay: 1.5,
+              ease: 'easeOut',
+            }}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              width: '4px',
+              height: '4px',
+              borderRadius: '50%',
+              background: '#FFB300',
+              pointerEvents: 'none',
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -1529,12 +1661,12 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                             scale: 0.3,
                           }}
                           transition={{
-                            duration: 1.2,
+                            duration: 2.0,
                             ease: 'easeOut',
                           }}
                           style={{
                             position: 'absolute',
-                            right: '12px',
+                            left: '50%',
                             top: '50%',
                             width: '6px',
                             height: '6px',
@@ -2268,7 +2400,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                           scale: [1, 1.2, 1.2, 1.1, 1.1, 1]
                         } : {}}
                         transition={{ 
-                          duration: 0.6,
+                          duration: 1.2,
                           repeat: isButtonHovered ? Infinity : 0,
                           repeatDelay: 1
                         }}
@@ -2309,3 +2441,14 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
     </div>
   );
 }
+
+// Export flower components for Phase 7 landing page reuse
+export { Tier1Flower, Tier2Flower, Tier3Flower };
+export type { Tier1FlowerProps, Tier2FlowerProps, Tier3FlowerProps };
+
+// Export ambient background components for Phase 7 landing page reuse
+export { WatercolorBlob, FloatingParticle };
+export type { WatercolorBlobProps, FloatingParticleProps };
+
+// Export hooks for Phase 7 landing page reuse
+export { useIsMobile };

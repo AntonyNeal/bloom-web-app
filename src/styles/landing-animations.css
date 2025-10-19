@@ -1,0 +1,201 @@
+/**
+ * Landing Page Animations - Bloom Design System
+ * Extracted from inline styles for better caching and performance
+ * Studio Ghibli-inspired gentle, organic animations
+ */
+
+/* Text entrance animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Flower bloom animations - whimsical, organic */
+@keyframes flowerBloom {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-5deg);
+  }
+  60% {
+    transform: scale(1.05) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes flowerBloomGentle {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(3deg);
+  }
+  70% {
+    transform: scale(1.03) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes flowerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation classes with timing */
+.flower-main {
+  animation: flowerBloom 1.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  will-change: transform, opacity;
+}
+
+.flower-main-1 {
+  animation-delay: 2.5s;
+}
+
+.flower-main-2 {
+  animation: flowerBloomGentle 2.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 3.2s;
+}
+
+.flower-main-3 {
+  animation-delay: 2.8s;
+  animation-duration: 2s;
+}
+
+.flower-small {
+  animation: flowerFadeIn 1.5s ease-out both;
+  will-change: opacity, transform;
+}
+
+.flower-small-1 {
+  animation-delay: 4.5s;
+}
+
+.flower-small-2 {
+  animation-delay: 5.2s;
+}
+
+.flower-small-3 {
+  animation-delay: 4.8s;
+}
+
+.flower-small-4 {
+  animation-delay: 5.5s;
+}
+
+/* New companion flowers - natural staggered timing */
+.flower-small-5 {
+  animation-delay: 6.0s;
+}
+
+.flower-small-6 {
+  animation-delay: 5.2s;
+}
+
+.headline {
+  animation: fadeInUp 0.7s ease-out 0.8s both;
+}
+
+.org-name {
+  animation: fadeIn 0.8s ease-out 0s both;
+}
+
+.mission {
+  animation: fadeIn 0.6s ease-out 1.5s both;
+}
+
+.buttons {
+  animation: fadeInUp 0.7s ease-out 2.2s both;
+}
+
+/* Button interactions - CSS only, no JS */
+.primary-button {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.secondary-button {
+  transition: all 0.2s ease;
+}
+
+@media (hover: hover) {
+  .primary-button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 24px rgba(107, 142, 127, 0.35), 0 0 40px rgba(212, 165, 116, 0.15);
+  }
+  .secondary-button:hover {
+    background: rgba(107, 142, 127, 0.05);
+    border-color: #6B8E7F;
+  }
+}
+
+.primary-button:active, 
+.secondary-button:active {
+  transform: scale(0.98);
+}
+
+/* Organization link styling */
+.org-link {
+  text-decoration: none;
+  color: #3A3A3A;
+  position: relative;
+  display: inline-block;
+  transition: color 0.2s ease;
+}
+
+.org-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, #6B8E7F 0%, #D4A574 100%);
+  opacity: 0.4;
+  transition: opacity 0.2s ease, height 0.2s ease;
+}
+
+@media (hover: hover) {
+  .org-link:hover {
+    color: #6B8E7F;
+  }
+  .org-link:hover::after {
+    opacity: 1;
+    height: 2px;
+  }
+}
+
+.org-link:focus {
+  outline: 2px solid #6B8E7F;
+  outline-offset: 4px;
+  border-radius: 2px;
+}

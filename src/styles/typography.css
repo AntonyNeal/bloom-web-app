@@ -1,32 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+Pro:wght@300;400;600&display=swap');
-
-body {
-  font-family: 'Source Sans Pro', sans-serif;
-  color: #3a3a3a;
-  font-weight: 400;
-  line-height: 1.6;
-  background-color: #faf8f3;
-  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2387a878' fill-opacity='0.03'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E");
-}
-
-h1, h2, h3 {
-  font-family: 'Playfair Display', serif;
-  color: #2d5a3d;
-  font-weight: 400;
-}
-
-/* Gentle hover effects */
-.hover-grow {
-  transition: all 0.3s ease;
-}
-.hover-grow:hover {
-  transform: translateY(-2px) scale(1.02);
-}
-
-@keyframes gentle-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
-}
-.pulse-gentle {
-  animation: gentle-pulse 3s ease-in-out infinite;
-}
+/* 
+ * REMOVED: Duplicate font imports and unused styles
+ * Fonts are loaded via @fontsource in main.tsx (optimized Latin subset)
+ * Body and heading styles managed via Tailwind and index.css
+ * File kept for potential future use
+ */

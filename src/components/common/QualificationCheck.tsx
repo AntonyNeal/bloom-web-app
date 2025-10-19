@@ -673,6 +673,102 @@ const Tier3Flower = memo(({
           />
         );
       })}
+      
+      {/* Companion sunflower - smaller, for nan 🌻 */}
+      <motion.svg
+        width={size * 0.65}
+        height={size * 0.65}
+        viewBox="0 0 40 40"
+        style={{
+          position: 'absolute',
+          right: isMobile ? '-18px' : '-22px',
+          bottom: isMobile ? '-12px' : '-16px',
+          willChange: 'transform, opacity',
+        }}
+        initial={{ scale: 0, opacity: 0, rotate: -15 }}
+        animate={{ 
+          scale: 1, 
+          opacity: 0.85,
+          rotate: reduceMotion ? -15 : [-15, -12, -18, -15],
+        }}
+        transition={{
+          scale: { duration: 0.6, delay: 1.0, ease: 'easeOut' },
+          opacity: { duration: 0.6, delay: 1.0, ease: 'easeOut' },
+          rotate: reduceMotion ? {} : {
+            duration: 4,
+            delay: 1.6,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }
+        }}
+        aria-hidden="true"
+      >
+        <defs>
+          {/* Slightly warmer, softer gradients for the companion */}
+          <radialGradient id="companionPetal">
+            <stop offset="0%" stopColor="#FFF3E0" />
+            <stop offset="30%" stopColor="#FFE082" />
+            <stop offset="60%" stopColor="#FFD54F" />
+            <stop offset="85%" stopColor="#FFCA28" />
+            <stop offset="100%" stopColor="#FFC107" />
+          </radialGradient>
+          <radialGradient id="companionCenter">
+            <stop offset="0%" stopColor="#5D4037" />
+            <stop offset="50%" stopColor="#4E342E" />
+            <stop offset="100%" stopColor="#3E2723" />
+          </radialGradient>
+        </defs>
+        
+        <g>
+          {/* 10 petals - fewer for smaller flower */}
+          {[0, 36, 72, 108, 144, 180, 216, 252, 288, 324].map((angle, i) => {
+            const angleVariation = (i % 2 === 0 ? 3 : -3);
+            const lengthVariation = 0.85 + (Math.sin(i * 2) * 0.15);
+            const adjustedAngle = angle + angleVariation;
+            
+            const petalStartDist = 4.5;
+            const petalLength = 5.5 * lengthVariation;
+            const petalMidDist = petalStartDist + (petalLength / 2);
+            
+            const x = 20 + Math.cos((adjustedAngle * Math.PI) / 180) * petalMidDist;
+            const y = 20 + Math.sin((adjustedAngle * Math.PI) / 180) * petalMidDist;
+            
+            return (
+              <ellipse
+                key={i}
+                cx={x}
+                cy={y}
+                rx={1.2 * lengthVariation}
+                ry={petalLength / 2}
+                fill="url(#companionPetal)"
+                opacity="0.9"
+                transform={`rotate(${adjustedAngle + 90} ${x} ${y})`}
+              />
+            );
+          })}
+          
+          {/* Center */}
+          <circle cx="20" cy="20" r="4.5" fill="url(#companionCenter)" />
+          
+          {/* Center texture dots */}
+          {[...Array(6)].map((_, i) => {
+            const centerAngle = (i / 6) * 360;
+            const centerDist = 1.5;
+            const cx = 20 + Math.cos((centerAngle * Math.PI) / 180) * centerDist;
+            const cy = 20 + Math.sin((centerAngle * Math.PI) / 180) * centerDist;
+            return (
+              <circle
+                key={i}
+                cx={cx}
+                cy={cy}
+                r="0.4"
+                fill="#4E342E"
+                opacity="0.3"
+              />
+            );
+          })}
+        </g>
+      </motion.svg>
     </div>
   );
 });

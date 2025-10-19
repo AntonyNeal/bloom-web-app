@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -38,6 +38,25 @@ export const SpatialNavProvider: React.FC<SpatialNavProviderProps> = ({ children
   const [previousPage, setPreviousPage] = useState<string | null>(null);
   const [direction, setDirection] = useState<NavigationDirection>('none');
   
+  /**
+   * Determine reversed direction based on current location
+   * Maps current page to the direction needed to return to origin
+   */
+  const getReversedDirection = useCallback((currentPath: string): NavigationDirection => {
+    switch (currentPath) {
+      case '/join-us':
+        return 'right'; // Came from landing (left), go back right
+      case '/bloom':
+        return 'left'; // Came from landing (right), go back left
+      case '/application':
+        return 'right'; // Came from qualification (left), go back right
+      case '/':
+        return 'none'; // At origin, no specific direction
+      default:
+        return 'none';
+    }
+  }, []);
+  
   // Handle browser back/forward buttons
   useEffect(() => {
     const handlePopState = () => {
@@ -49,7 +68,7 @@ export const SpatialNavProvider: React.FC<SpatialNavProviderProps> = ({ children
     
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [location.pathname]);
+  }, [location.pathname, getReversedDirection]);
   
   /**
    * Navigate with spatial awareness
@@ -68,25 +87,6 @@ export const SpatialNavProvider: React.FC<SpatialNavProviderProps> = ({ children
    */
   const getReturnDirection = (): NavigationDirection => {
     return getReversedDirection(location.pathname);
-  };
-  
-  /**
-   * Determine reversed direction based on current location
-   * Maps current page to the direction needed to return to origin
-   */
-  const getReversedDirection = (currentPath: string): NavigationDirection => {
-    switch (currentPath) {
-      case '/join-us':
-        return 'right'; // Came from landing (left), go back right
-      case '/bloom':
-        return 'left'; // Came from landing (right), go back left
-      case '/application':
-        return 'right'; // Came from qualification (left), go back right
-      case '/':
-        return 'none'; // At origin, no specific direction
-      default:
-        return 'none';
-    }
   };
   
   const value: SpatialNavContextType = {

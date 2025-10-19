@@ -9,12 +9,30 @@
  * 6. Would this work in Kiki's Delivery Service?
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { GraduationCap, AlertCircle, CheckCircle2, Sparkles, ArrowLeft } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
+
+// Bloom/Ghibli design tokens - moved outside component for performance
+const bloomStyles = {
+  colors: {
+    creamBase: '#FAF7F2',
+    charcoalText: '#3A3A3A',
+    mutedText: '#5A5A5A',
+    eucalyptusSage: '#6B8E7F',
+    softFern: '#8FA892',
+    honeyAmber: '#D9B380',
+    clayTerracotta: '#C89B7B',
+  },
+  ease: {
+    gentle: [0.25, 0.46, 0.45, 0.94],
+    settle: [0.34, 1.56, 0.64, 1],
+    exhale: [0.16, 1, 0.3, 1],
+  }
+};
 
 // Mobile detection hook for performance optimizations
 const useIsMobile = () => {
@@ -46,7 +64,7 @@ interface WatercolorBlobProps {
   borderRadius: string;
 }
 
-const WatercolorBlob = ({ 
+const WatercolorBlob = memo(({ 
   size, 
   color, 
   opacity, 
@@ -70,7 +88,7 @@ const WatercolorBlob = ({
       }}
     />
   );
-};
+});
 
 // Floating Particle Component - organic drift
 interface FloatingParticleProps {
@@ -85,7 +103,7 @@ interface FloatingParticleProps {
   ySequence?: number[];
 }
 
-const FloatingParticle = ({ 
+const FloatingParticle = memo(({ 
   size, 
   color, 
   opacity, 
@@ -125,25 +143,7 @@ const FloatingParticle = ({
       }}
     />
   );
-};
-
-// Bloom/Ghibli design tokens
-const bloomStyles = {
-  colors: {
-    creamBase: '#FAF7F2',
-    charcoalText: '#3A3A3A',
-    mutedText: '#5A5A5A',
-    eucalyptusSage: '#6B8E7F',
-    softFern: '#8FA892',
-    honeyAmber: '#D9B380',
-    clayTerracotta: '#C89B7B',
-  },
-  ease: {
-    gentle: [0.25, 0.46, 0.45, 0.94],
-    settle: [0.34, 1.56, 0.64, 1],
-    exhale: [0.16, 1, 0.3, 1],
-  }
-};
+});
 
 // Phase 6: Flower Recognition Components
 
@@ -154,7 +154,7 @@ interface Tier1FlowerProps {
   shouldReduceMotion: boolean | null;
 }
 
-function Tier1Flower({ isChecked, isMobile, shouldReduceMotion }: Tier1FlowerProps) {
+const Tier1Flower = memo(({ isChecked, isMobile, shouldReduceMotion }: Tier1FlowerProps) => {
   if (!isChecked) return null;
 
   const size = isMobile ? 56 : 88; // Increased from 40/68 (~25% larger)
@@ -288,7 +288,7 @@ function Tier1Flower({ isChecked, isMobile, shouldReduceMotion }: Tier1FlowerPro
       </g>
     </SvgComponent>
   );
-}
+});
 
 // Tier 2: 8+ Years - Larger purple flower with sparkles
 interface Tier2FlowerProps {
@@ -299,13 +299,13 @@ interface Tier2FlowerProps {
   sparkleDelay?: number; // Phase 7 optimization: Delay sparkle start
 }
 
-function Tier2Flower({ 
+const Tier2Flower = memo(({ 
   isChecked, 
   isMobile, 
   shouldReduceMotion, 
   sparkleCount: customSparkleCount,
   sparkleDelay = 0 
-}: Tier2FlowerProps) {
+}: Tier2FlowerProps) => {
   if (!isChecked) return null;
 
   const size = isMobile ? 60 : 80; // Increased from 48/64 (~25% larger)
@@ -502,7 +502,7 @@ function Tier2Flower({
       })}
     </div>
   );
-}
+});
 
 // Tier 3: PhD - Golden flower with rotating halo
 interface Tier3FlowerProps {
@@ -513,13 +513,13 @@ interface Tier3FlowerProps {
   sparkleDelay?: number; // Phase 7 optimization: Delay sparkle start
 }
 
-function Tier3Flower({ 
+const Tier3Flower = memo(({ 
   isChecked, 
   isMobile, 
   shouldReduceMotion,
   sparkleCount: customSparkleCount,
   sparkleDelay = 0
-}: Tier3FlowerProps) {
+}: Tier3FlowerProps) => {
   if (!isChecked) return null;
 
   const size = isMobile ? 58 : 74; // Increased from 44/56 (~25% larger)
@@ -675,6 +675,10 @@ function Tier3Flower({
       })}
     </div>
   );
+});
+
+interface QualificationCheckProps {
+  onEligible: () => void;
 }
 
 export function QualificationCheck({ onEligible }: QualificationCheckProps) {
@@ -722,33 +726,31 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   // Phase 6: Screen reader announcements for qualification recognition
   const [srAnnouncement, setSrAnnouncement] = useState('');
   
+  // Consolidated useEffect for all screen reader announcements
   useEffect(() => {
+    let message = '';
+    
     if (isRegisteredPsychologist) {
-      setSrAnnouncement('Clinical Psychologist qualification recognized');
-      setTimeout(() => setSrAnnouncement(''), 3000);
+      message = 'Clinical Psychologist qualification recognized';
+    } else if (hasPhd) {
+      message = 'PhD qualification recognized with highest honors';
+    } else if (yearsRegistered >= 8) {
+      message = 'Eight or more years of experience recognized';
     }
-  }, [isRegisteredPsychologist]);
-  
-  useEffect(() => {
-    if (hasPhd) {
-      setSrAnnouncement('PhD qualification recognized with highest honors');
-      setTimeout(() => setSrAnnouncement(''), 3000);
+    
+    if (message) {
+      setSrAnnouncement(message);
+      const timer = setTimeout(() => setSrAnnouncement(''), 3000);
+      return () => clearTimeout(timer);
     }
-  }, [hasPhd]);
-  
-  useEffect(() => {
-    if (yearsRegistered >= 8) {
-      setSrAnnouncement('Eight or more years of experience recognized');
-      setTimeout(() => setSrAnnouncement(''), 3000);
-    }
-  }, [yearsRegistered]);
+  }, [isRegisteredPsychologist, hasPhd, yearsRegistered]);
 
   // Phase 2: Mobile-first entrance animations
   const isMobile = useIsMobile();
   const shouldReduceMotion = useReducedMotion();
 
-  // Animation configuration based on device and user preferences
-  const animationConfig = {
+  // Animation configuration based on device and user preferences - memoized for performance
+  const animationConfig = useMemo(() => ({
     // Particle count optimization
     particleCount: isMobile ? 6 : 10,
     
@@ -771,7 +773,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
     
     // Easing - use "easeOut" string for Framer Motion compatibility
     bounceEasing: 'easeOut' as const,
-  };
+  }), [isMobile, shouldReduceMotion]);
 
   // Stable random values for floating seeds (prevents recalculation on each render)
   const seedValues = useMemo(() => {
@@ -801,7 +803,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
     }));
   }, [isMobile]);
 
-  const handleCheckEligibility = () => {
+  const handleCheckEligibility = useCallback(() => {
     // Phase 4: Add loading state for dramatic effect
     setIsLoading(true);
     
@@ -817,10 +819,10 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
         setTimeout(() => onEligible(), 5000);
       }
     }, 500);
-  };
+  }, [isRegisteredPsychologist, hasPhd, yearsRegistered, onEligible]);
 
   // Phase 4: Handle mobile touch ripple effect
-  const handleTouchRipple = (e: React.TouchEvent<HTMLButtonElement>) => {
+  const handleTouchRipple = useCallback((e: React.TouchEvent<HTMLButtonElement>) => {
     if (!isMobile) return;
     
     const button = e.currentTarget;
@@ -835,10 +837,10 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
     setTimeout(() => {
       setRipples(prev => prev.filter(r => r.id !== rippleId));
     }, 600);
-  };
+  }, [isMobile]);
 
   // Phase 4: Handle desktop ink-spread effect from cursor position
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     if (isMobile || !isButtonHovered) return;
     
     const button = e.currentTarget;
@@ -847,12 +849,12 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     
     setInkSpreadOrigin({ x, y });
-  };
+  }, [isMobile, isButtonHovered]);
 
   // Ambient background configuration - Studio Ghibli watercolor atmosphere
   // MASSIVE, DIFFUSE blobs to avoid "grub" look
-  // Mobile-optimized blur values for better performance
-  const watercolorBlobs = [
+  // Mobile-optimized blur values for better performance - memoized
+  const watercolorBlobs = useMemo(() => [
     {
       // BLOB 1 - Top Right (Eucalyptus) - MASSIVE & DIFFUSE
       size: '850px',
@@ -889,10 +891,10 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
       rotateSequence: [0, 2, -1, 0],
       scaleSequence: [1, 1.02, 0.99, 1],
     },
-  ];
+  ], [animationConfig.blobBlur]);
 
-  // ENHANCED particles - 10 particles with increased visibility
-  const floatingParticles = [
+  // ENHANCED particles - 10 particles with increased visibility - memoized
+  const floatingParticles = useMemo(() => [
     {
       size: 10,
       color: bloomStyles.colors.eucalyptusSage,
@@ -1003,7 +1005,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
       xSequence: [0, -18, 26, -15, 0],
       ySequence: [0, -55, -110, -165, -220],
     },
-  ];
+  ], []);
 
   return (
     <div 

@@ -57,14 +57,16 @@ function LandingPage() {
         >
           {/* === MAIN FLOWERS - The Three Greeters === */}
           
-          {/* Pink wildflower - left side, mid-height (The Welcomer) */}
+          {/* Cherry blossom - left side, mid-height (The Welcomer) 
+              Refined scale: delicate stamens with ethereal presence */}
           <div
             className="flower-main flower-main-1"
             style={{
               position: 'absolute',
-              left: isMobile ? '20px' : '40px',
-              top: isMobile ? '60px' : '80px',
+              left: isMobile ? '15px' : '35px',
+              top: isMobile ? '55px' : '75px',
               opacity: 0,
+              transform: isMobile ? 'scale(1.08)' : 'scale(1.10)',
             }}
           >
             <MemoizedTier1 
@@ -74,14 +76,16 @@ function LandingPage() {
             />
           </div>
 
-          {/* Purple rose - upper right area (The Observer) */}
+          {/* Purple rose - upper right area (The Observer)
+              Scaled down: layered petals create visual weight */}
           <div
             className="flower-main flower-main-2"
             style={{
               position: 'absolute',
-              right: isMobile ? '60px' : '100px',
-              top: isMobile ? '10px' : '20px',
+              right: isMobile ? '65px' : '105px',
+              top: isMobile ? '8px' : '18px',
               opacity: 0,
+              transform: isMobile ? 'scale(0.92)' : 'scale(0.95)',
             }}
           >
             <MemoizedTier2 
@@ -93,7 +97,8 @@ function LandingPage() {
             />
           </div>
 
-          {/* Golden daisy - right side, mid-low (The Anchor) */}
+          {/* Golden daisy - right side, mid-low (The Anchor)
+              Kept at original scale: perfect grounding element */}
           <div
             className="flower-main flower-main-3"
             style={{
@@ -114,15 +119,15 @@ function LandingPage() {
 
           {/* === COMPANION FLOWERS - Natural Scatter (6 companions) === */}
           
-          {/* #1: Small pink - lower left corner (grounding) */}
+          {/* #1: Small cherry blossom - lower left corner (grounding, airiness) */}
           <div
             className="flower-small flower-small-1"
             style={{
               position: 'absolute',
-              left: isMobile ? '0px' : '10px',
-              bottom: isMobile ? '20px' : '30px',
+              left: isMobile ? '0px' : '8px',
+              bottom: isMobile ? '18px' : '28px',
               opacity: 0,
-              transform: isMobile ? 'scale(0.5)' : 'scale(0.6)',
+              transform: isMobile ? 'scale(0.52)' : 'scale(0.62)',
             }}
           >
             <MemoizedTier1 
@@ -132,15 +137,15 @@ function LandingPage() {
             />
           </div>
 
-          {/* #2: Small gold - upper left (creates depth) */}
+          {/* #2: Small golden daisy - upper left (creates depth) */}
           <div
             className="flower-small flower-small-2"
             style={{
               position: 'absolute',
-              left: isMobile ? '80px' : '120px',
-              top: isMobile ? '0px' : '0px',
+              left: isMobile ? '82px' : '122px',
+              top: isMobile ? '2px' : '2px',
               opacity: 0,
-              transform: isMobile ? 'scale(0.45)' : 'scale(0.55)',
+              transform: isMobile ? 'scale(0.48)' : 'scale(0.58)',
             }}
           >
             <MemoizedTier3 
@@ -152,35 +157,16 @@ function LandingPage() {
             />
           </div>
 
-          {/* #3: Small purple - center-left (mid-ground layer) */}
+          {/* #3: Small cherry blossom - center-left (mid-ground layer, changed from purple)
+              More cherry blossoms create lightness */}
           <div
             className="flower-small flower-small-3"
             style={{
               position: 'absolute',
-              left: isMobile ? '110px' : '160px',
-              top: isMobile ? '70px' : '90px',
+              left: isMobile ? '115px' : '165px',
+              top: isMobile ? '72px' : '92px',
               opacity: 0,
-              transform: isMobile ? 'scale(0.4)' : 'scale(0.5)',
-            }}
-          >
-            <MemoizedTier2 
-              isChecked={true} 
-              isMobile={false}
-              shouldReduceMotion={true}
-              sparkleCount={0}
-              sparkleDelay={0}
-            />
-          </div>
-
-          {/* #4: Small pink - upper right (ADJUSTED - moved away from overlap) */}
-          <div
-            className="flower-small flower-small-4"
-            style={{
-              position: 'absolute',
-              right: isMobile ? '35px' : '55px',
-              top: isMobile ? '30px' : '45px',
-              opacity: 0,
-              transform: isMobile ? 'scale(0.45)' : 'scale(0.55)',
+              transform: isMobile ? 'scale(0.42)' : 'scale(0.52)',
             }}
           >
             <MemoizedTier1 
@@ -190,15 +176,35 @@ function LandingPage() {
             />
           </div>
 
-          {/* #5: NEW - Tiny gold - bottom right (the welcome at the gate) */}
+          {/* #4: Small cherry blossom - upper right (balance, changed from pink)
+              Adjusted position for better spacing */}
+          <div
+            className="flower-small flower-small-4"
+            style={{
+              position: 'absolute',
+              right: isMobile ? '38px' : '58px',
+              top: isMobile ? '32px' : '47px',
+              opacity: 0,
+              transform: isMobile ? 'scale(0.47)' : 'scale(0.57)',
+            }}
+          >
+            <MemoizedTier1 
+              isChecked={true} 
+              isMobile={false}
+              shouldReduceMotion={true}
+            />
+          </div>
+
+          {/* #5: Tiny golden daisy - bottom right (the welcome at the gate)
+              Shifted slightly left to break column effect */}
           <div
             className="flower-small flower-small-5"
             style={{
               position: 'absolute',
-              right: isMobile ? '5px' : '15px',
-              bottom: isMobile ? '5px' : '10px',
+              right: isMobile ? '12px' : '22px',
+              bottom: isMobile ? '6px' : '11px',
               opacity: 0,
-              transform: isMobile ? 'scale(0.35)' : 'scale(0.42)',
+              transform: isMobile ? 'scale(0.37)' : 'scale(0.44)',
             }}
           >
             <MemoizedTier3 
@@ -210,18 +216,19 @@ function LandingPage() {
             />
           </div>
 
-          {/* #6: NEW - Small purple - upper-middle-left (adds air and depth) */}
+          {/* #6: Small golden daisy - upper-middle-left (adds warmth, changed from purple)
+              More golden flowers balance the composition */}
           <div
             className="flower-small flower-small-6"
             style={{
               position: 'absolute',
-              left: isMobile ? '65px' : '95px',
-              top: isMobile ? '25px' : '35px',
+              left: isMobile ? '68px' : '98px',
+              top: isMobile ? '27px' : '37px',
               opacity: 0,
-              transform: isMobile ? 'scale(0.38)' : 'scale(0.48)',
+              transform: isMobile ? 'scale(0.40)' : 'scale(0.50)',
             }}
           >
-            <MemoizedTier2 
+            <MemoizedTier3 
               isChecked={true} 
               isMobile={false}
               shouldReduceMotion={true}

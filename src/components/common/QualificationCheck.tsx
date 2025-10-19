@@ -188,71 +188,103 @@ function Tier1Flower({ isChecked, isMobile, shouldReduceMotion }: Tier1FlowerPro
       aria-hidden="true"
     >
       <defs>
+        {/* Reversed gradient: pale/white edges → deeper pink toward center */}
         <radialGradient id="pinkPetalGradient">
-          <stop offset="0%" stopColor="#FFE5ED" />
-          <stop offset="30%" stopColor="#FFD4E0" />
-          <stop offset="60%" stopColor="#FFB6C1" />
-          <stop offset="100%" stopColor="#FF9BAD" />
+          <stop offset="0%" stopColor="#FFFBFC" />
+          <stop offset="25%" stopColor="#FFE5ED" />
+          <stop offset="60%" stopColor="#FFD4E0" />
+          <stop offset="85%" stopColor="#FFB6C1" />
+          <stop offset="100%" stopColor="#FFA8BA" />
         </radialGradient>
+        {/* Softer center gradient */}
         <radialGradient id="pinkCenterGradient">
           <stop offset="0%" stopColor="#FFF5F8" />
-          <stop offset="40%" stopColor="#E8B8C8" />
-          <stop offset="100%" stopColor="#D4A5A5" />
+          <stop offset="50%" stopColor="#FFE5ED" />
+          <stop offset="100%" stopColor="#FFD4E0" />
         </radialGradient>
+        {/* Subtle shadow */}
         <radialGradient id="pinkPetalShadow">
-          <stop offset="0%" stopColor="#FF9BAD" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#E8668F" stopOpacity="0.8" />
+          <stop offset="0%" stopColor="#FFB6C1" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#FF9BAD" stopOpacity="0.6" />
         </radialGradient>
       </defs>
       <g>
-        {/* 5 petals radiating from center with enhanced gradients */}
+        {/* 5 petals radiating from center - slightly more spaced for cherry blossom feel */}
         {[0, 72, 144, 216, 288].map((angle, i) => {
-          const x = 16 + Math.cos((angle * Math.PI) / 180) * 8;
-          const y = 16 + Math.sin((angle * Math.PI) / 180) * 8;
+          const x = 16 + Math.cos((angle * Math.PI) / 180) * 9; // Increased from 8 to 9
+          const y = 16 + Math.sin((angle * Math.PI) / 180) * 9;
           return (
             <g key={i}>
               {/* Petal shadow/depth */}
               <ellipse
-                cx={x + 0.5}
-                cy={y + 0.5}
+                cx={x + 0.3}
+                cy={y + 0.4}
                 rx="5.5"
                 ry="8"
                 fill="url(#pinkPetalShadow)"
-                opacity="0.6"
                 transform={`rotate(${angle} ${x} ${y})`}
               />
-              {/* Main petal */}
+              {/* Main petal - slightly rounder */}
               <ellipse
                 cx={x}
                 cy={y}
-                rx="5"
-                ry="7.5"
+                rx="5.2"
+                ry="7.8"
                 fill="url(#pinkPetalGradient)"
-                opacity="0.95"
+                opacity="0.98"
                 transform={`rotate(${angle} ${x} ${y})`}
               />
-              {/* Petal highlight */}
+              {/* Larger, softer highlight for luminous quality */}
               <ellipse
-                cx={x - 0.8}
-                cy={y - 1.5}
-                rx="2"
-                ry="3.5"
-                fill="rgba(255, 255, 255, 0.6)"
-                opacity="0.85"
+                cx={x - 1.0}
+                cy={y - 2.0}
+                rx="2.8"
+                ry="4.2"
+                fill="rgba(255, 255, 255, 0.75)"
+                opacity="0.9"
                 transform={`rotate(${angle} ${x} ${y})`}
               />
             </g>
           );
         })}
         
-        {/* Center circle with gradient */}
-        <circle cx="16" cy="16" r="4" fill="url(#pinkCenterGradient)" />
+        {/* Center circle - softer gradient */}
+        <circle cx="16" cy="16" r="3.5" fill="url(#pinkCenterGradient)" opacity="0.9" />
+        
+        {/* Delicate stamens - cherry blossom characteristic (10 stamens) */}
+        {[0, 36, 72, 108, 144, 180, 216, 252, 288, 324].map((angle, i) => {
+          const stamenLength = i % 2 === 0 ? 2.8 : 2.4; // Varied lengths
+          const x1 = 16 + Math.cos((angle * Math.PI) / 180) * 0.5;
+          const y1 = 16 + Math.sin((angle * Math.PI) / 180) * 0.5;
+          const x2 = 16 + Math.cos((angle * Math.PI) / 180) * stamenLength;
+          const y2 = 16 + Math.sin((angle * Math.PI) / 180) * stamenLength;
+          
+          return (
+            <g key={`stamen-${i}`}>
+              {/* Stamen filament - thin line */}
+              <line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="#FFB6C1"
+                strokeWidth="0.4"
+                opacity="0.8"
+              />
+              {/* Stamen anther - darker tip */}
+              <circle
+                cx={x2}
+                cy={y2}
+                r="0.5"
+                fill="#C85A7A"
+                opacity="0.9"
+              />
+            </g>
+          );
+        })}
         
         {/* Center highlight */}
-        <ellipse cx="15" cy="14.5" rx="2" ry="1.5" fill="rgba(255, 255, 255, 0.8)" opacity="0.9" />
-        
-        {/* Center detail */}
-        <circle cx="16" cy="16" r="1.5" fill="#E8B8C8" opacity="0.6" />
+        <ellipse cx="15.5" cy="15" rx="1.5" ry="1.2" fill="rgba(255, 255, 255, 0.7)" opacity="0.8" />
       </g>
     </SvgComponent>
   );
@@ -302,86 +334,130 @@ function Tier2Flower({
         aria-hidden="true"
       >
         <defs>
-          <radialGradient id="purplePetalGradient">
-            <stop offset="0%" stopColor="#E8D9F5" />
-            <stop offset="20%" stopColor="#D4BEED" />
-            <stop offset="40%" stopColor="#C7ABD9" />
-            <stop offset="60%" stopColor="#B18FC7" />
-            <stop offset="75%" stopColor="#9B72AA" />
-            <stop offset="90%" stopColor="#85608F" />
-            <stop offset="100%" stopColor="#6F4C7A" />
+          {/* Outer petal gradient - lighter, more exposed */}
+          <radialGradient id="purplePetalOuter">
+            <stop offset="0%" stopColor="#F0E5F9" />
+            <stop offset="30%" stopColor="#E0CEF0" />
+            <stop offset="60%" stopColor="#C7ABD9" />
+            <stop offset="85%" stopColor="#B18FC7" />
+            <stop offset="100%" stopColor="#9B72AA" />
           </radialGradient>
+          {/* Inner petal gradient - deeper, more shadowed */}
           <radialGradient id="purplePetalInner">
-            <stop offset="0%" stopColor="#B18FC7" />
-            <stop offset="50%" stopColor="#9B72AA" />
+            <stop offset="0%" stopColor="#D4BEED" />
+            <stop offset="40%" stopColor="#B18FC7" />
+            <stop offset="70%" stopColor="#9B72AA" />
             <stop offset="100%" stopColor="#7A5589" />
           </radialGradient>
-          <radialGradient id="goldCenterGradient">
-            <stop offset="0%" stopColor="#FFFEF5" />
-            <stop offset="25%" stopColor="#FFF8DC" />
-            <stop offset="50%" stopColor="#F5E6B8" />
-            <stop offset="75%" stopColor="#E8D4A8" />
-            <stop offset="100%" stopColor="#D9B380" />
+          {/* Deep shadow for petal overlaps */}
+          <radialGradient id="purpleShadow">
+            <stop offset="0%" stopColor="#6F4C7A" opacity="0.6" />
+            <stop offset="100%" stopColor="#4A3350" opacity="0.8" />
           </radialGradient>
-          <radialGradient id="goldCenterOuter">
-            <stop offset="0%" stopColor="#E8D4A8" />
-            <stop offset="50%" stopColor="#D4AF37" />
-            <stop offset="100%" stopColor="#B8922E" />
+          {/* Softer center - partially hidden */}
+          <radialGradient id="roseCenterGradient">
+            <stop offset="0%" stopColor="#F5E6B8" />
+            <stop offset="60%" stopColor="#E8D4A8" />
+            <stop offset="100%" stopColor="#C9A87C" />
           </radialGradient>
         </defs>
         <g>
-          {/* 6 petals - purple with clustered, overlapping petals (rose-like) */}
+          {/* Outer ring: 6 petals - larger, lighter, more exposed */}
           {[0, 60, 120, 180, 240, 300].map((angle, i) => {
-            // Slight variations for organic feel
-            const angleVariation = (i % 2 === 0 ? 3 : -3);
-            const sizeVariation = i % 3 === 0 ? 0.92 : i % 3 === 1 ? 1.0 : 1.05;
+            // Organic variations
+            const angleVariation = [5, -3, 4, -4, 3, -5][i];
+            const sizeVariation = [1.05, 0.95, 1.0, 1.08, 0.98, 1.02][i];
             const adjustedAngle = angle + angleVariation;
-            const x = 20 + Math.cos((adjustedAngle * Math.PI) / 180) * 9.5; // Closer together
-            const y = 20 + Math.sin((adjustedAngle * Math.PI) / 180) * 9.5;
+            const petalDistance = 10.5; // Distance from center
+            const x = 20 + Math.cos((adjustedAngle * Math.PI) / 180) * petalDistance;
+            const y = 20 + Math.sin((adjustedAngle * Math.PI) / 180) * petalDistance;
+            
+            // Each petal width/height varies for organic feel
+            const petalWidth = 6.5 * sizeVariation;
+            const petalHeight = 7.2 * sizeVariation;
             
             return (
-              <g key={i}>
-                {/* Soft shadow */}
+              <g key={`outer-${i}`}>
+                {/* Soft shadow beneath petal */}
                 <ellipse
-                  cx={x + 0.4}
-                  cy={y + 0.8}
-                  rx={6.8 * sizeVariation}
-                  ry={7.2 * sizeVariation} // Slightly taller than wide
-                  fill="#9B72AA"
-                  opacity="0.2"
-                  transform={`rotate(${adjustedAngle + 10} ${x} ${y})`}
+                  cx={x + 0.5}
+                  cy={y + 1.0}
+                  rx={petalWidth}
+                  ry={petalHeight}
+                  fill="url(#purpleShadow)"
+                  transform={`rotate(${adjustedAngle + 8} ${x} ${y})`}
                 />
                 
-                {/* Main petal - slightly oval, clustered */}
+                {/* Main outer petal - lighter gradient */}
                 <ellipse
                   cx={x}
                   cy={y}
-                  rx={6.2 * sizeVariation}
-                  ry={6.8 * sizeVariation} // Slightly taller
-                  fill="url(#purplePetalGradient)"
-                  opacity="0.92"
-                  transform={`rotate(${adjustedAngle + 10} ${x} ${y})`}
+                  rx={petalWidth}
+                  ry={petalHeight}
+                  fill="url(#purplePetalOuter)"
+                  opacity="0.95"
+                  transform={`rotate(${adjustedAngle + 8} ${x} ${y})`}
                 />
                 
-                {/* Soft highlight - closer to center edge */}
+                {/* Soft highlight - captures light on petal edge */}
                 <ellipse
-                  cx={x + (i % 2 === 0 ? -1.2 : 0.9)}
-                  cy={y - 1.5}
-                  rx={2.8 * sizeVariation}
-                  ry={3.2 * sizeVariation}
-                  fill="rgba(248, 240, 255, 0.75)"
-                  opacity="0.65"
+                  cx={x + (i % 2 === 0 ? -1.4 : 1.2)}
+                  cy={y - 2.0}
+                  rx={2.5 * sizeVariation}
+                  ry={3.0 * sizeVariation}
+                  fill="rgba(255, 250, 255, 0.7)"
+                  opacity="0.6"
                   transform={`rotate(${adjustedAngle + 5} ${x} ${y})`}
                 />
               </g>
             );
           })}
           
-          {/* Center circle - flat, low contrast */}
-          <circle cx="20" cy="20" r="4.5" fill="url(#goldCenterGradient)" opacity="0.7" />
+          {/* Inner ring: 4 petals - smaller, deeper color, spiraling inward (Miyazaki touch) */}
+          {[30, 100, 190, 280].map((angle, i) => {
+            // More variation for hand-drawn feel
+            const angleVariation = [4, -6, 5, -4][i];
+            const sizeVariation = [0.88, 0.92, 0.85, 0.90][i];
+            const adjustedAngle = angle + angleVariation;
+            const petalDistance = 6.2; // Closer to center
+            const x = 20 + Math.cos((adjustedAngle * Math.PI) / 180) * petalDistance;
+            const y = 20 + Math.sin((adjustedAngle * Math.PI) / 180) * petalDistance;
+            
+            const petalWidth = 5.0 * sizeVariation;
+            const petalHeight = 5.8 * sizeVariation;
+            
+            return (
+              <g key={`inner-${i}`}>
+                {/* Inner petal - deeper gradient, more saturated */}
+                <ellipse
+                  cx={x}
+                  cy={y}
+                  rx={petalWidth}
+                  ry={petalHeight}
+                  fill="url(#purplePetalInner)"
+                  opacity="0.92"
+                  transform={`rotate(${adjustedAngle + 15} ${x} ${y})`}
+                />
+                
+                {/* Subtle highlight on inner petals - less prominent */}
+                <ellipse
+                  cx={x + (i % 2 === 0 ? -0.8 : 0.7)}
+                  cy={y - 1.2}
+                  rx={1.8 * sizeVariation}
+                  ry={2.2 * sizeVariation}
+                  fill="rgba(230, 215, 240, 0.65)"
+                  opacity="0.5"
+                  transform={`rotate(${adjustedAngle + 10} ${x} ${y})`}
+                />
+              </g>
+            );
+          })}
           
-          {/* Subtle center detail */}
-          <circle cx="20" cy="20" r="2.8" fill="#D4AF37" opacity="0.3" />
+          {/* Center - mostly hidden by inner petals, just peeking through */}
+          <circle cx="20" cy="20" r="2.8" fill="url(#roseCenterGradient)" opacity="0.6" />
+          
+          {/* Tiny center detail - hint of stamens */}
+          <circle cx="19.5" cy="19.5" r="1.2" fill="#C9A87C" opacity="0.4" />
         </g>
       </SvgComponent>
       
@@ -418,7 +494,7 @@ function Tier2Flower({
               width: '4px',
               height: '4px',
               borderRadius: '50%',
-              background: '#D9B380',
+              background: '#C7ABD9', // Soft lavender to match rose
               pointerEvents: 'none',
             }}
           />

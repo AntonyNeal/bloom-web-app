@@ -11,7 +11,7 @@ const JoinUs = lazy(() => import('./pages/JoinUs').then(m => ({ default: m.JoinU
 const Admin = lazy(() => import('./pages/admin/ApplicationManagement').then(m => ({ default: m.Admin })));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 
-// Lazy-loaded flower components (optimized: now separate small files instead of 2570-line QualificationCheck!)
+// Lazy-loaded flower components - keep original React components for visual fidelity
 const Tier1Flower = lazy(() => import('@/components/flowers/Tier1Flower').then(m => ({ default: m.Tier1Flower })));
 const Tier2Flower = lazy(() => import('@/components/flowers/Tier2Flower').then(m => ({ default: m.Tier2Flower })));
 const Tier3Flower = lazy(() => import('@/components/flowers/Tier3Flower').then(m => ({ default: m.Tier3Flower })));
@@ -407,15 +407,14 @@ function LandingPage() {
               left: '-18px'
             }}>
               <div style={{
-                transform: 'scale(0.25) translateX(-20px)',
-                transformOrigin: 'center',
                 width: '80px',
                 height: '80px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 position: 'relative',
-                zIndex: 1
+                zIndex: 1,
+                transform: 'scale(0.25) translateX(-20px)'
               }}>
                 <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
                   <Tier2Flower 

@@ -5,14 +5,17 @@ import { createRoot } from 'react-dom/client'
 const perfStart = performance.now();
 console.log('[PERF] main.tsx started loading at', perfStart);
 
-// Import styles
+// Import ONLY landing page critical CSS
 import './index.css'
-// typography.css removed - file is empty, uses system fonts via index.css
-import './styles/blob.css'
 import './styles/landing-animations.css'
-import './styles/component-animations.css'
-import './styles/flower-animations.css' // CSS-only flower animations (replaces Framer Motion)
-import './styles/animations.css' // Complete CSS animation library (replaces Framer Motion)
+
+// Defer non-critical CSS - load after initial render
+requestIdleCallback(() => {
+  import('./styles/blob.css');
+  import('./styles/animations.css');
+  import('./styles/component-animations.css');
+  import('./styles/flower-animations.css');
+}, { timeout: 1000 });
 
 console.log('[PERF] CSS loaded in', performance.now() - perfStart, 'ms');
 

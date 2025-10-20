@@ -131,8 +131,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               margin: '0 auto',
             }}
           >
-            Keep 80% of what you bill. Work where you want.<br />
-            We minimize the admin burden. Together, we shape the culture.
+            <strong>No need to quit your current job.</strong> Bloom can supplement your income or become your full-time career—your choice. Work completely on your schedule: weekends, evenings, early mornings, or business hours.<br />
+            <strong>Bloom fits into your life, not the other way around.</strong>
           </motion.p>
         </motion.section>
 
@@ -165,7 +165,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 title: 'Build your own practice',
                 icon: '🌿',
                 accentColor: bloomStyles.colors.honeyAmber,
-                description: 'Your schedule. Your clients. Your specialties.\nWe provide the foundation. You make it yours.',
+                description: 'Your schedule. Your clients. Your specialties.\nSee one client a week or thirty—you decide.\nSupplement your current income or go full-time.\nPick up appointments anytime: early mornings, weekends, evenings.\nCompletely flexible. You make it yours.',
               },
             ].map((card, i) => (
               <motion.div
@@ -487,7 +487,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             transition={{ delay: 0.2 }}
             style={{
               fontSize: '18px',
-              color: '#5A5A5A',
+              color: '#4A4A4A',
               marginBottom: '40px',
             }}
           >
@@ -847,7 +847,7 @@ export function JoinUs() {
           transition={{ delay: 0.8, duration: 0.6 }}
           style={{
             fontSize: isMobile ? '16px' : '18px',
-            color: '#5A5A5A',
+            color: '#4A4A4A',
             textAlign: 'center',
             maxWidth: '500px',
             lineHeight: 1.6,
@@ -1032,7 +1032,7 @@ export function JoinUs() {
             <p style={{
               fontSize: isMobile ? '15px' : '16px',
               lineHeight: 1.6,
-              color: '#5A5A5A',
+              color: '#4A4A4A',
               maxWidth: '500px',
               margin: '0 auto',
             }}>

@@ -347,7 +347,7 @@ function LandingPage() {
           style={{
             fontSize: isMobile ? '15px' : '16px',
             lineHeight: 1.6,
-            color: '#5A5A5A',
+            color: '#4A4A4A',
             textAlign: 'center',
             maxWidth: '500px',
             margin: '0 auto',

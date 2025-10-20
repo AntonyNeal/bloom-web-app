@@ -1,11 +1,12 @@
-import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { Toaster } from './components/ui/toaster'
 import { GardenGateButton } from './components/common/GardenGateButton'
 import { ProtectedRoute } from './components/common/ProtectedRoute'
 import BloomLoginButton from './components/auth/BloomLoginButton'
 import AuthCallback from './pages/auth/AuthCallback'
 import ErrorBoundary from './components/common/ErrorBoundary'
+import { useToast } from './hooks/use-toast'
 
 // Lazy load all non-landing page routes
 const DesignSystemTest = lazy(() => import('./DesignSystemTest').then(m => ({ default: m.DesignSystemTest })));
@@ -26,6 +27,22 @@ import { useIsMobile } from '@/hooks/use-is-mobile';
 function LandingPage() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
+
+  // Check if user was redirected from a protected route
+  useEffect(() => {
+    const state = location.state as { authRequired?: boolean; from?: string } | null;
+    if (state?.authRequired) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to access that page.",
+        variant: "default",
+      });
+      // Clear the state to prevent showing toast on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, toast]);
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>

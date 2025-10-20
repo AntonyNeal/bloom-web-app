@@ -1548,7 +1548,7 @@ export function JoinUs() {
                 ) : (
                   <>
                     <span style={{ fontSize: '20px' }}>🌸</span>
-                    <span>Plant Your Application</span>
+                    <span>Start Your Journey</span>
                   </>
                 )}
               </motion.button>

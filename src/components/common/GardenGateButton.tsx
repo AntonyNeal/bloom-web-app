@@ -12,8 +12,8 @@ export const GardenGateButton: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Don't show on landing page (already home)
-  if (location.pathname === '/') {
+  // Don't show on landing page (already home) or join-us page
+  if (location.pathname === '/' || location.pathname === '/join-us') {
     return null;
   }
   

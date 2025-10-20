@@ -12,14 +12,30 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
   const { login, isAuthenticated } = useAuth()
 
   const handleClick = async () => {
+    console.log('[BloomLoginButton] Button clicked, isAuthenticated:', isAuthenticated)
+    
     if (!isAuthenticated) {
       try {
+        console.log('[BloomLoginButton] Attempting login...')
+        
+        // Set a timeout to navigate to join-us if redirect doesn't happen
+        const fallbackTimer = setTimeout(() => {
+          console.log('[BloomLoginButton] Auth redirect timeout, navigating to /join-us')
+          navigate('/join-us')
+        }, 2000) // Wait 2 seconds for redirect
+        
         await login()
+        
+        // Clear timeout if login succeeds (though redirect will navigate away)
+        clearTimeout(fallbackTimer)
       } catch (error) {
-        console.error('Login error:', error)
+        console.error('[BloomLoginButton] Login error:', error)
         // Fallback to join-us page if auth fails
         navigate('/join-us')
       }
+    } else {
+      console.log('[BloomLoginButton] Already authenticated, navigating to dashboard')
+      navigate('/admin/dashboard')
     }
   }
 

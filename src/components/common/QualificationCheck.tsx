@@ -1119,9 +1119,8 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                             repeat: Infinity,
                             ease: 'easeInOut',
                           }}
-                          style={{ fontSize: '18px', position: 'relative' }}
+                          style={{ position: 'relative' }}
                         >
-                          💜
                           <Tier2Flower 
                             isChecked={yearsRegistered >= 8} 
                             isMobile={isMobile} 
@@ -1157,7 +1156,6 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                               background: 'radial-gradient(circle, rgba(244, 208, 63, 0.3) 0%, transparent 70%)',
                             }}
                           />
-                          💜✨
                         </motion.div>
                       )}
                     </motion.div>

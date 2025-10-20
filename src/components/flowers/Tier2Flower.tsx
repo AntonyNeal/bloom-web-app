@@ -17,24 +17,20 @@ export interface Tier2FlowerProps {
   isChecked: boolean;
   isMobile: boolean;
   shouldReduceMotion: boolean | null;
-  sparkleCount?: number;
-  sparkleDelay?: number;
 }
 
 export const Tier2Flower = memo(({ 
   isChecked, 
   isMobile, 
-  shouldReduceMotion, 
-  sparkleCount: customSparkleCount
+  shouldReduceMotion
 }: Tier2FlowerProps) => {
   if (!isChecked) return null;
 
   const size = isMobile ? 60 : 80;
-  const sparkleCount = customSparkleCount ?? (isMobile ? 2 : 4);
   const reduceMotion = shouldReduceMotion || false;
   
   return (
-    <div style={{ position: 'absolute', left: 'calc(100% + 16px)', top: '50%', transform: 'translateY(-50%)' }}>
+    <div style={{ position: 'absolute', right: '-12px', top: '50%', transform: 'translateY(-50%)' }}>
       <svg
         width={size}
         height={size}
@@ -171,23 +167,7 @@ export const Tier2Flower = memo(({
         </g>
       </svg>
       
-      {/* Sparkle burst */}
-      {!reduceMotion && sparkleCount > 0 && [...Array(sparkleCount)].map((_, i) => (
-        <div
-          key={i}
-          className="tier2-sparkle"
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: '50%',
-            width: '4px',
-            height: '4px',
-            borderRadius: '50%',
-            background: '#C7ABD9',
-            pointerEvents: 'none',
-          }}
-        />
-      ))}
+      {/* Sparkles removed for cleaner composition */}
     </div>
   );
 });

@@ -92,8 +92,6 @@ function LandingPage() {
                 isChecked={true} 
                 isMobile={isMobile} 
                 shouldReduceMotion={true}
-                sparkleCount={0}
-                sparkleDelay={0}
               />
             </Suspense>
           </div>
@@ -114,8 +112,6 @@ function LandingPage() {
                 isChecked={true} 
                 isMobile={isMobile} 
                 shouldReduceMotion={true}
-                sparkleCount={0}
-                sparkleDelay={0}
               />
             </Suspense>
           </div>
@@ -143,14 +139,13 @@ function LandingPage() {
           </div>
 
           {/* #2: Small golden daisy - upper left (creates depth) */}
+          {/* #2: Small golden daisy - lower-middle (warmth, balance) */}
           <div
             className="flower-small flower-small-2"
             style={{
               position: 'absolute',
-              left: isMobile ? '82px' : '122px',
-              top: isMobile ? '2px' : '2px',
-              opacity: 0,
-              transform: isMobile ? 'scale(0.48)' : 'scale(0.58)',
+              bottom: '20%',
+              left: '35%',
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
@@ -158,13 +153,9 @@ function LandingPage() {
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
-                sparkleCount={0}
-                sparkleDelay={0}
               />
             </Suspense>
-          </div>
-
-          {/* #3: Small cherry blossom - center-left (mid-ground layer, changed from purple)
+          </div>          {/* #3: Small cherry blossom - center-left (mid-ground layer, changed from purple)
               More cherry blossoms create lightness */}
           <div
             className="flower-small flower-small-3"
@@ -223,8 +214,6 @@ function LandingPage() {
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
-                sparkleCount={0}
-                sparkleDelay={0}
               />
             </Suspense>
           </div>
@@ -246,8 +235,6 @@ function LandingPage() {
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
-                sparkleCount={0}
-                sparkleDelay={0}
               />
             </Suspense>
           </div>
@@ -268,21 +255,18 @@ function LandingPage() {
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
-                sparkleCount={0}
-                sparkleDelay={0}
               />
             </Suspense>
           </div>
 
           {/* #8: Small golden daisy - center-right mid (adds golden glow) */}
+                    {/* #8: Small golden daisy - center-right mid (adds golden glow) */}
           <div
             className="flower-small flower-small-8"
             style={{
               position: 'absolute',
-              right: isMobile ? '48px' : '75px',
-              top: isMobile ? '58px' : '75px',
-              opacity: 0,
-              transform: isMobile ? 'scale(0.38)' : 'scale(0.46)',
+              top: '48%',
+              right: '30%',
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
@@ -290,8 +274,6 @@ function LandingPage() {
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
-                sparkleCount={0}
-                sparkleDelay={0}
               />
             </Suspense>
           </div>
@@ -312,8 +294,6 @@ function LandingPage() {
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
-                sparkleCount={0}
-                sparkleDelay={0}
               />
             </Suspense>
           </div>
@@ -490,8 +470,6 @@ function LandingPage() {
                   isChecked={true} 
                   isMobile={false}
                   shouldReduceMotion={true}
-                  sparkleCount={0}
-                  sparkleDelay={0}
                 />
               </Suspense>
             </div>

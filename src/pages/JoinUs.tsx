@@ -96,26 +96,43 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           transition={{ duration: 0.8 }}
           style={{ textAlign: 'center', marginBottom: isMobile ? '60px' : '100px' }}
         >
-          <h1 style={{
-            fontSize: isMobile ? '40px' : '56px',
-            fontWeight: 600,
-            color: '#3A3A3A',
-            letterSpacing: '-0.02em',
-            lineHeight: 1.2,
-            marginBottom: '20px',
-          }}>
-            Practice Your Way
-          </h1>
-          <p style={{
-            fontSize: isMobile ? '18px' : '22px',
-            lineHeight: 1.6,
-            color: '#5A5A5A',
-            maxWidth: '700px',
-            margin: '0 auto',
-          }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            style={{
+              display: 'inline-block',
+              marginBottom: '20px',
+            }}
+          >
+            <h1 style={{
+              fontSize: isMobile ? '40px' : '56px',
+              fontWeight: 600,
+              background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softTerracotta} 100%)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.2,
+            }}>
+              Practice Your Way
+            </h1>
+          </motion.div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            style={{
+              fontSize: isMobile ? '18px' : '22px',
+              lineHeight: 1.6,
+              color: '#4A4A4A',
+              maxWidth: '700px',
+              margin: '0 auto',
+            }}
+          >
             Keep 80% of what you bill. Work where you want.<br />
             We minimize the admin burden. Together, we shape the culture.
-          </p>
+          </motion.p>
         </motion.section>
 
         {/* Value Props - 3 Cards */}
@@ -133,14 +150,20 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             {[
               {
                 title: 'You keep 80%',
+                icon: '💰',
+                accentColor: bloomStyles.colors.eucalyptusSage,
                 description: 'Most practices take 40-50%. We take 20%.\nYou do the work. You get paid fairly.',
               },
               {
                 title: 'We use Halaxy',
+                icon: '🔧',
+                accentColor: bloomStyles.colors.softTerracotta,
                 description: 'Practice management through Halaxy.\nBooking, billing, notes—all in one place.',
               },
               {
                 title: 'Build your own practice',
+                icon: '🌿',
+                accentColor: bloomStyles.colors.honeyAmber,
                 description: 'Your schedule. Your clients. Your specialties.\nWe provide the foundation. You make it yours.',
               },
             ].map((card, i) => (
@@ -150,27 +173,47 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
+                whileHover={{ y: -6, boxShadow: '0 12px 32px rgba(107, 142, 127, 0.15)' }}
                 style={{
                   padding: isMobile ? '32px 24px' : '40px 32px',
-                  background: 'rgba(255, 255, 255, 0.7)',
+                  background: 'rgba(255, 255, 255, 0.8)',
                   backdropFilter: 'blur(10px)',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(107, 142, 127, 0.2)',
+                  borderRadius: '16px',
+                  border: `2px solid ${card.accentColor}30`,
+                  boxShadow: '0 4px 12px rgba(107, 142, 127, 0.08)',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}
               >
+                {/* Decorative corner accent */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  width: '80px',
+                  height: '80px',
+                  background: `radial-gradient(circle at top right, ${card.accentColor}15, transparent 70%)`,
+                  pointerEvents: 'none',
+                }} />
+                
+                <div style={{ fontSize: '36px', marginBottom: '16px', lineHeight: 1 }}>
+                  {card.icon}
+                </div>
+                
                 <h3 style={{
-                  fontSize: '20px',
+                  fontSize: '22px',
                   fontWeight: 600,
-                  color: '#3A3A3A',
+                  color: card.accentColor,
                   marginBottom: '12px',
                   lineHeight: 1.3,
                 }}>
                   {card.title}
                 </h3>
                 <p style={{
-                  fontSize: '16px',
-                  lineHeight: 1.7,
-                  color: '#5A5A5A',
+                  fontSize: '15px',
+                  lineHeight: 1.8,
+                  color: '#4A4A4A',
                   whiteSpace: 'pre-line',
                 }}>
                   {card.description}
@@ -201,13 +244,15 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           <div style={{
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-            gap: isMobile ? '40px' : '60px',
-            maxWidth: '900px',
+            gap: isMobile ? '24px' : '32px',
+            maxWidth: '1000px',
             margin: '0 auto',
           }}>
             {[
               {
                 heading: 'The Money',
+                icon: '🌱',
+                accentColor: bloomStyles.colors.eucalyptusSage,
                 items: [
                   '80% of what you bill goes to you',
                   '$250 session = $200 to you',
@@ -215,6 +260,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               },
               {
                 heading: 'The Platform',
+                icon: '🛠️',
+                accentColor: bloomStyles.colors.softFern,
                 items: [
                   'Halaxy for practice management',
                   'Video sessions, booking, billing',
@@ -223,14 +270,18 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               },
               {
                 heading: 'Bloom',
+                icon: '🌸',
+                accentColor: bloomStyles.colors.softTerracotta,
                 items: [
                   'Track your professional development',
                   'Access supervision and training',
-                  'Manage your tokens and growth',
+                  'Medicare renewal reminders and insurance processing',
                 ],
               },
               {
                 heading: 'The Marketing',
+                icon: '✨',
+                accentColor: bloomStyles.colors.honeyAmber,
                 items: [
                   'We bring you clients',
                   'Professional website presence',
@@ -238,6 +289,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               },
               {
                 heading: 'The Freedom',
+                icon: '🦋',
+                accentColor: bloomStyles.colors.clayTerracotta,
                 items: [
                   'Work from anywhere in Australia',
                   'Set your own hours and rates',
@@ -252,15 +305,43 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
+                whileHover={{ y: -4, boxShadow: '0 12px 32px rgba(107, 142, 127, 0.14)' }}
+              style={{
+                background: 'rgba(255, 255, 255, 0.75)',
+                padding: isMobile ? '28px 24px' : '36px 32px',
+                borderRadius: '20px',
+                border: `1.5px solid ${section.accentColor}25`,
+                boxShadow: '0 4px 16px rgba(107, 142, 127, 0.08)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'relative',
+                overflow: 'hidden',
+                // Center the last card (Freedom) in the grid
+                ...(i === 4 && !isMobile && { gridColumn: '1 / -1', maxWidth: '480px', margin: '0 auto', width: '100%' }),
+              }}
               >
-                <h3 style={{
-                  fontSize: '22px',
-                  fontWeight: 600,
-                  color: '#3A3A3A',
-                  marginBottom: '16px',
-                }}>
-                  {section.heading}
-                </h3>
+                {/* Subtle accent strip */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '3px',
+                  background: `linear-gradient(90deg, ${section.accentColor}, transparent)`,
+                  opacity: 0.4,
+                }} />
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
+                  <span style={{ fontSize: '32px', lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}>{section.icon}</span>
+                  <h3 style={{
+                    fontSize: '22px',
+                    fontWeight: 700,
+                    color: section.accentColor,
+                    margin: 0,
+                    letterSpacing: '-0.02em',
+                  }}>
+                    {section.heading}
+                  </h3>
+                </div>
                 <ul style={{
                   listStyle: 'none',
                   padding: 0,
@@ -268,18 +349,21 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 }}>
                   {section.items.map((item, j) => (
                     <li key={j} style={{
-                      fontSize: '16px',
-                      lineHeight: 1.8,
-                      color: '#5A5A5A',
-                      paddingLeft: '20px',
+                      fontSize: '15px',
+                      lineHeight: 1.7,
+                      color: '#4A4A4A',
+                      paddingLeft: '24px',
                       position: 'relative',
-                      marginBottom: '8px',
+                      marginBottom: j < section.items.length - 1 ? '12px' : 0,
                     }}>
                       <span style={{
                         position: 'absolute',
                         left: 0,
-                        color: bloomStyles.colors.eucalyptusSage,
-                      }}>•</span>
+                        color: section.accentColor,
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        lineHeight: 1,
+                      }}>·</span>
                       {item}
                     </li>
                   ))}
@@ -290,36 +374,80 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
 
           {/* The Approach Section */}
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
             style={{
-              marginTop: isMobile ? '40px' : '60px',
-              padding: isMobile ? '32px 24px' : '40px',
-              background: 'rgba(255, 255, 255, 0.5)',
-              borderRadius: '12px',
+              marginTop: isMobile ? '48px' : '80px',
+              padding: isMobile ? '40px 28px' : '56px 48px',
+              background: `linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 247, 242, 0.9) 100%)`,
+              borderRadius: '24px',
               textAlign: 'center',
-              maxWidth: '600px',
-              margin: `${isMobile ? '40px' : '60px'} auto 0`,
+              maxWidth: '700px',
+              margin: `${isMobile ? '48px' : '80px'} auto 0`,
+              border: `2px solid ${bloomStyles.colors.eucalyptusSage}20`,
+              boxShadow: '0 8px 32px rgba(107, 142, 127, 0.12)',
+              position: 'relative',
+              overflow: 'hidden',
             }}
           >
-            <h3 style={{
-              fontSize: '22px',
-              fontWeight: 600,
-              color: '#3A3A3A',
-              marginBottom: '16px',
-            }}>
-              How We Work
-            </h3>
-            <p style={{
-              fontSize: '16px',
-              lineHeight: 1.8,
-              color: '#5A5A5A',
-            }}>
-              Fair compensation. Halaxy for operations. Marketing support.<br />
-              Community-driven direction.<br />
-              Let's build a sustainable practice and make good money doing it.
-            </p>
+            {/* Decorative elements */}
+            <div style={{
+              position: 'absolute',
+              top: '-50px',
+              right: '-50px',
+              width: '150px',
+              height: '150px',
+              borderRadius: '50%',
+              background: `radial-gradient(circle, ${bloomStyles.colors.softTerracotta}15, transparent 70%)`,
+              pointerEvents: 'none',
+            }} />
+            <div style={{
+              position: 'absolute',
+              bottom: '-40px',
+              left: '-40px',
+              width: '120px',
+              height: '120px',
+              borderRadius: '50%',
+              background: `radial-gradient(circle, ${bloomStyles.colors.eucalyptusSage}12, transparent 70%)`,
+              pointerEvents: 'none',
+            }} />
+            
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <h3 style={{
+                fontSize: isMobile ? '26px' : '32px',
+                fontWeight: 700,
+                background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softTerracotta} 100%)`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                marginBottom: '24px',
+                letterSpacing: '-0.02em',
+              }}>
+                How We Work
+              </h3>
+              <div style={{
+                fontSize: isMobile ? '17px' : '19px',
+                lineHeight: 1.9,
+                color: '#3A3A3A',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}>
+                <p style={{ margin: 0, fontWeight: 500 }}>Fair compensation. Halaxy for operations. Marketing support.</p>
+                <p style={{ margin: 0, fontWeight: 500 }}>Community-driven direction.</p>
+                <p style={{ 
+                  margin: '16px 0 0 0', 
+                  color: bloomStyles.colors.eucalyptusSage,
+                  fontSize: isMobile ? '18px' : '20px',
+                  fontWeight: 600,
+                  fontStyle: 'italic',
+                }}>
+                  Let's build a sustainable practice and make good money doing it.
+                </p>
+              </div>
+            </div>
           </motion.div>
         </motion.section>
 
@@ -333,30 +461,48 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             textAlign: 'center',
           }}
         >
-          <h2 style={{
-            fontSize: isMobile ? '32px' : '40px',
-            fontWeight: 600,
-            color: '#3A3A3A',
-            marginBottom: '16px',
-            letterSpacing: '-0.02em',
-          }}>
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            style={{
+              fontSize: isMobile ? '32px' : '40px',
+              fontWeight: 700,
+              color: bloomStyles.colors.eucalyptusSage,
+              marginBottom: '16px',
+              letterSpacing: '-0.02em',
+            }}
+          >
             Who We're Looking For
-          </h2>
-          <p style={{
-            fontSize: '18px',
-            color: '#5A5A5A',
-            marginBottom: '32px',
-          }}>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            style={{
+              fontSize: '18px',
+              color: '#5A5A5A',
+              marginBottom: '40px',
+            }}
+          >
             To apply, you need at least one of these:
-          </p>
-          <div style={{
-            maxWidth: '600px',
-            margin: '0 auto',
-            background: 'rgba(255, 255, 255, 0.7)',
-            padding: isMobile ? '32px 24px' : '40px',
-            borderRadius: '12px',
-            border: '1px solid rgba(107, 142, 127, 0.2)',
-          }}>
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+            style={{
+              maxWidth: '650px',
+              margin: '0 auto',
+              background: 'rgba(255, 255, 255, 0.8)',
+              padding: isMobile ? '36px 28px' : '48px',
+              borderRadius: '20px',
+              border: `1.5px solid ${bloomStyles.colors.eucalyptusSage}25`,
+              boxShadow: '0 6px 24px rgba(107, 142, 127, 0.1)',
+            }}
+          >
             {[
               'Registered Clinical Psychologist (AHPRA)',
               '8+ years registered psychologist (AHPRA)',
@@ -371,7 +517,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 {req}
               </p>
             ))}
-          </div>
+          </motion.div>
         </motion.section>
 
         {/* Founder Section */}
@@ -381,55 +527,81 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           viewport={{ once: true }}
           style={{ marginBottom: isMobile ? '80px' : '120px' }}
         >
-          <div style={{
-            maxWidth: '800px',
-            margin: '0 auto',
-            padding: isMobile ? '40px 24px' : '60px 48px',
-            background: 'rgba(255, 255, 255, 0.7)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '16px',
-            border: '1px solid rgba(107, 142, 127, 0.2)',
-          }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            style={{
+              maxWidth: '850px',
+              margin: '0 auto',
+              padding: isMobile ? '44px 28px' : '64px 56px',
+              background: `linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 247, 242, 0.85) 100%)`,
+              backdropFilter: 'blur(10px)',
+              borderRadius: '24px',
+              border: `2px solid ${bloomStyles.colors.eucalyptusSage}20`,
+              boxShadow: '0 8px 32px rgba(107, 142, 127, 0.12)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Decorative accent */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: `linear-gradient(90deg, ${bloomStyles.colors.eucalyptusSage}, ${bloomStyles.colors.softTerracotta})`,
+              opacity: 0.5,
+            }} />
+            
             <h2 style={{
               fontSize: isMobile ? '28px' : '36px',
-              fontWeight: 600,
-              color: '#3A3A3A',
-              marginBottom: '24px',
+              fontWeight: 700,
+              color: bloomStyles.colors.eucalyptusSage,
+              marginBottom: '28px',
               letterSpacing: '-0.02em',
               textAlign: 'center',
             }}>
               Why This Exists
             </h2>
             <div style={{
-              fontSize: '17px',
-              lineHeight: 1.8,
-              color: '#5A5A5A',
+              fontSize: isMobile ? '16px' : '17px',
+              lineHeight: 1.9,
+              color: '#3A3A3A',
             }}>
-              <p style={{ marginBottom: '20px' }}>
-                I'm Dr. Zoe Semmler, a clinical psychologist. I started this because
-                I kept watching talented colleagues leave the field—not because they
+              <p style={{ marginBottom: '24px' }}>
+                I'm Zoe Semmler, a clinical psychologist. I started this because
+                I kept watching talented colleagues burn out—not because they
                 stopped caring, but because the traditional practice model didn't work for them.
               </p>
               <blockquote style={{
-                fontSize: '20px',
+                fontSize: isMobile ? '19px' : '22px',
                 fontStyle: 'italic',
+                fontWeight: 500,
                 color: bloomStyles.colors.eucalyptusSage,
+                background: `${bloomStyles.colors.eucalyptusSage}08`,
                 borderLeft: `4px solid ${bloomStyles.colors.eucalyptusSage}`,
-                paddingLeft: '24px',
-                margin: '32px 0',
+                paddingLeft: '28px',
+                paddingRight: '20px',
+                paddingTop: '24px',
+                paddingBottom: '24px',
+                margin: '36px 0',
+                borderRadius: '0 12px 12px 0',
               }}>
-                "What if psychologists kept most of what they earned, used good practice 
-                management software, and we brought them clients?"
+                "What if psychologists kept most of what they earned, we provided the technology 
+                for a more human-centred practice, and we brought them clients?"
               </blockquote>
-              <p style={{ marginBottom: '20px' }}>
+              <p style={{ marginBottom: '24px', fontSize: isMobile ? '17px' : '18px', fontWeight: 500 }}>
                 That's the premise. Fair pay. Halaxy for operations. Marketing support.
               </p>
-              <p>
+              <p style={{ fontSize: isMobile ? '16px' : '17px' }}>
                 This practice is built on respect—for your expertise, your time,
                 and the community's voice in shaping what we become together.
               </p>
             </div>
-          </div>
+          </motion.div>
         </motion.section>
 
         {/* CTA Section */}
@@ -441,38 +613,44 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
         >
           <h2 style={{
             fontSize: isMobile ? '32px' : '40px',
-            fontWeight: 600,
-            color: '#3A3A3A',
-            marginBottom: '16px',
+            fontWeight: 700,
+            background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softTerracotta} 100%)`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            marginBottom: '20px',
             letterSpacing: '-0.02em',
           }}>
             Interested?
           </h2>
           <p style={{
-            fontSize: '18px',
-            color: '#5A5A5A',
-            marginBottom: '40px',
+            fontSize: isMobile ? '17px' : '19px',
+            color: '#4A4A4A',
+            marginBottom: '48px',
             maxWidth: '600px',
-            margin: '0 auto 40px',
+            margin: '0 auto 48px',
+            lineHeight: 1.7,
           }}>
             If this approach makes sense to you,<br />
             let's see if you qualify.
           </p>
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05, boxShadow: '0 8px 28px rgba(107, 142, 127, 0.35)' }}
+            whileTap={{ scale: 0.98 }}
             onClick={onApplyClick}
             style={{
-              padding: isMobile ? '16px 40px' : '18px 48px',
-              fontSize: '18px',
-              fontWeight: 600,
+              padding: isMobile ? '18px 44px' : '20px 56px',
+              fontSize: isMobile ? '17px' : '19px',
+              fontWeight: 700,
               color: '#FEFDFB',
               background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softFern} 100%)`,
               border: 'none',
-              borderRadius: '12px',
+              borderRadius: '16px',
               cursor: 'pointer',
-              boxShadow: '0 4px 16px rgba(107, 142, 127, 0.25)',
-              transition: 'all 0.2s',
+              boxShadow: '0 6px 20px rgba(107, 142, 127, 0.3)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              position: 'relative',
+              overflow: 'hidden',
             }}
           >
             Begin Application

@@ -36,7 +36,7 @@ export const Tier1Flower = memo(({
       className={!shouldReduceMotion ? "tier1-flower-enter" : ""}
       style={{
         position: 'absolute',
-        right: '12px',
+        right: '-8px',
         top: '50%',
         transform: 'translateY(-50%)',
         willChange: shouldReduceMotion ? 'auto' : 'transform, opacity',

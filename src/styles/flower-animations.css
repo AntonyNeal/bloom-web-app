@@ -23,20 +23,21 @@
   }
 }
 
+/* DISABLED: Flower entrance animations (keeping code for later use)
 /* Tier1 Flower specific entrance (cherry blossom) */
-.tier1-flower-enter {
+/* .tier1-flower-enter {
   animation: flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s both;
-}
+} */
 
 /* Tier2 Flower specific entrance (purple rose) */
-.tier2-flower-enter {
+/* .tier2-flower-enter {
   animation: flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s both;
-}
+} */
 
 /* Tier3 Flower specific entrance (golden daisy) */
-.tier3-flower-enter {
+/* .tier3-flower-enter {
   animation: flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s both;
-}
+} */
 
 /* Sparkle burst animation (replaces Framer Motion sparkle particles) */
 @keyframes sparkleBurst {
@@ -161,13 +162,14 @@
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
+  /* DISABLED: Animation classes commented out above
   .tier1-flower-enter,
   .tier2-flower-enter,
   .tier3-flower-enter {
     animation: none;
     opacity: 1;
     transform: scale(1) translateY(-50%);
-  }
+  } */
   
   .tier2-sparkle,
   .tier3-sparkle {

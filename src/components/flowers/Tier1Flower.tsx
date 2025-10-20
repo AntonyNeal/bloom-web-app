@@ -22,7 +22,7 @@ export interface Tier1FlowerProps {
 export const Tier1Flower = memo(({ 
   isChecked, 
   isMobile, 
-  shouldReduceMotion 
+  // shouldReduceMotion // DISABLED: Not used when animations are disabled
 }: Tier1FlowerProps) => {
   if (!isChecked) return null;
 
@@ -33,13 +33,14 @@ export const Tier1Flower = memo(({
       width={size}
       height={size}
       viewBox="0 0 32 32"
-      className={!shouldReduceMotion ? "tier1-flower-enter" : ""}
+      // DISABLED: Animation className removed - keeping animation code in CSS for later use
+      // className={!shouldReduceMotion ? "tier1-flower-enter" : ""}
       style={{
         position: 'absolute',
         right: '-8px',
         top: '50%',
         transform: 'translateY(-50%)',
-        willChange: shouldReduceMotion ? 'auto' : 'transform, opacity',
+        // willChange: shouldReduceMotion ? 'auto' : 'transform, opacity',
       }}
       aria-hidden="true"
     >

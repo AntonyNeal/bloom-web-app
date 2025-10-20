@@ -22,12 +22,12 @@ export interface Tier2FlowerProps {
 export const Tier2Flower = memo(({ 
   isChecked, 
   isMobile, 
-  shouldReduceMotion
+  // shouldReduceMotion // DISABLED: Not used when animations are disabled
 }: Tier2FlowerProps) => {
   if (!isChecked) return null;
 
   const size = isMobile ? 60 : 80;
-  const reduceMotion = shouldReduceMotion || false;
+  // const reduceMotion = shouldReduceMotion || false; // DISABLED: Not needed without animations
   
   return (
     <div style={{ position: 'absolute', right: '-12px', top: '50%', transform: 'translateY(-50%)' }}>
@@ -35,9 +35,10 @@ export const Tier2Flower = memo(({
         width={size}
         height={size}
         viewBox="0 0 40 40"
-        className={!reduceMotion ? "tier2-flower-enter" : ""}
+        // DISABLED: Animation className removed - keeping animation code in CSS for later use
+        // className={!reduceMotion ? "tier2-flower-enter" : ""}
         style={{
-          willChange: reduceMotion ? 'auto' : 'transform, opacity',
+          // willChange: reduceMotion ? 'auto' : 'transform, opacity',
         }}
         aria-hidden="true"
       >

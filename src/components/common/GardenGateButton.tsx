@@ -1,10 +1,10 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 /**
  * HomeButton - Simple return navigation to landing page
  * 
+ * Uses CSS animations for better performance (GPU-accelerated).
  * Clean, minimal home button using Bloom design system.
  * Appears on all pages except the landing page.
  */
@@ -18,35 +18,9 @@ export const GardenGateButton: React.FC = () => {
   }
   
   return (
-    <motion.button
+    <button
       onClick={() => navigate('/')}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 0.2, duration: 0.3 }}
-      whileHover={{ 
-        scale: 1.05,
-        backgroundColor: 'rgba(107, 142, 127, 0.15)',
-      }}
-      whileTap={{ scale: 0.95 }}
-      style={{
-        position: 'fixed',
-        top: '24px',
-        left: '24px',
-        zIndex: 100,
-        background: 'rgba(107, 142, 127, 0.1)',
-        border: '2px solid rgba(107, 142, 127, 0.3)',
-        borderRadius: '12px',
-        width: '48px',
-        height: '48px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        boxShadow: '0 2px 12px rgba(107, 142, 127, 0.15)',
-        transition: 'box-shadow 0.2s ease',
-      }}
+      className="garden-gate-button"
       aria-label="Return to home"
       title="Home"
     >
@@ -80,6 +54,6 @@ export const GardenGateButton: React.FC = () => {
           );
         })}
       </svg>
-    </motion.button>
+    </button>
   );
 };

@@ -1,4 +1,4 @@
-import { lazy, Suspense, memo } from 'react';
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
@@ -11,16 +11,10 @@ const JoinUs = lazy(() => import('./pages/JoinUs').then(m => ({ default: m.JoinU
 const Admin = lazy(() => import('./pages/admin/ApplicationManagement').then(m => ({ default: m.Admin })));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 
-// Create lazy-loaded flower components (from 2533-line QualificationCheck!)
-const MemoizedTier1 = memo(lazy(() => 
-  import('@/components/common/QualificationCheck').then(m => ({ default: m.Tier1Flower }))
-));
-const MemoizedTier2 = memo(lazy(() => 
-  import('@/components/common/QualificationCheck').then(m => ({ default: m.Tier2Flower }))
-));
-const MemoizedTier3 = memo(lazy(() => 
-  import('@/components/common/QualificationCheck').then(m => ({ default: m.Tier3Flower }))
-));
+// Lazy-loaded flower components (optimized: now separate small files instead of 2570-line QualificationCheck!)
+const Tier1Flower = lazy(() => import('@/components/flowers/Tier1Flower').then(m => ({ default: m.Tier1Flower })));
+const Tier2Flower = lazy(() => import('@/components/flowers/Tier2Flower').then(m => ({ default: m.Tier2Flower })));
+const Tier3Flower = lazy(() => import('@/components/flowers/Tier3Flower').then(m => ({ default: m.Tier3Flower })));
 
 // Import lightweight hooks directly
 import { useIsMobile } from '@/hooks/use-is-mobile';
@@ -73,7 +67,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
-              <MemoizedTier1 
+              <Tier1Flower 
                 isChecked={true} 
                 isMobile={isMobile} 
                 shouldReduceMotion={true}
@@ -94,7 +88,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
-              <MemoizedTier2 
+              <Tier2Flower 
                 isChecked={true} 
                 isMobile={isMobile} 
                 shouldReduceMotion={true}
@@ -116,7 +110,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
-              <MemoizedTier3 
+              <Tier3Flower 
                 isChecked={true} 
                 isMobile={isMobile} 
                 shouldReduceMotion={true}
@@ -140,7 +134,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <MemoizedTier1 
+              <Tier1Flower 
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
@@ -160,7 +154,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <MemoizedTier3 
+              <Tier3Flower 
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
@@ -183,7 +177,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <MemoizedTier1 
+              <Tier1Flower 
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
@@ -204,7 +198,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <MemoizedTier1 
+              <Tier1Flower 
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
@@ -225,7 +219,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <MemoizedTier3 
+              <Tier3Flower 
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
@@ -248,7 +242,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <MemoizedTier3 
+              <Tier3Flower 
                 isChecked={true} 
                 isMobile={false}
                 shouldReduceMotion={true}
@@ -424,7 +418,7 @@ function LandingPage() {
                 zIndex: 1
               }}>
                 <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-                  <MemoizedTier2 
+                  <Tier2Flower 
                     isChecked={true} 
                     isMobile={false}
                     shouldReduceMotion={true}

@@ -7,10 +7,12 @@ console.log('[PERF] main.tsx started loading at', perfStart);
 
 // Import styles
 import './index.css'
-import './styles/typography.css'
+// typography.css removed - file is empty, uses system fonts via index.css
 import './styles/blob.css'
 import './styles/landing-animations.css'
 import './styles/component-animations.css'
+import './styles/flower-animations.css' // CSS-only flower animations (replaces Framer Motion)
+import './styles/animations.css' // Complete CSS animation library (replaces Framer Motion)
 
 console.log('[PERF] CSS loaded in', performance.now() - perfStart, 'ms');
 

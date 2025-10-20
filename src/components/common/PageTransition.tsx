@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 interface PageTransitionProps {
   children: React.ReactNode;
@@ -9,25 +8,13 @@ interface PageTransitionProps {
 /**
  * PageTransition - Simple fade transitions
  * 
- * Simplified from spatial navigation to just smooth fades.
+ * Uses CSS animations for better performance (GPU-accelerated).
  * Clean, performant, not confusing.
  */
 export const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{
-        duration: 0.3,
-        ease: 'easeInOut',
-      }}
-      style={{
-        width: '100%',
-        minHeight: '100vh',
-      }}
-    >
+    <div className="page-transition">
       {children}
-    </motion.div>
+    </div>
   );
 };

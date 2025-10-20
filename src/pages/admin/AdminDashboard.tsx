@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   FileText, 
@@ -50,7 +49,7 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-cream-100 relative overflow-hidden">
+    <div className="min-h-screen bg-cream-100 relative overflow-hidden admin-dashboard">
       {/* Ambient background blobs */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-sage-100 to-transparent rounded-full blur-3xl opacity-40" />
@@ -60,40 +59,27 @@ export function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
+        <div className="admin-card">
           {/* Back to Home */}
-          <motion.a
+          <a
             href="#/"
-            className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal group mb-6"
-            whileHover={{ x: -4 }}
-            whileTap={{ scale: 0.98 }}
+            className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-all duration-normal group mb-6"
+            style={{ transition: 'transform 0.2s ease' }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(-4px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
           >
             <ArrowLeft className="w-5 h-5 group-hover:transform group-hover:-translate-x-1 transition-transform duration-normal" />
             Back to Home
-          </motion.a>
+          </a>
 
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-12 h-12 bg-gradient-to-br from-sage-500 to-sage-600 rounded-full flex items-center justify-center shadow-lg shadow-sage-200 relative">
                 <div className="absolute inset-0 rounded-full opacity-20 bg-gradient-to-tr from-transparent via-white to-transparent" />
                 <TrendingUp className="w-6 h-6 text-white relative z-10" />
-                <motion.div
-                  className="absolute -top-1 -right-1"
-                  animate={{ 
-                    scale: [1, 1.2, 1],
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >
-                  <Sparkles className="w-4 h-4 text-lavender-400" />
-                </motion.div>
+                <div className="absolute -top-1 -right-1">
+                  <Sparkles className="w-4 h-4 text-lavender-400" style={{ animation: 'pulse 2s ease-in-out infinite' }} />
+                </div>
               </div>
               <div>
                 <h1 className="font-display text-h1 text-text-primary">Admin Dashboard</h1>
@@ -101,14 +87,10 @@ export function AdminDashboard() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
+        <div className="admin-card">
           <h2 className="font-display text-h3 text-text-primary mb-6 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-sage-600" />
             Quick Actions
@@ -120,14 +102,7 @@ export function AdminDashboard() {
               const colors = getColorClasses(action.color);
               
               return (
-                <motion.div
-                  key={action.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 + index * 0.1 }}
-                  whileHover={{ scale: 1.02, y: -4 }}
-                  whileTap={{ scale: 0.98 }}
-                >
+                <div key={action.title} className="admin-card" style={{ animationDelay: `${0.1 + index * 0.1}s` }}>
                   <a 
                     href={action.href}
                     className="block cursor-pointer"
@@ -149,11 +124,11 @@ export function AdminDashboard() {
                       </CardHeader>
                     </Card>
                   </a>
-                </motion.div>
+                </div>
               );
             })}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

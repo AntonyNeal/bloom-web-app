@@ -1,10 +1,25 @@
 import path from "path"
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { copyFileSync } from 'fs'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Copy staticwebapp.config.json to dist folder after build
+    {
+      name: 'copy-staticwebapp-config',
+      closeBundle() {
+        try {
+          copyFileSync('staticwebapp.config.json', 'dist/staticwebapp.config.json')
+          console.log('✅ Copied staticwebapp.config.json to dist/')
+        } catch (err) {
+          console.warn('⚠️ Could not copy staticwebapp.config.json:', err)
+        }
+      }
+    }
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

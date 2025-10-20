@@ -290,8 +290,8 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
       setIsLoading(false);
       
       if (eligible) {
-        // Navigate immediately after showing eligible status
-        setTimeout(() => onEligible(), 300);
+        // Navigate immediately - no transition animation
+        onEligible();
       }
     }, 500);
   }, [isRegisteredPsychologist, hasPhd, yearsRegistered, onEligible]);

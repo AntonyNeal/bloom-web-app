@@ -136,8 +136,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 description: 'Most practices take 40-50%. We take 20%.\nYou do the work. You get paid fairly.',
               },
               {
-                title: 'Tools that minimize admin',
-                description: 'Convenient booking, payment tracking, clinical notes.\nAll the tools you need. Minimal burden on your time.',
+                title: 'We use Halaxy',
+                description: 'Practice management through Halaxy.\nBooking, billing, notes—all in one place.',
               },
               {
                 title: 'Build your own practice',
@@ -210,34 +210,30 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 heading: 'The Money',
                 items: [
                   '80% of what you bill goes to you',
-                  'Weekly payments, no hidden fees',
-                  '$200 session = $160 to you',
+                  '$250 session = $200 to you',
                 ],
               },
               {
-                heading: 'The Admin',
+                heading: 'The Platform',
                 items: [
-                  'Video sessions that just work',
-                  'Convenient appointment booking and reminders',
-                  'Payment tracking and invoicing tools',
-                  'Clinical notes templates and storage',
+                  'Halaxy for practice management',
+                  'Video sessions, booking, billing',
+                  'Clinical notes and reminders',
                 ],
               },
               {
-                heading: 'The Clients',
+                heading: 'Bloom',
                 items: [
-                  'Marketing to fill your availability',
+                  'Track your professional development',
+                  'Access supervision and training',
+                  'Manage your tokens and growth',
+                ],
+              },
+              {
+                heading: 'The Marketing',
+                items: [
+                  'We bring you clients',
                   'Professional website presence',
-                  'Client matching to your specialties',
-                  'You choose who you work with',
-                ],
-              },
-              {
-                heading: 'The Culture',
-                items: [
-                  'No quotas or billing targets',
-                  'Community-driven direction',
-                  'Everyone contributes to shaping our culture',
                 ],
               },
               {
@@ -245,8 +241,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 items: [
                   'Work from anywhere in Australia',
                   'Set your own hours and rates',
-                  'Choose your clients and specialties',
-                  'Leave anytime—no lock-in contracts',
+                  'No quotas or billing targets',
+                  'No lock-in contracts',
                 ],
               },
             ].map((section, i) => (
@@ -320,8 +316,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               lineHeight: 1.8,
               color: '#5A5A5A',
             }}>
-              Fair compensation. Convenient tools. Full calendar.<br />
-              The community shapes our direction together.<br />
+              Fair compensation. Halaxy for operations. Marketing support.<br />
+              Community-driven direction.<br />
               Let's build a sustainable practice and make good money doing it.
             </p>
           </motion.div>
@@ -422,11 +418,11 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 paddingLeft: '24px',
                 margin: '32px 0',
               }}>
-                "What if psychologists kept most of what they earned, had tools to minimize
-                admin burden, and we brought them clients?"
+                "What if psychologists kept most of what they earned, used good practice 
+                management software, and we brought them clients?"
               </blockquote>
               <p style={{ marginBottom: '20px' }}>
-                That's the premise. Fair pay. Convenient tools. Full calendar.
+                That's the premise. Fair pay. Halaxy for operations. Marketing support.
               </p>
               <p>
                 This practice is built on respect—for your expertise, your time,

@@ -1037,7 +1037,7 @@ export function JoinUs() {
               margin: '0 auto',
             }}>
               Tell us about yourself and your practice. We'll review your application 
-              and get back to you within 48 hours.
+              and get back to you.
             </p>
           </motion.div>
 

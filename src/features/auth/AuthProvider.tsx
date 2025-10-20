@@ -10,9 +10,23 @@ import type { ReactNode } from 'react';
  */
 const isAuthConfigured = () => {
   try {
-    const hasClientId = msalConfig.auth.clientId && msalConfig.auth.clientId.length > 0;
-    const hasAuthority = msalConfig.auth.authority && msalConfig.auth.authority.length > 0;
-    return hasClientId && hasAuthority && isAuthEnabled();
+    const clientId = msalConfig.auth.clientId || '';
+    const authority = msalConfig.auth.authority || '';
+    
+    // Check if values are actual GUIDs/URLs, not empty or placeholder strings
+    const hasValidClientId = clientId.length > 30 && !clientId.includes('your-client-id');
+    const hasValidAuthority = authority.startsWith('https://') && authority.includes('microsoft');
+    const isEnabled = isAuthEnabled();
+    
+    console.log('[Auth] Configuration check:', {
+      hasValidClientId,
+      hasValidAuthority,
+      isEnabled,
+      clientIdLength: clientId.length,
+      authority: authority.substring(0, 30) + '...'
+    });
+    
+    return hasValidClientId && hasValidAuthority && isEnabled;
   } catch (error) {
     console.warn('[Auth] Configuration check failed:', error);
     return false;

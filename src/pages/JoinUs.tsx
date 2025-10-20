@@ -315,7 +315,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 boxShadow: '0 4px 16px rgba(107, 142, 127, 0.08)',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 position: 'relative',
-                overflow: 'hidden',
+                overflow: 'visible', // Let flowers grow out of the box
                 // Center the last card (Freedom) in the grid
                 ...(i === 4 && !isMobile && { gridColumn: '1 / -1', maxWidth: '480px', margin: '0 auto', width: '100%' }),
               }}

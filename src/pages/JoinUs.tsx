@@ -104,7 +104,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             lineHeight: 1.2,
             marginBottom: '20px',
           }}>
-            Let's Build This Together
+            Practice Your Way
           </h1>
           <p style={{
             fontSize: isMobile ? '18px' : '22px',
@@ -113,8 +113,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             maxWidth: '700px',
             margin: '0 auto',
           }}>
-            We're early. You keep 80% of what you bill.<br />
-            We're building the rest with you, not for you.
+            Keep 80% of what you bill. Work where you want.<br />
+            We handle the infrastructure. You shape the culture.
           </p>
         </motion.section>
 
@@ -136,12 +136,12 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 description: 'Most practices take 40-50%. We take 20%.\nYou do the work. You get paid fairly.',
               },
               {
-                title: 'We\'re innovating on the rest',
-                description: 'Admin, billing, platform tools.\nWe\'ll evolve based on what you actually need, not what we think you need.',
+                title: 'We handle the infrastructure',
+                description: 'Telehealth platform, billing, scheduling.\nYou focus on the clinical work. We handle the operations.',
               },
               {
                 title: 'Build your own practice',
-                description: 'Your schedule. Your clients. Your specialties.\nWe provide the structure. You make it yours.',
+                description: 'Your schedule. Your clients. Your specialties.\nWe provide the foundation. You make it yours.',
               },
             ].map((card, i) => (
               <motion.div
@@ -180,7 +180,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           </div>
         </motion.section>
 
-        {/* What's Real Section */}
+        {/* What's Included Section */}
         <motion.section
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -195,7 +195,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             marginBottom: isMobile ? '40px' : '60px',
             letterSpacing: '-0.02em',
           }}>
-            What's Real Right Now
+            What's Included
           </h2>
           
           <div style={{
@@ -215,19 +215,19 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 ],
               },
               {
-                heading: 'The Platform Part',
+                heading: 'The Platform',
                 items: [
-                  'Telehealth that works',
-                  'Basic scheduling and billing',
-                  'We\'re building more—with your input',
+                  'Secure telehealth video',
+                  'Scheduling and billing tools',
+                  'Clinical documentation support',
                 ],
               },
               {
-                heading: 'The Culture Part',
+                heading: 'The Culture',
                 items: [
                   'No quotas or billing targets',
-                  'We listen and adapt',
-                  'You help shape what we become',
+                  'Your input shapes our direction',
+                  'Sustainable practice, not burnout',
                 ],
               },
               {
@@ -282,7 +282,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             ))}
           </div>
 
-          {/* The Deal Section */}
+          {/* The Approach Section */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -303,16 +303,16 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               color: '#3A3A3A',
               marginBottom: '16px',
             }}>
-              The Deal
+              How We Work
             </h3>
             <p style={{
               fontSize: '16px',
               lineHeight: 1.8,
               color: '#5A5A5A',
             }}>
-              We're not trying to be everything to everyone.<br />
-              We're early, innovative, and listening.<br />
-              Let's build a better practice together and make money doing it.
+              Fair compensation meets operational excellence.<br />
+              Your feedback drives our evolution.<br />
+              Let's build a sustainable practice and make good money doing it.
             </p>
           </motion.div>
         </motion.section>
@@ -412,15 +412,15 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 paddingLeft: '24px',
                 margin: '32px 0',
               }}>
-                "What if psychologists kept most of what they earned and we built
-                the infrastructure together?"
+                "What if psychologists kept most of what they earned and we handled
+                the infrastructure?"
               </blockquote>
               <p style={{ marginBottom: '20px' }}>
-                That's it. That's the whole idea.
+                That's the premise. Fair compensation. Solid operations. Room to grow.
               </p>
               <p>
-                We're not claiming to have it all figured out. We're claiming to listen,
-                adapt, and split the money fairly while we figure it out together.
+                This practice is built on respect—for your expertise, your time,
+                and your input on how we can better support your work.
               </p>
             </div>
           </div>
@@ -449,7 +449,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             maxWidth: '600px',
             margin: '0 auto 40px',
           }}>
-            If this sounds better than what you've got,<br />
+            If this approach makes sense to you,<br />
             let's see if you qualify.
           </p>
           <motion.button

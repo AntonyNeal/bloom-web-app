@@ -480,6 +480,20 @@ function AnimatedRoutes() {
         />
         
         <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+                  <AdminDashboard />
+                </Suspense>
+                <Toaster />
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
           path="/admin/applications"
           element={
             <ProtectedRoute>

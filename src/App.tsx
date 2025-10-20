@@ -475,17 +475,14 @@ function LandingPage() {
               e.currentTarget.style.outline = 'none';
             }}
           >
-            {/* Purple Rose Flower - Positioned with breathing room */}
+            {/* Purple Rose Flower - Positioned at left edge */}
             <div style={{ 
               position: 'absolute',
               left: '16px',
               top: '50%',
               transform: 'translateY(-50%) scale(0.65)',
-              width: '80px',
-              height: '80px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              width: '48px',
+              height: '48px',
               pointerEvents: 'none',
             }}>
               <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>

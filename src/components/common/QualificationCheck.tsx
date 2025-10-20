@@ -290,9 +290,8 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
       setIsLoading(false);
       
       if (eligible) {
-        // Trigger parent callback after showing success message
-        // 5 second delay to let the celebration animations complete and user to feel the pride
-        setTimeout(() => onEligible(), 5000);
+        // Navigate immediately after showing eligible status
+        setTimeout(() => onEligible(), 300);
       }
     }, 500);
   }, [isRegisteredPsychologist, hasPhd, yearsRegistered, onEligible]);

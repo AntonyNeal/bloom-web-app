@@ -1,8 +1,11 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
-import { GardenGateButton } from '@/components/common/GardenGateButton';
+import { lazy, Suspense } from 'react'
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import { Toaster } from './components/ui/toaster'
+import { GardenGateButton } from './components/common/GardenGateButton'
+import { ProtectedRoute } from './components/common/ProtectedRoute'
+import BloomLoginButton from './components/auth/BloomLoginButton'
+import AuthCallback from './pages/auth/AuthCallback'
+import ErrorBoundary from './components/common/ErrorBoundary'
 
 // Lazy load all non-landing page routes
 const DesignSystemTest = lazy(() => import('./DesignSystemTest').then(m => ({ default: m.DesignSystemTest })));
@@ -409,72 +412,8 @@ function LandingPage() {
             <span>Explore Joining</span>
           </button>
 
-          {/* Secondary button - "Bloom" with Elevated Purple Rose */}
-          <button
-            onClick={() => navigate('/bloom')}
-            aria-label="Access practitioner portal"
-            className="secondary-button"
-            style={{
-              minWidth: isMobile ? '100%' : '220px',
-              height: '64px',
-              background: 'transparent',
-              color: '#9B72AA',
-              fontSize: '17px',
-              fontWeight: 600,
-              borderRadius: '12px',
-              border: '2px solid rgba(155, 114, 170, 0.3)',
-              cursor: 'pointer',
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              paddingLeft: '16px',
-              paddingRight: '16px',
-              WebkitTapHighlightColor: 'transparent',
-              outline: 'none',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              boxShadow: '0 2px 12px rgba(155, 114, 170, 0.12)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(155, 114, 170, 0.5)';
-              e.currentTarget.style.background = 'rgba(155, 114, 170, 0.05)';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(155, 114, 170, 0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(155, 114, 170, 0.3)';
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 12px rgba(155, 114, 170, 0.12)';
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.outline = '3px solid #9B72AA';
-              e.currentTarget.style.outlineOffset = '2px';
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.outline = 'none';
-            }}
-          >
-            {/* Purple Rose Flower - Positioned at left edge */}
-            <div style={{ 
-              position: 'absolute',
-              left: '4px',
-              top: '50%',
-              transform: 'translateY(-50%) scale(0.585)',
-              width: '48px',
-              height: '48px',
-              pointerEvents: 'none',
-            }}>
-              <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
-                <Tier2Flower 
-                  isChecked={true} 
-                  isMobile={false}
-                  shouldReduceMotion={true}
-                />
-              </Suspense>
-            </div>
-            <span style={{ position: 'relative', letterSpacing: '0.02em', marginLeft: '48px' }}>Bloom</span>
-          </button>
+          {/* Secondary button - "Bloom" with Elevated Purple Rose - Triggers Azure AD Login */}
+          <BloomLoginButton isMobile={isMobile} />
         </div>
       </main>
     </div>
@@ -494,6 +433,9 @@ function AnimatedRoutes() {
         {/* Landing page - Garden Gate (no lazy loading, immediate) */}
         <Route path="/" element={<LandingPage />} />
         
+        {/* Auth callback route - handles Azure AD redirect */}
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        
         {/* Qualification check - Joining journey */}
         <Route
           path="/join-us"
@@ -507,53 +449,61 @@ function AnimatedRoutes() {
           }
         />
         
-        {/* Bloom portal - Existing practitioners */}
+        {/* Bloom portal - Existing practitioners (Protected) */}
         <Route
           path="/bloom"
           element={
-            <ErrorBoundary>
-              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
-                <AdminDashboard />
-              </Suspense>
-              <Toaster />
-            </ErrorBoundary>
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+                  <AdminDashboard />
+                </Suspense>
+                <Toaster />
+              </ErrorBoundary>
+            </ProtectedRoute>
           }
         />
         
-        {/* Admin routes (temporary - to be integrated into /bloom) */}
+        {/* Admin routes (Protected - temporary, to be integrated into /bloom) */}
         <Route
           path="/admin"
           element={
-            <ErrorBoundary>
-              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
-                <AdminDashboard />
-              </Suspense>
-              <Toaster />
-            </ErrorBoundary>
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+                  <AdminDashboard />
+                </Suspense>
+                <Toaster />
+              </ErrorBoundary>
+            </ProtectedRoute>
           }
         />
         
         <Route
           path="/admin/applications"
           element={
-            <ErrorBoundary>
-              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
-                <Admin />
-              </Suspense>
-              <Toaster />
-            </ErrorBoundary>
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+                  <Admin />
+                </Suspense>
+                <Toaster />
+              </ErrorBoundary>
+            </ProtectedRoute>
           }
         />
         
         <Route
           path="/admin/applications/:id"
           element={
-            <ErrorBoundary>
-              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
-                <ApplicationDetail applicationId={""} />
-              </Suspense>
-              <Toaster />
-            </ErrorBoundary>
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+                  <ApplicationDetail applicationId={""} />
+                </Suspense>
+                <Toaster />
+              </ErrorBoundary>
+            </ProtectedRoute>
           }
         />
         

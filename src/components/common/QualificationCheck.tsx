@@ -18,6 +18,7 @@ import { motion, useReducedMotion } from "framer-motion";
 
 // Import optimized flower components (extracted from this file for better bundle size)
 import { Tier1Flower, Tier2Flower, Tier3Flower } from "@/components/flowers";
+import { FlowerCelebration } from "./FlowerCelebration";
 
 // Bloom/Ghibli design tokens - moved outside component for performance
 const bloomStyles = {
@@ -177,6 +178,9 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   type YearsIcon = 'none' | 'leaf' | 'bud' | 'flower' | 'honored';
   const [yearsIcon, setYearsIcon] = useState<YearsIcon>('none');
   const [showDelayedBloom, setShowDelayedBloom] = useState(false);
+  
+  // Flower celebration state
+  const [showFlowerCelebration, setShowFlowerCelebration] = useState(false);
 
   // Phase 6: Calculate years-based recognition
   useEffect(() => {
@@ -290,12 +294,11 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
       setIsLoading(false);
       
       if (eligible) {
-        // Trigger parent callback after showing success message
-        // 5 second delay to let the celebration animations complete and user to feel the pride
-        setTimeout(() => onEligible(), 5000);
+        // Show flower celebration animation instead of immediate transition
+        setShowFlowerCelebration(true);
       }
     }, 500);
-  }, [isRegisteredPsychologist, hasPhd, yearsRegistered, onEligible]);
+  }, [isRegisteredPsychologist, hasPhd, yearsRegistered]);
 
   // Phase 4: Handle mobile touch ripple effect
   const handleTouchRipple = useCallback((e: React.TouchEvent<HTMLButtonElement>) => {
@@ -1990,6 +1993,17 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
         </Card>
         </div>
       </motion.div>
+      
+      {/* Flower Celebration Animation */}
+      {showFlowerCelebration && (
+        <FlowerCelebration 
+          isMobile={isMobile}
+          onComplete={() => {
+            setShowFlowerCelebration(false);
+            onEligible();
+          }}
+        />
+      )}
     </div>
   );
 }

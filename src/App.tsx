@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import { Toaster } from './components/ui/toaster'
 import { GardenGateButton } from './components/common/GardenGateButton'
@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/common/ProtectedRoute'
 import BloomLoginButton from './components/auth/BloomLoginButton'
 import AuthCallback from './pages/auth/AuthCallback'
 import ErrorBoundary from './components/common/ErrorBoundary'
+import { useAuth } from './hooks/useAuth'
 
 // Lazy load all non-landing page routes
 const DesignSystemTest = lazy(() => import('./DesignSystemTest').then(m => ({ default: m.DesignSystemTest })));
@@ -26,6 +27,15 @@ import { useIsMobile } from '@/hooks/use-is-mobile';
 function LandingPage() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Auto-redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      console.log('[LandingPage] User already authenticated, redirecting to dashboard');
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>

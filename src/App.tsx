@@ -478,9 +478,9 @@ function LandingPage() {
             {/* Purple Rose Flower - Positioned at left edge */}
             <div style={{ 
               position: 'absolute',
-              left: '8px',
+              left: '4px',
               top: '50%',
-              transform: 'translateY(-50%) scale(0.65)',
+              transform: 'translateY(-50%) scale(0.585)',
               width: '48px',
               height: '48px',
               pointerEvents: 'none',

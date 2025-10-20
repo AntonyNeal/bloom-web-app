@@ -114,7 +114,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             margin: '0 auto',
           }}>
             Keep 80% of what you bill. Work where you want.<br />
-            We handle the infrastructure. You shape the culture.
+            We handle the admin, bring you clients, and you shape the culture.
           </p>
         </motion.section>
 
@@ -136,8 +136,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 description: 'Most practices take 40-50%. We take 20%.\nYou do the work. You get paid fairly.',
               },
               {
-                title: 'We handle the infrastructure',
-                description: 'Telehealth platform, billing, scheduling.\nYou focus on the clinical work. We handle the operations.',
+                title: 'We handle the admin',
+                description: 'Booking appointments, chasing payments, video calls.\nYou focus on the clinical work. We handle the paperwork.',
               },
               {
                 title: 'Build your own practice',
@@ -207,7 +207,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           }}>
             {[
               {
-                heading: 'The Money Part',
+                heading: 'The Money',
                 items: [
                   '80% of what you bill goes to you',
                   'Weekly payments, no hidden fees',
@@ -215,11 +215,21 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 ],
               },
               {
-                heading: 'The Platform',
+                heading: 'The Admin',
                 items: [
-                  'Secure telehealth video',
-                  'Scheduling and billing tools',
-                  'Clinical documentation support',
+                  'Video sessions that just work',
+                  'Appointment booking and reminders',
+                  'Invoicing and payment collection',
+                  'Clinical notes and records',
+                ],
+              },
+              {
+                heading: 'The Clients',
+                items: [
+                  'Marketing to fill your availability',
+                  'Professional website presence',
+                  'Client matching to your specialties',
+                  'You choose who you work with',
                 ],
               },
               {
@@ -231,7 +241,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 ],
               },
               {
-                heading: 'The Freedom Part',
+                heading: 'The Freedom',
                 items: [
                   'Work from anywhere in Australia',
                   'Set your own hours and rates',
@@ -310,7 +320,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               lineHeight: 1.8,
               color: '#5A5A5A',
             }}>
-              Fair compensation meets operational excellence.<br />
+              Fair compensation. Less paperwork. More clients.<br />
               Your feedback drives our evolution.<br />
               Let's build a sustainable practice and make good money doing it.
             </p>
@@ -413,10 +423,10 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 margin: '32px 0',
               }}>
                 "What if psychologists kept most of what they earned and we handled
-                the infrastructure?"
+                the paperwork and brought them clients?"
               </blockquote>
               <p style={{ marginBottom: '20px' }}>
-                That's the premise. Fair compensation. Solid operations. Room to grow.
+                That's the premise. Fair pay. Less admin. Full calendar. Room to grow.
               </p>
               <p>
                 This practice is built on respect—for your expertise, your time,

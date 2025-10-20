@@ -25,8 +25,9 @@ export default defineConfig({
           ],
           'form-vendor': ['react-hook-form', 'zod'],
           
-          // Separate Framer Motion (only load when needed)
-          'framer': ['framer-motion'],
+          // Framer Motion - removed from manual chunks to enable automatic code-splitting
+          // Will only load on pages that actually import it (JoinUs, QualificationCheck)
+          // NOT loaded on landing page = 112 kB saved from critical path
         },
       },
     },

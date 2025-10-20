@@ -251,6 +251,72 @@ function LandingPage() {
               />
             </Suspense>
           </div>
+
+          {/* #7: Tiny golden daisy - bottom left (warmth in corners) */}
+          <div
+            className="flower-small flower-small-7"
+            style={{
+              position: 'absolute',
+              left: isMobile ? '25px' : '45px',
+              bottom: isMobile ? '12px' : '18px',
+              opacity: 0,
+              transform: isMobile ? 'scale(0.35)' : 'scale(0.42)',
+            }}
+          >
+            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
+              <Tier3Flower 
+                isChecked={true} 
+                isMobile={false}
+                shouldReduceMotion={true}
+                sparkleCount={0}
+                sparkleDelay={0}
+              />
+            </Suspense>
+          </div>
+
+          {/* #8: Small golden daisy - center-right mid (adds golden glow) */}
+          <div
+            className="flower-small flower-small-8"
+            style={{
+              position: 'absolute',
+              right: isMobile ? '48px' : '75px',
+              top: isMobile ? '58px' : '75px',
+              opacity: 0,
+              transform: isMobile ? 'scale(0.38)' : 'scale(0.46)',
+            }}
+          >
+            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
+              <Tier3Flower 
+                isChecked={true} 
+                isMobile={false}
+                shouldReduceMotion={true}
+                sparkleCount={0}
+                sparkleDelay={0}
+              />
+            </Suspense>
+          </div>
+
+          {/* #9: Tiny golden daisy - upper-left (corner warmth) */}
+          <div
+            className="flower-small flower-small-9"
+            style={{
+              position: 'absolute',
+              left: isMobile ? '8px' : '15px',
+              top: isMobile ? '18px' : '25px',
+              opacity: 0,
+              transform: isMobile ? 'scale(0.33)' : 'scale(0.39)',
+            }}
+          >
+            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
+              <Tier3Flower 
+                isChecked={true} 
+                isMobile={false}
+                shouldReduceMotion={true}
+                sparkleCount={0}
+                sparkleDelay={0}
+              />
+            </Suspense>
+          </div>
         </div>
 
         {/* Headline */}
@@ -363,71 +429,76 @@ function LandingPage() {
             <span>Explore Joining</span>
           </button>
 
-          {/* Secondary button - "Bloom" */}
+          {/* Secondary button - "Bloom" with Elevated Purple Rose */}
           <button
             onClick={() => navigate('/bloom')}
             aria-label="Access practitioner portal"
             className="secondary-button"
             style={{
-              minWidth: isMobile ? '100%' : '180px',
-              height: '56px',
+              minWidth: isMobile ? '100%' : '220px',
+              height: '64px',
               background: 'transparent',
-              color: '#6B8E7F',
-              fontSize: '16px',
+              color: '#9B72AA',
+              fontSize: '17px',
               fontWeight: 600,
-              borderRadius: '8px',
-              border: '2px solid rgba(107, 142, 127, 0.4)',
+              borderRadius: '12px',
+              border: '2px solid rgba(155, 114, 170, 0.3)',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
+              position: 'relative',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '4px',
+              paddingLeft: '16px',
+              paddingRight: '16px',
               WebkitTapHighlightColor: 'transparent',
               outline: 'none',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: '0 2px 12px rgba(155, 114, 170, 0.12)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(155, 114, 170, 0.5)';
+              e.currentTarget.style.background = 'rgba(155, 114, 170, 0.05)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(155, 114, 170, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(155, 114, 170, 0.3)';
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 12px rgba(155, 114, 170, 0.12)';
             }}
             onFocus={(e) => {
-              e.currentTarget.style.outline = '3px solid #6B8E7F';
+              e.currentTarget.style.outline = '3px solid #9B72AA';
               e.currentTarget.style.outlineOffset = '2px';
             }}
             onBlur={(e) => {
               e.currentTarget.style.outline = 'none';
             }}
           >
+            {/* Purple Rose Flower - Positioned with breathing room */}
             <div style={{ 
-              width: '20px', 
-              height: '20px', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
+              position: 'absolute',
+              left: '16px',
+              top: '50%',
+              transform: 'translateY(-50%) scale(0.65)',
+              width: '80px',
+              height: '80px',
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
-              flexShrink: 0,
-              overflow: 'visible',
-              position: 'relative',
-              marginRight: '-10px',
-              left: '-18px'
+              pointerEvents: 'none',
             }}>
-              <div style={{
-                width: '80px',
-                height: '80px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                zIndex: 1,
-                transform: 'scale(0.25) translateX(-20px)'
-              }}>
-                <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-                  <Tier2Flower 
-                    isChecked={true} 
-                    isMobile={false}
-                    shouldReduceMotion={true}
-                    sparkleCount={0}
-                    sparkleDelay={0}
-                  />
-                </Suspense>
-              </div>
+              <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
+                <Tier2Flower 
+                  isChecked={true} 
+                  isMobile={false}
+                  shouldReduceMotion={true}
+                  sparkleCount={0}
+                  sparkleDelay={0}
+                />
+              </Suspense>
             </div>
-            <span style={{ position: 'relative', zIndex: 0 }}>Bloom</span>
+            <span style={{ position: 'relative', letterSpacing: '0.02em', marginLeft: '48px' }}>Bloom</span>
           </button>
         </div>
       </main>

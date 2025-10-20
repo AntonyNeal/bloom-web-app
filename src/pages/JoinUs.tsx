@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS } from "@/config/api";
 import { motion, useReducedMotion } from "framer-motion";
+import { Tier1Flower, Tier2Flower, Tier3Flower } from "@/components/flowers";
 
 // Lazy load the massive QualificationCheck component
 const QualificationCheck = lazy(() => 
@@ -251,7 +252,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             {[
               {
                 heading: 'The Money',
-                icon: '🌱',
+                flowerType: 'tier1', // Cherry blossom
                 accentColor: bloomStyles.colors.eucalyptusSage,
                 items: [
                   '80% of what you bill goes to you',
@@ -260,7 +261,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               },
               {
                 heading: 'The Platform',
-                icon: '🛠️',
+                flowerType: 'tier2', // Rose
                 accentColor: bloomStyles.colors.softFern,
                 items: [
                   'Halaxy for practice management',
@@ -270,7 +271,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               },
               {
                 heading: 'Bloom',
-                icon: '🌸',
+                flowerType: 'tier3', // Daisy
                 accentColor: bloomStyles.colors.softTerracotta,
                 items: [
                   'Track your professional development',
@@ -280,7 +281,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               },
               {
                 heading: 'The Marketing',
-                icon: '✨',
+                flowerType: 'tier1', // Cherry blossom
                 accentColor: bloomStyles.colors.honeyAmber,
                 items: [
                   'We bring you clients',
@@ -289,7 +290,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               },
               {
                 heading: 'The Freedom',
-                icon: '🦋',
+                flowerType: 'tier2', // Rose
                 accentColor: bloomStyles.colors.clayTerracotta,
                 items: [
                   'Work from anywhere in Australia',
@@ -331,7 +332,11 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 }} />
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
-                  <span style={{ fontSize: '32px', lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}>{section.icon}</span>
+                  <div style={{ width: '32px', height: '32px', position: 'relative', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}>
+                    {section.flowerType === 'tier1' && <Tier1Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />}
+                    {section.flowerType === 'tier2' && <Tier2Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />}
+                    {section.flowerType === 'tier3' && <Tier3Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />}
+                  </div>
                   <h3 style={{
                     fontSize: '22px',
                     fontWeight: 700,
@@ -1021,7 +1026,7 @@ export function JoinUs() {
               lineHeight: 1.3,
               marginBottom: '12px',
             }}>
-              Plant Your Story
+              Apply to Join
             </h1>
             
             <p style={{
@@ -1031,8 +1036,8 @@ export function JoinUs() {
               maxWidth: '500px',
               margin: '0 auto',
             }}>
-              Share your journey with us. Each field is a seed - take your time, 
-              and let your story grow naturally.
+              Tell us about yourself and your practice. We'll review your application 
+              and get back to you within 48 hours.
             </p>
           </motion.div>
 
@@ -1064,7 +1069,7 @@ export function JoinUs() {
                 pointerEvents: 'none',
               }} />
 
-              {/* Section: Your Roots 🌸 */}
+              {/* Section: Personal Information */}
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -1072,14 +1077,16 @@ export function JoinUs() {
                 style={{ marginBottom: '32px' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                  <span style={{ fontSize: '24px' }}>🌸</span>
+                  <div style={{ width: '24px', height: '24px', position: 'relative' }}>
+                    <Tier1Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
+                  </div>
                   <h2 style={{
                     fontSize: '20px',
                     fontWeight: 600,
                     color: '#3A3A3A',
                     letterSpacing: '-0.01em',
                   }}>
-                    Your Roots
+                    Personal Information
                   </h2>
                 </div>
 
@@ -1204,7 +1211,7 @@ export function JoinUs() {
                 </motion.div>
               </motion.div>
 
-              {/* Section: Your Growth 🍃 */}
+              {/* Section: Professional Details */}
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -1212,14 +1219,16 @@ export function JoinUs() {
                 style={{ marginTop: '40px', marginBottom: '32px' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                  <span style={{ fontSize: '24px' }}>🍃</span>
+                  <div style={{ width: '24px', height: '24px', position: 'relative' }}>
+                    <Tier2Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
+                  </div>
                   <h2 style={{
                     fontSize: '20px',
                     fontWeight: 600,
                     color: '#3A3A3A',
                     letterSpacing: '-0.01em',
                   }}>
-                    Your Growth
+                    Professional Details
                   </h2>
                 </div>
 
@@ -1284,7 +1293,7 @@ export function JoinUs() {
                 </motion.div>
               </motion.div>
 
-              {/* Section: Your Heart 💚 */}
+              {/* Section: Cover Letter */}
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -1292,14 +1301,16 @@ export function JoinUs() {
                 style={{ marginTop: '40px', marginBottom: '32px' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                  <span style={{ fontSize: '24px' }}>💚</span>
+                  <div style={{ width: '24px', height: '24px', position: 'relative' }}>
+                    <Tier3Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
+                  </div>
                   <h2 style={{
                     fontSize: '20px',
                     fontWeight: 600,
                     color: '#3A3A3A',
                     letterSpacing: '-0.01em',
                   }}>
-                    Your Heart
+                    Cover Letter
                   </h2>
                 </div>
 
@@ -1319,7 +1330,7 @@ export function JoinUs() {
                     rows={6}
                     value={formData.cover_letter}
                     onChange={(e) => setFormData({ ...formData, cover_letter: e.target.value })}
-                    placeholder="Share what draws you to Life Psychology Australia. What kind of garden do you hope to help grow?"
+                    placeholder="Tell us about yourself, your practice philosophy, and why you're interested in joining Life Psychology Australia."
                     style={{
                       width: '100%',
                       minHeight: '200px',
@@ -1338,7 +1349,7 @@ export function JoinUs() {
                 </motion.div>
               </motion.div>
 
-              {/* Section: Your Documents 📋 */}
+              {/* Section: Documents */}
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -1346,14 +1357,16 @@ export function JoinUs() {
                 style={{ marginTop: '40px', marginBottom: '32px' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                  <span style={{ fontSize: '24px' }}>📋</span>
+                  <div style={{ width: '24px', height: '24px', position: 'relative' }}>
+                    <Tier1Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
+                  </div>
                   <h2 style={{
                     fontSize: '20px',
                     fontWeight: 600,
                     color: '#3A3A3A',
                     letterSpacing: '-0.01em',
                   }}>
-                    Your Documents
+                    Documents
                   </h2>
                 </div>
 

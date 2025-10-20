@@ -114,7 +114,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             margin: '0 auto',
           }}>
             Keep 80% of what you bill. Work where you want.<br />
-            We handle the admin, bring you clients, and you shape the culture.
+            We minimize the admin burden. Together, we shape the culture.
           </p>
         </motion.section>
 
@@ -136,8 +136,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 description: 'Most practices take 40-50%. We take 20%.\nYou do the work. You get paid fairly.',
               },
               {
-                title: 'We handle the admin',
-                description: 'Booking appointments, chasing payments, video calls.\nYou focus on the clinical work. We handle the paperwork.',
+                title: 'Tools that minimize admin',
+                description: 'Convenient booking, payment tracking, clinical notes.\nAll the tools you need. Minimal burden on your time.',
               },
               {
                 title: 'Build your own practice',
@@ -218,9 +218,9 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 heading: 'The Admin',
                 items: [
                   'Video sessions that just work',
-                  'Appointment booking and reminders',
-                  'Invoicing and payment collection',
-                  'Clinical notes and records',
+                  'Convenient appointment booking and reminders',
+                  'Payment tracking and invoicing tools',
+                  'Clinical notes templates and storage',
                 ],
               },
               {
@@ -236,8 +236,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 heading: 'The Culture',
                 items: [
                   'No quotas or billing targets',
-                  'Your input shapes our direction',
-                  'Sustainable practice, not burnout',
+                  'Community-driven direction',
+                  'Everyone contributes to shaping our culture',
                 ],
               },
               {
@@ -320,8 +320,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               lineHeight: 1.8,
               color: '#5A5A5A',
             }}>
-              Fair compensation. Less paperwork. More clients.<br />
-              Your feedback drives our evolution.<br />
+              Fair compensation. Convenient tools. Full calendar.<br />
+              The community shapes our direction together.<br />
               Let's build a sustainable practice and make good money doing it.
             </p>
           </motion.div>
@@ -422,15 +422,15 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 paddingLeft: '24px',
                 margin: '32px 0',
               }}>
-                "What if psychologists kept most of what they earned and we handled
-                the paperwork and brought them clients?"
+                "What if psychologists kept most of what they earned, had tools to minimize
+                admin burden, and we brought them clients?"
               </blockquote>
               <p style={{ marginBottom: '20px' }}>
-                That's the premise. Fair pay. Less admin. Full calendar. Room to grow.
+                That's the premise. Fair pay. Convenient tools. Full calendar.
               </p>
               <p>
                 This practice is built on respect—for your expertise, your time,
-                and your input on how we can better support your work.
+                and the community's voice in shaping what we become together.
               </p>
             </div>
           </div>

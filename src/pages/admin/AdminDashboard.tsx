@@ -3,10 +3,13 @@ import {
   FileText, 
   TrendingUp,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  LogOut
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export function AdminDashboard() {
+  const { logout, user } = useAuth();
   // Quick action cards
   const quickActions = [
     {
@@ -73,18 +76,32 @@ export function AdminDashboard() {
           </a>
 
           <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-gradient-to-br from-sage-500 to-sage-600 rounded-full flex items-center justify-center shadow-lg shadow-sage-200 relative">
-                <div className="absolute inset-0 rounded-full opacity-20 bg-gradient-to-tr from-transparent via-white to-transparent" />
-                <TrendingUp className="w-6 h-6 text-white relative z-10" />
-                <div className="absolute -top-1 -right-1">
-                  <Sparkles className="w-4 h-4 text-lavender-400" style={{ animation: 'pulse 2s ease-in-out infinite' }} />
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-sage-500 to-sage-600 rounded-full flex items-center justify-center shadow-lg shadow-sage-200 relative">
+                  <div className="absolute inset-0 rounded-full opacity-20 bg-gradient-to-tr from-transparent via-white to-transparent" />
+                  <TrendingUp className="w-6 h-6 text-white relative z-10" />
+                  <div className="absolute -top-1 -right-1">
+                    <Sparkles className="w-4 h-4 text-lavender-400" style={{ animation: 'pulse 2s ease-in-out infinite' }} />
+                  </div>
+                </div>
+                <div>
+                  <h1 className="font-display text-h1 text-text-primary">Admin Dashboard</h1>
+                  <p className="font-body text-body text-text-secondary">
+                    {user?.name || user?.username || 'Life Psychology Australia Portal'}
+                  </p>
                 </div>
               </div>
-              <div>
-                <h1 className="font-display text-h1 text-text-primary">Admin Dashboard</h1>
-                <p className="font-body text-body text-text-secondary">Life Psychology Australia Portal</p>
-              </div>
+              
+              {/* Logout Button */}
+              <button
+                onClick={logout}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-sage-700 hover:text-sage-900 bg-sage-50 hover:bg-sage-100 border border-sage-200 hover:border-sage-300 rounded-lg transition-all duration-200 shadow-sm hover:shadow"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </button>
             </div>
           </div>
         </div>

@@ -569,31 +569,10 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
         ))}
       </div>
 
-      {/* Stage 3: Main container settles onto page */}
-      <motion.div 
+      {/* Stage 3: Main container - animation removed for instant display */}
+      <div 
         className="mx-auto"
-        style={{ maxWidth: '600px', willChange: 'transform, opacity' }}
-        initial={{ 
-          opacity: 0, 
-          y: isMobile ? -15 : -20,
-          scale: 0.98
-        }}
-        animate={{ 
-          opacity: 1, 
-          y: 0,
-          scale: 1
-        }}
-        transition={{ 
-          duration: animationConfig.cardDuration,
-          delay: animationConfig.cardDelay,
-          ease: animationConfig.bounceEasing,
-        }}
-        onAnimationComplete={() => {
-          const element = document.querySelector('[data-main-container="true"]');
-          if (element instanceof HTMLElement) {
-            element.style.willChange = 'auto';
-          }
-        }}
+        style={{ maxWidth: '600px' }}
       >
         <div data-main-container="true">
         {/* Back to Home Button - quiet competence */}
@@ -1989,7 +1968,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
           </CardContent>
         </Card>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

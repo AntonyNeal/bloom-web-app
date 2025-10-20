@@ -20,8 +20,7 @@ requestIdleCallback(() => {
 console.log('[PERF] CSS loaded in', performance.now() - perfStart, 'ms');
 
 import App from './App.tsx'
-// TEMPORARY: AuthProvider import disabled for emergency production fix
-// import { AuthProvider } from './features/auth/AuthProvider'
+import { AuthProvider } from './features/auth/AuthProvider'
 
 console.log('[PERF] App imported in', performance.now() - perfStart, 'ms');
 
@@ -48,10 +47,9 @@ console.log('[PERF] React root created, rendering at', performance.now() - perfS
 
 root.render(
   <StrictMode>
-    {/* TEMPORARY: AuthProvider disabled for emergency production fix */}
-    {/* <AuthProvider> */}
+    <AuthProvider>
       <App />
-    {/* </AuthProvider> */}
+    </AuthProvider>
   </StrictMode>,
 );
 

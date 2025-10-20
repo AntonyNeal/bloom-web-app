@@ -9,32 +9,15 @@ interface BloomLoginButtonProps {
 
 const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
   const navigate = useNavigate()
-  
-  // Try to use auth, but handle gracefully if not configured
-  let login, isAuthenticated
-  try {
-    const auth = useAuth()
-    login = auth.login
-    isAuthenticated = auth.isAuthenticated
-  } catch (error) {
-    // Auth not configured, that's okay - we'll navigate to join-us instead
-    login = null
-    isAuthenticated = false
-  }
+  const { login, isAuthenticated } = useAuth()
 
   const handleClick = async () => {
     if (!isAuthenticated) {
-      // If auth is available, try to login
-      if (login) {
-        try {
-          await login()
-        } catch (error) {
-          console.error('Login error:', error)
-          // Fallback to join-us page if auth fails
-          navigate('/join-us')
-        }
-      } else {
-        // No auth configured, navigate to join-us page
+      try {
+        await login()
+      } catch (error) {
+        console.error('Login error:', error)
+        // Fallback to join-us page if auth fails
         navigate('/join-us')
       }
     }

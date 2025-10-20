@@ -1981,7 +1981,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                       >
                         <span style={{ fontSize: '18px' }}>🌱</span>
                       </motion.div>
-                      Complete Your Garden
+                      Complete All Questions
                     </>
                   )}
                 </span>

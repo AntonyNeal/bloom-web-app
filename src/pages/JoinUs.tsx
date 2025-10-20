@@ -52,11 +52,442 @@ interface FormData {
   cover_letter: string;
 }
 
+// Marketing Content Component - Bloom-aligned copy
+function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApplyClick: () => void }) {
+  return (
+    <div style={{ position: 'relative', minHeight: '100vh', background: bloomStyles.colors.warmCream }}>
+      {/* Ambient Background */}
+      <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+        {[
+          { size: '850px', color: bloomStyles.colors.eucalyptusSage, opacity: 0.06, top: '-15%', right: '-8%', blur: 140 },
+          { size: '950px', color: bloomStyles.colors.softTerracotta, opacity: 0.04, bottom: '-20%', left: '-12%', blur: 150 },
+        ].map((blob, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: blob.opacity, scale: [1, 1.02, 1] }}
+            transition={{
+              opacity: { duration: 0.8, delay: i * 0.2 },
+              scale: { duration: 50 + i * 10, repeat: Infinity, ease: 'easeInOut' },
+            }}
+            style={{
+              position: 'absolute',
+              width: blob.size,
+              height: blob.size,
+              borderRadius: '50%',
+              background: blob.color,
+              filter: `blur(${blob.blur}px)`,
+              ...(blob.top && { top: blob.top }),
+              ...(blob.bottom && { bottom: blob.bottom }),
+              ...(blob.left && { left: blob.left }),
+              ...(blob.right && { right: blob.right }),
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Main Content */}
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '40px 20px' : '80px 40px' }}>
+        
+        {/* Hero Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          style={{ textAlign: 'center', marginBottom: isMobile ? '60px' : '100px' }}
+        >
+          <h1 style={{
+            fontSize: isMobile ? '40px' : '56px',
+            fontWeight: 600,
+            color: '#3A3A3A',
+            letterSpacing: '-0.02em',
+            lineHeight: 1.2,
+            marginBottom: '20px',
+          }}>
+            Room to Grow
+          </h1>
+          <p style={{
+            fontSize: isMobile ? '18px' : '22px',
+            lineHeight: 1.6,
+            color: '#5A5A5A',
+            maxWidth: '700px',
+            margin: '0 auto',
+          }}>
+            A psychology practice where you keep 80% of what you bill,<br />
+            and we handle everything else.
+          </p>
+        </motion.section>
+
+        {/* Value Props - 3 Cards */}
+        <motion.section
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          style={{ marginBottom: isMobile ? '80px' : '120px' }}
+        >
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+            gap: '24px',
+          }}>
+            {[
+              {
+                title: '80 cents of every dollar',
+                description: 'Most practices take 40-50%. We take 20%.\nYour sessions. Your earnings. Simple as that.',
+              },
+              {
+                title: 'Technology handles the admin',
+                description: 'Billing, scheduling, reminders, notes.\nThe platform does the work so you don\'t have to.',
+              },
+              {
+                title: '5 hours a week or 40',
+                description: 'Work from anywhere in Australia.\nSee the clients you choose. Build the practice you want.',
+              },
+            ].map((card, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                style={{
+                  padding: isMobile ? '32px 24px' : '40px 32px',
+                  background: 'rgba(255, 255, 255, 0.7)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(107, 142, 127, 0.2)',
+                }}
+              >
+                <h3 style={{
+                  fontSize: '20px',
+                  fontWeight: 600,
+                  color: '#3A3A3A',
+                  marginBottom: '12px',
+                  lineHeight: 1.3,
+                }}>
+                  {card.title}
+                </h3>
+                <p style={{
+                  fontSize: '16px',
+                  lineHeight: 1.7,
+                  color: '#5A5A5A',
+                  whiteSpace: 'pre-line',
+                }}>
+                  {card.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* What's Included Section */}
+        <motion.section
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          style={{ marginBottom: isMobile ? '80px' : '120px' }}
+        >
+          <h2 style={{
+            fontSize: isMobile ? '32px' : '40px',
+            fontWeight: 600,
+            color: '#3A3A3A',
+            textAlign: 'center',
+            marginBottom: isMobile ? '40px' : '60px',
+            letterSpacing: '-0.02em',
+          }}>
+            What's Included
+          </h2>
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+            gap: isMobile ? '40px' : '60px',
+            maxWidth: '900px',
+            margin: '0 auto',
+          }}>
+            {[
+              {
+                heading: 'Your Earnings',
+                items: [
+                  'Keep 80% of everything you bill',
+                  '$200 session = $160 to you, paid weekly',
+                  'No hidden fees or deductions',
+                ],
+              },
+              {
+                heading: 'Your Platform',
+                items: [
+                  'Secure telehealth video',
+                  'Automated scheduling and reminders',
+                  'Integrated clinical notes',
+                  'Medicare and insurance billing handled',
+                ],
+              },
+              {
+                heading: 'Your Growth',
+                items: [
+                  'Professional development tokens',
+                  'Funded supervision and training',
+                  'Marketing support to fill your calendar',
+                  'Clinical support network',
+                ],
+              },
+              {
+                heading: 'Your Freedom',
+                items: [
+                  'Work from anywhere in Australia',
+                  'Set your own hours (minimum 5 per week)',
+                  'Choose your clients and specialties',
+                  'No lock-in contracts—leave anytime',
+                ],
+              },
+            ].map((section, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <h3 style={{
+                  fontSize: '22px',
+                  fontWeight: 600,
+                  color: '#3A3A3A',
+                  marginBottom: '16px',
+                }}>
+                  {section.heading}
+                </h3>
+                <ul style={{
+                  listStyle: 'none',
+                  padding: 0,
+                  margin: 0,
+                }}>
+                  {section.items.map((item, j) => (
+                    <li key={j} style={{
+                      fontSize: '16px',
+                      lineHeight: 1.8,
+                      color: '#5A5A5A',
+                      paddingLeft: '20px',
+                      position: 'relative',
+                      marginBottom: '8px',
+                    }}>
+                      <span style={{
+                        position: 'absolute',
+                        left: 0,
+                        color: bloomStyles.colors.eucalyptusSage,
+                      }}>•</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Balance Section */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            style={{
+              marginTop: isMobile ? '40px' : '60px',
+              padding: isMobile ? '32px 24px' : '40px',
+              background: 'rgba(255, 255, 255, 0.5)',
+              borderRadius: '12px',
+              textAlign: 'center',
+              maxWidth: '600px',
+              margin: `${isMobile ? '40px' : '60px'} auto 0`,
+            }}
+          >
+            <h3 style={{
+              fontSize: '22px',
+              fontWeight: 600,
+              color: '#3A3A3A',
+              marginBottom: '16px',
+            }}>
+              Your Balance
+            </h3>
+            <p style={{
+              fontSize: '16px',
+              lineHeight: 1.8,
+              color: '#5A5A5A',
+            }}>
+              No quotas or billing targets<br />
+              Family-first practice culture<br />
+              Sustainable workload, not burnout
+            </p>
+          </motion.div>
+        </motion.section>
+
+        {/* Qualification Section */}
+        <motion.section
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          style={{
+            marginBottom: isMobile ? '80px' : '120px',
+            textAlign: 'center',
+          }}
+        >
+          <h2 style={{
+            fontSize: isMobile ? '32px' : '40px',
+            fontWeight: 600,
+            color: '#3A3A3A',
+            marginBottom: '16px',
+            letterSpacing: '-0.02em',
+          }}>
+            Who We're Looking For
+          </h2>
+          <p style={{
+            fontSize: '18px',
+            color: '#5A5A5A',
+            marginBottom: '32px',
+          }}>
+            To apply, you need at least one of these:
+          </p>
+          <div style={{
+            maxWidth: '600px',
+            margin: '0 auto',
+            background: 'rgba(255, 255, 255, 0.7)',
+            padding: isMobile ? '32px 24px' : '40px',
+            borderRadius: '12px',
+            border: '1px solid rgba(107, 142, 127, 0.2)',
+          }}>
+            {[
+              'Registered Clinical Psychologist (AHPRA)',
+              '8+ years registered psychologist (AHPRA)',
+              'PhD in Psychology with AHPRA registration',
+            ].map((req, i) => (
+              <p key={i} style={{
+                fontSize: '18px',
+                lineHeight: 1.8,
+                color: '#3A3A3A',
+                marginBottom: i < 2 ? '16px' : 0,
+              }}>
+                {req}
+              </p>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Founder Section */}
+        <motion.section
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          style={{ marginBottom: isMobile ? '80px' : '120px' }}
+        >
+          <div style={{
+            maxWidth: '800px',
+            margin: '0 auto',
+            padding: isMobile ? '40px 24px' : '60px 48px',
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '16px',
+            border: '1px solid rgba(107, 142, 127, 0.2)',
+          }}>
+            <h2 style={{
+              fontSize: isMobile ? '28px' : '36px',
+              fontWeight: 600,
+              color: '#3A3A3A',
+              marginBottom: '24px',
+              letterSpacing: '-0.02em',
+              textAlign: 'center',
+            }}>
+              Built by a Psychologist
+            </h2>
+            <div style={{
+              fontSize: '17px',
+              lineHeight: 1.8,
+              color: '#5A5A5A',
+            }}>
+              <p style={{ marginBottom: '20px' }}>
+                Life Psychology Australia was founded by Dr. Zoe Semmler,
+                a clinical psychologist who saw talented practitioners leaving
+                the field—not because they didn't love the work, but because
+                the business side was unsustainable.
+              </p>
+              <blockquote style={{
+                fontSize: '20px',
+                fontStyle: 'italic',
+                color: bloomStyles.colors.eucalyptusSage,
+                borderLeft: `4px solid ${bloomStyles.colors.eucalyptusSage}`,
+                paddingLeft: '24px',
+                margin: '32px 0',
+              }}>
+                "I built this practice around one question: What if psychologists
+                could focus entirely on client care while earning what they deserve?"
+              </blockquote>
+              <p style={{ marginBottom: '20px' }}>
+                Our 80% share isn't just generous—it's fair.<br />
+                Our platform isn't just convenient—it removes barriers.<br />
+                Our culture isn't just supportive—it's built on respect for balance.
+              </p>
+              <p>
+                A practice designed by someone who understands your work,
+                your challenges, and your worth.
+              </p>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* CTA Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          style={{ textAlign: 'center', paddingBottom: isMobile ? '60px' : '100px' }}
+        >
+          <h2 style={{
+            fontSize: isMobile ? '32px' : '40px',
+            fontWeight: 600,
+            color: '#3A3A3A',
+            marginBottom: '16px',
+            letterSpacing: '-0.02em',
+          }}>
+            Apply to Join
+          </h2>
+          <p style={{
+            fontSize: '18px',
+            color: '#5A5A5A',
+            marginBottom: '40px',
+            maxWidth: '600px',
+            margin: '0 auto 40px',
+          }}>
+            Ready to practice without the paperwork?<br />
+            Start your application below.
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onApplyClick}
+            style={{
+              padding: isMobile ? '16px 40px' : '18px 48px',
+              fontSize: '18px',
+              fontWeight: 600,
+              color: '#FEFDFB',
+              background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softFern} 100%)`,
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(107, 142, 127, 0.25)',
+              transition: 'all 0.2s',
+            }}
+          >
+            Begin Application
+          </motion.button>
+        </motion.section>
+      </div>
+    </div>
+  );
+}
+
 export function JoinUs() {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const shouldReduceMotion = useReducedMotion();
   
+  const [pageState, setPageState] = useState<'viewing' | 'qualifying' | 'applying'>('viewing');
   const [hasPassedQualificationCheck, setHasPassedQualificationCheck] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     first_name: "",
@@ -282,8 +713,8 @@ export function JoinUs() {
     );
   }
 
-  // Show qualification check first
-  if (!hasPassedQualificationCheck) {
+  // Show qualification check when user clicks "Apply"
+  if (pageState === 'qualifying' && !hasPassedQualificationCheck) {
     return (
       <Suspense fallback={<div style={{ 
         display: 'flex', 
@@ -294,10 +725,18 @@ export function JoinUs() {
         color: '#6B8E7F'
       }}>Loading...</div>}>
         <QualificationCheck 
-          onEligible={() => setHasPassedQualificationCheck(true)}
+          onEligible={() => {
+            setHasPassedQualificationCheck(true);
+            setPageState('applying');
+          }}
         />
       </Suspense>
     );
+  }
+
+  // Show marketing page by default
+  if (pageState === 'viewing') {
+    return <MarketingContent isMobile={isMobile} onApplyClick={() => setPageState('qualifying')} />;
   }
 
   // Show application form after passing qualification check

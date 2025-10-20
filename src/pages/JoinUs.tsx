@@ -104,7 +104,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             lineHeight: 1.2,
             marginBottom: '20px',
           }}>
-            Room to Grow
+            Let's Build This Together
           </h1>
           <p style={{
             fontSize: isMobile ? '18px' : '22px',
@@ -113,8 +113,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             maxWidth: '700px',
             margin: '0 auto',
           }}>
-            A psychology practice where you keep 80% of what you bill,<br />
-            and we handle everything else.
+            We're early. You keep 80% of what you bill.<br />
+            We're building the rest with you, not for you.
           </p>
         </motion.section>
 
@@ -132,16 +132,16 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           }}>
             {[
               {
-                title: '80 cents of every dollar',
-                description: 'Most practices take 40-50%. We take 20%.\nYour sessions. Your earnings. Simple as that.',
+                title: 'You keep 80%',
+                description: 'Most practices take 40-50%. We take 20%.\nYou do the work. You get paid fairly.',
               },
               {
-                title: 'Technology handles the admin',
-                description: 'Billing, scheduling, reminders, notes.\nThe platform does the work so you don\'t have to.',
+                title: 'We\'re innovating on the rest',
+                description: 'Admin, billing, platform tools.\nWe\'ll evolve based on what you actually need, not what we think you need.',
               },
               {
-                title: '5 hours a week or 40',
-                description: 'Work from anywhere in Australia.\nSee the clients you choose. Build the practice you want.',
+                title: 'Build your own practice',
+                description: 'Your schedule. Your clients. Your specialties.\nWe provide the structure. You make it yours.',
               },
             ].map((card, i) => (
               <motion.div
@@ -180,7 +180,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           </div>
         </motion.section>
 
-        {/* What's Included Section */}
+        {/* What's Real Section */}
         <motion.section
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -195,7 +195,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             marginBottom: isMobile ? '40px' : '60px',
             letterSpacing: '-0.02em',
           }}>
-            What's Included
+            What's Real Right Now
           </h2>
           
           <div style={{
@@ -207,38 +207,36 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           }}>
             {[
               {
-                heading: 'Your Earnings',
+                heading: 'The Money Part',
                 items: [
-                  'Keep 80% of everything you bill',
-                  '$200 session = $160 to you, paid weekly',
-                  'No hidden fees or deductions',
+                  '80% of what you bill goes to you',
+                  'Weekly payments, no hidden fees',
+                  '$200 session = $160 to you',
                 ],
               },
               {
-                heading: 'Your Platform',
+                heading: 'The Platform Part',
                 items: [
-                  'Secure telehealth video',
-                  'Automated scheduling and reminders',
-                  'Integrated clinical notes',
-                  'Medicare and insurance billing handled',
+                  'Telehealth that works',
+                  'Basic scheduling and billing',
+                  'We\'re building more—with your input',
                 ],
               },
               {
-                heading: 'Your Growth',
+                heading: 'The Culture Part',
                 items: [
-                  'Professional development tokens',
-                  'Funded supervision and training',
-                  'Marketing support to fill your calendar',
-                  'Clinical support network',
+                  'No quotas or billing targets',
+                  'We listen and adapt',
+                  'You help shape what we become',
                 ],
               },
               {
-                heading: 'Your Freedom',
+                heading: 'The Freedom Part',
                 items: [
                   'Work from anywhere in Australia',
-                  'Set your own hours (minimum 5 per week)',
+                  'Set your own hours and rates',
                   'Choose your clients and specialties',
-                  'No lock-in contracts—leave anytime',
+                  'Leave anytime—no lock-in contracts',
                 ],
               },
             ].map((section, i) => (
@@ -284,7 +282,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             ))}
           </div>
 
-          {/* Balance Section */}
+          {/* The Deal Section */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -305,16 +303,16 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               color: '#3A3A3A',
               marginBottom: '16px',
             }}>
-              Your Balance
+              The Deal
             </h3>
             <p style={{
               fontSize: '16px',
               lineHeight: 1.8,
               color: '#5A5A5A',
             }}>
-              No quotas or billing targets<br />
-              Family-first practice culture<br />
-              Sustainable workload, not burnout
+              We're not trying to be everything to everyone.<br />
+              We're early, innovative, and listening.<br />
+              Let's build a better practice together and make money doing it.
             </p>
           </motion.div>
         </motion.section>
@@ -394,7 +392,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               letterSpacing: '-0.02em',
               textAlign: 'center',
             }}>
-              Built by a Psychologist
+              Why This Exists
             </h2>
             <div style={{
               fontSize: '17px',
@@ -402,10 +400,9 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               color: '#5A5A5A',
             }}>
               <p style={{ marginBottom: '20px' }}>
-                Life Psychology Australia was founded by Dr. Zoe Semmler,
-                a clinical psychologist who saw talented practitioners leaving
-                the field—not because they didn't love the work, but because
-                the business side was unsustainable.
+                I'm Dr. Zoe Semmler, a clinical psychologist. I started this because
+                I kept watching talented colleagues leave the field—not because they
+                stopped caring, but because the traditional practice model didn't work for them.
               </p>
               <blockquote style={{
                 fontSize: '20px',
@@ -415,17 +412,15 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 paddingLeft: '24px',
                 margin: '32px 0',
               }}>
-                "I built this practice around one question: What if psychologists
-                could focus entirely on client care while earning what they deserve?"
+                "What if psychologists kept most of what they earned and we built
+                the infrastructure together?"
               </blockquote>
               <p style={{ marginBottom: '20px' }}>
-                Our 80% share isn't just generous—it's fair.<br />
-                Our platform isn't just convenient—it removes barriers.<br />
-                Our culture isn't just supportive—it's built on respect for balance.
+                That's it. That's the whole idea.
               </p>
               <p>
-                A practice designed by someone who understands your work,
-                your challenges, and your worth.
+                We're not claiming to have it all figured out. We're claiming to listen,
+                adapt, and split the money fairly while we figure it out together.
               </p>
             </div>
           </div>
@@ -445,7 +440,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             marginBottom: '16px',
             letterSpacing: '-0.02em',
           }}>
-            Apply to Join
+            Interested?
           </h2>
           <p style={{
             fontSize: '18px',
@@ -454,8 +449,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
             maxWidth: '600px',
             margin: '0 auto 40px',
           }}>
-            Ready to practice without the paperwork?<br />
-            Start your application below.
+            If this sounds better than what you've got,<br />
+            let's see if you qualify.
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}

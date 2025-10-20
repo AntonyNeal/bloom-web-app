@@ -71,14 +71,13 @@ export const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     );
   }
 
-  // Redirect to landing page if not authenticated
-  // Preserve the attempted path in location state for post-login redirect
+  // Redirect to /join-us if not authenticated
+  // Users must click "Bloom" button and authenticate before accessing admin routes
   if (!isAuthenticated) {
     return (
       <Navigate 
-        to="/" 
+        to="/join-us" 
         replace 
-        state={{ from: location.pathname, authRequired: true }}
       />
     );
   }

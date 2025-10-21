@@ -63,21 +63,31 @@ interface FormData {
 
 // Marketing Content Component - Bloom-aligned copy
 function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApplyClick: () => void }) {
+  const prefersReducedMotion = useReducedMotion();
+  
   return (
     <div style={{ position: 'relative', minHeight: '100vh', background: bloomStyles.colors.warmCream }}>
-      {/* Ambient Background */}
+      {/* Ambient Background - Optimized for desktop performance */}
       <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
         {[
-          { size: '850px', color: bloomStyles.colors.eucalyptusSage, opacity: 0.06, top: '-15%', right: '-8%', blur: 140 },
-          { size: '950px', color: bloomStyles.colors.softTerracotta, opacity: 0.04, bottom: '-20%', left: '-12%', blur: 150 },
+          { size: '850px', color: bloomStyles.colors.eucalyptusSage, opacity: 0.06, top: '-15%', right: '-8%', blur: isMobile ? 140 : 70 },
+          { size: '950px', color: bloomStyles.colors.softTerracotta, opacity: 0.04, bottom: '-20%', left: '-12%', blur: isMobile ? 150 : 75 },
         ].map((blob, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0 }}
-            animate={{ opacity: blob.opacity, scale: [1, 1.02, 1] }}
+            animate={{ 
+              opacity: blob.opacity,
+              // Disable infinite animations on desktop for better performance
+              scale: (isMobile || prefersReducedMotion) ? 1 : [1, 1.01, 1]
+            }}
             transition={{
               opacity: { duration: 0.8, delay: i * 0.2 },
-              scale: { duration: 50 + i * 10, repeat: Infinity, ease: 'easeInOut' },
+              scale: { 
+                duration: 60 + i * 10, 
+                repeat: (isMobile || prefersReducedMotion) ? 0 : Infinity,
+                ease: 'easeInOut' 
+              },
             }}
             style={{
               position: 'absolute',
@@ -86,6 +96,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               borderRadius: '50%',
               background: blob.color,
               filter: `blur(${blob.blur}px)`,
+              willChange: (isMobile || prefersReducedMotion) ? 'auto' : 'transform',
               ...(blob.top && { top: blob.top }),
               ...(blob.bottom && { bottom: blob.bottom }),
               ...(blob.left && { left: blob.left }),
@@ -186,7 +197,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
                 style={{
                   padding: isMobile ? '32px 24px' : '40px 32px',
                   background: 'rgba(255, 255, 255, 0.8)',
-                  backdropFilter: 'blur(10px)',
+                  // Reduce backdrop blur on desktop for better performance
+                  backdropFilter: isMobile ? 'blur(10px)' : 'blur(5px)',
                   borderRadius: '16px',
                   border: `2px solid ${card.accentColor}30`,
                   boxShadow: '0 4px 12px rgba(107, 142, 127, 0.08)',
@@ -550,7 +562,8 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               margin: '0 auto',
               padding: isMobile ? '44px 28px' : '64px 56px',
               background: `linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 247, 242, 0.85) 100%)`,
-              backdropFilter: 'blur(10px)',
+              // Reduce backdrop blur on desktop for better performance
+              backdropFilter: isMobile ? 'blur(10px)' : 'blur(5px)',
               borderRadius: '24px',
               border: `2px solid ${bloomStyles.colors.eucalyptusSage}20`,
               boxShadow: '0 8px 32px rgba(107, 142, 127, 0.12)',

@@ -147,7 +147,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
         {/* Value Props - 3 Cards */}
         <motion.section
           initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
           viewport={{ once: true }}
           style={{ marginBottom: isMobile ? '80px' : '120px' }}
         >
@@ -179,7 +179,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
                 whileHover={{ y: -6, boxShadow: '0 12px 32px rgba(107, 142, 127, 0.15)' }}
@@ -235,7 +235,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
         {/* What's Included Section */}
         <motion.section
           initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
           viewport={{ once: true }}
           style={{ marginBottom: isMobile ? '80px' : '120px' }}
         >
@@ -311,7 +311,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
                 whileHover={{ y: -4, boxShadow: '0 12px 32px rgba(107, 142, 127, 0.14)' }}
@@ -388,7 +388,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           {/* The Approach Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
             style={{
@@ -467,7 +467,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
         {/* Qualification Section */}
         <motion.section
           initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
           viewport={{ once: true }}
           style={{
             marginBottom: isMobile ? '80px' : '120px',
@@ -476,7 +476,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
         >
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             style={{
               fontSize: isMobile ? '32px' : '40px',
@@ -490,7 +490,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           </motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
             style={{
@@ -503,7 +503,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
             style={{
@@ -536,13 +536,13 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
         {/* Founder Section */}
         <motion.section
           initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
           viewport={{ once: true }}
           style={{ marginBottom: isMobile ? '80px' : '120px' }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            animate={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
             style={{
@@ -620,7 +620,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
         {/* CTA Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           style={{ textAlign: 'center', paddingBottom: isMobile ? '60px' : '100px' }}
         >
@@ -1089,7 +1089,7 @@ export function JoinUs() {
               {/* Section: Personal Information */}
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                animate={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 style={{ marginBottom: '32px' }}
               >
@@ -1109,7 +1109,7 @@ export function JoinUs() {
 
                 {/* Personal Information Fields */}
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                  <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
+                  <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
                     <Label htmlFor="first_name" style={{
                       display: 'block',
                       fontSize: '14px',
@@ -1138,7 +1138,7 @@ export function JoinUs() {
                     />
                   </motion.div>
 
-                  <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} transition={{ delay: 0.05 }}>
+                  <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} transition={{ delay: 0.05 }}>
                     <Label htmlFor="last_name" style={{
                       display: 'block',
                       fontSize: '14px',
@@ -1168,7 +1168,7 @@ export function JoinUs() {
                   </motion.div>
                 </div>
 
-                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '16px' }}>
+                <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '16px' }}>
                   <Label htmlFor="email" style={{
                     display: 'block',
                     fontSize: '14px',
@@ -1198,7 +1198,7 @@ export function JoinUs() {
                   />
                 </motion.div>
 
-                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
+                <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
                   <Label htmlFor="phone" style={{
                     display: 'block',
                     fontSize: '14px',
@@ -1231,7 +1231,7 @@ export function JoinUs() {
               {/* Section: Professional Details */}
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                animate={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 style={{ marginTop: '40px', marginBottom: '32px' }}
               >
@@ -1249,7 +1249,7 @@ export function JoinUs() {
                   </h2>
                 </div>
 
-                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '16px' }}>
+                <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '16px' }}>
                   <Label htmlFor="ahpra" style={{
                     display: 'block',
                     fontSize: '14px',
@@ -1278,7 +1278,7 @@ export function JoinUs() {
                   />
                 </motion.div>
 
-                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
+                <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
                   <Label htmlFor="experience" style={{
                     display: 'block',
                     fontSize: '14px',
@@ -1328,7 +1328,7 @@ export function JoinUs() {
               {/* Section: Cover Letter */}
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                animate={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 style={{ marginTop: '40px', marginBottom: '32px' }}
               >
@@ -1346,7 +1346,7 @@ export function JoinUs() {
                   </h2>
                 </div>
 
-                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
+                <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
                   <Label htmlFor="cover_letter" style={{
                     display: 'block',
                     fontSize: '14px',
@@ -1384,7 +1384,7 @@ export function JoinUs() {
               {/* Section: Documents */}
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                animate={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 style={{ marginTop: '40px', marginBottom: '32px' }}
               >
@@ -1403,7 +1403,7 @@ export function JoinUs() {
                 </div>
 
                 {/* CV/Resume */}
-                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '24px' }}>
+                <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '24px' }}>
                   <Label htmlFor="cv" style={{
                     display: 'block',
                     fontSize: '14px',
@@ -1449,7 +1449,7 @@ export function JoinUs() {
                 </motion.div>
 
                 {/* AHPRA Certificate */}
-                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '24px' }}>
+                <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }} style={{ marginBottom: '24px' }}>
                   <Label htmlFor="certificate" style={{
                     display: 'block',
                     fontSize: '14px',
@@ -1495,7 +1495,7 @@ export function JoinUs() {
                 </motion.div>
 
                 {/* Professional Photo (Optional) */}
-                <motion.div whileInView={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
+                <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0 }} viewport={{ once: true }}>
                   <Label htmlFor="photo" style={{
                     display: 'block',
                     fontSize: '14px',

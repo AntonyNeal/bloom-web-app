@@ -237,6 +237,30 @@ function Login() {
             </p>
           </motion.div>
 
+          {/* Subtle Guiding Text */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9 }}
+            style={{ 
+              textAlign: 'center', 
+              marginBottom: isMobile ? '32px' : '40px',
+              padding: '0 20px',
+            }}
+          >
+            <p style={{
+              fontSize: isMobile ? '14px' : '15px',
+              color: bloomStyles.colors.mutedText,
+              lineHeight: 1.8,
+              maxWidth: '560px',
+              margin: '0 auto',
+              opacity: 0.75,
+              fontStyle: 'italic',
+            }}>
+              This is where the work happens. Quietly. Thoughtfully. On your terms.
+            </p>
+          </motion.div>
+
           {/* Culture Values */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

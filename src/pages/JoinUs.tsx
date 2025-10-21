@@ -807,11 +807,10 @@ export function JoinUs() {
         title: "Application submitted!",
         description: "We'll review your application and be in touch soon.",
       });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to submit application. Please try again.';
+    } catch {
       toast({
-        title: "Error",
-        description: errorMessage,
+        title: "We're having a small hiccup",
+        description: "Your application didn't quite make it through. Please check your connection and try again—we'd love to hear from you! 🌿",
         variant: "destructive",
       });
     } finally {

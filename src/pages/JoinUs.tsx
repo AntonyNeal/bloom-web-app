@@ -1413,14 +1413,17 @@ export function JoinUs() {
                   }}>
                     CV/Resume <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
                   </Label>
-                  <div style={{
-                    border: `2px dashed rgba(107, 142, 127, 0.3)`,
-                    borderRadius: '8px',
-                    padding: '24px',
-                    textAlign: 'center',
-                    background: 'rgba(107, 142, 127, 0.03)',
-                    cursor: 'pointer',
-                  }}>
+                  <div 
+                    onClick={() => document.getElementById('cv')?.click()}
+                    style={{
+                      border: `2px dashed rgba(107, 142, 127, 0.3)`,
+                      borderRadius: '8px',
+                      padding: '24px',
+                      textAlign: 'center',
+                      background: 'rgba(107, 142, 127, 0.03)',
+                      cursor: 'pointer',
+                    }}
+                  >
                     <motion.div
                       animate={{ y: [0, -5, 0] }}
                       transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
@@ -1456,14 +1459,17 @@ export function JoinUs() {
                   }}>
                     AHPRA Certificate <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
                   </Label>
-                  <div style={{
-                    border: `2px dashed rgba(107, 142, 127, 0.3)`,
-                    borderRadius: '8px',
-                    padding: '24px',
-                    textAlign: 'center',
-                    background: 'rgba(107, 142, 127, 0.03)',
-                    cursor: 'pointer',
-                  }}>
+                  <div 
+                    onClick={() => document.getElementById('certificate')?.click()}
+                    style={{
+                      border: `2px dashed rgba(107, 142, 127, 0.3)`,
+                      borderRadius: '8px',
+                      padding: '24px',
+                      textAlign: 'center',
+                      background: 'rgba(107, 142, 127, 0.03)',
+                      cursor: 'pointer',
+                    }}
+                  >
                     <motion.div
                       animate={{ y: [0, -5, 0] }}
                       transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
@@ -1499,14 +1505,17 @@ export function JoinUs() {
                   }}>
                     Professional Photo (Optional)
                   </Label>
-                  <div style={{
-                    border: `2px dashed rgba(107, 142, 127, 0.3)`,
-                    borderRadius: '8px',
-                    padding: '24px',
-                    textAlign: 'center',
-                    background: 'rgba(107, 142, 127, 0.03)',
-                    cursor: 'pointer',
-                  }}>
+                  <div 
+                    onClick={() => document.getElementById('photo')?.click()}
+                    style={{
+                      border: `2px dashed rgba(107, 142, 127, 0.3)`,
+                      borderRadius: '8px',
+                      padding: '24px',
+                      textAlign: 'center',
+                      background: 'rgba(107, 142, 127, 0.03)',
+                      cursor: 'pointer',
+                    }}
+                  >
                     <motion.div
                       animate={{ y: [0, -5, 0] }}
                       transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}

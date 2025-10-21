@@ -26,18 +26,6 @@ export default defineConfig({
     },
   },
   build: {
-    // Enable module preload for faster dynamic imports
-    modulePreload: {
-      polyfill: true,
-      resolveDependencies: (_filename, deps) => {
-        // Preload critical dependencies for faster route loading
-        return deps.filter(dep => 
-          // Don't preload framer-motion on landing page
-          !dep.includes('framer-motion')
-        )
-      }
-    },
-    
     // Enable manual chunk splitting for optimal caching
     rollupOptions: {
       output: {
@@ -52,9 +40,6 @@ export default defineConfig({
           ],
           'form-vendor': ['react-hook-form', 'zod'],
           
-          // Auth vendor - separate chunk for Azure MSAL libraries
-          'auth-vendor': ['@azure/msal-browser', '@azure/msal-react'],
-          
           // Framer Motion - removed from manual chunks to enable automatic code-splitting
           // Will only load on pages that actually import it (JoinUs, QualificationCheck)
           // NOT loaded on landing page = 112 kB saved from critical path
@@ -62,20 +47,17 @@ export default defineConfig({
       },
     },
     
-    // Target modern browsers for smaller bundle (ES2020+ = 5-10% smaller)
+    // Target modern browsers for smaller bundle
     target: 'es2020',
     
-    // Enhanced minification with optimizations
+    // Enhanced minification (esbuild is faster and works well)
     minify: 'esbuild',
     
-    // Enable CSS code splitting (separate CSS per route)
+    // Enable CSS code splitting
     cssCodeSplit: true,
     
     // Chunk size warnings (alert if chunk > 500KB)
     chunkSizeWarningLimit: 500,
-    
-    // Source maps for production debugging (hidden from users)
-    sourcemap: true,
   },
   server: {
     proxy: {

@@ -83,12 +83,13 @@ async function uploadHandler(
       headers,
       jsonBody: { url },
     };
-  } catch (error: any) {
+  } catch (error) {
     context.error("Error in upload handler:", error);
+    const errorMessage = error instanceof Error ? error.message : "Upload failed";
     return {
       status: 500,
       headers,
-      jsonBody: { error: error.message || "Upload failed" },
+      jsonBody: { error: errorMessage },
     };
   }
 }

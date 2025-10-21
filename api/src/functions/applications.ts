@@ -79,7 +79,21 @@ async function applicationsHandler(
     
     if (method === "POST") {
       context.log("Creating new application");
-      const body = await req.json() as any;
+      const body = await req.json() as {
+        first_name: string;
+        last_name: string;
+        email: string;
+        phone: string;
+        ahpra_registration: string;
+        specializations: string[];
+        experience_years: number;
+        cv_url?: string;
+        certificate_url?: string;
+        photo_url?: string;
+        cover_letter?: string;
+        qualification_type?: string;
+        qualification_check?: boolean;
+      };
       const {
         first_name,
         last_name,
@@ -142,7 +156,10 @@ async function applicationsHandler(
     
     if (method === "PUT" && id) {
       context.log(`Updating application ${id}`);
-      const body = await req.json() as any;
+      const body = await req.json() as {
+        status?: string;
+        reviewed_by?: string;
+      };
       const { status, reviewed_by } = body;
 
       if (!status) {
@@ -185,12 +202,13 @@ async function applicationsHandler(
       headers,
       jsonBody: { error: "Method not allowed" } 
     };
-  } catch (error: any) {
+  } catch (error) {
     context.error("Error in applications handler:", error);
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
     return {
       status: 500,
       headers,
-      jsonBody: { error: error.message || "Internal server error" },
+      jsonBody: { error: errorMessage },
     };
   }
 }

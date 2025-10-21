@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -16,9 +16,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
  * - DOWN: Settings, admin, technical (future)
  */
 
-type NavigationDirection = 'left' | 'right' | 'up' | 'down' | 'none';
+export type NavigationDirection = 'left' | 'right' | 'up' | 'down' | 'none';
 
-interface SpatialNavContextType {
+export interface SpatialNavContextType {
   currentPage: string;
   previousPage: string | null;
   direction: NavigationDirection;
@@ -26,7 +26,11 @@ interface SpatialNavContextType {
   getReturnDirection: () => NavigationDirection;
 }
 
+// Context is created here but only used internally by the provider
 const SpatialNavContext = createContext<SpatialNavContextType | null>(null);
+
+// Export for use in the hook file
+export { SpatialNavContext };
 
 interface SpatialNavProviderProps {
   children: ReactNode;
@@ -104,14 +108,5 @@ export const SpatialNavProvider: React.FC<SpatialNavProviderProps> = ({ children
   );
 };
 
-/**
- * Hook to access spatial navigation context
- * @throws Error if used outside SpatialNavProvider
- */
-export const useSpatialNav = (): SpatialNavContextType => {
-  const context = useContext(SpatialNavContext);
-  if (!context) {
-    throw new Error('useSpatialNav must be used within SpatialNavProvider');
-  }
-  return context;
-};
+// NOTE: useSpatialNav hook is exported from use-spatial-nav.ts
+// Import it from there: import { useSpatialNav } from '@/contexts/use-spatial-nav';

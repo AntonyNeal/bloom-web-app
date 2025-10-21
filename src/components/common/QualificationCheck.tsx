@@ -9,7 +9,7 @@
  * 6. Would this work in Kiki's Delivery Service?
  */
 
-import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,8 @@ import { motion, useReducedMotion } from "framer-motion";
 
 // Import optimized flower components (extracted from this file for better bundle size)
 import { Tier1Flower, Tier2Flower, Tier3Flower } from "@/components/flowers";
+import { WatercolorBlob, FloatingParticle } from './ambient-helpers';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 
 // Bloom/Ghibli design tokens - moved outside component for performance
 const bloomStyles = {
@@ -36,113 +38,6 @@ const bloomStyles = {
     exhale: [0.16, 1, 0.3, 1],
   }
 };
-
-// Mobile detection hook for performance optimizations
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-  
-  return isMobile;
-};
-
-// Watercolor Blob Component - Studio Ghibli atmosphere (static, no animation)
-interface WatercolorBlobProps {
-  size: string;
-  color: string;
-  opacity: number;
-  position: React.CSSProperties;
-  blur: number;
-  borderRadius: string;
-}
-
-const WatercolorBlob = memo(({ 
-  size, 
-  color, 
-  opacity, 
-  position, 
-  blur, 
-  borderRadius, 
-}: WatercolorBlobProps) => {
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        width: size,
-        height: size,
-        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-        opacity: opacity,
-        filter: `blur(${blur}px)`,
-        borderRadius: borderRadius,
-        ...position,
-        pointerEvents: 'none',
-        zIndex: 0,
-      }}
-    />
-  );
-});
-
-// Floating Particle Component - organic drift
-interface FloatingParticleProps {
-  size: number;
-  color: string;
-  opacity: number;
-  position: React.CSSProperties;
-  duration: number;
-  delay: number;
-  blur?: number;
-  xSequence?: number[];
-  ySequence?: number[];
-}
-
-const FloatingParticle = memo(({ 
-  size, 
-  color, 
-  opacity, 
-  position, 
-  duration, 
-  delay,
-  blur = 3,
-  xSequence = [0, 30, -20, 15, 0],
-  ySequence = [0, -40, -80, -120, -160],
-}: FloatingParticleProps) => {
-  return (
-    <motion.div
-      style={{
-        position: 'absolute',
-        width: size,
-        height: size,
-        background: color,
-        opacity: opacity,
-        filter: `blur(${blur}px)`,
-        borderRadius: '50%',
-        ...position,
-        pointerEvents: 'none',
-        zIndex: 0,
-        willChange: 'transform',
-      }}
-      initial={{ x: xSequence[0], y: ySequence[0], rotate: 0 }}
-      animate={{
-        x: xSequence,
-        y: ySequence,
-        rotate: [0, 360],
-      }}
-      transition={{
-        duration: duration,
-        repeat: Infinity,
-        ease: 'linear',
-        delay: delay,
-      }}
-    />
-  );
-});
 
 // Phase 6: Flower Recognition Components
 // NOTE: Flower components (Tier1, Tier2, Tier3) are now imported from @/components/flowers
@@ -2007,9 +1902,5 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
 // NOTE: Flower components (Tier1Flower, Tier2Flower, Tier3Flower) are now in @/components/flowers
 // Import them from there instead of this file
 
-// Export ambient background components for Phase 7 landing page reuse
-export { WatercolorBlob, FloatingParticle };
-export type { WatercolorBlobProps, FloatingParticleProps };
-
-// Export hooks for Phase 7 landing page reuse
-export { useIsMobile };
+// NOTE: Ambient background components (WatercolorBlob, FloatingParticle, useIsMobile) 
+// are now in ./ambient-helpers.tsx - import directly from there if needed for Phase 7 landing page

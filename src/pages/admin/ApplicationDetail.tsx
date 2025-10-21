@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { adminService, type ApplicationDetail, type ApplicationDocument } from '../../services/adminService';
 
 interface Props {
@@ -24,7 +24,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [reviewNotes, setReviewNotes] = useState('');
 
-  const loadApplication = async () => {
+  const loadApplication = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -38,11 +38,11 @@ function ApplicationDetailPage({ applicationId }: Props) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [applicationId]);
 
   useEffect(() => {
     loadApplication();
-  }, [applicationId]);
+  }, [loadApplication]);
 
   const handleUpdateStatus = async () => {
     if (!application) return;

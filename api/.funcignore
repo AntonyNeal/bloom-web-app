@@ -1,0 +1,10 @@
+.git/
+.vscode/
+node_modules/
+*.ts
+*.map
+src/
+tsconfig.json
+.gitignore
+.funcignore
+local.settings.json

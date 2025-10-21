@@ -510,7 +510,7 @@ function MarketingContent({ isMobile, onApplyClick }: { isMobile: boolean; onApp
           >
             {[
               'Registered Clinical Psychologist (AHPRA)',
-              '8+ years registered psychologist (AHPRA)',
+              '8+ years Registered Psychologist (AHPRA)',
               'PhD in Psychology with AHPRA registration',
             ].map((req, i) => (
               <p key={i} style={{

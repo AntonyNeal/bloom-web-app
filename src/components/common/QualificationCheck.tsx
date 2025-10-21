@@ -777,7 +777,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                       style={{ color: bloomStyles.colors.eucalyptusSage, opacity: 0.95 }}
                     />
                     <span style={{ fontSize: '15px', lineHeight: 1.65, color: bloomStyles.colors.charcoalText }}>
-                      <strong>8+ years</strong> as a registered psychologist with AHPRA
+                      <strong>8+ years</strong> as a Registered Psychologist with AHPRA
                     </span>
                   </li>
                   <li className="flex items-start gap-3">

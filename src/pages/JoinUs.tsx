@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS } from "@/config/api";
 import { motion, useReducedMotion } from "framer-motion";
 import { Tier1Flower, Tier2Flower, Tier3Flower } from "@/components/flowers";
+import type { QualificationData } from "@/components/common/QualificationCheck";
 
 // Lazy load the massive QualificationCheck component
 const QualificationCheck = lazy(() => 
@@ -51,6 +52,13 @@ interface FormData {
   specializations: string[];
   experience_years: number;
   cover_letter: string;
+  qualification_type?: 'clinical' | 'experienced' | 'phd';
+  // Include all qualification check responses
+  qualification_check?: {
+    is_clinical_psychologist: boolean;
+    has_phd: boolean;
+    years_registered_ahpra: number;
+  };
 }
 
 // Marketing Content Component - Bloom-aligned copy
@@ -673,6 +681,7 @@ export function JoinUs() {
   
   const [pageState, setPageState] = useState<'viewing' | 'qualifying' | 'applying'>('viewing');
   const [hasPassedQualificationCheck, setHasPassedQualificationCheck] = useState(false);
+  const [qualificationData, setQualificationData] = useState<QualificationData | null>(null);
   const [formData, setFormData] = useState<FormData>({
     first_name: "",
     last_name: "",
@@ -761,12 +770,14 @@ export function JoinUs() {
         ? await uploadFile(files.photo, "photo")
         : "";
 
-      // Submit application
+      // Submit application - include all qualification check data
       const response = await fetch(API_ENDPOINTS.applications, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          qualification_type: qualificationData?.qualificationType,
+          qualification_check: qualificationData?.qualification_check,
           cv_url,
           certificate_url,
           photo_url,
@@ -909,8 +920,14 @@ export function JoinUs() {
         color: '#6B8E7F'
       }}>Loading...</div>}>
         <QualificationCheck 
-          onEligible={() => {
+          onEligible={(data) => {
             setHasPassedQualificationCheck(true);
+            setQualificationData(data);
+            // Auto-populate experience years based on qualification
+            setFormData(prev => ({
+              ...prev,
+              experience_years: data.yearsRegistered >= 8 ? data.yearsRegistered : 0
+            }));
             setPageState('applying');
           }}
         />
@@ -1279,17 +1296,32 @@ export function JoinUs() {
                     value={formData.experience_years || ""}
                     onChange={(e) => setFormData({ ...formData, experience_years: parseInt(e.target.value) || 0 })}
                     placeholder="5"
+                    readOnly={qualificationData?.qualificationType === 'clinical' || qualificationData?.qualificationType === 'phd'}
                     style={{
                       width: '100%',
                       padding: '12px 16px',
                       fontSize: '16px',
                       borderRadius: '8px',
                       border: `2px solid rgba(107, 142, 127, 0.3)`,
-                      background: bloomStyles.colors.paperWhite,
+                      background: qualificationData?.qualificationType === 'clinical' || qualificationData?.qualificationType === 'phd' 
+                        ? 'rgba(107, 142, 127, 0.05)' 
+                        : bloomStyles.colors.paperWhite,
                       outline: 'none',
                       transition: 'all 0.2s',
+                      cursor: qualificationData?.qualificationType === 'clinical' || qualificationData?.qualificationType === 'phd' 
+                        ? 'not-allowed' 
+                        : 'text',
                     }}
                   />
+                  {qualificationData && (qualificationData.qualificationType === 'clinical' || qualificationData.qualificationType === 'phd') && (
+                    <p style={{ 
+                      fontSize: '12px', 
+                      color: bloomStyles.colors.eucalyptusSage, 
+                      marginTop: '4px' 
+                    }}>
+                      Not required for your qualification.
+                    </p>
+                  )}
                 </motion.div>
               </motion.div>
 

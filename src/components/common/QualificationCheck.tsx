@@ -53,10 +53,6 @@ const useIsMobile = () => {
   return isMobile;
 };
 
-interface QualificationCheckProps {
-  onEligible: () => void;
-}
-
 // Watercolor Blob Component - Studio Ghibli atmosphere (static, no animation)
 interface WatercolorBlobProps {
   size: string;
@@ -153,8 +149,21 @@ const FloatingParticle = memo(({
 // This reduces QualificationCheck.tsx from 2,630 lines to ~2,000 lines
 // and improves bundle splitting (flowers can be lazy-loaded independently)
 
+export interface QualificationData {
+  isRegisteredPsychologist: boolean;
+  hasPhd: boolean;
+  yearsRegistered: number;
+  qualificationType: 'clinical' | 'experienced' | 'phd';
+  // For backend: include all qualification check responses
+  qualification_check: {
+    is_clinical_psychologist: boolean;
+    has_phd: boolean;
+    years_registered_ahpra: number;
+  };
+}
+
 interface QualificationCheckProps {
-  onEligible: () => void;
+  onEligible: (qualificationData: QualificationData) => void;
 }
 
 export function QualificationCheck({ onEligible }: QualificationCheckProps) {
@@ -290,8 +299,31 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
       setIsLoading(false);
       
       if (eligible) {
+        // Determine qualification type
+        let qualificationType: 'clinical' | 'experienced' | 'phd';
+        if (isRegisteredPsychologist) {
+          qualificationType = 'clinical';
+        } else if (hasPhd) {
+          qualificationType = 'phd';
+        } else {
+          qualificationType = 'experienced';
+        }
+
+        // Pass qualification data to parent - include all form responses
+        const qualificationData: QualificationData = {
+          isRegisteredPsychologist,
+          hasPhd,
+          yearsRegistered,
+          qualificationType,
+          qualification_check: {
+            is_clinical_psychologist: isRegisteredPsychologist,
+            has_phd: hasPhd,
+            years_registered_ahpra: yearsRegistered
+          }
+        };
+        
         // Navigate immediately - no transition animation
-        onEligible();
+        onEligible(qualificationData);
       }
     }, 500);
   }, [isRegisteredPsychologist, hasPhd, yearsRegistered, onEligible]);

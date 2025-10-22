@@ -72,7 +72,6 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
 
   // Phase 4: Button interaction states
   const [isButtonHovered, setIsButtonHovered] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [inkSpreadOrigin, setInkSpreadOrigin] = useState({ x: 0, y: 0 });
   const [showInkSpread, setShowInkSpread] = useState(false);
   const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([]);
@@ -95,18 +94,22 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   const hasQualification = isRegisteredPsychologist || hasPhd;
   const allQualified = hasQualification || yearsRegistered >= 8;
 
-  // Phase 6: Trigger delayed bloom when qualifications completed after years entered
+  // Phase 6: iPhone-Safe delayed bloom - using requestAnimationFrame instead of setTimeout
   useEffect(() => {
     if (yearsRegistered >= 8 && hasQualification && !showDelayedBloom) {
       setShowDelayedBloom(true);
-      setTimeout(() => setShowDelayedBloom(false), 2000);
+      // iPhone-Safe: Use requestAnimationFrame with fallback
+      const animationId = requestAnimationFrame(() => {
+        setTimeout(() => setShowDelayedBloom(false), 2000);
+      });
+      return () => cancelAnimationFrame(animationId);
     }
   }, [hasQualification, yearsRegistered, showDelayedBloom]);
 
   // Phase 6: Screen reader announcements for qualification recognition
   const [srAnnouncement, setSrAnnouncement] = useState('');
   
-  // Consolidated useEffect for all screen reader announcements
+  // iPhone-Safe screen reader announcements using requestAnimationFrame
   useEffect(() => {
     let message = '';
     
@@ -120,8 +123,12 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
     
     if (message) {
       setSrAnnouncement(message);
-      const timer = setTimeout(() => setSrAnnouncement(''), 3000);
-      return () => clearTimeout(timer);
+      // iPhone-Safe: Use requestAnimationFrame before setTimeout
+      const animationId = requestAnimationFrame(() => {
+        const timer = setTimeout(() => setSrAnnouncement(''), 3000);
+        return () => clearTimeout(timer);
+      });
+      return () => cancelAnimationFrame(animationId);
     }
   }, [isRegisteredPsychologist, hasPhd, yearsRegistered]);
 
@@ -184,43 +191,39 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   }, [isMobile]);
 
   const handleCheckEligibility = useCallback(() => {
-    // Phase 4: Add loading state for dramatic effect
-    setIsLoading(true);
+    // iPhone-Safe Implementation: No setTimeout delays
+    const eligible = isRegisteredPsychologist || hasPhd || yearsRegistered >= 8;
+    setIsEligible(eligible);
     
-    // Simulate processing time for better UX (500ms)
-    setTimeout(() => {
-      const eligible = isRegisteredPsychologist || hasPhd || yearsRegistered >= 8;
-      setIsEligible(eligible);
-      setIsLoading(false);
-      
-      if (eligible) {
-        // Determine qualification type
-        let qualificationType: 'clinical' | 'experienced' | 'phd';
-        if (isRegisteredPsychologist) {
-          qualificationType = 'clinical';
-        } else if (hasPhd) {
-          qualificationType = 'phd';
-        } else {
-          qualificationType = 'experienced';
-        }
-
-        // Pass qualification data to parent - include all form responses
-        const qualificationData: QualificationData = {
-          isRegisteredPsychologist,
-          hasPhd,
-          yearsRegistered,
-          qualificationType,
-          qualification_check: {
-            is_clinical_psychologist: isRegisteredPsychologist,
-            has_phd: hasPhd,
-            years_registered_ahpra: yearsRegistered
-          }
-        };
-        
-        // Navigate immediately - no transition animation
-        onEligible(qualificationData);
+    if (eligible) {
+      // Determine qualification type
+      let qualificationType: 'clinical' | 'experienced' | 'phd';
+      if (isRegisteredPsychologist) {
+        qualificationType = 'clinical';
+      } else if (hasPhd) {
+        qualificationType = 'phd';
+      } else {
+        qualificationType = 'experienced';
       }
-    }, 500);
+
+      // Pass qualification data to parent - include all form responses
+      const qualificationData: QualificationData = {
+        isRegisteredPsychologist,
+        hasPhd,
+        yearsRegistered,
+        qualificationType,
+        qualification_check: {
+          is_clinical_psychologist: isRegisteredPsychologist,
+          has_phd: hasPhd,
+          years_registered_ahpra: yearsRegistered
+        }
+      };
+      
+      // iPhone-Safe: Immediate navigation with requestAnimationFrame for smooth transition
+      requestAnimationFrame(() => {
+        onEligible(qualificationData);
+      });
+    }
   }, [isRegisteredPsychologist, hasPhd, yearsRegistered, onEligible]);
 
   // Phase 4: Handle mobile touch ripple effect
@@ -235,10 +238,12 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
     const rippleId = Date.now();
     setRipples(prev => [...prev, { id: rippleId, x, y }]);
     
-    // Remove ripple after animation completes
-    setTimeout(() => {
-      setRipples(prev => prev.filter(r => r.id !== rippleId));
-    }, 600);
+    // iPhone-Safe: Remove ripple after animation completes
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        setRipples(prev => prev.filter(r => r.id !== rippleId));
+      }, 600);
+    });
   }, [isMobile]);
 
   // Phase 4: Handle desktop ink-spread effect from cursor position
@@ -1748,7 +1753,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                 }}
                 onMouseMove={handleMouseMove}
                 onTouchStart={handleTouchRipple}
-                disabled={isLoading || !allQualified}
+                disabled={!allQualified}
                 className="w-full relative overflow-hidden group font-semibold flex items-center justify-center gap-2"
                 style={{
                   height: '56px',
@@ -1763,9 +1768,9 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                   boxShadow: (isButtonHovered && allQualified)
                     ? `0 8px 28px ${bloomStyles.colors.eucalyptusSage}40`
                     : `0 4px 16px ${bloomStyles.colors.eucalyptusSage}25`,
-                  opacity: (isLoading || !allQualified) ? 0.7 : 0.95,
+                  opacity: !allQualified ? 0.7 : 0.95,
                   transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                  cursor: (isLoading || !allQualified) ? 'not-allowed' : 'pointer',
+                  cursor: !allQualified ? 'not-allowed' : 'pointer',
                   transform: (isButtonHovered && allQualified) ? 'translateY(-2px)' : 'translateY(0)',
                 }}
               >
@@ -1838,17 +1843,7 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
                 
                 {/* Phase 4: Button content with loading state */}
                 <span className="relative z-10 flex items-center gap-2">
-                  {isLoading ? (
-                    <>
-                      {/* Loading spinner */}
-                      <motion.div
-                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-                      />
-                      <span>Checking...</span>
-                    </>
-                  ) : allQualified ? (
+                  {allQualified ? (
                     <>
                       {/* Phase 6: Qualified - Animated sparkle icon */}
                       <motion.div

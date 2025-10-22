@@ -9,15 +9,41 @@ interface BloomLoginButtonProps {
 
 const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
   const navigate = useNavigate();
-  const { isAuthenticated, login } = useAuth();
+
+  console.log('[BloomLoginButton] Component mounting/rendering...');
+  console.log('[BloomLoginButton] Environment check:', {
+    VITE_B2C_ENABLED: import.meta.env.VITE_B2C_ENABLED,
+    VITE_B2C_CLIENT_ID: import.meta.env.VITE_B2C_CLIENT_ID ? 'SET' : 'NOT SET',
+    VITE_B2C_AUTHORITY: import.meta.env.VITE_B2C_AUTHORITY ? 'SET' : 'NOT SET',
+  });
+
+  // Try-catch around useAuth to prevent component from crashing
+  let isAuthenticated = false;
+  let login = () => console.log('Auth not available');
+
+  try {
+    const auth = useAuth();
+    isAuthenticated = auth.isAuthenticated;
+    login = auth.login;
+    console.log('[BloomLoginButton] Auth state:', { isAuthenticated });
+  } catch (error) {
+    console.error('[BloomLoginButton] Error getting auth state:', error);
+  }
 
   const handleClick = async () => {
     console.log('[BloomLoginButton] Button clicked, isAuthenticated:', isAuthenticated);
 
     if (!isAuthenticated) {
       // Trigger Azure AD authentication directly
-      console.log('[BloomLoginButton] Triggering Azure AD login');
-      await login();
+      // Note: login() will redirect to Microsoft, so we don't navigate afterwards
+      console.log('[BloomLoginButton] Triggering Azure AD login - will redirect to Microsoft');
+      try {
+        await login();
+        // Don't navigate here - the login redirect will handle navigation
+        // After successful auth, user can click Bloom again or navigate directly
+      } catch (error) {
+        console.error('[BloomLoginButton] Login failed:', error);
+      }
     } else {
       console.log('[BloomLoginButton] Already authenticated, navigating to dashboard');
       navigate('/admin/dashboard');

@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Tier2Flower } from '@/components/flowers/Tier2Flower'
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useMsal, useIsAuthenticated } from '@azure/msal-react';
+import { Tier2Flower } from '@/components/flowers/Tier2Flower';
 
 // Bloom colors
 const bloomStyles = {
@@ -14,36 +15,62 @@ const bloomStyles = {
 };
 
 const AuthCallback = () => {
-  const navigate = useNavigate()
-  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const { instance } = useMsal();
+  const isAuthenticated = useIsAuthenticated();
+  const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(true);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Handle the auth callback - MSAL will process the redirect automatically
-        // We just need to navigate to the admin dashboard after successful auth
-        setTimeout(() => {
-          navigate('/admin/dashboard')
-        }, 1000)
-      } catch (err) {
-        console.error('Authentication error:', err)
-        setError('Authentication failed. Please try again.')
-      }
-    }
+        console.log('[AuthCallback] Processing authentication callback...');
+        console.log('[AuthCallback] Current URL:', window.location.href);
+        console.log('[AuthCallback] Is authenticated:', isAuthenticated);
 
-    handleAuthCallback()
-  }, [navigate])
+        // Handle the redirect promise from MSAL
+        const response = await instance.handleRedirectPromise();
+        console.log('[AuthCallback] MSAL response:', response);
+
+        if (response) {
+          console.log(
+            '[AuthCallback] Authentication successful, account:',
+            response.account?.username
+          );
+          // Wait a moment for the auth state to update
+          setTimeout(() => {
+            navigate('/admin/dashboard');
+          }, 500);
+        } else if (isAuthenticated) {
+          console.log('[AuthCallback] Already authenticated, navigating to dashboard');
+          navigate('/admin/dashboard');
+        } else {
+          console.log('[AuthCallback] No authentication response, redirecting to home');
+          navigate('/');
+        }
+      } catch (err) {
+        console.error('[AuthCallback] Authentication error:', err);
+        setError('Authentication failed. Please try again.');
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    handleAuthCallback();
+  }, [navigate, instance, isAuthenticated]);
 
   if (error) {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
-        background: bloomStyles.colors.warmCream, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        padding: '20px',
-      }}>
+      <div
+        style={{
+          minHeight: '100vh',
+          background: bloomStyles.colors.warmCream,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -58,19 +85,23 @@ const AuthCallback = () => {
           }}
         >
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🌸</div>
-          <h2 style={{ 
-            fontSize: '24px', 
-            fontWeight: 600, 
-            marginBottom: '16px',
-            color: bloomStyles.colors.charcoalText,
-          }}>
+          <h2
+            style={{
+              fontSize: '24px',
+              fontWeight: 600,
+              marginBottom: '16px',
+              color: bloomStyles.colors.charcoalText,
+            }}
+          >
             We're having a small hiccup
           </h2>
-          <p style={{ 
-            color: bloomStyles.colors.softTerracotta, 
-            marginBottom: '24px',
-            fontSize: '16px',
-          }}>
+          <p
+            style={{
+              color: bloomStyles.colors.softTerracotta,
+              marginBottom: '24px',
+              fontSize: '16px',
+            }}
+          >
             {error}
           </p>
           <motion.button
@@ -93,18 +124,20 @@ const AuthCallback = () => {
           </motion.button>
         </motion.div>
       </div>
-    )
+    );
   }
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: bloomStyles.colors.warmCream, 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      padding: '20px',
-    }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: bloomStyles.colors.warmCream,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+      }}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -141,7 +174,7 @@ const AuthCallback = () => {
         <motion.p
           animate={{ opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 2, repeat: Infinity }}
-          style={{ 
+          style={{
             fontSize: '18px',
             color: bloomStyles.colors.charcoalText,
             fontWeight: 500,
@@ -151,7 +184,7 @@ const AuthCallback = () => {
         </motion.p>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default AuthCallback
+export default AuthCallback;

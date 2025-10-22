@@ -19,7 +19,6 @@ const AuthCallback = () => {
   const { instance } = useMsal();
   const isAuthenticated = useIsAuthenticated();
   const [error, setError] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(true);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -51,8 +50,6 @@ const AuthCallback = () => {
       } catch (err) {
         console.error('[AuthCallback] Authentication error:', err);
         setError('Authentication failed. Please try again.');
-      } finally {
-        setIsProcessing(false);
       }
     };
 

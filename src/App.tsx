@@ -51,8 +51,10 @@ function LandingPage() {
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '100vh',
-          padding: '24px',
+          padding: isMobile ? '16px' : '20px',
           background: 'transparent',
+          maxHeight: '100vh',
+          overflow: 'hidden',
         }}
       >
         {/* Garden Bed - Abundant Cottage Garden
@@ -61,9 +63,9 @@ function LandingPage() {
         <div
           style={{
             position: 'relative',
-            width: isMobile ? '320px' : '480px',
-            height: isMobile ? '180px' : '220px',
-            marginBottom: isMobile ? '48px' : '64px',
+            width: isMobile ? '280px' : '400px',
+            height: isMobile ? '140px' : '180px',
+            marginBottom: isMobile ? '24px' : '32px',
           }}
         >
           {/* === MAIN FLOWERS - The Three Greeters === */}
@@ -74,8 +76,8 @@ function LandingPage() {
             className="flower-main flower-main-1"
             style={{
               position: 'absolute',
-              left: isMobile ? '15px' : '35px',
-              top: isMobile ? '55px' : '75px',
+              left: isMobile ? '12px' : '30px',
+              top: isMobile ? '42px' : '60px',
               opacity: 0,
               transform: isMobile ? 'scale(1.08)' : 'scale(1.10)',
             }}
@@ -95,8 +97,8 @@ function LandingPage() {
             className="flower-main flower-main-2"
             style={{
               position: 'absolute',
-              right: isMobile ? '65px' : '105px',
-              top: isMobile ? '8px' : '18px',
+              right: isMobile ? '55px' : '85px',
+              top: isMobile ? '6px' : '14px',
               opacity: 0,
               transform: isMobile ? 'scale(0.92)' : 'scale(0.95)',
             }}
@@ -116,8 +118,8 @@ function LandingPage() {
             className="flower-main flower-main-3"
             style={{
               position: 'absolute',
-              right: isMobile ? '10px' : '30px',
-              bottom: isMobile ? '40px' : '50px',
+              right: isMobile ? '8px' : '24px',
+              bottom: isMobile ? '32px' : '40px',
               opacity: 0,
             }}
           >
@@ -137,8 +139,8 @@ function LandingPage() {
             className="flower-small flower-small-1"
             style={{
               position: 'absolute',
-              left: isMobile ? '0px' : '8px',
-              bottom: isMobile ? '18px' : '28px',
+              left: isMobile ? '0px' : '6px',
+              bottom: isMobile ? '14px' : '22px',
               opacity: 0,
               transform: isMobile ? 'scale(0.52)' : 'scale(0.62)',
             }}
@@ -317,13 +319,13 @@ function LandingPage() {
         <h1
           className="headline"
           style={{
-            fontSize: isMobile ? '32px' : '40px',
+            fontSize: isMobile ? '28px' : '36px',
             fontWeight: 600,
             color: '#3A3A3A',
             letterSpacing: '-0.02em',
             lineHeight: 1.2,
             textAlign: 'center',
-            marginBottom: isMobile ? '16px' : '20px',
+            marginBottom: isMobile ? '12px' : '16px',
             opacity: 0,
           }}
         >
@@ -334,10 +336,10 @@ function LandingPage() {
         <div
           className="org-name"
           style={{
-            fontSize: isMobile ? '16px' : '18px',
+            fontSize: isMobile ? '14px' : '16px',
             fontWeight: 500,
             textAlign: 'center',
-            marginBottom: isMobile ? '16px' : '20px',
+            marginBottom: isMobile ? '12px' : '16px',
             opacity: 0,
           }}
         >
@@ -356,13 +358,13 @@ function LandingPage() {
         <p
           className="mission"
           style={{
-            fontSize: isMobile ? '15px' : '16px',
-            lineHeight: 1.6,
+            fontSize: isMobile ? '14px' : '15px',
+            lineHeight: 1.5,
             color: '#4A4A4A',
             textAlign: 'center',
-            maxWidth: '500px',
+            maxWidth: '400px',
             margin: '0 auto',
-            marginBottom: isMobile ? '32px' : '40px',
+            marginBottom: isMobile ? '20px' : '24px',
             opacity: 0,
           }}
         >
@@ -377,12 +379,12 @@ function LandingPage() {
           style={{
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
-            gap: '16px',
-            marginTop: '32px',
+            gap: '12px',
+            marginTop: isMobile ? '16px' : '20px',
             justifyContent: 'center',
             alignItems: 'center',
             width: isMobile ? '100%' : 'auto',
-            maxWidth: isMobile ? '400px' : 'none',
+            maxWidth: isMobile ? '320px' : 'none',
             opacity: 0,
           }}
         >
@@ -392,8 +394,8 @@ function LandingPage() {
             aria-label="Explore joining our community"
             className="primary-button"
             style={{
-              minWidth: isMobile ? '100%' : '220px',
-              height: '56px',
+              minWidth: isMobile ? '100%' : '200px',
+              height: '48px',
               background: 'linear-gradient(135deg, #6B8E7F 0%, #8FA892 100%)',
               color: '#FEFDFB',
               fontSize: '16px',

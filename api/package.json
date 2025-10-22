@@ -2,6 +2,7 @@
   "name": "bloom-api",
   "version": "1.0.0",
   "description": "Proto-Bloom Azure Functions API",
+  "main": "dist/src/app.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",

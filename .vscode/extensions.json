@@ -1,0 +1,24 @@
+{
+  "recommendations": [
+    "ms-azuretools.vscode-azurefunctions",
+    "ms-azuretools.vscode-azure-mcp-server",
+    "ms-mssql.mssql",
+    "ms-azuretools.vscode-azureresourcegroups",
+    "ms-azuretools.vscode-azureappservice",
+    "automatalabs.copilot-mcp",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-typescript-next",
+    "eslint.vscode-eslint",
+    "eamodio.gitlens",
+    "ms-vscode.azure-account",
+    "ms-vscode-remote.remote-containers",
+    "github.copilot",
+    "github.copilot-chat",
+    "formulahendry.auto-rename-tag",
+    "visualstudioexptteam.vscodeintellicode",
+    "pkief.material-icon-theme",
+    "christian-kohler.path-intellisense",
+    "animaapp.vscode-anima"
+  ]
+}

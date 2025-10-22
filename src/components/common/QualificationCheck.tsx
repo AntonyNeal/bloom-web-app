@@ -21,8 +21,8 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
     setIsEligible(eligible);
     
     if (eligible) {
-      // Trigger parent callback after showing success message
-      setTimeout(() => onEligible(), 1500);
+      // Trigger parent callback immediately - no loading delay
+      onEligible();
     }
   };
 
@@ -192,16 +192,24 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
             )}
 
             {isEligible === true && (
-              <div className="flex items-start gap-3 p-5 bg-success-bg border-2 border-success rounded-xl">
-                <Sparkles className="w-6 h-6 text-success flex-shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-display text-h6 text-text-primary mb-1">
-                    Fantastic! You're eligible ✨
-                  </h4>
-                  <p className="font-body text-body-sm text-text-secondary leading-relaxed">
-                    You meet our minimum requirements. Redirecting to the application form...
-                  </p>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3 p-5 bg-success-bg border-2 border-success rounded-xl">
+                  <Sparkles className="w-6 h-6 text-success flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-display text-h6 text-text-primary mb-1">
+                      Fantastic! You're eligible ✨
+                    </h4>
+                    <p className="font-body text-body-sm text-text-secondary leading-relaxed">
+                      You meet our minimum requirements. Ready to continue?
+                    </p>
+                  </div>
                 </div>
+                <Button
+                  onClick={onEligible}
+                  className="w-full bg-gradient-to-br from-success to-sage-600 hover:from-success hover:to-sage-700 text-white font-display text-body font-semibold py-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-normal"
+                >
+                  Continue to Application Form →
+                </Button>
               </div>
             )}
 

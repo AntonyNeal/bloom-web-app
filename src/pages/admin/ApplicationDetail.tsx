@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminService, type ApplicationDetail, type ApplicationDocument } from '../../services/adminService';
+import LoadingState from "@/components/common/LoadingState";
 
 interface Props {
   applicationId: string;
@@ -73,9 +74,8 @@ function ApplicationDetailPage({ applicationId }: Props) {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Loading...</span>
+        <div className="py-12">
+          <LoadingState />
         </div>
       </div>
     );

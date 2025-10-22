@@ -1,24 +1,37 @@
-import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
-import { Toaster } from './components/ui/toaster'
-import { GardenGateButton } from './components/common/GardenGateButton'
-import { ProtectedRoute } from './components/common/ProtectedRoute'
-import BloomLoginButton from './components/auth/BloomLoginButton'
-import AuthCallback from './pages/auth/AuthCallback'
-import ErrorBoundary from './components/common/ErrorBoundary'
-import { useAuth } from './hooks/useAuth'
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { Toaster } from './components/ui/toaster';
+import { GardenGateButton } from './components/common/GardenGateButton';
+import { ProtectedRoute } from './components/common/ProtectedRoute';
+import BloomLoginButton from './components/auth/BloomLoginButton';
+import LoginRedirect from './components/auth/LoginRedirect';
+import AuthCallback from './pages/auth/AuthCallback';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import { useAuth } from './hooks/useAuth';
 
 // Lazy load all non-landing page routes
-const DesignSystemTest = lazy(() => import('./DesignSystemTest').then(m => ({ default: m.DesignSystemTest })));
+const DesignSystemTest = lazy(() =>
+  import('./DesignSystemTest').then((m) => ({ default: m.DesignSystemTest }))
+);
 const ApplicationDetail = lazy(() => import('./pages/admin/ApplicationDetail'));
-const JoinUs = lazy(() => import('./pages/JoinUs').then(m => ({ default: m.JoinUs })));
-const Admin = lazy(() => import('./pages/admin/ApplicationManagement').then(m => ({ default: m.Admin })));
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const JoinUs = lazy(() => import('./pages/JoinUs').then((m) => ({ default: m.JoinUs })));
+const Admin = lazy(() =>
+  import('./pages/admin/ApplicationManagement').then((m) => ({ default: m.Admin }))
+);
+const AdminDashboard = lazy(() =>
+  import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
+);
 
 // Lazy-loaded flower components - keep original React components for visual fidelity
-const Tier1Flower = lazy(() => import('@/components/flowers/Tier1Flower').then(m => ({ default: m.Tier1Flower })));
-const Tier2Flower = lazy(() => import('@/components/flowers/Tier2Flower').then(m => ({ default: m.Tier2Flower })));
-const Tier3Flower = lazy(() => import('@/components/flowers/Tier3Flower').then(m => ({ default: m.Tier3Flower })));
+const Tier1Flower = lazy(() =>
+  import('@/components/flowers/Tier1Flower').then((m) => ({ default: m.Tier1Flower }))
+);
+const Tier2Flower = lazy(() =>
+  import('@/components/flowers/Tier2Flower').then((m) => ({ default: m.Tier2Flower }))
+);
+const Tier3Flower = lazy(() =>
+  import('@/components/flowers/Tier3Flower').then((m) => ({ default: m.Tier3Flower }))
+);
 
 // Import lightweight hooks directly
 import { useIsMobile } from '@/hooks/use-is-mobile';
@@ -68,8 +81,7 @@ function LandingPage() {
           }}
         >
           {/* === MAIN FLOWERS - The Three Greeters === */}
-          
-          {/* Cherry blossom - left side, mid-height (The Welcomer) 
+          {/* Cherry blossom - left side, mid-height (The Welcomer)
               Refined scale: delicate stamens with ethereal presence */}
           <div
             className="flower-main flower-main-1"
@@ -82,14 +94,9 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
-              <Tier1Flower 
-                isChecked={true} 
-                isMobile={isMobile} 
-                shouldReduceMotion={true}
-              />
+              <Tier1Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={true} />
             </Suspense>
           </div>
-
           {/* Purple rose - upper right area (The Observer)
               Scaled down: layered petals create visual weight */}
           <div
@@ -103,14 +110,9 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
-              <Tier2Flower 
-                isChecked={true} 
-                isMobile={isMobile} 
-                shouldReduceMotion={true}
-              />
+              <Tier2Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={true} />
             </Suspense>
           </div>
-
           {/* Golden daisy - right side, mid-low (The Anchor)
               Kept at original scale: perfect grounding element */}
           <div
@@ -123,16 +125,10 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
-              <Tier3Flower 
-                isChecked={true} 
-                isMobile={isMobile} 
-                shouldReduceMotion={true}
-              />
+              <Tier3Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={true} />
             </Suspense>
           </div>
-
           {/* === COMPANION FLOWERS - Natural Scatter (6 companions) === */}
-          
           {/* #1: Small cherry blossom - lower left corner (grounding, airiness) */}
           <div
             className="flower-small flower-small-1"
@@ -145,14 +141,9 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier1Flower 
-                isChecked={true} 
-                isMobile={false}
-                shouldReduceMotion={true}
-              />
+              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
             </Suspense>
           </div>
-
           {/* #2: Small golden daisy - upper left (creates depth) */}
           {/* #2: Small golden daisy - lower-middle (warmth, balance) */}
           <div
@@ -164,13 +155,10 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower 
-                isChecked={true} 
-                isMobile={false}
-                shouldReduceMotion={true}
-              />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
             </Suspense>
-          </div>          {/* #3: Small cherry blossom - center-left (mid-ground layer, changed from purple)
+          </div>{' '}
+          {/* #3: Small cherry blossom - center-left (mid-ground layer, changed from purple)
               More cherry blossoms create lightness */}
           <div
             className="flower-small flower-small-3"
@@ -183,14 +171,9 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier1Flower 
-                isChecked={true} 
-                isMobile={false}
-                shouldReduceMotion={true}
-              />
+              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
             </Suspense>
           </div>
-
           {/* #4: Small cherry blossom - upper right (balance, changed from pink)
               Adjusted position for better spacing */}
           <div
@@ -204,14 +187,9 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier1Flower 
-                isChecked={true} 
-                isMobile={false}
-                shouldReduceMotion={true}
-              />
+              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
             </Suspense>
           </div>
-
           {/* #5: Tiny golden daisy - bottom right (the welcome at the gate)
               Shifted slightly left to break column effect */}
           <div
@@ -225,14 +203,9 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower 
-                isChecked={true} 
-                isMobile={false}
-                shouldReduceMotion={true}
-              />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
             </Suspense>
           </div>
-
           {/* #6: Small golden daisy - upper-middle-left (adds warmth, changed from purple)
               More golden flowers balance the composition */}
           <div
@@ -246,14 +219,9 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower 
-                isChecked={true} 
-                isMobile={false}
-                shouldReduceMotion={true}
-              />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
             </Suspense>
           </div>
-
           {/* #7: Tiny golden daisy - bottom left (warmth in corners) */}
           <div
             className="flower-small flower-small-7"
@@ -266,16 +234,11 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower 
-                isChecked={true} 
-                isMobile={false}
-                shouldReduceMotion={true}
-              />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
             </Suspense>
           </div>
-
           {/* #8: Small golden daisy - center-right mid (adds golden glow) */}
-                    {/* #8: Small golden daisy - center-right mid (adds golden glow) */}
+          {/* #8: Small golden daisy - center-right mid (adds golden glow) */}
           <div
             className="flower-small flower-small-8"
             style={{
@@ -285,14 +248,9 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower 
-                isChecked={true} 
-                isMobile={false}
-                shouldReduceMotion={true}
-              />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
             </Suspense>
           </div>
-
           {/* #9: Tiny golden daisy - upper-left (corner warmth) */}
           <div
             className="flower-small flower-small-9"
@@ -305,11 +263,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower 
-                isChecked={true} 
-                isMobile={false}
-                shouldReduceMotion={true}
-              />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
             </Suspense>
           </div>
         </div>
@@ -440,34 +394,41 @@ function AnimatedRoutes() {
     <>
       {/* Garden Gate return button (shows on all non-landing pages) */}
       <GardenGateButton />
-      
+
       <Routes>
         {/* Landing page - Garden Gate (no lazy loading, immediate) */}
         <Route path="/" element={<LandingPage />} />
-        
+
         {/* Auth callback route - handles Azure AD redirect */}
         <Route path="/auth/callback" element={<AuthCallback />} />
-        
+
+        {/* Login redirect - triggers Azure AD authentication */}
+        <Route path="/login" element={<LoginRedirect />} />
+
         {/* Qualification check - Joining journey */}
         <Route
           path="/join-us"
           element={
             <ErrorBoundary>
-              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+              <Suspense
+                fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+              >
                 <JoinUs />
               </Suspense>
               <Toaster />
             </ErrorBoundary>
           }
         />
-        
+
         {/* Bloom portal - Existing practitioners (Protected) */}
         <Route
           path="/bloom"
           element={
             <ProtectedRoute>
               <ErrorBoundary>
-                <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
                   <AdminDashboard />
                 </Suspense>
                 <Toaster />
@@ -475,14 +436,16 @@ function AnimatedRoutes() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* Admin routes (Protected - temporary, to be integrated into /bloom) */}
         <Route
           path="/admin"
           element={
             <ProtectedRoute>
               <ErrorBoundary>
-                <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
                   <AdminDashboard />
                 </Suspense>
                 <Toaster />
@@ -490,13 +453,15 @@ function AnimatedRoutes() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/admin/dashboard"
           element={
             <ProtectedRoute>
               <ErrorBoundary>
-                <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
                   <AdminDashboard />
                 </Suspense>
                 <Toaster />
@@ -504,13 +469,15 @@ function AnimatedRoutes() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/admin/applications"
           element={
             <ProtectedRoute>
               <ErrorBoundary>
-                <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
                   <Admin />
                 </Suspense>
                 <Toaster />
@@ -518,27 +485,31 @@ function AnimatedRoutes() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/admin/applications/:id"
           element={
             <ProtectedRoute>
               <ErrorBoundary>
-                <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
-                  <ApplicationDetail applicationId={""} />
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
+                  <ApplicationDetail applicationId={''} />
                 </Suspense>
                 <Toaster />
               </ErrorBoundary>
             </ProtectedRoute>
           }
         />
-        
+
         {/* Design system test route */}
         <Route
           path="/design-test"
           element={
             <ErrorBoundary>
-              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+              <Suspense
+                fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+              >
                 <DesignSystemTest />
               </Suspense>
             </ErrorBoundary>
@@ -551,12 +522,12 @@ function AnimatedRoutes() {
 
 /**
  * Phase 8: App with Spatial Navigation
- * 
+ *
  * Architecture:
  * - Fixed ambient background layer (blobs + particles)
  * - Spatial navigation provider (tracks direction)
  * - Animated routes with page transitions
- * 
+ *
  * Future (Phase 9+):
  * - Ambient background evolution between sections
  * - More complex spatial relationships
@@ -568,7 +539,7 @@ function App() {
         <ErrorBoundary>
           {/* Fixed ambient background - present on all pages */}
           <AmbientBackground />
-          
+
           {/* Simple routing - no transitions */}
           <AnimatedRoutes />
         </ErrorBoundary>
@@ -601,4 +572,3 @@ function AmbientBackground() {
 }
 
 export default App;
-

@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { adminService, type ApplicationDetail, type ApplicationDocument } from '../../services/adminService';
-import LoadingState from "@/components/common/LoadingState";
+import {
+  adminService,
+  type ApplicationDetail,
+  type ApplicationDocument,
+} from '../../services/adminService';
+import LoadingState from '@/components/common/LoadingState';
 
 interface Props {
   applicationId: string;
@@ -204,7 +208,9 @@ function ApplicationDetailPage({ applicationId }: Props) {
           </div>
           <div>
             <dt className="text-sm font-medium text-gray-500">Telehealth Experience</dt>
-            <dd className="mt-1 text-sm text-gray-900">{application.HasTelehealthExperience ? 'Yes' : 'No'}</dd>
+            <dd className="mt-1 text-sm text-gray-900">
+              {application.HasTelehealthExperience ? 'Yes' : 'No'}
+            </dd>
           </div>
           {application.PreferredHoursPerWeek && (
             <div>
@@ -274,7 +280,10 @@ function ApplicationDetailPage({ applicationId }: Props) {
         ) : (
           <div className="space-y-3">
             {documents.map((doc) => (
-              <div key={doc.DocumentID} className="flex items-center justify-between p-3 border border-gray-200 rounded-md">
+              <div
+                key={doc.DocumentID}
+                className="flex items-center justify-between p-3 border border-gray-200 rounded-md"
+              >
                 <div>
                   <div className="font-medium text-gray-900">{doc.DocumentType}</div>
                   <div className="text-sm text-gray-500">{doc.FileName}</div>

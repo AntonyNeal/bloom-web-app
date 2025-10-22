@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { adminService, type Application } from '../../services/adminService';
-import LoadingState from "@/components/common/LoadingState";
+import LoadingState from '@/components/common/LoadingState';
 
 const statusOptions = [
   { value: '', label: 'All Statuses' },

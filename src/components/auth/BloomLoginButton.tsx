@@ -1,28 +1,28 @@
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
-import { Tier2Flower } from '../flowers/Tier2Flower'
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { Tier2Flower } from '../flowers/Tier2Flower';
 
 interface BloomLoginButtonProps {
-  isMobile: boolean
+  isMobile: boolean;
 }
 
 const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
-  const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate();
+  const { isAuthenticated, login } = useAuth();
 
-  const handleClick = () => {
-    console.log('[BloomLoginButton] Button clicked, isAuthenticated:', isAuthenticated)
-    
+  const handleClick = async () => {
+    console.log('[BloomLoginButton] Button clicked, isAuthenticated:', isAuthenticated);
+
     if (!isAuthenticated) {
-      // Navigate to the new Bloom-styled login page
-      console.log('[BloomLoginButton] Navigating to /login')
-      navigate('/login')
+      // Trigger Azure AD authentication directly
+      console.log('[BloomLoginButton] Triggering Azure AD login');
+      await login();
     } else {
-      console.log('[BloomLoginButton] Already authenticated, navigating to dashboard')
-      navigate('/admin/dashboard')
+      console.log('[BloomLoginButton] Already authenticated, navigating to dashboard');
+      navigate('/admin/dashboard');
     }
-  }
+  };
 
   return (
     <motion.button
@@ -53,7 +53,7 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
       whileTap={{ scale: 0.95 }}
     >
       <span>Bloom</span>
-      
+
       {/* Purple Rose - Elevated above the button */}
       <motion.div
         style={{
@@ -74,14 +74,10 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
           ease: 'easeInOut',
         }}
       >
-        <Tier2Flower 
-          isChecked={true} 
-          isMobile={isMobile} 
-          shouldReduceMotion={false} 
-        />
+        <Tier2Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
       </motion.div>
     </motion.button>
-  )
-}
+  );
+};
 
-export default BloomLoginButton
+export default BloomLoginButton;

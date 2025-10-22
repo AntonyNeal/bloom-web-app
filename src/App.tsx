@@ -14,7 +14,6 @@ const ApplicationDetail = lazy(() => import('./pages/admin/ApplicationDetail'));
 const JoinUs = lazy(() => import('./pages/JoinUs').then(m => ({ default: m.JoinUs })));
 const Admin = lazy(() => import('./pages/admin/ApplicationManagement').then(m => ({ default: m.Admin })));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
-const Login = lazy(() => import('./pages/Login'));
 
 // Lazy-loaded flower components - keep original React components for visual fidelity
 const Tier1Flower = lazy(() => import('@/components/flowers/Tier1Flower').then(m => ({ default: m.Tier1Flower })));
@@ -445,18 +444,6 @@ function AnimatedRoutes() {
       <Routes>
         {/* Landing page - Garden Gate (no lazy loading, immediate) */}
         <Route path="/" element={<LandingPage />} />
-        
-        {/* Login page - Bloom-styled with culture messaging */}
-        <Route
-          path="/login"
-          element={
-            <ErrorBoundary>
-              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
-                <Login />
-              </Suspense>
-            </ErrorBoundary>
-          }
-        />
         
         {/* Auth callback route - handles Azure AD redirect */}
         <Route path="/auth/callback" element={<AuthCallback />} />

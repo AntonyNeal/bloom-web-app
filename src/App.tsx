@@ -97,14 +97,14 @@ function LandingPage() {
               <Tier1Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
             </Suspense>
           </div>
-          {/* Purple rose - upper right area (The Observer)
-              Scaled down: layered petals create visual weight */}
+          {/* Purple rose - upper center-right (The Observer, moved for harmony)
+              Miyazaki principle: Give important elements breathing space */}
           <div
             className="flower-main flower-main-2"
             style={{
               position: 'absolute',
-              right: isMobile ? '55px' : '85px',
-              top: isMobile ? '6px' : '14px',
+              right: isMobile ? '120px' : '160px',
+              top: isMobile ? '8px' : '18px',
               opacity: 0,
               transform: isMobile ? 'scale(0.92)' : 'scale(0.95)',
             }}
@@ -174,14 +174,14 @@ function LandingPage() {
               <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
             </Suspense>
           </div>
-          {/* #4: Small cherry blossom - upper right (balance, changed from pink)
-              Adjusted position for better spacing */}
+          {/* #4: Small cherry blossom - upper right (balance, moved away from bloom button)
+              Miyazaki principle: Create breathing space around key elements */}
           <div
             className="flower-small flower-small-4"
             style={{
               position: 'absolute',
-              right: isMobile ? '38px' : '58px',
-              top: isMobile ? '32px' : '47px',
+              right: isMobile ? '85px' : '125px',
+              top: isMobile ? '45px' : '65px',
               opacity: 0,
               transform: isMobile ? 'scale(0.47)' : 'scale(0.57)',
             }}
@@ -326,6 +326,116 @@ function LandingPage() {
           building sustainable practices together
         </p>
 
+        {/* DEBUG: DISABLED - Geometric Landmarks for Layout Debugging
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            pointerEvents: 'none',
+            zIndex: 100,
+          }}
+        >
+          Center crosshair
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: 0,
+              width: '100%',
+              height: '2px',
+              background: 'rgba(255, 0, 0, 0.5)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: 0,
+              width: '2px',
+              height: '100%',
+              background: 'rgba(255, 0, 0, 0.5)',
+            }}
+          />
+
+          Corner markers
+          <div
+            style={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              width: '20px',
+              height: '20px',
+              border: '2px solid green',
+              background: 'rgba(0, 255, 0, 0.2)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              width: '20px',
+              height: '20px',
+              border: '2px solid green',
+              background: 'rgba(0, 255, 0, 0.2)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '10px',
+              width: '20px',
+              height: '20px',
+              border: '2px solid green',
+              background: 'rgba(0, 255, 0, 0.2)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              right: '10px',
+              width: '20px',
+              height: '20px',
+              border: '2px solid green',
+              background: 'rgba(0, 255, 0, 0.2)',
+            }}
+          />
+
+          Grid overlay
+          {Array.from({ length: 10 }, (_, i) => (
+            <div
+              key={`h-${i}`}
+              style={{
+                position: 'absolute',
+                top: `${(i + 1) * 10}%`,
+                left: 0,
+                width: '100%',
+                height: '1px',
+                background: 'rgba(0, 0, 255, 0.2)',
+              }}
+            />
+          ))}
+          {Array.from({ length: 10 }, (_, i) => (
+            <div
+              key={`v-${i}`}
+              style={{
+                position: 'absolute',
+                left: `${(i + 1) * 10}%`,
+                top: 0,
+                width: '1px',
+                height: '100%',
+                background: 'rgba(0, 0, 255, 0.2)',
+              }}
+            />
+          ))}
+        </div>
+        */}
+
         {/* Bloom Button - Positioned in top-right corner for subtle access */}
         <div
           style={{
@@ -351,31 +461,31 @@ function LandingPage() {
             opacity: 0,
           }}
         >
-          {/* Primary button - Join the community */}
+          {/* Primary button - Join the community - Solid and obviously clickable */}
           <button
             onClick={() => navigate('/join-us')}
             aria-label="Explore joining our community"
             className="secondary-button"
             style={{
-              minWidth: isMobile ? '100%' : '200px',
-              height: '48px',
-              background: 'rgba(107, 142, 127, 0.1)',
-              color: '#6B8E7F',
+              minWidth: isMobile ? '100%' : '220px',
+              height: '56px',
+              background: 'linear-gradient(135deg, #6B8E7F 0%, #8FA892 100%)',
+              color: '#FEFDFB',
               fontSize: '16px',
-              fontWeight: 500,
-              borderRadius: '8px',
-              border: '2px solid rgba(107, 142, 127, 0.3)',
+              fontWeight: 600,
+              borderRadius: '12px',
+              border: 'none',
               cursor: 'pointer',
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: '0 2px 8px rgba(107, 142, 127, 0.15)',
+              boxShadow: '0 4px 16px rgba(107, 142, 127, 0.25)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
               WebkitTapHighlightColor: 'transparent',
               outline: 'none',
-              transition: 'all 0.2s ease',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
             onFocus={(e) => {
               e.currentTarget.style.outline = '3px solid #6B8E7F';
@@ -385,15 +495,54 @@ function LandingPage() {
               e.currentTarget.style.outline = 'none';
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(107, 142, 127, 0.15)';
-              e.currentTarget.style.borderColor = '#6B8E7F';
+              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(107, 142, 127, 0.35)';
+              e.currentTarget.style.background =
+                'linear-gradient(135deg, #7A9B8C 0%, #9FB8A5 100%)';
+              // Animate arrow on hover
+              const arrow = e.currentTarget.querySelector('span:last-child') as HTMLElement;
+              if (arrow) arrow.style.transform = 'translateX(4px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(107, 142, 127, 0.1)';
-              e.currentTarget.style.borderColor = 'rgba(107, 142, 127, 0.3)';
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(107, 142, 127, 0.25)';
+              e.currentTarget.style.background =
+                'linear-gradient(135deg, #6B8E7F 0%, #8FA892 100%)';
+              // Reset arrow position
+              const arrow = e.currentTarget.querySelector('span:last-child') as HTMLElement;
+              if (arrow) arrow.style.transform = 'translateX(2px)';
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = 'translateY(1px) scale(0.98)';
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
             }}
           >
-            <span>Explore Joining</span>
+            {/* Subtle organic texture overlay */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)',
+                borderRadius: '12px',
+                pointerEvents: 'none',
+              }}
+            />
+            <span style={{ position: 'relative', zIndex: 1 }}>Explore Joining</span>
+            {/* Subtle arrow indicator */}
+            <span
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                fontSize: '14px',
+                transform: 'translateX(2px)',
+                transition: 'transform 0.3s ease',
+              }}
+            >
+              →
+            </span>
           </button>
         </div>
       </main>

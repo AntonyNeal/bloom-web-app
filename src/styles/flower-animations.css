@@ -1,9 +1,9 @@
 /**
  * Flower Animations - CSS-Only Version
- * 
+ *
  * Replaces Framer Motion animations for flower components
  * Reduces bundle size by ~70-80 kB while maintaining identical visual output
- * 
+ *
  * Performance: CSS animations are hardware-accelerated and more performant
  * than JavaScript-driven animations for simple transforms
  */
@@ -66,21 +66,21 @@
 
 /* Tier1 Flower specific entrance (cherry blossom) */
 .tier1-flower-enter {
-  animation: 
+  animation:
     flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s both,
     mediumBreeze 16s ease-in-out 1.3s infinite;
 }
 
 /* Tier2 Flower specific entrance (purple rose) */
 .tier2-flower-enter {
-  animation: 
+  animation:
     flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s both,
     mediumBreeze 18s ease-in-out 1.5s infinite;
 }
 
 /* Tier3 Flower specific entrance (golden daisy) */
 .tier3-flower-enter {
-  animation: 
+  animation:
     flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s both,
     gentleBreeze 14s ease-in-out 1.8s infinite;
 }
@@ -108,7 +108,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #C7ABD9; /* Soft lavender to match rose */
+  background: #c7abd9; /* Soft lavender to match rose */
   pointer-events: none;
   animation: sparkleBurst 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
 }
@@ -142,7 +142,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #FFB300; /* Golden */
+  background: #ffb300; /* Golden */
   pointer-events: none;
   animation: sparkleBurstGold 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
 }
@@ -193,7 +193,7 @@
 
 .tier3-sparkle:nth-child(6) {
   --sparkle-end-position: translate(-24.75px, -24.75px);
-  animation-delay: 3.0s;
+  animation-delay: 3s;
 }
 
 .tier3-sparkle:nth-child(7) {
@@ -238,7 +238,7 @@
 .flower-small-5 .tier1-flower-enter,
 .flower-small-5 .tier2-flower-enter,
 .flower-small-5 .tier3-flower-enter {
-  animation-delay: 2.0s, 2.8s;
+  animation-delay: 2s, 2.8s;
   animation-duration: 0.8s, 14s;
 }
 
@@ -278,7 +278,7 @@
     animation: flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s both !important;
     opacity: 1;
   }
-  
+
   .tier2-sparkle,
   .tier3-sparkle {
     display: none;
@@ -292,7 +292,7 @@
   .tier2-sparkle:nth-child(4) {
     display: none;
   }
-  
+
   .tier3-sparkle:nth-child(5),
   .tier3-sparkle:nth-child(6),
   .tier3-sparkle:nth-child(7),

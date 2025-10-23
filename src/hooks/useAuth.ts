@@ -12,9 +12,27 @@ export const useAuth = () => {
 
   const login = async () => {
     try {
-      await instance.loginRedirect(loginRequest);
+      // Check if running on iOS and handle differently
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      
+      if (isIOS) {
+        // For iOS, use popup flow as fallback if redirect fails
+        try {
+          await instance.loginRedirect(loginRequest);
+        } catch (redirectError) {
+          console.warn('iOS redirect failed, trying popup:', redirectError);
+          await instance.loginPopup(loginRequest);
+        }
+      } else {
+        await instance.loginRedirect(loginRequest);
+      }
     } catch (error) {
       console.error('Login error:', error);
+      // Show user-friendly error message for iOS users
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        alert('Authentication issue detected. Please ensure cookies are enabled and try again. If the problem persists, try using Safari instead of Chrome.');
+      }
     }
   };
 

@@ -326,16 +326,26 @@ function LandingPage() {
           building sustainable practices together
         </p>
 
-        {/* Buttons */}
+        {/* Bloom Button - Positioned in top-right corner for subtle access */}
+        <div
+          style={{
+            position: 'absolute',
+            top: isMobile ? '16px' : '24px',
+            right: isMobile ? '16px' : '32px',
+            zIndex: 20,
+          }}
+        >
+          <BloomLoginButton isMobile={isMobile} />
+        </div>
+
+        {/* Main Action Button */}
         <div
           className="buttons"
           style={{
             display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: '12px',
-            marginTop: isMobile ? '16px' : '20px',
             justifyContent: 'center',
             alignItems: 'center',
+            marginTop: isMobile ? '16px' : '20px',
             width: isMobile ? '100%' : 'auto',
             maxWidth: isMobile ? '320px' : 'none',
             opacity: 0,
@@ -345,27 +355,27 @@ function LandingPage() {
           <button
             onClick={() => navigate('/join-us')}
             aria-label="Explore joining our community"
-            className="primary-button"
+            className="secondary-button"
             style={{
               minWidth: isMobile ? '100%' : '200px',
               height: '48px',
-              background: 'linear-gradient(135deg, #6B8E7F 0%, #8FA892 100%)',
-              color: '#FEFDFB',
+              background: 'rgba(107, 142, 127, 0.1)',
+              color: '#6B8E7F',
               fontSize: '16px',
-              fontWeight: 600,
+              fontWeight: 500,
               borderRadius: '8px',
-              border: 'none',
+              border: '2px solid rgba(107, 142, 127, 0.3)',
               cursor: 'pointer',
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: '0 4px 16px rgba(107, 142, 127, 0.25)',
+              boxShadow: '0 2px 8px rgba(107, 142, 127, 0.15)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
               WebkitTapHighlightColor: 'transparent',
               outline: 'none',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              transition: 'all 0.2s ease',
             }}
             onFocus={(e) => {
               e.currentTarget.style.outline = '3px solid #6B8E7F';
@@ -374,12 +384,17 @@ function LandingPage() {
             onBlur={(e) => {
               e.currentTarget.style.outline = 'none';
             }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(107, 142, 127, 0.15)';
+              e.currentTarget.style.borderColor = '#6B8E7F';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(107, 142, 127, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(107, 142, 127, 0.3)';
+            }}
           >
             <span>Explore Joining</span>
           </button>
-
-          {/* Secondary button - "Bloom" with Elevated Purple Rose - Triggers Azure AD Login */}
-          <BloomLoginButton isMobile={isMobile} />
         </div>
       </main>
     </div>

@@ -2,8 +2,17 @@ import type { Configuration } from '@azure/msal-browser';
 import { LogLevel } from '@azure/msal-browser';
 
 /**
+ * Detect if running on iOS (iPhone/iPad) in any browser
+ */
+const isIOS = () => {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
+
+/**
  * Configuration object for MSAL (Microsoft Authentication Library)
  * This handles Azure AD B2C authentication for the Bloom platform
+ * Optimized for iOS compatibility
  */
 export const msalConfig: Configuration = {
   auth: {
@@ -11,11 +20,11 @@ export const msalConfig: Configuration = {
     authority: import.meta.env.VITE_B2C_AUTHORITY || '',
     redirectUri: `${window.location.origin}/auth/callback`,
     postLogoutRedirectUri: window.location.origin,
-    navigateToLoginRequestUrl: true,
+    navigateToLoginRequestUrl: false, // CRITICAL: Prevents iOS redirect loops
   },
   cache: {
-    cacheLocation: 'sessionStorage', // Use sessionStorage for better security
-    storeAuthStateInCookie: false, // Set to true if you need to support IE11
+    cacheLocation: 'localStorage', // localStorage is more reliable on iOS than sessionStorage
+    storeAuthStateInCookie: true, // CRITICAL: Required for iOS Safari and Chrome on iOS
   },
   system: {
     loggerOptions: {
@@ -43,6 +52,8 @@ export const msalConfig: Configuration = {
       logLevel: import.meta.env.DEV ? LogLevel.Verbose : LogLevel.Error,
     },
     allowNativeBroker: false, // Disables WAM Broker
+    iframeHashTimeout: isIOS() ? 10000 : 6000, // Longer timeout for iOS
+    navigateFrameWait: isIOS() ? 1000 : 500, // iOS needs more time for navigation
   },
 };
 

@@ -94,7 +94,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
-              <Tier1Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={true} />
+              <Tier1Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
             </Suspense>
           </div>
           {/* Purple rose - upper right area (The Observer)
@@ -110,7 +110,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
-              <Tier2Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={true} />
+              <Tier2Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
             </Suspense>
           </div>
           {/* Golden daisy - right side, mid-low (The Anchor)
@@ -125,7 +125,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={true} />
+              <Tier3Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
             </Suspense>
           </div>
           {/* === COMPANION FLOWERS - Natural Scatter (6 companions) === */}
@@ -141,7 +141,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
+              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
             </Suspense>
           </div>
           {/* #2: Small golden daisy - upper left (creates depth) */}
@@ -155,7 +155,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
             </Suspense>
           </div>{' '}
           {/* #3: Small cherry blossom - center-left (mid-ground layer, changed from purple)
@@ -171,7 +171,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
+              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
             </Suspense>
           </div>
           {/* #4: Small cherry blossom - upper right (balance, changed from pink)
@@ -187,7 +187,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
+              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
             </Suspense>
           </div>
           {/* #5: Tiny golden daisy - bottom right (the welcome at the gate)
@@ -203,7 +203,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
             </Suspense>
           </div>
           {/* #6: Small golden daisy - upper-middle-left (adds warmth, changed from purple)
@@ -219,7 +219,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
             </Suspense>
           </div>
           {/* #7: Tiny golden daisy - bottom left (warmth in corners) */}
@@ -234,7 +234,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
             </Suspense>
           </div>
           {/* #8: Small golden daisy - center-right mid (adds golden glow) */}
@@ -248,7 +248,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
             </Suspense>
           </div>
           {/* #9: Tiny golden daisy - upper-left (corner warmth) */}
@@ -263,7 +263,7 @@ function LandingPage() {
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={true} />
+              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
             </Suspense>
           </div>
         </div>

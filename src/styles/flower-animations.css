@@ -23,19 +23,66 @@
   }
 }
 
+/* Gentle breeze animation - very subtle movement */
+@keyframes gentleBreeze {
+  0% {
+    transform: rotate(0deg) translateX(0px) translateY(0px) scale(1);
+  }
+  25% {
+    transform: rotate(0.8deg) translateX(1px) translateY(-0.5px) scale(1.01);
+  }
+  50% {
+    transform: rotate(0deg) translateX(0px) translateY(0px) scale(1);
+  }
+  75% {
+    transform: rotate(-0.8deg) translateX(-1px) translateY(0.5px) scale(1.01);
+  }
+  100% {
+    transform: rotate(0deg) translateX(0px) translateY(0px) scale(1);
+  }
+}
+
+/* Stronger breeze for larger flowers */
+@keyframes mediumBreeze {
+  0% {
+    transform: rotate(0deg) translateX(0px) translateY(0px) scale(1);
+  }
+  20% {
+    transform: rotate(1.2deg) translateX(1.5px) translateY(-0.8px) scale(1.02);
+  }
+  40% {
+    transform: rotate(0deg) translateX(0px) translateY(0px) scale(1);
+  }
+  60% {
+    transform: rotate(-1.2deg) translateX(-1.5px) translateY(0.8px) scale(1.02);
+  }
+  80% {
+    transform: rotate(0deg) translateX(0px) translateY(0px) scale(1);
+  }
+  100% {
+    transform: rotate(0deg) translateX(0px) translateY(0px) scale(1);
+  }
+}
+
 /* Tier1 Flower specific entrance (cherry blossom) */
 .tier1-flower-enter {
-  animation: flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s both;
+  animation: 
+    flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s both,
+    mediumBreeze 16s ease-in-out 1.3s infinite;
 }
 
 /* Tier2 Flower specific entrance (purple rose) */
 .tier2-flower-enter {
-  animation: flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s both;
+  animation: 
+    flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s both,
+    mediumBreeze 18s ease-in-out 1.5s infinite;
 }
 
 /* Tier3 Flower specific entrance (golden daisy) */
 .tier3-flower-enter {
-  animation: flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s both;
+  animation: 
+    flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s both,
+    gentleBreeze 14s ease-in-out 1.8s infinite;
 }
 
 /* Sparkle burst animation (replaces Framer Motion sparkle particles) */
@@ -159,14 +206,77 @@
   animation-delay: 3.6s;
 }
 
+/* Staggered breeze variations for natural randomness */
+.flower-small-1 .tier1-flower-enter,
+.flower-small-1 .tier2-flower-enter,
+.flower-small-1 .tier3-flower-enter {
+  animation-delay: 1.2s, 2.1s; /* Different start times for entrance + breeze */
+  animation-duration: 0.8s, 15s;
+}
+
+.flower-small-2 .tier1-flower-enter,
+.flower-small-2 .tier2-flower-enter,
+.flower-small-2 .tier3-flower-enter {
+  animation-delay: 1.4s, 3.2s;
+  animation-duration: 0.8s, 17s;
+}
+
+.flower-small-3 .tier1-flower-enter,
+.flower-small-3 .tier2-flower-enter,
+.flower-small-3 .tier3-flower-enter {
+  animation-delay: 1.6s, 1.8s;
+  animation-duration: 0.8s, 19s;
+}
+
+.flower-small-4 .tier1-flower-enter,
+.flower-small-4 .tier2-flower-enter,
+.flower-small-4 .tier3-flower-enter {
+  animation-delay: 1.8s, 4.5s;
+  animation-duration: 0.8s, 16s;
+}
+
+.flower-small-5 .tier1-flower-enter,
+.flower-small-5 .tier2-flower-enter,
+.flower-small-5 .tier3-flower-enter {
+  animation-delay: 2.0s, 2.8s;
+  animation-duration: 0.8s, 14s;
+}
+
+.flower-small-6 .tier1-flower-enter,
+.flower-small-6 .tier2-flower-enter,
+.flower-small-6 .tier3-flower-enter {
+  animation-delay: 2.2s, 5.1s;
+  animation-duration: 0.8s, 18s;
+}
+
+.flower-small-7 .tier1-flower-enter,
+.flower-small-7 .tier2-flower-enter,
+.flower-small-7 .tier3-flower-enter {
+  animation-delay: 2.4s, 3.7s;
+  animation-duration: 0.8s, 20s;
+}
+
+.flower-small-8 .tier1-flower-enter,
+.flower-small-8 .tier2-flower-enter,
+.flower-small-8 .tier3-flower-enter {
+  animation-delay: 2.6s, 1.9s;
+  animation-duration: 0.8s, 15s;
+}
+
+.flower-small-9 .tier1-flower-enter,
+.flower-small-9 .tier2-flower-enter,
+.flower-small-9 .tier3-flower-enter {
+  animation-delay: 2.8s, 6.2s;
+  animation-duration: 0.8s, 17s;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .tier1-flower-enter,
   .tier2-flower-enter,
   .tier3-flower-enter {
-    animation: none;
+    animation: flowerEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s both !important;
     opacity: 1;
-    transform: scale(1) translateY(-50%);
   }
   
   .tier2-sparkle,

@@ -56,64 +56,73 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
     }
   };
 
+  const buttonSize = isMobile ? 90 : 120; // 50% larger than rose (60-80px)
+
   return (
     <motion.div
       style={{
         position: 'relative',
-        width: isMobile ? '100%' : '200px',
-        height: '80px',
+        width: `${buttonSize}px`,
+        height: `${buttonSize}px`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
       }}
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4 }}
+      animate={{ opacity: 1, y: 0, rotate: [0, 0.5, 0, -0.5, 0] }}
+      transition={{
+        delay: 0.4,
+        rotate: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
+      }}
     >
-      {/* Glass Bloom Button - subtle until clicked */}
+      {/* Perfect Circle Bloom Button - subtle glass with gentle breeze */}
       <motion.button
         onClick={handleClick}
         style={{
           position: 'relative',
-          width: '140px',
-          height: '50px',
-          borderRadius: '25px',
-          background: 'rgba(255, 255, 255, 0.1)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          width: `${buttonSize}px`,
+          height: `${buttonSize}px`,
+          borderRadius: '50%', // Perfect circle
+          background: 'rgba(255, 255, 255, 0.08)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
           cursor: 'pointer',
           padding: '0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '16px',
-          fontWeight: '500',
-          color: 'rgba(255, 255, 255, 0.7)',
-          backdropFilter: 'blur(10px)',
+          backdropFilter: 'blur(12px)',
           transition: 'all 0.3s ease',
           zIndex: 10,
           overflow: 'hidden',
         }}
         whileHover={{
-          background: 'rgba(255, 255, 255, 0.15)',
-          borderColor: 'rgba(255, 255, 255, 0.3)',
-          color: 'rgba(255, 255, 255, 0.9)',
+          background: 'rgba(255, 255, 255, 0.12)',
+          borderColor: 'rgba(255, 255, 255, 0.25)',
+          scale: 1.02,
         }}
-        whileTap={{ scale: 0.98 }}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          rotate: [0, 1, 0, -1, 0], // Gentle breeze rotation
+        }}
+        transition={{
+          delay: 0.6,
+          rotate: { duration: 12, repeat: Infinity, ease: 'easeInOut' },
+        }}
       >
-        {/* Dreamy Rainbow Bloom Effect - covers entire button on click */}
+        {/* Circular Rainbow Bloom Effect - perfect circle on click */}
         <motion.div
           style={{
             position: 'absolute',
             top: '0',
             left: '0',
-            width: '140px',
-            height: '50px',
-            borderRadius: '25px',
+            width: `${buttonSize}px`,
+            height: `${buttonSize}px`,
+            borderRadius: '50%',
             background: `
-              radial-gradient(ellipse at center,
+              radial-gradient(circle at center,
                 rgba(255, 182, 193, 0.9) 0%,
                 rgba(255, 160, 122, 0.8) 20%,
                 rgba(255, 255, 224, 0.7) 40%,
@@ -143,15 +152,15 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
           }}
         />
 
-        {/* Secondary rotating rainbow layer */}
+        {/* Secondary rotating rainbow layer - perfect circle */}
         <motion.div
           style={{
             position: 'absolute',
             top: '0',
             left: '0',
-            width: '140px',
-            height: '50px',
-            borderRadius: '25px',
+            width: `${buttonSize}px`,
+            height: `${buttonSize}px`,
+            borderRadius: '50%',
             background: `
               conic-gradient(from 0deg,
                 rgba(255, 182, 193, 0.5) 0deg,
@@ -185,30 +194,32 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
             ease: 'easeInOut',
           }}
         />
-      </motion.button>
 
-      {/* Decorative flower - no longer clickable */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          left: '-25px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          pointerEvents: 'none',
-          zIndex: 5,
-        }}
-        animate={{
-          rotate: [0, 1, 0, -1, 0],
-          scale: [1, 1.02, 1],
-        }}
-        transition={{
-          duration: 6,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      >
-        <Tier2Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
-      </motion.div>
+        {/* Centered Rose - positioned perfectly in the circle */}
+        <motion.div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+          animate={{
+            rotate: [0, 2, 0, -2, 0], // Gentle breeze sway
+            scale: [1, 1.03, 1, 1.02, 1],
+            x: [0, 1, 0, -1, 0], // Subtle horizontal drift
+            y: [0, -0.5, 0, 0.5, 0], // Subtle vertical drift
+          }}
+          transition={{
+            duration: 15, // Slow, gentle breeze
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        >
+          <Tier2Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
+        </motion.div>
+      </motion.button>
     </motion.div>
   );
 };

@@ -5,8 +5,10 @@ import { LogLevel } from '@azure/msal-browser';
  * Detect if running on iOS (iPhone/iPad) in any browser
  */
 const isIOS = () => {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
 };
 
 /**

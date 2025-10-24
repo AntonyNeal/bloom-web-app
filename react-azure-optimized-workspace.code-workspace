@@ -1,0 +1,615 @@
+{
+  "folders": [
+    {
+      "name": "🌸 Bloom Web App",
+      "path": ".",
+    },
+    {
+      "name": "⚡ API Functions",
+      "path": "./api",
+    },
+  ],
+  "settings": {
+    // ===== GITHUB COPILOT OPTIMIZATION =====
+    // Reduced from 131 tools to ~28-30 essential tools for React+Azure projects
+    "github.copilot.advanced": {
+      "inlineSuggestEnable": true,
+      "length": 500,
+      "temperature": 0.3,
+    },
+
+    // Disable non-essential MCP servers to reduce tool count
+    "mcp.servers": {
+      // ===== KEEP: Core Development Tools (6 tools) =====
+      "file_operations": {
+        "enabled": true,
+        "priority": "high",
+      },
+      "terminal_operations": {
+        "enabled": true,
+        "priority": "high",
+      },
+      "git_operations": {
+        "enabled": true,
+        "priority": "high",
+      },
+      "search_operations": {
+        "enabled": true,
+        "priority": "high",
+      },
+      "workspace_management": {
+        "enabled": true,
+        "priority": "medium",
+      },
+      "error_diagnostics": {
+        "enabled": true,
+        "priority": "medium",
+      },
+
+      // ===== KEEP: React/TypeScript Development (8 tools) =====
+      "typescript_tools": {
+        "enabled": true,
+        "priority": "high",
+      },
+      "react_tools": {
+        "enabled": true,
+        "priority": "high",
+      },
+      "vite_tools": {
+        "enabled": true,
+        "priority": "high",
+      },
+      "eslint_tools": {
+        "enabled": true,
+        "priority": "medium",
+      },
+      "prettier_tools": {
+        "enabled": true,
+        "priority": "medium",
+      },
+      "tailwind_tools": {
+        "enabled": true,
+        "priority": "medium",
+      },
+      "package_json_tools": {
+        "enabled": true,
+        "priority": "medium",
+      },
+      "node_tools": {
+        "enabled": true,
+        "priority": "medium",
+      },
+
+      // ===== KEEP: Azure Tools (8 tools) =====
+      "mcp_azure_mcp_get_bestpractices": {
+        "enabled": true,
+        "priority": "high",
+      },
+      "mcp_azure_mcp_documentation": {
+        "enabled": true,
+        "priority": "high",
+      },
+      "activate_azure_architecture_management": {
+        "enabled": true,
+        "priority": "medium",
+      },
+      "activate_azure_resource_management": {
+        "enabled": true,
+        "priority": "medium",
+      },
+      "azureResources_getAzureActivityLog": {
+        "enabled": true,
+        "priority": "medium",
+      },
+      "mcp_azure_mcp_azd": {
+        "enabled": true,
+        "priority": "medium",
+      },
+      "activate_azure_container_management": {
+        "enabled": true,
+        "priority": "low",
+      },
+      "activate_azure_monitoring_and_diagnostics": {
+        "enabled": true,
+        "priority": "low",
+      },
+
+      // ===== KEEP: Microsoft Documentation (4 tools) =====
+      "mcp_microsoft_doc_microsoft_docs_search": {
+        "enabled": true,
+        "priority": "high",
+      },
+      "mcp_microsoft_doc_microsoft_docs_fetch": {
+        "enabled": true,
+        "priority": "high",
+      },
+      "mcp_microsoft_doc_microsoft_code_sample_search": {
+        "enabled": true,
+        "priority": "medium",
+      },
+      "mcp_gitkraken_repository_get_file_content": {
+        "enabled": true,
+        "priority": "low",
+      },
+
+      // ===== KEEP: Git Tools (2 tools) =====
+      "activate_git_tools_version_control": {
+        "enabled": true,
+        "priority": "medium",
+      },
+      "activate_git_tools_issue_management": {
+        "enabled": true,
+        "priority": "low",
+      },
+
+      // ===== DISABLE: SQL Tools (not needed - using Azure SQL via API) =====
+      "activate_mssql_tools": {
+        "enabled": false,
+        "reason": "Using Azure SQL via REST API, not direct SQL connections",
+      },
+
+      // ===== DISABLE: Other Database Tools =====
+      "activate_azure_data_management": {
+        "enabled": false,
+        "reason": "Not using Cosmos DB, MySQL, PostgreSQL directly",
+      },
+
+      // ===== DISABLE: Specialized Azure Services =====
+      "mcp_azure_mcp_keyvault": {
+        "enabled": false,
+        "reason": "Not using Key Vault in current implementation",
+      },
+      "mcp_azure_mcp_eventgrid": {
+        "enabled": false,
+        "reason": "Not using Event Grid",
+      },
+      "mcp_azure_mcp_eventhubs": {
+        "enabled": false,
+        "reason": "Not using Event Hubs",
+      },
+      "mcp_azure_mcp_servicebus": {
+        "enabled": false,
+        "reason": "Not using Service Bus",
+      },
+      "mcp_azure_mcp_communication": {
+        "enabled": false,
+        "reason": "Not using Communication Services",
+      },
+      "mcp_azure_mcp_signalr": {
+        "enabled": false,
+        "reason": "Not using SignalR",
+      },
+      "mcp_azure_mcp_speech": {
+        "enabled": false,
+        "reason": "Not using Speech Services",
+      },
+      "mcp_azure_mcp_workbooks": {
+        "enabled": false,
+        "reason": "Not using Azure Workbooks",
+      },
+      "mcp_azure_mcp_loadtesting": {
+        "enabled": false,
+        "reason": "Not using Load Testing currently",
+      },
+      "mcp_azure_mcp_foundry": {
+        "enabled": false,
+        "reason": "Not using AI Foundry",
+      },
+      "mcp_azure_mcp_confidentialledger": {
+        "enabled": false,
+        "reason": "Not using Confidential Ledger",
+      },
+
+      // ===== DISABLE: Infrastructure as Code =====
+      "activate_azure_bicep_tools": {
+        "enabled": false,
+        "reason": "Using Azure Portal/CLI, not Bicep currently",
+      },
+      "mcp_azure_mcp_azureterraformbestpractices": {
+        "enabled": false,
+        "reason": "Not using Terraform",
+      },
+
+      // ===== DISABLE: Other Specialized Tools =====
+      "mcp_gitkraken_gitkraken_workspace_list": {
+        "enabled": false,
+        "reason": "Not using GitKraken",
+      },
+    },
+
+    // ===== PERFORMANCE OPTIMIZATIONS =====
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.git": true,
+      "**/coverage": true,
+      "**/.next": true,
+      "**/.nuxt": true,
+      "**/.vscode": false,
+      "**/build": true,
+      "**/out": true,
+      "**/.azure": true,
+      "**/api/dist": true,
+      "**/api/node_modules": true,
+    },
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/dist/**": true,
+      "**/.git/objects/**": true,
+      "**/.git/subtree-cache/**": true,
+      "**/coverage/**": true,
+      "**/api/dist/**": true,
+      "**/api/node_modules/**": true,
+    },
+    "typescript.preferences.includePackageJsonAutoImports": "auto",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+
+    // ===== EDITOR SETTINGS =====
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit",
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.renderWhitespace": "boundary",
+    "editor.trimAutoWhitespace": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+
+    // ===== LANGUAGE-SPECIFIC SETTINGS =====
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+      },
+    },
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+      },
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+    },
+    "[jsonc]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+    },
+    "[css]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+    },
+    "[scss]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+    },
+    "[markdown]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.wordWrap": "on",
+    },
+
+    // ===== FILE ASSOCIATIONS =====
+    "files.associations": {
+      "*.env*": "shellscript",
+      "staticwebapp.config.json": "jsonc",
+      "host.json": "jsonc",
+      "local.settings.json": "jsonc",
+      "*.azure-pipelines.yml": "azure-pipelines",
+    },
+
+    // ===== EMMET =====
+    "emmet.includeLanguages": {
+      "typescriptreact": "html",
+      "javascriptreact": "html",
+    },
+
+    // ===== TAILWIND CSS =====
+    "tailwindCSS.includeLanguages": {
+      "typescript": "javascript",
+      "typescriptreact": "javascript",
+    },
+    "tailwindCSS.experimental.classRegex": [
+      ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+      ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+    ],
+
+    // ===== AZURE FUNCTIONS =====
+    "azureFunctions.deploySubpath": "api",
+    "azureFunctions.projectLanguage": "TypeScript",
+    "azureFunctions.projectRuntime": "~4",
+
+    // ===== GIT =====
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "git.confirmSync": false,
+
+    // ===== TERMINAL =====
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.cwd": "${workspaceFolder}",
+
+    // ===== BREADCRUMBS =====
+    "breadcrumbs.enabled": true,
+    "breadcrumbs.symbolPath": "on",
+
+    // ===== PROBLEMS =====
+    "problems.decorations.enabled": true,
+
+    // ===== MINIMAP =====
+    "editor.minimap.enabled": true,
+    "editor.minimap.showSlider": "always",
+  },
+
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "🚀 Dev Server",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "dev"],
+        "group": {
+          "kind": "build",
+          "isDefault": true,
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+          "showReuseMessage": false,
+          "clear": false,
+        },
+        "options": {
+          "cwd": "${workspaceFolder}",
+        },
+      },
+      {
+        "label": "🏗️ Build Frontend",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "build"],
+        "group": "build",
+        "problemMatcher": ["$tsc"],
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+        "options": {
+          "cwd": "${workspaceFolder}",
+        },
+      },
+      {
+        "label": "🔍 Lint",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "lint"],
+        "group": "test",
+        "problemMatcher": ["$eslint-stylish"],
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+        "options": {
+          "cwd": "${workspaceFolder}",
+        },
+      },
+      {
+        "label": "🎨 Format Code",
+        "type": "shell",
+        "command": "npx",
+        "args": ["prettier", "--write", "src/**/*.{ts,tsx,js,jsx,json,css,md}"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "silent",
+          "focus": false,
+          "panel": "shared",
+        },
+        "options": {
+          "cwd": "${workspaceFolder}",
+        },
+      },
+      {
+        "label": "⚡ Build API",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "build"],
+        "group": "build",
+        "problemMatcher": ["$tsc"],
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+        "options": {
+          "cwd": "${workspaceFolder}/api",
+        },
+      },
+      {
+        "label": "🖥️ Start API",
+        "type": "shell",
+        "command": "npm",
+        "args": ["start"],
+        "group": "build",
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+          "showReuseMessage": false,
+        },
+        "options": {
+          "cwd": "${workspaceFolder}/api",
+        },
+        "dependsOn": "⚡ Build API",
+      },
+      {
+        "label": "🔄 Watch API",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "watch"],
+        "group": "build",
+        "isBackground": true,
+        "problemMatcher": ["$tsc-watch"],
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+          "showReuseMessage": false,
+        },
+        "options": {
+          "cwd": "${workspaceFolder}/api",
+        },
+      },
+      {
+        "label": "🌐 Full Development",
+        "dependsOrder": "parallel",
+        "dependsOn": ["🚀 Dev Server", "🔄 Watch API"],
+      },
+      {
+        "label": "📦 Install Dependencies",
+        "type": "shell",
+        "command": "npm",
+        "args": ["install"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+        "options": {
+          "cwd": "${workspaceFolder}",
+        },
+      },
+      {
+        "label": "📦 Install API Dependencies",
+        "type": "shell",
+        "command": "npm",
+        "args": ["install"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+        "options": {
+          "cwd": "${workspaceFolder}/api",
+        },
+      },
+      {
+        "label": "🧹 Clean All",
+        "type": "shell",
+        "command": "powershell",
+        "args": [
+          "-Command",
+          "Remove-Item -Recurse -Force -ErrorAction SilentlyContinue node_modules, dist, api/node_modules, api/dist; Write-Host 'Cleaned all build artifacts and dependencies'",
+        ],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+        "options": {
+          "cwd": "${workspaceFolder}",
+        },
+      },
+    ],
+  },
+
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "🌐 Launch Chrome",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:5173",
+        "webRoot": "${workspaceFolder}/src",
+        "skipFiles": ["<node_internals>/**"],
+      },
+      {
+        "name": "🔍 Debug Frontend",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:5173",
+        "webRoot": "${workspaceFolder}/src",
+        "sourceMaps": true,
+        "skipFiles": ["<node_internals>/**"],
+        "preLaunchTask": "🚀 Dev Server",
+      },
+      {
+        "name": "⚡ Debug API Functions",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/api/node_modules/azure-functions-core-tools/bin/func",
+        "args": ["start"],
+        "cwd": "${workspaceFolder}/api",
+        "env": {
+          "languageWorkers__node__arguments": "--inspect=9229",
+        },
+        "skipFiles": ["<node_internals>/**"],
+        "preLaunchTask": "⚡ Build API",
+      },
+    ],
+  },
+
+  "extensions": {
+    "recommendations": [
+      // ===== ESSENTIAL EXTENSIONS =====
+      "ms-vscode.vscode-typescript-next",
+      "esbenp.prettier-vscode",
+      "ms-vscode.eslint",
+      "ms-vscode.vscode-json",
+
+      // ===== REACT + FRONTEND =====
+      "bradlc.vscode-tailwindcss",
+      "formulahendry.auto-rename-tag",
+      "ms-vscode.vscode-typescript-next",
+      "christian-kohler.path-intellisense",
+      "ms-vscode.vscode-css-peek",
+
+      // ===== AZURE DEVELOPMENT =====
+      "ms-azuretools.vscode-azurefunctions",
+      "ms-azuretools.vscode-azurestaticwebapps",
+      "ms-vscode.azure-account",
+      "ms-azuretools.vscode-azureresourcegroups",
+
+      // ===== GIT & COLLABORATION =====
+      "eamodio.gitlens",
+      "github.vscode-pull-request-github",
+      "github.copilot",
+      "github.copilot-chat",
+
+      // ===== PRODUCTIVITY =====
+      "ms-vscode.vscode-todo-highlight",
+      "streetsidesoftware.code-spell-checker",
+      "ms-vscode.vscode-markdown-preview-enhanced",
+      "yzhang.markdown-all-in-one",
+
+      // ===== DEBUGGING & TESTING =====
+      "ms-vscode.vscode-js-debug",
+      "ms-playwright.playwright",
+    ],
+  },
+}

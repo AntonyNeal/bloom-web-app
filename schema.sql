@@ -16,6 +16,8 @@ CREATE TABLE applications (
   certificate_url NVARCHAR(500),
   photo_url NVARCHAR(500),
   cover_letter TEXT,
+  qualification_type NVARCHAR(50), -- 'clinical', 'experienced', 'phd'
+  qualification_check NVARCHAR(MAX), -- JSON object with qualification check data
   status NVARCHAR(20) DEFAULT 'submitted', -- submitted, reviewing, approved, rejected
   created_at DATETIME2 DEFAULT GETDATE(),
   updated_at DATETIME2 DEFAULT GETDATE(),

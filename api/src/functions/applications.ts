@@ -145,8 +145,11 @@ async function applicationsHandler(
         .input('photo_url', sql.NVarChar, photo_url || null)
         .input('cover_letter', sql.NVarChar, cover_letter || null)
         .input('qualification_type', sql.NVarChar, qualification_type || null)
-        .input('qualification_check', sql.NVarChar, qualification_check ? JSON.stringify(qualification_check) : null)
-        .query(`
+        .input(
+          'qualification_check',
+          sql.NVarChar,
+          qualification_check ? JSON.stringify(qualification_check) : null
+        ).query(`
           INSERT INTO applications (
             first_name, last_name, email, phone, ahpra_registration,
             specializations, experience_years, cv_url, certificate_url,

@@ -87,13 +87,13 @@ async function applicationsHandler(
         phone: string;
         ahpra_registration: string;
         specializations: string[];
-        experience_years: number;
+        experience_years?: number;
         cv_url?: string;
         certificate_url?: string;
         photo_url?: string;
         cover_letter?: string;
         qualification_type?: string;
-        qualification_check?: boolean;
+        qualification_check?: unknown;
       };
       const {
         first_name,

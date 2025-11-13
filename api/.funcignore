@@ -1,10 +1,12 @@
 .git/
 .vscode/
-node_modules/
 *.ts
 *.map
 src/
+node_modules/
 tsconfig.json
 .gitignore
 .funcignore
 local.settings.json
+.env
+.env.local

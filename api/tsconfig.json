@@ -3,7 +3,7 @@
     "module": "commonjs",
     "target": "ES2019",
     "outDir": "dist",
-    "rootDir": ".",
+    "rootDir": "src",
     "sourceMap": true,
     "strict": false,
     "esModuleInterop": true,
@@ -11,7 +11,7 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",

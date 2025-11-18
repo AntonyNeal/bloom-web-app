@@ -93,6 +93,16 @@ async function abTestHandler(
     if (method === 'GET' && testName) {
       context.log(`Fetching A/B test results for ${testName}`);
 
+      // Get test metadata for display label
+      const metadataResult = await pool.request().input('testName', sql.NVarChar, testName).query(`
+          SELECT display_label, description
+          FROM ab_test_metadata
+          WHERE test_name = @testName
+        `);
+
+      const displayLabel = metadataResult.recordset?.[0]?.display_label || testName;
+      const description = metadataResult.recordset?.[0]?.description || '';
+
       // Query test events from database
       const result = await pool.request().input('testName', sql.NVarChar, testName).query(`
           SELECT
@@ -154,6 +164,8 @@ async function abTestHandler(
 
       const testResult = {
         testName,
+        displayLabel,
+        description,
         variants,
         statisticalSignificance: statSig,
         improvement,
@@ -167,17 +179,23 @@ async function abTestHandler(
     }
 
     if (method === 'GET') {
-      // Return all test summaries
+      // Return all test summaries with display labels
       context.log('Fetching all A/B test summaries');
 
       const result = await pool.request().query(`
-        SELECT DISTINCT test_name
-        FROM ab_test_events
-        ORDER BY test_name
+        SELECT DISTINCT 
+          e.test_name,
+          COALESCE(m.display_label, e.test_name) as display_label,
+          m.description
+        FROM ab_test_events e
+        LEFT JOIN ab_test_metadata m ON e.test_name = m.test_name
+        ORDER BY e.test_name
       `);
 
-      const summaries = result.recordset.map((row: { test_name: string }) => ({
+      const summaries = result.recordset.map((row: { test_name: string; display_label: string; description: string }) => ({
         testName: row.test_name,
+        displayLabel: row.display_label,
+        description: row.description,
         lastUpdated: new Date().toISOString(),
       }));
 

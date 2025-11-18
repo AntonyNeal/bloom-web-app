@@ -1,7 +1,12 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-refresh/only-export-components */
 /**
  * A/B Testing Implementation Examples
  *
  * Copy these patterns into your components to start tracking A/B tests
+ * NOTE: This is example/documentation code and is not used in production.
  */
 
 // ============================================

@@ -227,6 +227,16 @@ export function ABTestDashboard() {
             {tests.map((test) => {
               const isExpanded = expandedTests.has(test.testName);
               
+              // Format test name as fallback (convert kebab-case to Title Case)
+              const formatTestName = (name: string) => {
+                return name
+                  .split('-')
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ');
+              };
+              
+              const displayTitle = test.displayLabel || formatTestName(test.testName);
+              
               return (
                 <Card
                   key={test.testName}
@@ -251,7 +261,7 @@ export function ABTestDashboard() {
                         {/* Test Name */}
                         <div className="flex-1">
                           <CardTitle className="text-sage-900 text-xl">
-                            {test.displayLabel || test.testName}
+                            {displayTitle}
                           </CardTitle>
                           <CardDescription className="text-sage-600 mt-1 flex items-center gap-3">
                             <span>{test.description || `${test.variants ? Object.keys(test.variants).length : 0} variants`}</span>

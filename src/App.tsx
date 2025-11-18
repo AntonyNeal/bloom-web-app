@@ -21,6 +21,9 @@ const Admin = lazy(() =>
 const AdminDashboard = lazy(() =>
   import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
 );
+const ABTestDashboard = lazy(() =>
+  import('./pages/admin/ABTestDashboard').then((m) => ({ default: m.ABTestDashboard }))
+);
 
 // Lazy-loaded flower components - keep original React components for visual fidelity
 const Tier1Flower = lazy(() =>
@@ -659,6 +662,23 @@ function AnimatedRoutes() {
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
                 >
                   <ApplicationDetail applicationId={''} />
+                </Suspense>
+                <Toaster />
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* A/B Testing Dashboard */}
+        <Route
+          path="/admin/ab-tests"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
+                  <ABTestDashboard />
                 </Suspense>
                 <Toaster />
               </ErrorBoundary>

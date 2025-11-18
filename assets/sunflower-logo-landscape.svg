@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sunflower logo (landscape 4:1) - ideal for Google Ads wide/logo slot (1200x300) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="Sunflower logo - landscape">
+  <rect width="1200" height="300" fill="#FFFFFF" />
+  <g transform="translate(150,150) scale(0.55)">
+    <defs>
+      <radialGradient id="petalGradL" cx="50%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#FFD54F"/>
+        <stop offset="70%" stop-color="#FFC107"/>
+        <stop offset="100%" stop-color="#FFB300"/>
+      </radialGradient>
+      <radialGradient id="centerGradL" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#3E2723"/>
+        <stop offset="60%" stop-color="#5D4037"/>
+        <stop offset="100%" stop-color="#6D4C41"/>
+      </radialGradient>
+    </defs>
+
+    <g fill="url(#petalGradL)" stroke="#BF6F00" stroke-width="3" stroke-linejoin="round">
+      <!-- 16 petals with gentler curves for landscape version -->
+      <path d="M 0,-120 C -50,-200 -60,-350 -25,-420 C 15,-460 50,-445 30,-395 C 15,-300 -25,-200 0,-120 Z" />
+      <path d="M 0,-120 C -45,-195 -55,-345 -20,-415 C 20,-455 55,-440 35,-390 C 20,-295 -20,-195 0,-120 Z" transform="rotate(22.5)" />
+      <path d="M 0,-120 C -52,-205 -62,-355 -27,-425 C 13,-465 48,-450 28,-400 C 13,-305 -27,-205 0,-120 Z" transform="rotate(45)" />
+      <path d="M 0,-120 C -48,-198 -58,-348 -23,-418 C 17,-458 52,-443 32,-393 C 17,-298 -23,-198 0,-120 Z" transform="rotate(67.5)" />
+      <path d="M 0,-120 C -54,-202 -64,-352 -29,-422 C 11,-462 46,-447 26,-397 C 11,-302 -29,-202 0,-120 Z" transform="rotate(90)" />
+      <path d="M 0,-120 C -46,-196 -56,-346 -21,-416 C 19,-456 54,-441 34,-391 C 19,-296 -21,-196 0,-120 Z" transform="rotate(112.5)" />
+      <path d="M 0,-120 C -51,-203 -61,-353 -26,-423 C 14,-463 49,-448 29,-398 C 14,-303 -26,-203 0,-120 Z" transform="rotate(135)" />
+      <path d="M 0,-120 C -49,-199 -59,-349 -24,-419 C 16,-459 51,-444 31,-394 C 16,-299 -24,-199 0,-120 Z" transform="rotate(157.5)" />
+      <path d="M 0,-120 C -53,-201 -63,-351 -28,-421 C 12,-461 47,-446 27,-396 C 12,-301 -28,-201 0,-120 Z" transform="rotate(180)" />
+      <path d="M 0,-120 C -47,-197 -57,-347 -22,-417 C 18,-457 53,-442 33,-392 C 18,-297 -22,-197 0,-120 Z" transform="rotate(202.5)" />
+      <path d="M 0,-120 C -50,-204 -60,-354 -25,-424 C 15,-464 50,-449 30,-399 C 15,-304 -25,-204 0,-120 Z" transform="rotate(225)" />
+      <path d="M 0,-120 C -44,-194 -54,-344 -19,-414 C 21,-454 56,-439 36,-389 C 21,-294 -19,-194 0,-120 Z" transform="rotate(247.5)" />
+      <path d="M 0,-120 C -52,-206 -62,-356 -27,-426 C 13,-466 48,-451 28,-401 C 13,-306 -27,-206 0,-120 Z" transform="rotate(270)" />
+      <path d="M 0,-120 C -46,-192 -56,-342 -21,-412 C 19,-452 54,-437 34,-387 C 19,-292 -21,-192 0,-120 Z" transform="rotate(292.5)" />
+      <path d="M 0,-120 C -51,-207 -61,-357 -26,-427 C 14,-467 49,-452 29,-402 C 14,-307 -26,-207 0,-120 Z" transform="rotate(315)" />
+      <path d="M 0,-120 C -48,-193 -58,-343 -23,-413 C 17,-453 52,-438 32,-388 C 17,-293 -23,-193 0,-120 Z" transform="rotate(337.5)" />
+    </g>
+
+    <circle cx="0" cy="0" r="160" fill="url(#centerGradL)" stroke="#3E2723" stroke-width="6" />
+
+    <!-- Seed pattern for landscape version -->
+    <g fill="#2E1B17" opacity="0.6">
+      <circle cx="0" cy="0" r="5" />
+      <circle cx="12" cy="7" r="3" />
+      <circle cx="-9" cy="15" r="3" />
+      <circle cx="-18" cy="-4" r="4" />
+      <circle cx="7" cy="-20" r="3" />
+      <circle cx="25" cy="-10" r="4" />
+      <circle cx="16" cy="24" r="3" />
+      <circle cx="-13" cy="28" r="3" />
+      <circle cx="-32" cy="8" r="4" />
+      <circle cx="-26" cy="-18" r="3" />
+    </g>
+  </g>
+
+  <!-- Optional brand text area on the right (leave blank so you can add text in ad builder) -->
+</svg>

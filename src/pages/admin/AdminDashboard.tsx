@@ -1,52 +1,55 @@
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  FileText, 
-  TrendingUp,
-  Sparkles,
-  ArrowLeft,
-  LogOut
-} from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileText, TrendingUp, Sparkles, ArrowLeft, LogOut, BarChart3 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 export function AdminDashboard() {
   const { logout, user } = useAuth();
+  const navigate = useNavigate();
   // Quick action cards
   const quickActions = [
     {
-      title: "Application Management",
-      description: "Review and process practitioner applications",
+      title: 'Application Management',
+      description: 'Review and process practitioner applications',
       icon: FileText,
-      href: "#/admin/applications",
-      color: "sage"
-    }
+      href: '/admin/applications',
+      color: 'sage',
+    },
+    {
+      title: 'A/B Testing Dashboard',
+      description: 'Monitor and analyze active A/B tests',
+      icon: BarChart3,
+      href: '/admin/ab-tests',
+      color: 'lavender',
+    },
   ];
 
   const getColorClasses = (color: string) => {
     const colors: Record<string, { bg: string; text: string; border: string; hover: string }> = {
       sage: {
-        bg: "bg-sage-50",
-        text: "text-sage-700",
-        border: "border-sage-200",
-        hover: "hover:border-sage-400 hover:bg-sage-100"
+        bg: 'bg-sage-50',
+        text: 'text-sage-700',
+        border: 'border-sage-200',
+        hover: 'hover:border-sage-400 hover:bg-sage-100',
       },
       lavender: {
-        bg: "bg-lavender-50",
-        text: "text-lavender-700",
-        border: "border-lavender-200",
-        hover: "hover:border-lavender-400 hover:bg-lavender-100"
+        bg: 'bg-lavender-50',
+        text: 'text-lavender-700',
+        border: 'border-lavender-200',
+        hover: 'hover:border-lavender-400 hover:bg-lavender-100',
       },
       blush: {
-        bg: "bg-blush-50",
-        text: "text-blush-700",
-        border: "border-blush-200",
-        hover: "hover:border-blush-400 hover:bg-blush-100"
+        bg: 'bg-blush-50',
+        text: 'text-blush-700',
+        border: 'border-blush-200',
+        hover: 'hover:border-blush-400 hover:bg-blush-100',
       },
       amber: {
-        bg: "bg-amber-50",
-        text: "text-amber-700",
-        border: "border-amber-200",
-        hover: "hover:border-amber-400 hover:bg-amber-100"
-      }
+        bg: 'bg-amber-50',
+        text: 'text-amber-700',
+        border: 'border-amber-200',
+        hover: 'hover:border-amber-400 hover:bg-amber-100',
+      },
     };
     return colors[color] || colors.sage;
   };
@@ -64,16 +67,22 @@ export function AdminDashboard() {
         {/* Header */}
         <div className="admin-card">
           {/* Back to Home */}
-          <a
-            href="#/"
+          {/* Back to Home */}
+          <button
+            onClick={() => navigate('/')}
             className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-all duration-normal group mb-6"
-            style={{ transition: 'transform 0.2s ease' }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(-4px)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
+            style={{
+              transition: 'transform 0.2s ease',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateX(-4px)')}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateX(0)')}
           >
             <ArrowLeft className="w-5 h-5 group-hover:transform group-hover:-translate-x-1 transition-transform duration-normal" />
             Back to Home
-          </a>
+          </button>
 
           <div className="mb-8">
             <div className="flex items-center justify-between gap-3 mb-2">
@@ -82,7 +91,10 @@ export function AdminDashboard() {
                   <div className="absolute inset-0 rounded-full opacity-20 bg-gradient-to-tr from-transparent via-white to-transparent" />
                   <TrendingUp className="w-6 h-6 text-white relative z-10" />
                   <div className="absolute -top-1 -right-1">
-                    <Sparkles className="w-4 h-4 text-lavender-400" style={{ animation: 'pulse 2s ease-in-out infinite' }} />
+                    <Sparkles
+                      className="w-4 h-4 text-lavender-400"
+                      style={{ animation: 'pulse 2s ease-in-out infinite' }}
+                    />
                   </div>
                 </div>
                 <div>
@@ -92,7 +104,7 @@ export function AdminDashboard() {
                   </p>
                 </div>
               </div>
-              
+
               {/* Logout Button */}
               <button
                 onClick={logout}
@@ -112,22 +124,30 @@ export function AdminDashboard() {
             <Sparkles className="w-5 h-5 text-sage-600" />
             Quick Actions
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {quickActions.map((action, index) => {
               const Icon = action.icon;
               const colors = getColorClasses(action.color);
-              
+
               return (
-                <div key={action.title} className="admin-card" style={{ animationDelay: `${0.1 + index * 0.1}s` }}>
-                  <a 
-                    href={action.href}
-                    className="block cursor-pointer"
+                <div
+                  key={action.title}
+                  className="admin-card"
+                  style={{ animationDelay: `${0.1 + index * 0.1}s` }}
+                >
+                  <div
+                    className="block w-full text-left cursor-pointer"
+                    onClick={() => navigate(action.href)}
                   >
-                    <Card className={`${colors.border} border-2 ${colors.hover} transition-all duration-normal shadow-sm hover:shadow-md h-full`}>
+                    <Card
+                      className={`${colors.border} border-2 ${colors.hover} transition-all duration-normal shadow-sm hover:shadow-md h-full`}
+                    >
                       <CardHeader className="pb-4">
                         <div className="flex items-start justify-between mb-2">
-                          <div className={`w-14 h-14 bg-gradient-to-br from-${action.color}-500 to-${action.color}-600 rounded-xl flex items-center justify-center shadow-md shadow-${action.color}-200 relative group-hover:shadow-lg transition-all duration-normal`}>
+                          <div
+                            className={`w-14 h-14 bg-gradient-to-br from-${action.color}-500 to-${action.color}-600 rounded-xl flex items-center justify-center shadow-md shadow-${action.color}-200 relative group-hover:shadow-lg transition-all duration-normal`}
+                          >
                             <div className="absolute inset-0 rounded-xl opacity-20 bg-gradient-to-tr from-transparent via-white to-transparent" />
                             <Icon className="w-7 h-7 text-white relative z-10" />
                           </div>
@@ -140,7 +160,7 @@ export function AdminDashboard() {
                         </CardDescription>
                       </CardHeader>
                     </Card>
-                  </a>
+                  </div>
                 </div>
               );
             })}

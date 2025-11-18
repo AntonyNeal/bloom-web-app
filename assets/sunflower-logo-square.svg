@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sunflower logo (square, framed) - ideal for Google Ads square logo slot -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200" role="img" aria-label="Sunflower logo - square">
+  <rect width="1200" height="1200" rx="60" fill="#FFFFFF" /> <!-- white rounded background to ensure legibility on any ad background -->
+  <g transform="translate(600,600) scale(1.3)">
+    <defs>
+      <radialGradient id="petalGradSq" cx="50%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#FFE082"/>
+        <stop offset="70%" stop-color="#FFC107"/>
+        <stop offset="100%" stop-color="#FFB300"/>
+      </radialGradient>
+      <radialGradient id="centerGradSq" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#4E342E"/>
+        <stop offset="60%" stop-color="#5D4037"/>
+        <stop offset="100%" stop-color="#6D4C41"/>
+      </radialGradient>
+    </defs>
+
+    <g fill="url(#petalGradSq)" stroke="#BF6F00" stroke-width="3" stroke-linejoin="round">
+      <!-- 16 petals with gentler curves for square format -->
+      <path d="M 0,-85 C -42,-140 -50,-275 -20,-330 C 12,-365 40,-355 25,-315 C 12,-240 -20,-140 0,-85 Z" />
+      <path d="M 0,-85 C -38,-135 -46,-270 -16,-325 C 16,-360 44,-350 29,-310 C 16,-235 -16,-135 0,-85 Z" transform="rotate(22.5)" />
+      <path d="M 0,-85 C -44,-142 -52,-277 -22,-332 C 10,-367 38,-357 23,-317 C 10,-242 -22,-142 0,-85 Z" transform="rotate(45)" />
+      <path d="M 0,-85 C -40,-138 -48,-273 -18,-328 C 14,-363 42,-353 27,-313 C 14,-238 -18,-138 0,-85 Z" transform="rotate(67.5)" />
+      <path d="M 0,-85 C -45,-141 -53,-276 -23,-331 C 9,-366 37,-356 22,-316 C 9,-241 -23,-141 0,-85 Z" transform="rotate(90)" />
+      <path d="M 0,-85 C -39,-137 -47,-272 -17,-327 C 15,-362 43,-352 28,-312 C 15,-237 -17,-137 0,-85 Z" transform="rotate(112.5)" />
+      <path d="M 0,-85 C -43,-143 -51,-278 -21,-333 C 11,-368 39,-358 24,-318 C 11,-243 -21,-143 0,-85 Z" transform="rotate(135)" />
+      <path d="M 0,-85 C -41,-139 -49,-274 -19,-329 C 13,-364 41,-354 26,-314 C 13,-239 -19,-139 0,-85 Z" transform="rotate(157.5)" />
+      <path d="M 0,-85 C -44,-140 -52,-275 -22,-330 C 10,-365 38,-355 23,-315 C 10,-240 -22,-140 0,-85 Z" transform="rotate(180)" />
+      <path d="M 0,-85 C -40,-136 -48,-271 -18,-326 C 14,-361 42,-351 27,-311 C 14,-236 -18,-136 0,-85 Z" transform="rotate(202.5)" />
+      <path d="M 0,-85 C -42,-144 -50,-279 -20,-334 C 12,-369 40,-359 25,-319 C 12,-244 -20,-144 0,-85 Z" transform="rotate(225)" />
+      <path d="M 0,-85 C -37,-134 -45,-269 -15,-324 C 17,-359 45,-349 30,-309 C 17,-234 -15,-134 0,-85 Z" transform="rotate(247.5)" />
+      <path d="M 0,-85 C -43,-145 -51,-280 -21,-335 C 11,-370 39,-360 24,-320 C 11,-245 -21,-145 0,-85 Z" transform="rotate(270)" />
+      <path d="M 0,-85 C -38,-132 -46,-267 -16,-322 C 16,-357 44,-347 29,-307 C 16,-232 -16,-132 0,-85 Z" transform="rotate(292.5)" />
+      <path d="M 0,-85 C -43,-146 -51,-281 -21,-336 C 11,-371 39,-361 24,-321 C 11,-246 -21,-146 0,-85 Z" transform="rotate(315)" />
+      <path d="M 0,-85 C -40,-133 -48,-268 -18,-323 C 14,-358 42,-348 27,-308 C 14,-233 -18,-133 0,-85 Z" transform="rotate(337.5)" />
+    </g>
+    </g>
+
+    <circle cx="0" cy="0" r="130" fill="url(#centerGradSq)" stroke="#3E2723" stroke-width="6" />
+
+    <!-- Seed pattern for square version -->
+    <g fill="#2E1B17" opacity="0.6">
+      <circle cx="0" cy="0" r="5" />
+      <circle cx="12" cy="6" r="3" />
+      <circle cx="-10" cy="14" r="3" />
+      <circle cx="-20" cy="-4" r="4" />
+      <circle cx="6" cy="-22" r="3" />
+      <circle cx="28" cy="-12" r="4" />
+      <circle cx="18" cy="26" r="3" />
+      <circle cx="-14" cy="30" r="3" />
+      <circle cx="-36" cy="10" r="4" />
+      <circle cx="-30" cy="-20" r="3" />
+    </g>
+  </g>
+</svg>

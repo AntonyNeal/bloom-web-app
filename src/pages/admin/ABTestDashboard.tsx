@@ -26,6 +26,14 @@ interface TestResult {
     percentage: number;
     winner: string;
   };
+  duration?: {
+    startedAt: string | null;
+    daysRunning: number;
+    daysRemaining: number;
+    expectedDurationDays: number;
+    progressPercentage: number;
+    status: string;
+  };
 }
 
 const ACTIVE_TESTS = [
@@ -245,8 +253,20 @@ export function ABTestDashboard() {
                           <CardTitle className="text-sage-900 text-xl">
                             {test.displayLabel || test.testName}
                           </CardTitle>
-                          <CardDescription className="text-sage-600 mt-1">
-                            {test.description || `${test.variants ? Object.keys(test.variants).length : 0} variants`}
+                          <CardDescription className="text-sage-600 mt-1 flex items-center gap-3">
+                            <span>{test.description || `${test.variants ? Object.keys(test.variants).length : 0} variants`}</span>
+                            {test.duration && (
+                              <>
+                                <span className="text-sage-400">•</span>
+                                <span className="font-medium">
+                                  Running {test.duration.daysRunning} {test.duration.daysRunning === 1 ? 'day' : 'days'}
+                                </span>
+                                <span className="text-sage-400">•</span>
+                                <span>
+                                  {test.duration.daysRemaining} {test.duration.daysRemaining === 1 ? 'day' : 'days'} remaining
+                                </span>
+                              </>
+                            )}
                           </CardDescription>
                         </div>
                       </div>
@@ -301,6 +321,54 @@ export function ABTestDashboard() {
                   {/* Expanded Content - Only Visible When Expanded */}
                   {isExpanded && (
                     <CardContent className="space-y-6 pt-0">
+                      {/* Duration Progress */}
+                      {test.duration && (
+                        <div className="bg-sage-50 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-semibold text-sage-900">Test Duration</h4>
+                            <span className="text-sm text-sage-600">
+                              {test.duration.progressPercentage}% complete
+                            </span>
+                          </div>
+                          
+                          {/* Progress Bar */}
+                          <div className="w-full bg-sage-200 rounded-full h-3 mb-3">
+                            <div
+                              className="bg-sage-600 h-3 rounded-full transition-all duration-500"
+                              style={{ width: `${test.duration.progressPercentage}%` }}
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <p className="text-sage-600 mb-1">Started</p>
+                              <p className="font-semibold text-sage-900">
+                                {test.duration.startedAt 
+                                  ? new Date(test.duration.startedAt).toLocaleDateString()
+                                  : 'N/A'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sage-600 mb-1">Days Running</p>
+                              <p className="font-semibold text-sage-900">
+                                {test.duration.daysRunning} / {test.duration.expectedDurationDays} days
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sage-600 mb-1">Expected End</p>
+                              <p className="font-semibold text-sage-900">
+                                {test.duration.startedAt 
+                                  ? new Date(
+                                      new Date(test.duration.startedAt).getTime() + 
+                                      test.duration.expectedDurationDays * 24 * 60 * 60 * 1000
+                                    ).toLocaleDateString()
+                                  : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Variant Details */}
                       <div className="space-y-3">
                         <h4 className="font-semibold text-sage-900">Variant Performance</h4>

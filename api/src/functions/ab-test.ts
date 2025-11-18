@@ -93,15 +93,38 @@ async function abTestHandler(
     if (method === 'GET' && testName) {
       context.log(`Fetching A/B test results for ${testName}`);
 
-      // Get test metadata for display label
+      // Get test metadata for display label and duration info
       const metadataResult = await pool.request().input('testName', sql.NVarChar, testName).query(`
-          SELECT display_label, description
+          SELECT 
+            display_label, 
+            description,
+            started_at,
+            expected_duration_days,
+            status
           FROM ab_test_metadata
           WHERE test_name = @testName
         `);
 
-      const displayLabel = metadataResult.recordset?.[0]?.display_label || testName;
-      const description = metadataResult.recordset?.[0]?.description || '';
+      const metadata = metadataResult.recordset?.[0];
+      const displayLabel = metadata?.display_label || testName;
+      const description = metadata?.description || '';
+      
+      // Calculate duration info
+      const startedAt = metadata?.started_at ? new Date(metadata.started_at) : null;
+      const expectedDurationDays = metadata?.expected_duration_days || 14;
+      const status = metadata?.status || 'running';
+      
+      let daysRunning = 0;
+      let daysRemaining = expectedDurationDays;
+      let progressPercentage = 0;
+      
+      if (startedAt) {
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - startedAt.getTime());
+        daysRunning = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        daysRemaining = Math.max(0, expectedDurationDays - daysRunning);
+        progressPercentage = Math.min(100, Math.round((daysRunning / expectedDurationDays) * 100));
+      }
 
       // Query test events from database
       const result = await pool.request().input('testName', sql.NVarChar, testName).query(`
@@ -169,6 +192,14 @@ async function abTestHandler(
         variants,
         statisticalSignificance: statSig,
         improvement,
+        duration: {
+          startedAt: startedAt?.toISOString() || null,
+          daysRunning,
+          daysRemaining,
+          expectedDurationDays,
+          progressPercentage,
+          status,
+        },
       };
 
       return {

@@ -1,25 +1,14 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import * as sql from 'mssql';
+import { CosmosClient } from '@azure/cosmos';
 
-// Support both connection string and individual credentials
-const getConfig = (): string | sql.config => {
-  const connectionString = process.env.SQL_CONNECTION_STRING;
-
-  if (connectionString) {
-    return connectionString;
+// Get Cosmos DB client
+function getCosmosClient() {
+  const connectionString = process.env.COSMOS_DB_CONNECTION_STRING;
+  if (!connectionString) {
+    throw new Error('COSMOS_DB_CONNECTION_STRING not configured');
   }
-
-  return {
-    server: process.env.SQL_SERVER!,
-    database: process.env.SQL_DATABASE!,
-    user: process.env.SQL_USER!,
-    password: process.env.SQL_PASSWORD!,
-    options: {
-      encrypt: true,
-      trustServerCertificate: false,
-    },
-  };
-};
+  return new CosmosClient(connectionString);
+}
 
 // Calculate z-score and p-value for statistical significance
 function calculateStatisticalSignificance(
@@ -87,62 +76,43 @@ async function abTestHandler(
   }
 
   try {
-    const config = getConfig();
-    const pool = await sql.connect(config);
+    const cosmosClient = getCosmosClient();
+    const database = cosmosClient.database('bloom-ab-testing');
+    const container = database.container('test-events');
 
     if (method === 'GET' && testName) {
       context.log(`Fetching A/B test results for ${testName}`);
 
-      // Get test metadata for display label and duration info
-      const metadataResult = await pool.request().input('testName', sql.NVarChar, testName).query(`
-          SELECT 
-            display_label, 
-            description,
-            started_at,
-            expected_duration_days,
-            status
-          FROM ab_test_metadata
-          WHERE test_name = @testName
-        `);
+      // Query Cosmos DB for test events
+      const query = {
+        query: 'SELECT c.variant, c.converted FROM c WHERE c.testName = @testName',
+        parameters: [{ name: '@testName', value: testName }],
+      };
 
-      const metadata = metadataResult.recordset?.[0];
-      const displayLabel = metadata?.display_label || testName;
-      const description = metadata?.description || '';
-      
-      // Calculate duration info
-      const startedAt = metadata?.started_at ? new Date(metadata.started_at) : null;
-      const expectedDurationDays = metadata?.expected_duration_days || 14;
-      const status = metadata?.status || 'running';
-      
-      let daysRunning = 0;
-      let daysRemaining = expectedDurationDays;
-      let progressPercentage = 0;
-      
-      if (startedAt) {
-        const now = new Date();
-        const diffTime = Math.abs(now.getTime() - startedAt.getTime());
-        daysRunning = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        daysRemaining = Math.max(0, expectedDurationDays - daysRunning);
-        progressPercentage = Math.min(100, Math.round((daysRunning / expectedDurationDays) * 100));
-      }
+      const { resources } = await container.items.query(query).fetchAll();
 
-      // Query test events from database
-      const result = await pool.request().input('testName', sql.NVarChar, testName).query(`
-          SELECT
-            variant,
-            COUNT(*) as allocations,
-            SUM(CASE WHEN converted = 1 THEN 1 ELSE 0 END) as conversions
-          FROM ab_test_events
-          WHERE test_name = @testName
-          GROUP BY variant
-        `);
-
-      if (!result.recordset || result.recordset.length === 0) {
+      if (!resources || resources.length === 0) {
         return {
           status: 404,
           headers,
           jsonBody: { error: `No test data found for '${testName}'` },
         };
+      }
+
+      // Aggregate results by variant
+      const variantStats: {
+        [key: string]: { allocations: number; conversions: number };
+      } = {};
+
+      for (const event of resources) {
+        const variant = event.variant;
+        if (!variantStats[variant]) {
+          variantStats[variant] = { allocations: 0, conversions: 0 };
+        }
+        variantStats[variant].allocations++;
+        if (event.converted) {
+          variantStats[variant].conversions++;
+        }
       }
 
       // Build response with test data and calculate statistics
@@ -154,11 +124,11 @@ async function abTestHandler(
         };
       } = {};
 
-      for (const row of result.recordset) {
-        variants[row.variant] = {
-          allocations: row.allocations,
-          conversions: row.conversions,
-          conversionRate: row.conversions / row.allocations,
+      for (const [variantName, stats] of Object.entries(variantStats)) {
+        variants[variantName] = {
+          allocations: stats.allocations,
+          conversions: stats.conversions,
+          conversionRate: stats.conversions / stats.allocations,
         };
       }
 
@@ -187,19 +157,9 @@ async function abTestHandler(
 
       const testResult = {
         testName,
-        displayLabel,
-        description,
         variants,
         statisticalSignificance: statSig,
         improvement,
-        duration: {
-          startedAt: startedAt?.toISOString() || null,
-          daysRunning,
-          daysRemaining,
-          expectedDurationDays,
-          progressPercentage,
-          status,
-        },
       };
 
       return {
@@ -210,23 +170,17 @@ async function abTestHandler(
     }
 
     if (method === 'GET') {
-      // Return all test summaries with display labels
+      // Return all test summaries
       context.log('Fetching all A/B test summaries');
 
-      const result = await pool.request().query(`
-        SELECT DISTINCT 
-          e.test_name,
-          COALESCE(m.display_label, e.test_name) as display_label,
-          m.description
-        FROM ab_test_events e
-        LEFT JOIN ab_test_metadata m ON e.test_name = m.test_name
-        ORDER BY e.test_name
-      `);
+      const query = {
+        query: 'SELECT DISTINCT c.testName FROM c',
+      };
 
-      const summaries = result.recordset.map((row: { test_name: string; display_label: string; description: string }) => ({
-        testName: row.test_name,
-        displayLabel: row.display_label,
-        description: row.description,
+      const { resources } = await container.items.query(query).fetchAll();
+
+      const summaries = resources.map((row: { testName: string }) => ({
+        testName: row.testName,
         lastUpdated: new Date().toISOString(),
       }));
 

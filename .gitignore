@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .env
+
+# GitHub secrets setup (contains credentials)
+.github/SETUP_SECRETS.md

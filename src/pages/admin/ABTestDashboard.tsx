@@ -309,19 +309,6 @@ export function ABTestDashboard() {
                           </p>
                         </div>
                       </div>
-
-                      {/* Status Badge */}
-                      <div
-                        className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                          test.statisticalSignificance?.isSignificant
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-amber-100 text-amber-700'
-                        }`}
-                      >
-                        {test.statisticalSignificance?.isSignificant
-                          ? 'Running'
-                          : 'Running'}
-                      </div>
                     </div>
                   </CardHeader>
 
@@ -432,20 +419,6 @@ export function ABTestDashboard() {
                               <p className="text-sage-600 text-xl font-bold mb-1">Confidence Level</p>
                               <p className="font-extrabold text-sage-900 text-3xl">
                                 {test.statisticalSignificance.confidenceLevel}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sage-600 text-xl font-bold mb-1">Status</p>
-                              <p
-                                className={`font-extrabold text-3xl ${
-                                  test.statisticalSignificance.isSignificant
-                                    ? 'text-green-600'
-                                    : 'text-amber-600'
-                                }`}
-                              >
-                                {test.statisticalSignificance.isSignificant
-                                  ? 'Not Significant'
-                                  : 'Not Significant'}
                               </p>
                             </div>
                           </div>

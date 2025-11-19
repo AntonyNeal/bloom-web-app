@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<deployment>
+  <id>04d462e5b66c4acb91152d0fa3ddebfb</id>
+  <author>N/A</author>
+  <deployer>GITHUB_ZIP_DEPLOY_FUNCTIONS_V1</deployer>
+  <authorEmail>N/A</authorEmail>
+  <message>{"type":"deployment","sha":"6fc849a25f4aa378d5cf3c506102d68ca98f4d8c","repoName":"AntonyNeal/bloom-web-app","actor":"AntonyNeal","slotName":"production"}</message>
+  <progress></progress>
+  <status>Success</status>
+  <statusText></statusText>
+  <lastSuccessEndTime>2025-11-19T12:21:47.956762Z</lastSuccessEndTime>
+  <receivedTime>2025-11-19T12:21:41.0947789Z</receivedTime>
+  <startTime>2025-11-19T12:21:41.7197932Z</startTime>
+  <endTime>2025-11-19T12:21:47.956762Z</endTime>
+  <complete>True</complete>
+  <is_temp>False</is_temp>
+  <is_readonly>True</is_readonly>
+  <project_type>BASIC</project_type>
+  <vsproject_id></vsproject_id>
+</deployment>

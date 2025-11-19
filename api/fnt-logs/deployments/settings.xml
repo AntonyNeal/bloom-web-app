@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<settings>
+  <deployment>
+    <add key="SCM_DO_BUILD_DURING_DEPLOYMENT" value="false" />
+    <add key="ENABLE_ORYX_BUILD" value="false" />
+  </deployment>
+</settings>

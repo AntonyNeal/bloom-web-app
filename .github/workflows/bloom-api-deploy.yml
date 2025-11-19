@@ -1,0 +1,49 @@
+name: Deploy Bloom API to Azure Functions
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+    paths:
+      - 'apps/bloom/api/**'
+      - '.github/workflows/bloom-api-deploy.yml'
+  workflow_dispatch:
+
+env:
+  AZURE_FUNCTIONAPP_NAME: 'bloom-functions-prod'
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'apps/bloom/api'
+  NODE_VERSION: '20.x'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 'Install dependencies'
+        shell: bash
+        run: |
+          cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          npm install
+
+      - name: 'Build TypeScript'
+        shell: bash
+        run: |
+          cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          npm run build
+
+      - name: 'Deploy to Azure Functions'
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          publish-profile: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_BLOOM_PROD || secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_BLOOM_STAGING }}

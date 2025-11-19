@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 A/B Test Staging Verifier</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 20px;
+            background: #f8fafc;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .test-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .test-link {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 8px 8px 8px 0;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .test-link:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+        .minimal {
+            background: #059669;
+        }
+        .minimal:hover {
+            background: #047857;
+        }
+        .clear-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .clear-btn:hover {
+            background: #b91c1c;
+        }
+        .instructions {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .success {
+            color: #059669;
+            font-weight: 600;
+        }
+        .code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-weight: 600;
+        }
+        .status.loading { background: #fef3c7; color: #92400e; }
+        .status.success { background: #dcfce7; color: #166534; }
+        .status.error { background: #fee2e2; color: #dc2626; }
+        
+        h1 { color: #1f2937; margin-bottom: 8px; }
+        h2 { color: #374151; margin-bottom: 16px; }
+        
+        .checklist {
+            background: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .checklist li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 A/B Test Staging Verifier</h1>
+        <p>Use this tool to properly test A/B variants on the staging environment</p>
+
+        <div class="instructions">
+            <h2>🎯 How to Test A/B Variants</h2>
+            <p><strong>Problem:</strong> You keep getting the same variant because the system remembers your choice in localStorage.</p>
+            <p><strong>Solution:</strong> Clear storage between tests or use the direct links below.</p>
+        </div>
+
+        <div class="test-card">
+            <h2>🧹 Step 1: Clear Storage (Required First!)</h2>
+            <p>Click this button to reset your A/B test assignment:</p>
+            <button class="clear-btn" onclick="clearABTestData()">
+                Clear A/B Test Data & Reload
+            </button>
+            <div id="clearStatus"></div>
+        </div>
+
+        <div class="test-card">
+            <h2>🔗 Step 2: Test Each Variant</h2>
+            <p>After clearing storage, click these links to test specific variants:</p>
+            
+            <div>
+                <a href="https://red-desert-03b29ff00.1.azurestaticapps.net/?variant=healthcare-optimized&t=" 
+                   class="test-link" target="_blank" onclick="addTimestamp(this)">
+                   🏥 Healthcare-Optimized Variant
+                </a>
+                
+                <a href="https://red-desert-03b29ff00.1.azurestaticapps.net/?variant=minimal&t=" 
+                   class="test-link minimal" target="_blank" onclick="addTimestamp(this)">
+                   📱 Minimal Variant
+                </a>
+                
+                <a href="https://red-desert-03b29ff00.1.azurestaticapps.net/?t=" 
+                   class="test-link" target="_blank" onclick="addTimestamp(this)"
+                   style="background: #7c3aed;">
+                   🎲 Random Assignment (50/50)
+                </a>
+            </div>
+        </div>
+
+        <div class="test-card">
+            <h2>🔍 Step 3: Verify Differences</h2>
+            <div class="checklist">
+                <h3>Healthcare-Optimized Variant Should Show:</h3>
+                <ul>
+                    <li>✅ Detailed hero section with credentials</li>
+                    <li>✅ "Life Psychology Australia" in header</li>
+                    <li>✅ Professional photo of Zoe</li>
+                    <li>✅ Multiple trust signals and badges</li>
+                    <li>✅ Healthcare-specific messaging</li>
+                </ul>
+                
+                <h3>Minimal Variant Should Show:</h3>
+                <ul>
+                    <li>✅ Simplified hero section</li>
+                    <li>✅ Basic navigation and branding</li>
+                    <li>✅ Streamlined design</li>
+                    <li>✅ Single primary CTA</li>
+                    <li>✅ Less healthcare-specific content</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-card">
+            <h2>🛠️ Developer Tools Check</h2>
+            <p>Open browser Developer Tools (F12) and look for these console messages:</p>
+            <ul>
+                <li><span class="code">[AB-Test-Dev] Variant set from URL: healthcare-optimized</span></li>
+                <li><span class="code">[AB-Test-Dev] Variant set from URL: minimal</span></li>
+                <li><span class="code">[SmartHeader] Rendering variant: [variant-name]</span></li>
+            </ul>
+        </div>
+
+        <div class="test-card">
+            <h2>📊 Tracking Verification</h2>
+            <p>In browser console, check for these GA4 events:</p>
+            <ul>
+                <li><span class="code">ab_test_variant_shown</span> - Variant allocation</li>
+                <li><span class="code">book_now_click</span> - Button clicks with variant info</li>
+                <li><span class="code">page_view</span> - Page views with A/B test data</li>
+            </ul>
+        </div>
+
+        <div class="test-card">
+            <h2>🔧 Alternative Testing Methods</h2>
+            <h3>Method 1: Incognito Windows</h3>
+            <p>Open each variant link in a fresh incognito window to avoid storage conflicts.</p>
+            
+            <h3>Method 2: Browser Console</h3>
+            <p>Run this code in Developer Tools Console:</p>
+            <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; font-family: monospace; margin: 8px 0;">
+// Clear and test healthcare-optimized<br>
+localStorage.clear();<br>
+localStorage.setItem('dev-ab-variant', 'healthcare-optimized');<br>
+location.reload();<br><br>
+
+// Clear and test minimal<br>
+localStorage.clear();<br>
+localStorage.setItem('dev-ab-variant', 'minimal');<br>
+location.reload();
+            </div>
+            
+            <h3>Method 3: Different Browsers</h3>
+            <p>Test each variant in completely different browsers (Chrome, Firefox, Edge).</p>
+        </div>
+
+        <div class="test-card">
+            <h2>❓ Troubleshooting</h2>
+            <div class="status" id="troubleshootStatus">Click "Test Current Status" to check A/B test state</div>
+            <button onclick="checkCurrentStatus()" style="padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Test Current Status
+            </button>
+            <div id="statusDetails" style="margin-top: 12px;"></div>
+        </div>
+    </div>
+
+    <script>
+        function clearABTestData() {
+            // Clear all A/B test related localStorage
+            localStorage.removeItem('ab-test-variant');
+            localStorage.removeItem('ab-test-user-id');
+            localStorage.removeItem('dev-ab-variant');
+            localStorage.removeItem('ab-test-allocation-time');
+            
+            // Clear all localStorage to be safe
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            const status = document.getElementById('clearStatus');
+            status.innerHTML = '<div class="status success">✅ Storage cleared! You can now test different variants.</div>';
+            
+            // Auto-reload after 2 seconds
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+
+        function addTimestamp(link) {
+            // Add timestamp to URL to force fresh loading
+            const url = new URL(link.href);
+            url.searchParams.set('t', Date.now().toString());
+            link.href = url.toString();
+        }
+
+        function checkCurrentStatus() {
+            const status = document.getElementById('troubleshootStatus');
+            const details = document.getElementById('statusDetails');
+            
+            status.textContent = '🔍 Checking current A/B test status...';
+            status.className = 'status loading';
+            
+            // Check localStorage
+            const storedVariant = localStorage.getItem('dev-ab-variant') || localStorage.getItem('ab-test-variant');
+            const storedUserId = localStorage.getItem('ab-test-user-id');
+            const allKeys = Object.keys(localStorage);
+            
+            let statusHTML = '<h4>Current Storage State:</h4><ul>';
+            
+            if (storedVariant) {
+                statusHTML += `<li><strong>Stored Variant:</strong> <span class="code">${storedVariant}</span></li>`;
+            } else {
+                statusHTML += `<li><strong>Stored Variant:</strong> None (will get random assignment)</li>`;
+            }
+            
+            if (storedUserId) {
+                statusHTML += `<li><strong>User ID:</strong> <span class="code">${storedUserId.substring(0, 8)}...</span></li>`;
+            }
+            
+            statusHTML += `<li><strong>Total localStorage Keys:</strong> ${allKeys.length}</li>`;
+            
+            if (allKeys.length > 0) {
+                statusHTML += `<li><strong>All Keys:</strong> ${allKeys.map(k => `<span class="code">${k}</span>`).join(', ')}</li>`;
+            }
+            
+            statusHTML += '</ul>';
+            
+            // URL check
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlVariant = urlParams.get('variant');
+            if (urlVariant) {
+                statusHTML += `<h4>URL Parameter:</h4><p>variant=<span class="code">${urlVariant}</span></p>`;
+            }
+            
+            status.textContent = storedVariant ? 
+                `📌 Locked to variant: ${storedVariant}` : 
+                '🎲 Ready for random assignment';
+            status.className = storedVariant ? 'status error' : 'status success';
+            
+            details.innerHTML = statusHTML;
+        }
+
+        // Auto-check status on page load
+        document.addEventListener('DOMContentLoaded', checkCurrentStatus);
+    </script>
+</body>
+</html>

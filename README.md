@@ -1,183 +1,134 @@
-# Proto-Bloom Web Application
+# Life Psychology Australia - Frontend Application
 
-[![CI/CD](https://github.com/AntonyNeal/bloom-web-app/actions/workflows/proto-bloom-cicd.yml/badge.svg)](https://github.com/AntonyNeal/bloom-web-app/actions/workflows/proto-bloom-cicd.yml)
+> **For GitHub Copilot users**: See [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) for AI-assisted development guidance and custom prompt templates.
 
-Proto-Bloom is the MVP onboarding system for Life Psychology Australia's Bloom platform, enabling psychologists and mental health practitioners to apply to join the Bloom network.
+A modern, performance-optimized React application for Life Psychology Australia's healthcare services with production A/B testing, centralized service architecture, and comprehensive analytics tracking.
 
-## 🚀 Live Deployment
+## 🚀 Quick Start
 
-- **Staging**: https://witty-ground-01f9d5100.3.azurestaticapps.net
+### Development
 
-## 📋 Features
+```bash
+npm install
+npm run dev
+# Visit: http://localhost:5176
+```
 
-### Application Management System
-- **Application Form** (`/join-us`) - Practitioners can submit applications with:
-  - Personal information and qualifications
-  - AHPRA registration details
-  - File uploads (CV, certificates, profile photo)
-  - Experience details and cover letter
-  
-- **Admin Portal** (`/admin`) - Review and manage applications:
-  - Dashboard with application statistics
-  - List view with filtering and sorting
-  - Detail view for individual applications
-  - Status management (submitted, under review, approved, rejected)
-  - Document access and download
+### Production Build
 
-### Design System
-- Custom design system based on Bloom brand guidelines
-- Sage green (#8CA88C) and terracotta (#D97757) color palette
-- Poppins (headings) and Inter (body) typography
-- shadcn/ui component library integration
+```bash
+npm run build:ci
+npm run preview
+```
+
+## 📖 Documentation
+
+**Complete documentation is now organized in the [`docs/`](./docs/) directory:**
+
+- 🚀 **[Deployment](./docs/deployment/)** - CI/CD pipeline, manual deployment, GitHub setup
+- 🏗️ **[Infrastructure](./docs/infrastructure/)** - Azure resources, environment configuration
+- 📊 **[Analytics](./docs/analytics/)** - GA4, conversion tracking, UnifiedTracker system
+- ⚡ **[Performance](./docs/performance/)** - Optimization strategies, visual regression testing
+
+## 🎯 Current Status
+
+### A/B Testing System ✅ LIVE
+
+- **Healthcare-optimized vs Minimal header variants**
+- **50/50 traffic split with Azure Function allocation**
+- **Integrated with UnifiedTracker for comprehensive analytics**
+- **Staging**: https://red-desert-03b29ff00.1.azurestaticapps.net
+
+### Infrastructure ✅ OPERATIONAL
+
+- **CI/CD Pipeline**: Fixed and streamlined (4 redundant workflows removed)
+- **Documentation**: Consolidated from 113+ files into organized structure
+- **Testing**: Playwright tests updated for A/B testing compatibility
 
 ## 🛠️ Tech Stack
 
-### Frontend
 - **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **UI Components**: shadcn/ui + Tailwind CSS
-- **State Management**: Redux Toolkit
-- **Routing**: React Router
-- **Forms**: React Hook Form + Zod validation
+- **Build Tool**: Vite 7
+- **Styling**: Tailwind CSS
+- **Testing**: Playwright (E2E), Vitest (Unit)
+- **Analytics**: GA4 + Google Ads via UnifiedTracker
+- **Deployment**: Azure Static Web Apps
+- **Functions**: Azure Functions (A/B allocation)
 
-### Backend
-- **API**: Azure Functions (Node.js/TypeScript)
-- **Database**: Azure SQL Database
-- **Storage**: Azure Blob Storage
-- **Hosting**: Azure Static Web Apps
+## 🏗️ Architecture (Nov 2025 Refactoring)
 
-## 🏗️ Project Structure
+### Centralized Services
 
-```
-bloom-web-app/
-├── api/                          # Azure Functions backend
-│   ├── applications/            # Application CRUD endpoints
-│   └── upload/                  # File upload endpoint
-├── src/
-│   ├── pages/
-│   │   ├── JoinUs.tsx          # Application form
-│   │   └── admin/              # Admin portal
-│   ├── components/             # Reusable components
-│   ├── features/               # Feature modules
-│   └── design-system/          # Design tokens
-├── schema.sql                   # Database schema
-└── .github/workflows/           # CI/CD pipelines
-```
+- **`src/services/BookingService.ts`** - Singleton managing all booking operations and modal state
+- **`src/services/ApiService.ts`** - HTTP client with retry logic, timeout handling, type-safe responses
+- **`src/services/FeatureFlagService.ts`** - Runtime feature flag management
 
-## 🔧 Development Setup
+### Key Patterns
 
-### Prerequisites
-- Node.js 20+
-- npm or yarn
-- Azure account (for deployment)
+- **Structured Logging**: All components use `src/utils/logger.ts` (DEBUG/INFO/WARN/ERROR)
+- **Type-Safe APIs**: All HTTP calls use `ApiService` returning `ApiResponse<T>`
+- **Centralized Booking**: Single `BookingService` eliminates 200+ lines of duplicate code
+- **No Direct Fetch**: All API calls go through `ApiService` for consistency
 
-### Installation
+**See**: `ARCHITECTURE-ANALYSIS.md` and `REFACTORING-GUIDE.md` for implementation details
+
+## 🧪 A/B Testing
+
+### Testing Variants Locally
 
 ```bash
-# Clone the repository
-git clone https://github.com/AntonyNeal/bloom-web-app.git
-cd bloom-web-app
+# Default healthcare-optimized variant
+http://localhost:5176
 
-# Install dependencies
-npm install
+# Minimal variant
+http://localhost:5176?variant=minimal
 
-# Start development server
-npm run dev
+# Test verification page
+http://localhost:5176/ab-test-verification
 ```
 
-The app will be available at `http://localhost:5173`
+### Production Testing
 
-### Available Scripts
+- Refresh staging environment to see different variants
+- Monitor GA4 events for `ab_test_variant_shown`
+- Check conversion tracking via `book_now_click` events
+
+## 📊 Performance
+
+- **Bundle Size**: ~580KB gzipped (optimized from ~850KB)
+- **LCP**: <2.5s via critical CSS inlining
+- **Analytics**: Reduced tracking overhead by 66% with UnifiedTracker
+- **Testing**: Automated visual regression testing via Playwright
+
+## 🚦 Deployment
+
+### Automated (Recommended)
 
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run lint         # Run ESLint
-npm run preview      # Preview production build
+git push origin staging   # Auto-deploys to staging
+git push origin main      # Auto-deploys to production
 ```
 
-## 🚢 Deployment
-
-### Automated CI/CD
-
-The project uses GitHub Actions for continuous deployment:
-
-- **Triggers**: Push to `main`, `staging`, or `develop` branches
-- **Pipeline Steps**:
-  1. ✅ Lint code (ESLint)
-  2. ✅ Type check (TypeScript)
-  3. ✅ Build application (Vite)
-  4. ✅ Deploy to Azure Static Web Apps
-
-### Manual Deployment
+### Manual (Emergency)
 
 ```bash
-# Build the application
-npm run build
-
-# Deploy using Azure Static Web Apps CLI
-npx @azure/static-web-apps-cli deploy \
-  --deployment-token <YOUR_TOKEN> \
-  --app-location . \
-  --output-location dist
+npm run build:ci
+swa deploy dist --env staging --deployment-token "YOUR_TOKEN"
 ```
 
-## 🔐 Environment Configuration
+## 📋 Next Steps
 
-### Required GitHub Secrets
+1. **High Priority**: Add `AZURE_STATIC_WEB_APPS_API_TOKEN` to GitHub Secrets
+2. **Medium Priority**: Launch A/B test in production after staging validation
+3. **Low Priority**: Additional workflow simplification
 
-Set these in your GitHub repository settings (`Settings > Secrets and variables > Actions`):
+## 🔗 Links
 
-- `AZURE_STATIC_WEB_APPS_API_TOKEN` - Azure Static Web Apps deployment token
+- **Production**: https://life-psychology.com.au
+- **Staging**: https://red-desert-03b29ff00.1.azurestaticapps.net
+- **GitHub**: https://github.com/AntonyNeal/life-psychology-frontend
+- **Documentation**: [./docs/README.md](./docs/README.md)
 
-### Backend Environment Variables
+---
 
-Configure in Azure Functions Application Settings:
-
-```
-SQL_SERVER=your-server.database.windows.net
-SQL_DATABASE=bloom-platform
-SQL_USER=your-username
-SQL_PASSWORD=your-password
-AZURE_STORAGE_CONNECTION_STRING=your-connection-string
-```
-
-## 📚 Documentation
-
-- [Architecture Overview](./ARCHITECTURE.md)
-- [Deployment Guide](./DEPLOYMENT.md)
-- [Quick Start Guide](./QUICKSTART.md)
-- [Application Management](./APPLICATION_MANAGEMENT_README.md)
-- [Implementation Summary](./IMPLEMENTATION_SUMMARY.md)
-
-## 🎨 Design System
-
-The application follows Life Psychology Australia's Bloom brand guidelines:
-
-### Colors
-- **Primary**: Sage Green (#8CA88C)
-- **Secondary**: Terracotta (#D97757)
-- **Accent**: Warm Yellow (#F4C95D)
-- **Text**: Charcoal (#2C2C2C)
-- **Background**: Soft Cream (#FAF8F3)
-
-### Typography
-- **Headings**: Poppins (600 weight)
-- **Body**: Inter (400 weight)
-
-## 🤝 Contributing
-
-1. Create a feature branch from `develop`
-2. Make your changes
-3. Ensure tests pass and linting is clean
-4. Submit a pull request
-
-## 📝 License
-
-Copyright © 2025 Life Psychology Australia
-
-## 🆘 Support
-
-For issues or questions:
-- Open an issue on GitHub
-- Contact the development team
+_Project cleaned up October 2025 - Documentation consolidated, workflows streamlined, A/B testing deployed_

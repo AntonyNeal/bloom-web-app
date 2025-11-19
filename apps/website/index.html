@@ -1,0 +1,1075 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Canonical URL - Default for root, will be replaced by React Helmet for other pages -->
+    <link rel="canonical" href="https://life-psychology.com.au/" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- Performance Optimizations: Resource Preloading -->
+    <!-- Preload hero image with modern format support -->
+    <link
+      rel="preload"
+      as="image"
+      href="/assets/hero-zoe-main.webp"
+      type="image/webp"
+      fetchpriority="high"
+    />
+    <!-- Fallback preload for JPEG -->
+    <link
+      rel="preload"
+      as="image"
+      href="/assets/hero-zoe-main.jpg"
+      type="image/jpeg"
+      fetchpriority="high"
+      media="(max-width: 768px)"
+    />
+    <!-- Preload critical fonts with async loading and swap display -->
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript
+      ><link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    /></noscript>
+
+    <!-- Performance Optimizations: DNS Prefetch -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+
+    <!-- Performance Optimizations: Preconnect for critical resources -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link
+      rel="preconnect"
+      href="https://www.googletagmanager.com"
+      crossorigin
+    />
+
+    <!-- Cache control hints for static assets -->
+    <!-- Note: Vite automatically injects modulepreload links during build - do not add manual modulepreload links here -->
+    <meta
+      http-equiv="Cache-Control"
+      content="public, max-age=31536000, immutable"
+    />
+
+    <!-- Environment Variables (Injected by build process) -->
+    <script>
+      // Build-time environment variables injected as global variables
+      window.__ENV_VARS__ = {
+        VITE_GA_MEASUREMENT_ID: '__RUNTIME_VITE_GA_MEASUREMENT_ID__',
+        VITE_GTM_ID: '__RUNTIME_VITE_GTM_ID__',
+        VITE_GOOGLE_ADS_ID: '__RUNTIME_VITE_GOOGLE_ADS_ID__',
+        VITE_GOOGLE_ADS_CONVERSION_LABEL:
+          '__RUNTIME_VITE_GOOGLE_ADS_CONVERSION_LABEL__',
+        VITE_OPENAI_API_KEY: '__RUNTIME_VITE_OPENAI_API_KEY__',
+        VITE_CHAT_ENABLED: '__RUNTIME_VITE_CHAT_ENABLED__',
+        VITE_ASSESSMENT_ENABLED: '__RUNTIME_VITE_ASSESSMENT_ENABLED__',
+        VITE_DEBUG_PANEL: '__RUNTIME_VITE_DEBUG_PANEL__',
+        VITE_BUILD_ITERATION: '__RUNTIME_VITE_BUILD_ITERATION__',
+        VITE_BUILD_TIME: '__RUNTIME_VITE_BUILD_TIME__',
+        VITE_BOOKING_URL: '__RUNTIME_VITE_BOOKING_URL__',
+      };
+
+      // Also expose individual variables for easier access
+      window.VITE_GA_MEASUREMENT_ID = '__RUNTIME_VITE_GA_MEASUREMENT_ID__';
+      window.VITE_GOOGLE_ADS_ID = '__RUNTIME_VITE_GOOGLE_ADS_ID__';
+      window.VITE_GOOGLE_ADS_CONVERSION_LABEL =
+        '__RUNTIME_VITE_GOOGLE_ADS_CONVERSION_LABEL__';
+      window.VITE_OPENAI_API_KEY = '__RUNTIME_VITE_OPENAI_API_KEY__';
+      window.VITE_CHAT_ENABLED = '__RUNTIME_VITE_CHAT_ENABLED__';
+      window.VITE_ASSESSMENT_ENABLED = '__RUNTIME_VITE_ASSESSMENT_ENABLED__';
+      /* VITE_DEBUG_PANEL intentionally controlled by CI/runtime */
+      window.VITE_DEBUG_PANEL = '__RUNTIME_VITE_DEBUG_PANEL__';
+      window.VITE_BUILD_ITERATION = '__RUNTIME_VITE_BUILD_ITERATION__';
+      window.VITE_BUILD_TIME = '__RUNTIME_VITE_BUILD_TIME__';
+      window.VITE_BOOKING_URL = '__RUNTIME_VITE_BOOKING_URL__';
+    </script>
+    <!-- Global site tag (gtag.js) - Google Analytics & Google Ads -->
+    <script>
+      // Environment-based GA4 Measurement ID Detection
+      function getGa4MeasurementId() {
+        const hostname = window.location.hostname;
+
+        // Production domain
+        if (
+          hostname === 'www.life-psychology.com.au' ||
+          hostname === 'life-psychology.com.au'
+        ) {
+          return 'G-XGGBRLPBKK';
+        }
+
+        // Staging domain (Azure Static Web Apps)
+        if (
+          hostname.includes('azurestaticapps.net') ||
+          hostname.includes('red-desert')
+        ) {
+          return 'G-MVE59VPCQH';
+        }
+
+        // Local development fallback
+        if (
+          hostname === 'localhost' ||
+          hostname === '127.0.0.1' ||
+          hostname.includes('localhost')
+        ) {
+          return 'G-MVE59VPCQH'; // Use staging ID for local testing
+        }
+
+        // Environment variable fallback (if available)
+        if (
+          window.VITE_GA_MEASUREMENT_ID &&
+          !window.VITE_GA_MEASUREMENT_ID.startsWith('__RUNTIME_')
+        ) {
+          return window.VITE_GA_MEASUREMENT_ID;
+        }
+
+        // Default fallback
+        console.warn(
+          '[GA4] Unknown hostname, using production measurement ID:',
+          hostname
+        );
+        return 'G-XGGBRLPBKK';
+      }
+
+      // Dynamically load GA4 script with correct measurement ID
+      (function () {
+        const measurementId = getGa4MeasurementId();
+        const hostname = window.location.hostname;
+        let environment = 'unknown';
+
+        if (
+          hostname === 'www.life-psychology.com.au' ||
+          hostname === 'life-psychology.com.au'
+        ) {
+          environment = 'production';
+        } else if (
+          hostname.includes('azurestaticapps.net') ||
+          hostname.includes('red-desert')
+        ) {
+          environment = 'staging';
+        } else if (
+          hostname === 'localhost' ||
+          hostname === '127.0.0.1' ||
+          hostname.includes('localhost')
+        ) {
+          environment = 'local development';
+        }
+
+        console.log(
+          '[GA4] Environment detected:',
+          environment,
+          '- Hostname:',
+          hostname
+        );
+        console.log('[GA4] Initialized with ID:', measurementId);
+
+        // Defer GTM loading until after First Contentful Paint to improve LCP
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(function () {
+              const measurementId = getGa4MeasurementId();
+              const script = document.createElement('script');
+              script.async = true;
+              script.src =
+                'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
+              document.head.appendChild(script);
+            }, 100); // Small delay after DOM ready
+          });
+        } else {
+          // Fallback if DOM is already loaded
+          setTimeout(function () {
+            const measurementId = getGa4MeasurementId();
+            const script = document.createElement('script');
+            script.async = true;
+            script.src =
+              'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
+            document.head.appendChild(script);
+          }, 100);
+        }
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        window.gtag = gtag; // Make gtag globally available
+
+        gtag('js', new Date());
+
+        // Configure GA4 with cross-domain tracking linker
+        // The 'linker' parameter enables GA4 to append linker parameters to URLs, allowing attribution across domains.
+        if (
+          hostname === 'www.life-psychology.com.au' ||
+          hostname === 'life-psychology.com.au'
+        ) {
+          gtag('config', 'G-XGGBRLPBKK', {
+            custom_map: {
+              custom_parameter_1: 'page_section',
+              custom_parameter_2: 'button_location',
+              custom_parameter_3: 'service_type',
+              dimension1: 'page_section',
+              dimension2: 'button_location',
+              dimension3: 'service_type',
+              metric1: 'scroll_depth',
+              metric2: 'time_on_page',
+            },
+            send_page_view: true,
+            allow_google_signals: true,
+            allow_ad_personalization_signals: true,
+            transport_type: 'beacon',
+            link_attribution: true,
+            linker: {
+              domains: [
+                'life-psychology.com.au',
+                'www.life-psychology.com.au',
+                'halaxy.com',
+              ],
+              accept_incoming: true,
+            },
+          });
+        } else {
+          gtag('config', 'G-XGGBRLPBKK', {
+            custom_map: {
+              custom_parameter_1: 'page_section',
+              custom_parameter_2: 'button_location',
+              custom_parameter_3: 'service_type',
+              dimension1: 'page_section',
+              dimension2: 'button_location',
+              dimension3: 'service_type',
+              metric1: 'scroll_depth',
+              metric2: 'time_on_page',
+            },
+            send_page_view: true,
+            allow_google_signals: true,
+            allow_ad_personalization_signals: true,
+            transport_type: 'beacon',
+            link_attribution: true,
+            linker: {
+              domains: [
+                'life-psychology.com.au',
+                'www.life-psychology.com.au',
+                'halaxy.com',
+              ],
+              accept_incoming: true,
+            },
+          });
+        }
+
+        // Google Ads Conversion Tracking Configuration
+        gtag('config', 'AW-11563740075', {
+          allow_enhanced_conversions: true,
+        });
+      })();
+    </script>
+    <!-- EARLY RUNTIME ENV CHECK - only enabled when VITE_DEBUG_PANEL is set to 'true' -->
+    <script>
+      try {
+        var _debugEnabled = false;
+        try {
+          _debugEnabled =
+            String(window.VITE_DEBUG_PANEL || '').toLowerCase() === 'true';
+        } catch (e) {
+          _debugEnabled = false;
+        }
+
+        if (_debugEnabled) {
+          try {
+            console.log(
+              '🔎 EARLY ENV CHECK - window.__ENV_VARS__ ->',
+              window.__ENV_VARS__ || null
+            );
+            console.log(
+              '🔎 EARLY ENV CHECK - window.VITE_ASSESSMENT_ENABLED ->',
+              window.VITE_ASSESSMENT_ENABLED || null
+            );
+            console.log(
+              '🔎 EARLY ENV CHECK - window.VITE_CHAT_ENABLED ->',
+              window.VITE_CHAT_ENABLED || null
+            );
+            // Detect unreplaced placeholder tokens in the raw HTML
+            try {
+              var docHtml =
+                document.documentElement && document.documentElement.innerHTML;
+              if (
+                docHtml &&
+                docHtml.indexOf('__RUNTIME_VITE_ASSESSMENT_ENABLED__') !== -1
+              ) {
+                console.warn(
+                  '⚠️ EARLY ENV CHECK - FOUND placeholder __RUNTIME_VITE_ASSESSMENT_ENABLED__ in served HTML (pre-inject or cached)'
+                );
+              }
+            } catch (e) {
+              /* ignore DOM read errors */
+            }
+          } catch (e) {
+            console.error(
+              '🔎 EARLY ENV CHECK - failed to read runtime envs',
+              e
+            );
+          }
+        }
+      } catch (e) {
+        /* ignore errors in debug helper */
+      }
+    </script>
+    <!-- End Environment Variables -->
+
+    <!-- Primary Meta Tags -->
+    <title>
+      Life Psychology Australia | Psychologist Newcastle | Anxiety & Depression
+      Therapy
+    </title>
+    <meta
+      name="title"
+      content="Life Psychology Australia | Psychologist Newcastle | Anxiety & Depression Therapy"
+    />
+    <meta
+      name="description"
+      content="Professional psychologist in Newcastle providing anxiety therapy, depression counselling, couples therapy, and NDIS psychology services. Secure telehealth sessions across the Greater Hunter region."
+    />
+    <meta
+      name="keywords"
+      content="psychologist Newcastle, anxiety therapy Newcastle, depression counselling Newcastle, couples therapy Newcastle, marriage therapy Newcastle, autism psychologist Newcastle, ADHD therapy Newcastle, NDIS psychologist Newcastle, telehealth psychology NDIS, mental health services Newcastle"
+    />
+    <meta name="author" content="Life Psychology Australia" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="7 days" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://life-psychology.com.au" />
+
+    <!-- Performance Optimizations -->
+    <!-- Preconnect to external domains for faster connections -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://www.google-analytics.com" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
+
+    <!-- DNS prefetch for additional performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="//www.google-analytics.com" />
+    <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+    <link rel="dns-prefetch" href="//www.googleadservices.com" />
+
+    <!-- Preconnect to critical origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Google Fonts with optimized loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      sizes="16x16"
+      href="/favicon-16x16.svg"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      sizes="32x32"
+      href="/favicon-32x32.svg"
+    />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg" />
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Life Psychology" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://life-psychology.com.au" />
+    <meta
+      property="og:title"
+      content="Life Psychology Australia | Psychologist Newcastle | Anxiety & Depression Therapy"
+    />
+    <meta
+      property="og:description"
+      content="Professional psychologist in Newcastle providing anxiety therapy, depression counselling, couples therapy, and NDIS psychology services. Secure telehealth sessions across the Greater Hunter region."
+    />
+    <meta property="og:image" content="/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    <meta
+      property="og:image:alt"
+      content="Life Psychology Australia - Professional Psychologist in Newcastle offering anxiety therapy, depression counselling, couples therapy, and NDIS services"
+    />
+    <meta property="og:site_name" content="Life Psychology Australia" />
+    <meta property="og:locale" content="en_AU" />
+
+    <!-- Additional Open Graph tags for better sharing -->
+    <meta property="article:author" content="Zoe Semmler" />
+    <meta property="article:section" content="Psychology" />
+    <meta property="article:tag" content="Mental Health" />
+    <meta property="article:tag" content="Psychology" />
+    <meta property="article:tag" content="Newcastle" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://life-psychology.com.au" />
+    <meta
+      property="twitter:title"
+      content="Life Psychology Australia | Psychologist Newcastle | Anxiety & Depression Therapy"
+    />
+    <meta
+      property="twitter:description"
+      content="Professional psychologist in Newcastle providing anxiety therapy, depression counselling, couples therapy, and NDIS psychology services. Secure telehealth sessions across the Greater Hunter region."
+    />
+    <meta property="twitter:image" content="/og-image.svg" />
+
+    <!-- Performance Meta Tags -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="MobileOptimized" content="width" />
+
+    <!-- Resource Hints for better performance -->
+    <!-- Note: Route prefetching removed - Vite handles lazy loading automatically during build -->
+
+    <!-- Local Business Schema -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "Life Psychology Australia",
+        "description": "Professional psychologist providing anxiety therapy, depression counselling, couples therapy, and NDIS psychology services in Newcastle and the Greater Hunter region",
+        "url": "https://life-psychology.com.au",
+        "telephone": "",
+        "email": "info@life-psychology.com.au",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Newcastle",
+          "addressRegion": "NSW",
+          "addressCountry": "AU"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": "-32.9283",
+          "longitude": "151.7765"
+        },
+        "areaServed": [
+          {
+            "@type": "City",
+            "name": "Newcastle"
+          },
+          {
+            "@type": "City",
+            "name": "Greater Hunter Region"
+          }
+        ],
+        "serviceType": [
+          "Psychology Services",
+          "Anxiety Therapy",
+          "Depression Counselling",
+          "Couples Therapy",
+          "NDIS Psychology",
+          "Telehealth Services"
+        ],
+        "priceRange": "$$"
+      }
+    </script>
+
+    <!-- Organisation Schema -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organisation",
+        "name": "Life Psychology Australia",
+        "url": "https://life-psychology.com.au",
+        "logo": "https://life-psychology.com.au/logo.svg",
+        "description": "Professional psychology services in Newcastle including anxiety therapy, depression counselling, couples therapy, and NDIS psychology through secure telehealth",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "",
+          "contactType": "customer service",
+          "email": "info@life-psychology.com.au",
+          "availableLanguage": "English"
+        },
+        "sameAs": [
+          "https://www.facebook.com/lifepsychologyaustralia",
+          "https://www.instagram.com/lifepsychologyaustralia"
+        ]
+      }
+    </script>
+
+    <!-- Critical CSS for above-the-fold content -->
+    <style>
+      /* Critical CSS for above-the-fold content - Life Psychology Australia */
+      /* Optimized for Lighthouse LCP and Speed Index */
+
+      /* Base reset - minimal essentials only */
+      *,
+      ::before,
+      ::after {
+        box-sizing: border-box;
+        border: 0 solid #e5e7eb;
+      }
+      html {
+        line-height: 1.5;
+        -webkit-text-size-adjust: 100%;
+        tab-size: 4;
+        font-family: Inter, system-ui, sans-serif;
+        font-feature-settings: normal;
+        font-variation-settings: normal;
+      }
+      body {
+        margin: 0;
+        line-height: inherit;
+        font-family: Inter, system-ui, sans-serif;
+        font-weight: 400;
+        color: #1f2937;
+        background-color: #f9fafb;
+      }
+
+      /* Typography - hero section only */
+      h1 {
+        font-size: clamp(1.875rem, 5vw, 3rem);
+        line-height: 1.1;
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 1rem;
+      }
+
+      /* Layout utilities - essential only */
+      .relative {
+        position: relative;
+      }
+      .absolute {
+        position: absolute;
+      }
+      .sticky {
+        position: sticky;
+      }
+      .top-0 {
+        top: 0;
+      }
+      .z-50 {
+        z-index: 50;
+      }
+      .-z-10 {
+        z-index: -10;
+      }
+      .flex {
+        display: flex;
+      }
+      .grid {
+        display: grid;
+      }
+      .hidden {
+        display: none;
+      }
+      .items-center {
+        align-items: center;
+      }
+      .items-start {
+        align-items: flex-start;
+      }
+      .justify-center {
+        justify-content: center;
+      }
+      .justify-between {
+        justify-content: space-between;
+      }
+      .gap-4 {
+        gap: 1rem;
+      }
+      .gap-6 {
+        gap: 1.5rem;
+      }
+      .mx-auto {
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .max-w-7xl {
+        max-width: 80rem;
+      }
+      .w-full {
+        width: 100%;
+      }
+      .h-auto {
+        height: auto;
+      }
+      .overflow-hidden {
+        overflow: hidden;
+      }
+      .overflow-visible {
+        overflow: visible;
+      }
+
+      /* Spacing - hero section only */
+      .px-4 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      .py-8 {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+      }
+      .mb-3 {
+        margin-bottom: 0.75rem;
+      }
+      .mb-4 {
+        margin-bottom: 1rem;
+      }
+      .mb-6 {
+        margin-bottom: 1.5rem;
+      }
+      .p-3 {
+        padding: 0.75rem;
+      }
+      .p-4 {
+        padding: 1rem;
+      }
+      .px-3 {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+      .px-4 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      .px-8 {
+        padding-left: 2rem;
+        padding-right: 2rem;
+      }
+      .py-1 {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+      }
+      .py-2 {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+      }
+      .py-4 {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+      }
+
+      /* Grid layout */
+      .grid-cols-1 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+
+      /* Colors - essential only */
+      .text-gray-600 {
+        color: #4b5563;
+      }
+      .text-gray-700 {
+        color: #374151;
+      }
+      .text-gray-800 {
+        color: #1f2937;
+      }
+      .text-gray-900 {
+        color: #111827;
+      }
+      .text-blue-600 {
+        color: #2563eb;
+      }
+      .text-blue-800 {
+        color: #1e40af;
+      }
+      .text-green-700 {
+        color: #15803d;
+      }
+      .text-green-800 {
+        color: #166534;
+      }
+      .text-purple-800 {
+        color: #5b21b6;
+      }
+      .text-white {
+        color: #fff;
+      }
+      .bg-white {
+        background-color: #fff;
+      }
+      .bg-blue-50 {
+        background-color: #eff6ff;
+      }
+      .bg-blue-100 {
+        background-color: #dbeafe;
+      }
+      .bg-blue-600 {
+        background-color: #2563eb;
+      }
+      .bg-green-50 {
+        background-color: #f0fdf4;
+      }
+      .bg-green-100 {
+        background-color: #dcfce7;
+      }
+      .bg-green-500 {
+        background-color: #22c55e;
+      }
+      .bg-purple-100 {
+        background-color: #f3e8ff;
+      }
+
+      /* Backgrounds with opacity */
+      .bg-white\/80 {
+        background-color: rgba(255, 255, 255, 0.8);
+      }
+      .bg-blue-50\/30 {
+        background-color: rgba(239, 246, 255, 0.3);
+      }
+      .bg-blue-100\/10 {
+        background-color: rgba(219, 234, 254, 0.1);
+      }
+      .bg-purple-100\/5 {
+        background-color: rgba(243, 232, 255, 0.05);
+      }
+
+      /* Borders */
+      .border {
+        border-width: 1px;
+      }
+      .border-blue-100 {
+        border-color: #dbeafe;
+      }
+      .border-blue-200 {
+        border-color: #bfdbfe;
+      }
+      .border-gray-200 {
+        border-color: #e5e7eb;
+      }
+      .border-green-200 {
+        border-color: #bbf7d0;
+      }
+      .rounded-lg {
+        border-radius: 0.5rem;
+      }
+      .rounded-2xl {
+        border-radius: 1rem;
+      }
+      .rounded-full {
+        border-radius: 9999px;
+      }
+
+      /* Shadows - simplified */
+      .shadow-2xl {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+      .shadow-lg {
+        box-shadow:
+          0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Typography sizes - responsive */
+      .text-sm {
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+      }
+      .text-base {
+        font-size: 1rem;
+        line-height: 1.5rem;
+      }
+      .text-lg {
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+      }
+      .text-xl {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+      }
+      .font-medium {
+        font-weight: 500;
+      }
+      .font-semibold {
+        font-weight: 600;
+      }
+      .font-bold {
+        font-weight: 700;
+      }
+      .text-center {
+        text-align: center;
+      }
+      .leading-tight {
+        line-height: 1.25;
+      }
+
+      /* Image optimization */
+      img,
+      picture {
+        max-width: 100%;
+        height: auto;
+        display: block;
+      }
+      .object-contain {
+        object-fit: contain;
+      }
+
+      /* Gradients */
+      .bg-gradient-to-br {
+        background-image: linear-gradient(
+          to bottom right,
+          var(--tw-gradient-stops)
+        );
+      }
+      .from-blue-50\/30 {
+        --tw-gradient-from: rgba(239, 246, 255, 0.3);
+        --tw-gradient-to: rgba(239, 246, 255, 0);
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+      }
+      .to-white {
+        --tw-gradient-to: #fff;
+      }
+
+      /* Transitions - essential only */
+      .transition-all {
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 150ms;
+      }
+      .duration-200 {
+        transition-duration: 200ms;
+      }
+
+      /* Hover states - simplified */
+      .hover\:bg-blue-700:hover {
+        background-color: #1d4ed8;
+      }
+      .hover\:bg-blue-50:hover {
+        background-color: #eff6ff;
+      }
+      .hover\:bg-gray-50:hover {
+        background-color: #f9fafb;
+      }
+      .hover\:text-blue-700:hover {
+        color: #1d4ed8;
+      }
+      .hover\:text-gray-700:hover {
+        color: #374151;
+      }
+      .hover\:shadow-xl:hover {
+        box-shadow:
+          0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      }
+      .hover\:-translate-y-0\.5:hover {
+        transform: translateY(-0.125rem);
+      }
+
+      /* Focus states */
+      .focus\:outline-none:focus {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+      }
+      .focus\:ring-2:focus {
+        box-shadow: 0 0 0 calc(2px + 0px) #3b82f6;
+      }
+      .focus\:ring-blue-500:focus {
+        --tw-ring-color: #3b82f6;
+      }
+      .focus\:ring-offset-2:focus {
+        --tw-ring-offset-width: 2px;
+      }
+
+      /* Responsive - mobile first */
+      @media (min-width: 640px) {
+        .sm\:px-6 {
+          padding-left: 1.5rem;
+          padding-right: 1.5rem;
+        }
+        .sm\:py-12 {
+          padding-top: 3rem;
+          padding-bottom: 3rem;
+        }
+        .sm\:mb-4 {
+          margin-bottom: 1rem;
+        }
+        .sm\:mb-6 {
+          margin-bottom: 1.5rem;
+        }
+        .sm\:text-lg {
+          font-size: 1.125rem;
+          line-height: 1.75rem;
+        }
+        .sm\:text-xl {
+          font-size: 1.25rem;
+          line-height: 1.75rem;
+        }
+        .sm\:text-4xl {
+          font-size: 2.25rem;
+          line-height: 2.5rem;
+        }
+        .sm\:grid-cols-2 {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .sm\:text-left {
+          text-align: left;
+        }
+        .sm\:items-start {
+          align-items: flex-start;
+        }
+        .sm\:order-1 {
+          order: 1;
+        }
+        .sm\:order-2 {
+          order: 2;
+        }
+        .sm\:w-auto {
+          width: auto;
+        }
+        .sm\:flex-row {
+          flex-direction: row;
+        }
+      }
+      @media (min-width: 1024px) {
+        .lg\:px-8 {
+          padding-left: 2rem;
+          padding-right: 2rem;
+        }
+        .lg\:py-24 {
+          padding-top: 6rem;
+          padding-bottom: 6rem;
+        }
+        .lg\:text-xl {
+          font-size: 1.25rem;
+          line-height: 1.75rem;
+        }
+        .lg\:text-5xl {
+          font-size: 3rem;
+          line-height: 1;
+        }
+        .lg\:gap-8 {
+          gap: 2rem;
+        }
+        .lg\:order-1 {
+          order: 1;
+        }
+        .lg\:order-2 {
+          order: 2;
+        }
+      }
+
+      /* Utility classes */
+      .order-1 {
+        order: 1;
+      }
+      .order-2 {
+        order: 2;
+      }
+      .self-start {
+        align-self: flex-start;
+      }
+      .flex-col {
+        flex-direction: column;
+      }
+      .flex-wrap {
+        flex-wrap: wrap;
+      }
+      .gap-2 {
+        gap: 0.5rem;
+      }
+      .gap-3 {
+        gap: 0.75rem;
+      }
+      .space-y-1 > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 0.25rem;
+      }
+      .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 1rem;
+      }
+      .inline-flex {
+        display: inline-flex;
+      }
+      .backdrop-blur-sm {
+        backdrop-filter: blur(4px);
+      }
+      .w-2 {
+        width: 0.5rem;
+      }
+      .w-3 {
+        width: 0.75rem;
+      }
+      .h-2 {
+        height: 0.5rem;
+      }
+      .h-3 {
+        height: 0.75rem;
+      }
+      .mr-2 {
+        margin-right: 0.5rem;
+      }
+      .mt-1 {
+        margin-top: 0.25rem;
+      }
+      .mb-2 {
+        margin-bottom: 0.5rem;
+      }
+      .border-t {
+        border-top-width: 1px;
+      }
+      .pt-3 {
+        padding-top: 0.75rem;
+      }
+      .mt-3 {
+        margin-top: 0.75rem;
+      }
+      .text-xs {
+        font-size: 0.75rem;
+        line-height: 1rem;
+      }
+      .italic {
+        font-style: italic;
+      }
+    </style>
+    <!-- Performance: Defer non-critical resources -->
+    <script>
+      // Load non-critical resources after LCP
+      window.addEventListener('load', function () {
+        // Prefetch can be added here if needed for future navigations
+      });
+    </script>
+    <script type="module" src="src/main.tsx"></script>
+
+    <!-- Microsoft Clarity Analytics - Delayed initialization to reduce performance impact -->
+    <script type="text/javascript">
+      // Delay Clarity initialization by 3 seconds to improve LCP and reduce blocking
+      setTimeout(function () {
+        (function (c, l, a, r, i, t, y) {
+          c[a] =
+            c[a] ||
+            function () {
+              (c[a].q = c[a].q || []).push(arguments);
+            };
+          t = l.createElement(r);
+          t.async = 1;
+          t.src = 'https://www.clarity.ms/tag/' + i;
+          y = l.getElementsByTagName(r)[0];
+          y.parentNode.insertBefore(t, y);
+        })(window, document, 'clarity', 'script', 'th00xffrrg');
+      }, 3000);
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

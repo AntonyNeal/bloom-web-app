@@ -1,0 +1,139 @@
+﻿{
+  "trailingSlash": "never",
+  "routes": [
+    {
+      "route": "/assets/*",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "X-Content-Type-Options": "nosniff"
+      }
+    },
+    {
+      "route": "/images/*",
+      "headers": {
+        "Cache-Control": "public, max-age=2592000",
+        "X-Content-Type-Options": "nosniff"
+      }
+    },
+    {
+      "route": "/*.webp",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Vary": "Accept"
+      }
+    },
+    {
+      "route": "/*.avif",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Vary": "Accept"
+      }
+    },
+    {
+      "route": "/*.jpg",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Vary": "Accept"
+      }
+    },
+    {
+      "route": "/*.jpeg",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Vary": "Accept"
+      }
+    },
+    {
+      "route": "/*.png",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Vary": "Accept"
+      }
+    },
+    {
+      "route": "/*.svg",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "route": "/*.woff",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "X-Content-Type-Options": "nosniff"
+      }
+    },
+    {
+      "route": "/*.woff2",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "X-Content-Type-Options": "nosniff"
+      }
+    },
+    {
+      "route": "/*.css",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "X-Content-Type-Options": "nosniff"
+      }
+    },
+    {
+      "route": "/*.js",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "X-Content-Type-Options": "nosniff"
+      }
+    },
+    {
+      "route": "/sw.js",
+      "headers": {
+        "Cache-Control": "no-cache, must-revalidate",
+        "X-Content-Type-Options": "nosniff"
+      }
+    },
+    {
+      "route": "/runtime-config.json",
+      "headers": {
+        "Cache-Control": "no-cache, must-revalidate",
+        "X-Content-Type-Options": "nosniff"
+      }
+    },
+    {
+      "route": "/index.html",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "X-Content-Type-Options": "nosniff"
+      }
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "/images/*",
+      "/assets/*",
+      "/*.{json,txt,xml,ico,svg,webp,png,jpg,jpeg,gif,webmanifest,js,css,map,woff,woff2,ttf,eot,avif}"
+    ]
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "X-DNS-Prefetch-Control": "on"
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".js": "text/javascript",
+    ".mjs": "text/javascript",
+    ".css": "text/css",
+    ".webp": "image/webp",
+    ".avif": "image/avif",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2"
+  }
+}

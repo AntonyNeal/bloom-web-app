@@ -1,0 +1,23 @@
+{
+  "main": {
+    "required_approving_review_count": 2,
+    "enforce_admins": true,
+    "required_status_checks": ["ci-cd-pipeline", "security"],
+    "restrictions": null,
+    "allow_force_pushes": false
+  },
+  "staging": {
+    "required_approving_review_count": 1,
+    "enforce_admins": true,
+    "required_status_checks": ["ci-cd-pipeline"],
+    "restrictions": null,
+    "allow_force_pushes": false
+  },
+  "develop": {
+    "required_approving_review_count": 0,
+    "enforce_admins": false,
+    "required_status_checks": [],
+    "restrictions": null,
+    "allow_force_pushes": false
+  }
+}

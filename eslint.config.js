@@ -24,6 +24,13 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // Enforce consistent imports using path aliases
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          group: ['../*', '../../*', '../../../*'],
+          message: 'Use path aliases (@/*) instead of relative imports for better maintainability.'
+        }]
+      }],
     },
   },
 )

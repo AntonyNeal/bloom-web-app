@@ -26,4 +26,8 @@ dist-ssr
 .env
 
 # GitHub secrets setup (contains credentials)
-.github/SETUP_SECRETS.md
+.github/SETUP_SECRETS.mdapps/website/functions/local.settings.json
+
+# Sensitive config files
+apps/website/functions/local.settings.json
+*.local.settings.json

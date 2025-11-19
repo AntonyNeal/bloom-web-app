@@ -1,0 +1,1734 @@
+import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
+import { useEffect, useState } from 'react';
+import { getEnvVar } from '../utils/env';
+import { trackPageEngagement } from '../utils/gtag-tracking';
+
+// Extend window interface for halaxyBookingTracker
+declare global {
+  interface Window {
+    halaxyBookingTracker?: {
+      handleBookingClick: (
+        eventOrButton?:
+          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
+          | HTMLButtonElement
+          | Event,
+        customUrl?: string
+      ) => void;
+    };
+  }
+}
+
+const Appointments = () => {
+  const halaxyBookingUrl = getEnvVar('VITE_BOOKING_URL') || '#';
+
+  // Interactive service selection state
+  const [serviceSelectionExpanded, setServiceSelectionExpanded] =
+    useState(false);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [serviceSelectionComplete, setServiceSelectionComplete] =
+    useState(false);
+
+  // Service options for booking
+  const serviceOptions = [
+    { id: 'medicare', label: 'Medicare Rebate Session' },
+    { id: 'ndis', label: 'NDIS Psychology Session' },
+    { id: 'couples', label: 'Couples Therapy' },
+    { id: 'individual', label: 'Individual Therapy' },
+    { id: 'supervision', label: 'Professional Supervision' },
+  ];
+
+  const handleServiceSelect = (serviceId: string) => {
+    setSelectedService(serviceId);
+    setServiceSelectionComplete(true);
+    setServiceSelectionExpanded(false);
+  };
+
+  const toggleServiceSelection = () => {
+    setServiceSelectionExpanded(!serviceSelectionExpanded);
+  };
+
+  const getSelectedServiceLabel = () => {
+    const service = serviceOptions.find((s) => s.id === selectedService);
+    return service ? service.label : '';
+  };
+
+  // Track page engagement
+  useEffect(() => {
+    trackPageEngagement('appointments_page');
+  }, []);
+
+  return (
+    <>
+      <Helmet>
+        <title>Book an Appointment - Life Psychology Australia</title>
+        <meta
+          name="description"
+          content="Book your psychology appointment online. Medicare rebates, NDIS, private health insurance accepted. Individual therapy, couples counselling, professional supervision."
+        />
+        <meta
+          name="keywords"
+          content="psychology appointment, book psychologist, Medicare rebate, NDIS psychology, couples therapy, mental health appointment"
+        />
+        <link rel="canonical" href="https://lifepsychology.com.au/appointments" />
+      </Helmet>
+
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Book Your Appointment
+              </h1>
+              <p className="text-xl text-gray-600">
+                Take the first step towards better mental health
+              </p>
+            </div>
+
+            {/* Booking Steps */}
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <div className="space-y-8">
+                {/* Step 1: Service Selection */}
+                <div className="border-l-4 border-blue-500 pl-6">
+                  <div className="flex items-center mb-4">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">
+                      1
+                    </div>
+                    <h3 className="ml-4 text-lg font-semibold text-gray-900">
+                      Choose Your Service
+                    </h3>
+                  </div>
+
+                  <div className="relative">
+                    <button
+                      onClick={toggleServiceSelection}
+                      className="w-full p-4 border border-gray-300 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={selectedService ? 'text-gray-900' : 'text-gray-500'}>
+                          {selectedService ? getSelectedServiceLabel() : 'Select a service...'}
+                        </span>
+                        <svg
+                          className={`w-5 h-5 transition-transform ${serviceSelectionExpanded ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </button>
+
+                    {serviceSelectionExpanded && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                        {serviceOptions.map((service) => (
+                          <button
+                            key={service.id}
+                            onClick={() => handleServiceSelect(service.id)}
+                            className="w-full p-4 text-left hover:bg-gray-50 focus:outline-none focus:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                          >
+                            {service.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Step 2: Select Date & Time */}
+                <div className={`border-l-4 pl-6 transition-colors ${serviceSelectionComplete ? 'border-green-500' : 'border-gray-300'}`}>
+                  <div className="flex items-center mb-4">
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                      serviceSelectionComplete ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
+                    }`}>
+                      2
+                    </div>
+                    <h3 className={`ml-4 text-lg font-semibold ${
+                      serviceSelectionComplete ? 'text-gray-900' : 'text-gray-400'
+                    }`}>
+                      Select Date & Time
+                    </h3>
+                  </div>
+
+                  {!serviceSelectionComplete && (
+                    <p className="text-gray-500">Please select a service first</p>
+                  )}
+
+                  {serviceSelectionComplete && (
+                    <div className="space-y-4">
+                      <p className="text-gray-600">
+                        Ready to book your {getSelectedServiceLabel().toLowerCase()}?
+                      </p>
+                      <button
+                        onClick={() => {
+                          if (window.halaxyBookingTracker) {
+                            window.halaxyBookingTracker.handleBookingClick();
+                          } else {
+                            window.open(halaxyBookingUrl, '_blank');
+                          }
+                        }}
+                        className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                      >
+                        Book Appointment
+                        <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Step 3: Confirmation */}
+                <div className={`border-l-4 pl-6 transition-colors ${serviceSelectionComplete ? 'border-gray-300' : 'border-gray-300'}`}>
+                  <div className="flex items-center mb-4">
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold bg-gray-300 text-gray-600`}>
+                      3
+                    </div>
+                    <h3 className="ml-4 text-lg font-semibold text-gray-400">
+                      Confirmation
+                    </h3>
+                  </div>
+                  <p className="text-gray-500">Complete steps 1-2 to proceed</p>
+                </div>
+
+                {/* Step 4: Payment */}
+                <div className={`border-l-4 pl-6 transition-colors ${serviceSelectionComplete ? 'border-gray-300' : 'border-gray-300'}`}>
+                  <div className="flex items-center mb-4">
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold bg-gray-300 text-gray-600`}>
+                      4
+                    </div>
+                    <h3 className="ml-4 text-lg font-semibold text-gray-400">
+                      Payment & Session
+                    </h3>
+                  </div>
+                  <p className="text-gray-500">Complete steps 1-2 to proceed</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                What to Expect
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Session Types</h4>
+                  <ul className="text-gray-600 space-y-1">
+                    <li>• Individual Therapy (50 minutes)</li>
+                    <li>• Couples Therapy (60 minutes)</li>
+                    <li>• NDIS Psychology Sessions</li>
+                    <li>• Medicare Rebate Sessions</li>
+                    <li>• Professional Supervision</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">What's Included</h4>
+                  <ul className="text-gray-600 space-y-1">
+                    <li>• Secure online booking</li>
+                    <li>• Confirmation via email</li>
+                    <li>• Telehealth available</li>
+                    <li>• Flexible scheduling</li>
+                    <li>• Professional care</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Back to Home */}
+            <div className="text-center mt-8">
+              <Link
+                to="/"
+                className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Home
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default Appointments;
+
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+
+  const [serviceSelectionComplete, setServiceSelectionComplete] =          | Event,          | Event,
+
+    useState(false);
+
+        customUrl?: string        customUrl?: string
+
+  // Service options for booking
+
+  const serviceOptions = [      ) => void;      ) => void;
+
+    { id: 'medicare', label: 'Medicare Rebate Session' },
+
+    { id: 'ndis', label: 'NDIS Psychology Session' },    };    };
+
+    { id: 'couples', label: 'Couples Therapy' },
+
+    { id: 'individual', label: 'Individual Therapy' },  }  }
+
+    { id: 'supervision', label: 'Professional Supervision' },
+
+  ];}}
+
+
+
+  const handleServiceSelect = (serviceId: string) => {
+
+    setSelectedService(serviceId);
+
+    setServiceSelectionComplete(true);const Appointments = () => {const Appointments = () => {
+
+    setServiceSelectionExpanded(false);
+
+  };  const halaxyBookingUrl = getEnvVar('VITE_BOOKING_URL') || '#';  const halaxyBookingUrl = getEnvVar('VITE_BOOKING_URL') || '#';
+
+
+
+  const toggleServiceSelection = () => {
+
+    setServiceSelectionExpanded(!serviceSelectionExpanded);
+
+  };  // Interactive service selection state  // Interactive service selection state
+
+
+
+  const getSelectedServiceLabel = () => {  const [serviceSelectionExpanded, setServiceSelectionExpanded] =  const [serviceSelectionExpanded, setServiceSelectionExpanded] =
+
+    const service = serviceOptions.find((s) => s.id === selectedService);
+
+    return service ? service.label : '';    useState(false);    useState(false);
+
+  };
+
+  const [selectedService, setSelectedService] = useState<string | null>(null);  const [selectedService, setSelectedService] = useState<string | null>(null);
+
+  useEffect(() => {
+
+    // Track page engagement for key page  const [serviceSelectionComplete, setServiceSelectionComplete] =  const [serviceSelectionComplete, setServiceSelectionComplete] =
+
+    trackPageEngagement({
+
+      page_type: 'appointments_page',    useState(false);    useState(false);
+
+    });
+
+  }, []);
+
+
+
+  return (  // Service options for booking  // Service options for booking
+
+    <>
+
+      <Helmet>  const serviceOptions = [  const serviceOptions = [
+
+        <title>
+
+          Book Psychology Appointment Newcastle | Telehealth Sessions | Zoe    { id: 'medicare', label: 'Medicare Rebate Session' },    { id: 'medicare', label: 'Medicare Rebate Session' },
+
+          Semmler
+
+        </title>    { id: 'ndis', label: 'NDIS Psychology Session' },    { id: 'ndis', label: 'NDIS Psychology Session' },
+
+        <meta
+
+          name="description"    { id: 'couples', label: 'Couples Therapy' },    { id: 'couples', label: 'Couples Therapy' },
+
+          content="Book your psychology appointment in Newcastle NSW. Secure telehealth sessions available. Medicare rebates, NDIS accepted. Easy online booking for anxiety, depression, couples therapy, and mental health support."
+
+        />    { id: 'individual', label: 'Individual Therapy' },    { id: 'individual', label: 'Individual Therapy' },
+
+        <meta
+
+          name="keywords"    { id: 'supervision', label: 'Professional Supervision' },    { id: 'supervision', label: 'Professional Supervision' },
+
+          content="book psychology appointment Newcastle, telehealth booking, psychology appointment online, Medicare rebate psychology, NDIS psychology booking"
+
+        />  ];  ];
+
+        <meta
+
+          property="og:url"  const handleServiceSelect = (serviceId: string) => {
+
+          content="https://lifepsychology.com.au/appointments"
+
+        />  const handleServiceSelect = (serviceId: string) => {    setSelectedService(serviceId);
+
+        <meta property="og:type" content="website" />
+
+        <meta    setSelectedService(serviceId);    setServiceSelectionComplete(true);
+
+          property="og:title"
+
+          content="Book Psychology Appointment Newcastle | Telehealth Sessions | Zoe Semmler"    setServiceSelectionComplete(true);    setServiceSelectionExpanded(false);
+
+        />
+
+        <meta    setServiceSelectionExpanded(false);  };
+
+          property="og:description"
+
+          content="Book your psychology appointment in Newcastle NSW. Secure telehealth sessions available. Medicare rebates, NDIS accepted. Easy online booking for anxiety, depression, couples therapy, and mental health support."  };  const toggleServiceSelection = () => {
+
+        />
+
+        <meta    setServiceSelectionExpanded(!serviceSelectionExpanded);
+
+          property="og:image"
+
+          content="https://lifepsychology.com.au/og-image.svg"  const toggleServiceSelection = () => {  const getSelectedServiceLabel = () => {
+
+        />
+
+        <meta name="twitter:card" content="summary_large_image" />    setServiceSelectionExpanded(!serviceSelectionExpanded);    const service = serviceOptions.find((s) => s.id === selectedService);
+
+        <meta
+
+          name="twitter:image"  };    return service ? service.label : '';
+
+          content="https://lifepsychology.com.au/og-image.svg"
+
+        />  };
+
+        <meta
+
+          name="twitter:title"  const getSelectedServiceLabel = () => {  const getSelectedServiceLabel = () => {
+
+          content="Book Psychology Appointment Newcastle | Telehealth Sessions"
+
+        />    const service = serviceOptions.find((s) => s.id === selectedService);    const service = serviceOptions.find((s) => s.id === selectedService);
+
+        <meta
+
+          name="twitter:description"    return service ? service.label : '';    return service ? service.label : '';
+
+          content="Book your psychology appointment in Newcastle NSW. Secure telehealth sessions available. Medicare rebates, NDIS accepted."
+
+        />  };  };
+
+      </Helmet>
+
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-orange-50/10">
+
+        {/* Hero Section */}
+
+        <section className="relative bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-20 lg:py-28 overflow-hidden">  useEffect(() => {  // Remove eligibility checker state variables since we're simplifying
+
+          {/* Background Pattern */}
+
+          <div className="absolute inset-0 opacity-10">    // Track page engagement for key page  // const [hasMedicarePlan, setHasMedicarePlan] = useState<string | null>(null);
+
+            <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-xl"></div>
+
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white rounded-full blur-2xl"></div>    trackPageEngagement({  // const [isNdisParticipant, setIsNdisParticipant] = useState<string | null>(null);
+
+          </div>
+
+      page_type: 'appointments_page',  // const [hasPrivateHealth, setHasPrivateHealth] = useState<string | null>(null);
+
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+
+            <h1 className="text-4xl lg:text-6xl font-bold mb-6">    });  // Eligibility checker handlers
+
+              Book Your Appointment
+
+            </h1>  }, []);      icon: '�',
+
+            <p className="text-xl lg:text-2xl mb-8 text-blue-100">
+
+              Taking the first step towards support  // Eligibility checker handlers
+
+            </p>
+
+            <p className="text-lg lg:text-xl max-w-3xl mx-auto text-blue-50 leading-relaxed">  return (  // Eligibility checker handlers
+
+              We're here to make therapy accessible and convenient through
+
+              secure telehealth appointments. Whether you're new to therapy or    <>  // Eligibility checker handlers
+
+              continuing your journey, booking with us is simple and
+
+              confidential.      <Helmet>      ndisEligible: false,
+
+            </p>
+
+          </div>        <title>      supervisionEligible: false,
+
+        </section>
+
+          Book Psychology Appointment Newcastle | Telehealth Sessions | Zoe      sessionsAvailable: 'Check your annual limit',
+
+        {/* 4-Step Booking Process */}
+
+        <section className="py-16 lg:py-24 bg-white">          Semmler      note: undefined,
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <div className="text-center mb-16">        </title>    },
+
+              <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+
+                Book Your Psychology Session        <meta    couples: {
+
+              </h2>
+
+              <p className="text-xl text-slate-700 max-w-2xl mx-auto">          name="description"      id: 'couples',
+
+                Follow these simple steps to schedule your appointment
+
+              </p>          content="Book your psychology appointment in Newcastle NSW. Secure telehealth sessions available. Medicare rebates, NDIS accepted. Easy online booking for anxiety, depression, couples therapy, and mental health support."      name: 'Couples Therapy',
+
+            </div>
+
+        />      fullPrice: 300,
+
+            <div className="max-w-4xl mx-auto">
+
+              {/* Step 1: Service Selection */}        <meta      medicareRebate: 0, // Medicare does not cover couples therapy
+
+              <div className="mb-8">
+
+                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${          name="keywords"      privateHealthRebate: 100,
+
+                  serviceSelectionComplete
+
+                    ? 'border-green-500 bg-green-50'          content="book psychology appointment Newcastle, telehealth booking, psychology appointment online, Medicare rebate psychology, NDIS psychology booking"      // Eligibility checker handlers
+
+                    : 'border-slate-200 bg-white'
+
+                }`}>        />      color: 'purple',
+
+                  <div className="flex items-center gap-4 mb-4">
+
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${        <meta      description: 'Couples Therapy - Relationship support together',
+
+                      serviceSelectionComplete
+
+                        ? 'bg-green-500 text-white'          property="og:url"      medicareEligible: false,
+
+                        : 'bg-slate-200 text-slate-600'
+
+                    }`}>          content="https://lifepsychology.com.au/appointments"      ndisEligible: false,
+
+                      1
+
+                    </div>        />      supervisionEligible: false,
+
+                    <h3 className="text-lg font-semibold text-slate-900">
+
+                      Choose Your Service Type        <meta property="og:type" content="website" />      sessionsAvailable: 'Check your annual limit',
+
+                    </h3>
+
+                    {serviceSelectionComplete && (        <meta      note: 'Medicare does not cover couples therapy',
+
+                      <div className="ml-auto text-green-600 font-medium">
+
+                        ✓ Complete          property="og:title"    },
+
+                      </div>
+
+                    )}          content="Book Psychology Appointment Newcastle | Telehealth Sessions | Zoe Semmler"    supervision: {
+
+                  </div>
+
+        />      id: 'supervision',
+
+                  {!serviceSelectionComplete ? (
+
+                    <div>        <meta      name: 'Professional Supervision',
+
+                      <p className="text-slate-700 mb-4">
+
+                        Select the type of psychology service you need:          property="og:description"      fullPrice: 250,
+
+                      </p>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">          content="Book your psychology appointment in Newcastle NSW. Secure telehealth sessions available. Medicare rebates, NDIS accepted. Easy online booking for anxiety, depression, couples therapy, and mental health support."      medicareRebate: 0,
+
+                        {serviceOptions.map((service) => (
+
+                          <button        />      privateHealthRebate: 0,
+
+                            key={service.id}
+
+                            onClick={() => handleServiceSelect(service.id)}        <meta      icon: '�',
+
+                            className="p-4 rounded-lg border-2 border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left"
+
+                          >          property="og:image"      color: 'green',
+
+                            <div className="font-medium text-slate-900">
+
+                              {service.label}          content="https://lifepsychology.com.au/og-image.svg"      description: 'Professional Supervision - For provisional psychologists',
+
+                            </div>
+
+                          </button>        />      medicareEligible: false,
+
+                        ))}
+
+                      </div>        <meta name="twitter:card" content="summary_large_image" />      ndisEligible: false,
+
+                    </div>
+
+                  ) : (        <meta      supervisionEligible: true,
+
+                    <div className="bg-white rounded-lg p-4 border border-slate-200">
+
+                      <div className="font-medium text-slate-900">          name="twitter:image"      sessionsAvailable: 'As needed',
+
+                        Selected: {getSelectedServiceLabel()}
+
+                      </div>          content="https://lifepsychology.com.au/og-image.svg"      note: 'Professional supervision - no rebates available',
+
+                    </div>
+
+                  )}        />    },
+
+                </div>
+
+              </div>        <meta    ndis: {
+
+
+
+              {/* Step 2: Contact Information */}          name="twitter:title"      id: 'ndis',
+
+              <div className="mb-8">
+
+                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${          content="Book Psychology Appointment Newcastle | Telehealth Sessions"      name: 'NDIS Psychology Session',
+
+                  serviceSelectionComplete
+
+                    ? 'border-slate-200 bg-white'        />      fullPrice: 232.99,
+
+                    : 'border-slate-200 bg-slate-50 opacity-50'
+
+                }`}>        <meta      medicareRebate: 0,
+
+                  <div className="flex items-center gap-4 mb-4">
+
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${          name="twitter:description"      privateHealthRebate: 0,
+
+                      serviceSelectionComplete
+
+                        ? 'bg-blue-500 text-white'          content="Book your psychology appointment in Newcastle NSW. Secure telehealth sessions available. Medicare rebates, NDIS accepted."      icon: '🏥',
+
+                        : 'bg-slate-200 text-slate-400'
+
+                    }`}>        />      color: 'orange',
+
+                      2
+
+                    </div>      </Helmet>      description: 'NDIS Psychology - NDIS participant with funding',
+
+                    <h3 className="text-lg font-semibold text-slate-900">
+
+                      Provide Your Details      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-orange-50/10">      medicareEligible: false,
+
+                    </h3>
+
+                  </div>        {/* Hero Section */}      ndisEligible: true,
+
+
+
+                  <div className="text-slate-600">        <section className="relative bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-20 lg:py-28 overflow-hidden">      supervisionEligible: false,
+
+                    <p>
+
+                      Click "Book Online Now" below to enter your contact information and select a convenient time.          {/* Background Pattern */}      sessionsAvailable: 'As per your NDIS plan',
+
+                    </p>
+
+                  </div>          <div className="absolute inset-0 opacity-10">      note: undefined,
+
+                </div>
+
+              </div>            <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-xl"></div>    },
+
+
+
+              {/* Step 3: Confirmation */}            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white rounded-full blur-2xl"></div>  };
+
+              <div className="mb-8">
+
+                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${          </div>
+
+                  serviceSelectionComplete
+
+                    ? 'border-slate-200 bg-white'
+
+                    : 'border-slate-200 bg-slate-50 opacity-50'
+
+                }`}>          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">  useEffect(() => {
+
+                  <div className="flex items-center gap-4 mb-4">
+
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${            <h1 className="text-4xl lg:text-6xl font-bold mb-6">
+
+                      serviceSelectionComplete
+
+                        ? 'bg-blue-500 text-white'              Book Your Appointment  useEffect(() => {
+
+                        : 'bg-slate-200 text-slate-400'
+
+                    }`}>            </h1>    // Track page engagement for key page
+
+                      3
+
+                    </div>            <p className="text-xl lg:text-2xl mb-8 text-blue-100">    trackPageEngagement({
+
+                    <h3 className="text-lg font-semibold text-slate-900">
+
+                      Confirm Your Booking              Taking the first step towards support      page_type: 'appointments_page',
+
+                    </h3>
+
+                  </div>            </p>    });
+
+
+
+                  <div className="text-slate-600">            <p className="text-lg lg:text-xl max-w-3xl mx-auto text-blue-50 leading-relaxed">  }, []);
+
+                    <p>
+
+                      Review your booking details and confirm your appointment.              We're here to make therapy accessible and convenient through  return (
+
+                    </p>
+
+                  </div>              secure telehealth appointments. Whether you're new to therapy or    <>
+
+                </div>
+
+              </div>              continuing your journey, booking with us is simple and      <Helmet>
+
+
+
+              {/* Step 4: Session */}              confidential.        <title>
+
+              <div className="mb-8">
+
+                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${            </p>          Book Psychology Appointment Newcastle | Telehealth Sessions | Zoe
+
+                  serviceSelectionComplete
+
+                    ? 'border-slate-200 bg-white'          </div>          Semmler
+
+                    : 'border-slate-200 bg-slate-50 opacity-50'
+
+                }`}>        </section>        </title>
+
+                  <div className="flex items-center gap-4 mb-4">
+
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${        <meta
+
+                      serviceSelectionComplete
+
+                        ? 'bg-blue-500 text-white'        {/* 4-Step Booking Process */}          name="description"
+
+                        : 'bg-slate-200 text-slate-400'
+
+                    }`}>        <section className="py-16 lg:py-24 bg-white">          content="Book your psychology appointment in Newcastle NSW. Secure telehealth sessions available. Medicare rebates, NDIS accepted. Easy online booking for anxiety, depression, couples therapy, and mental health support."
+
+                      4
+
+                    </div>          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">        />
+
+                    <h3 className="text-lg font-semibold text-slate-900">
+
+                      Attend Your Session            <div className="text-center mb-16">        <meta
+
+                    </h3>
+
+                  </div>              <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">          name="keywords"
+
+
+
+                  <div className="text-slate-600">                Book Your Psychology Session          content="book psychology appointment Newcastle, telehealth booking, psychology appointment online, Medicare rebate psychology, NDIS psychology booking"
+
+                    <p>
+
+                      Join your telehealth session at the scheduled time.              </h2>        />
+
+                    </p>
+
+                  </div>              <p className="text-xl text-slate-700 max-w-2xl mx-auto">        <meta
+
+                </div>
+
+              </div>                Follow these simple steps to schedule your appointment          property="og:url"
+
+
+
+              {/* Booking CTA */}              </p>          content="https://lifepsychology.com.au/appointments"
+
+              <div className="text-center mt-12">
+
+                <a            </div>        />
+
+                  href={halaxyBookingUrl}
+
+                  onClick={(e) => {        <meta property="og:type" content="website" />
+
+                    if (window.halaxyBookingTracker?.handleBookingClick) {
+
+                      window.halaxyBookingTracker.handleBookingClick(e);            <div className="max-w-4xl mx-auto">        <meta
+
+                    }
+
+                  }}              {/* Step 1: Service Selection */}          property="og:title"
+
+                  className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+
+                >              <div className="mb-8">          content="Book Psychology Appointment Newcastle | Telehealth Sessions | Zoe Semmler"
+
+                  Book Online Now
+
+                  <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${        />
+
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+
+                  </svg>                  serviceSelectionComplete        <meta
+
+                </a>
+
+                <p className="text-slate-600 mt-4">                    ? 'border-green-500 bg-green-50'          property="og:description"
+
+                  Secure telehealth booking • Instant confirmation • Medicare & NDIS accepted
+
+                </p>                    : 'border-slate-200 bg-white'          content="Book your psychology appointment in Newcastle NSW. Secure telehealth sessions available. Medicare rebates, NDIS accepted. Easy online booking for anxiety, depression, couples therapy, and mental health support."
+
+              </div>
+
+            </div>                }`}>        />
+
+          </div>
+
+        </section>                  <div className="flex items-center gap-4 mb-4">        <meta
+
+
+
+        {/* Additional Information */}                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${          property="og:image"
+
+        <section className="py-16 lg:py-24 bg-slate-50">
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">                      serviceSelectionComplete          content="https://lifepsychology.com.au/og-image.svg"
+
+            <div className="text-center mb-16">
+
+              <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">                        ? 'bg-green-500 text-white'        />
+
+                What to Expect
+
+              </h2>                        : 'bg-slate-200 text-slate-600'        <meta name="twitter:card" content="summary_large_image" />
+
+              <p className="text-xl text-slate-700 max-w-2xl mx-auto">
+
+                Your journey to better mental health starts here                    }`}>        <meta
+
+              </p>
+
+            </div>                      1          name="twitter:image"
+
+
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">                    </div>          content="https://lifepsychology.com.au/og-image.svg"
+
+              <div className="bg-white rounded-lg p-8 shadow-sm border border-slate-200">
+
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">                    <h3 className="text-lg font-semibold text-slate-900">        />
+
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />                      Choose Your Service Type        <meta
+
+                  </svg>
+
+                </div>                    </h3>          name="twitter:title"
+
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">
+
+                  Secure & Confidential                    {serviceSelectionComplete && (          content="Book Psychology Appointment Newcastle | Telehealth Sessions"
+
+                </h3>
+
+                <p className="text-slate-600">                      <div className="ml-auto text-green-600 font-medium">        />
+
+                  All sessions are conducted through secure, encrypted telehealth platforms with complete privacy protection.
+
+                </p>                        ✓ Complete        <meta
+
+              </div>
+
+                      </div>          name="twitter:description"
+
+              <div className="bg-white rounded-lg p-8 shadow-sm border border-slate-200">
+
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">                    )}          content="Book your psychology appointment in Newcastle NSW. Secure telehealth sessions available. Medicare rebates, NDIS accepted."
+
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />                  </div>        />
+
+                  </svg>
+
+                </div>      </Helmet>
+
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">
+
+                  Medicare & NDIS Accepted                  {!serviceSelectionComplete ? (      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-orange-50/10">
+
+                </h3>
+
+                <p className="text-slate-600">                    <div>        {/* Hero Section */}
+
+                  We accept Medicare rebates and NDIS funding. Check your eligibility and coverage on our Fees & Funding page.
+
+                </p>                      <p className="text-slate-700 mb-4">        <section className="relative bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-20 lg:py-28 overflow-hidden">
+
+              </div>
+
+                        Select the type of psychology service you need:          {/* Background Pattern */}
+
+              <div className="bg-white rounded-lg p-8 shadow-sm border border-slate-200">
+
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">                      </p>          <div className="absolute inset-0 opacity-10">
+
+                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v10m0 0l-2-2m2 2l2-2m6-6v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6a2 2 0 012-2h8a2 2 0 012 2z" />                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">            <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-xl"></div>
+
+                  </svg>
+
+                </div>                        {serviceOptions.map((service) => (
+
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">
+
+                  Flexible Scheduling                          <button            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white rounded-full blur-2xl"></div>
+
+                </h3>
+
+                <p className="text-slate-600">                            key={service.id}          </div>
+
+                  Book appointments that fit your schedule. Evening and weekend sessions available for your convenience.
+
+                </p>                            onClick={() => handleServiceSelect(service.id)}
+
+              </div>
+
+            </div>                            className="p-4 rounded-lg border-2 border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left"          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+
+          </div>
+
+        </section>                          >            <h1 className="text-4xl lg:text-6xl font-bold mb-6">
+
+      </div>
+
+    </>                            <div className="font-medium text-slate-900">              Book Your Appointment
+
+  );
+
+};                              {service.label}            </h1>
+
+
+
+export default Appointments;                            </div>            <p className="text-xl lg:text-2xl mb-8 text-blue-100">
+
+                          </button>              Taking the first step towards support
+
+                        ))}            </p>
+
+                      </div>            <p className="text-lg lg:text-xl max-w-3xl mx-auto text-blue-50 leading-relaxed">
+
+                    </div>              We're here to make therapy accessible and convenient through
+
+                  ) : (              secure telehealth appointments. Whether you're new to therapy or
+
+                    <div className="bg-white rounded-lg p-4 border border-slate-200">              continuing your journey, booking with us is simple and
+
+                      <div className="font-medium text-slate-900">              confidential.
+
+                        Selected: {getSelectedServiceLabel()}            </p>
+
+                      </div>          </div>
+
+                    </div>        </section>
+
+                  )}
+
+                </div>        {/* Interactive Eligibility Checker */}
+
+              </div>        <section className="py-16 lg:py-24 bg-white">
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+              {/* Step 2: Contact Information */}            <div className="text-center mb-16">
+
+              <div className="mb-8">              <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+
+                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${                Book Your Psychology Session
+
+                  serviceSelectionComplete              </h2>
+
+                    ? 'border-slate-200 bg-white'              <p className="text-xl text-slate-700 max-w-2xl mx-auto">
+
+                    : 'border-slate-200 bg-slate-50 opacity-50'                Follow these simple steps to schedule your appointment
+
+                }`}>              </p>
+
+                  <div className="flex items-center gap-4 mb-4">            </div>
+
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+
+                      serviceSelectionComplete            <div className="max-w-4xl mx-auto">
+
+                        ? 'bg-blue-500 text-white'              {/* Step 1: Service Selection */}
+
+                        : 'bg-slate-200 text-slate-400'              <div className="mb-8">
+
+                    }`}>                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${
+
+                      2                  serviceSelectionComplete
+
+                    </div>                    ? 'border-green-500 bg-green-50'
+
+                    <h3 className="text-lg font-semibold text-slate-900">                    : 'border-slate-200 bg-white'
+
+                      Provide Your Details                }`}>
+
+                    </h3>                  <div className="flex items-center gap-4 mb-4">
+
+                  </div>                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+
+                      serviceSelectionComplete
+
+                  <div className="text-slate-600">                        ? 'bg-green-500 text-white'
+
+                    <p>                        : 'bg-slate-200 text-slate-600'
+
+                      Click "Book Online Now" below to enter your contact information and select a convenient time.                    }`}>
+
+                    </p>                      1
+
+                  </div>                    </div>
+
+                </div>                    <h3 className="text-lg font-semibold text-slate-900">
+
+              </div>                      Choose Your Service Type
+
+                    </h3>
+
+              {/* Step 3: Confirmation */}                    {serviceSelectionComplete && (
+
+              <div className="mb-8">                      <div className="ml-auto text-green-600 font-medium">
+
+                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${                        ✓ Complete
+
+                  serviceSelectionComplete                      </div>
+
+                    ? 'border-slate-200 bg-white'                    )}
+
+                    : 'border-slate-200 bg-slate-50 opacity-50'                  </div>
+
+                }`}>
+
+                  <div className="flex items-center gap-4 mb-4">                  {!serviceSelectionComplete ? (
+
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${                    <div>
+
+                      serviceSelectionComplete                      <p className="text-slate-700 mb-4">
+
+                        ? 'bg-blue-500 text-white'                        Select the type of psychology service you need:
+
+                        : 'bg-slate-200 text-slate-400'                      </p>
+
+                    }`}>                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                      3                        {serviceOptions.map((service) => (
+
+                    </div>                          <button
+
+                    <h3 className="text-lg font-semibold text-slate-900">                            key={service.id}
+
+                      Confirm Your Booking                            onClick={() => handleServiceSelect(service.id)}
+
+                    </h3>                            className="p-4 rounded-lg border-2 border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left"
+
+                  </div>                          >
+
+                            <div className="font-medium text-slate-900">
+
+                  <div className="text-slate-600">                              {service.label}
+
+                    <p>                            </div>
+
+                      Review your booking details and confirm your appointment.                          </button>
+
+                    </p>                        ))}
+
+                  </div>                      </div>
+
+                </div>                    </div>
+
+              </div>                  ) : (
+
+                    <div className="bg-white rounded-lg p-4 border border-slate-200">
+
+              {/* Step 4: Session */}                      <div className="font-medium text-slate-900">
+
+              <div className="mb-8">                        Selected: {getSelectedServiceLabel()}
+
+                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${                      </div>
+
+                  serviceSelectionComplete                    </div>
+
+                    ? 'border-slate-200 bg-white'                  )}
+
+                    : 'border-slate-200 bg-slate-50 opacity-50'                </div>
+
+                }`}>              </div>
+
+                  <div className="flex items-center gap-4 mb-4">
+
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${              {/* Step 2: Contact Information */}
+
+                      serviceSelectionComplete              <div className="mb-8">
+
+                        ? 'bg-blue-500 text-white'                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${
+
+                        : 'bg-slate-200 text-slate-400'                  serviceSelectionComplete
+
+                    }`}>                    ? 'border-slate-200 bg-white'
+
+                      4                    : 'border-slate-200 bg-slate-50 opacity-50'
+
+                    </div>                }`}>
+
+                    <h3 className="text-lg font-semibold text-slate-900">                  <div className="flex items-center gap-4 mb-4">
+
+                      Attend Your Session                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+
+                    </h3>                      serviceSelectionComplete
+
+                  </div>                        ? 'bg-blue-500 text-white'
+
+                        : 'bg-slate-200 text-slate-400'
+
+                  <div className="text-slate-600">                    }`}>
+
+                    <p>                      2
+
+                      Join your telehealth session at the scheduled time.                    </div>
+
+                    </p>                    <h3 className="text-lg font-semibold text-slate-900">
+
+                  </div>                      Provide Your Details
+
+                </div>                    </h3>
+
+              </div>                  </div>
+
+
+
+              {/* Booking CTA */}                  <div className="text-slate-600">
+
+              <div className="text-center mt-12">                    <p>
+
+                <a                      Click "Book Online Now" below to enter your contact information and select a convenient time.
+
+                  href={halaxyBookingUrl}                    </p>
+
+                  onClick={(e) => {                  </div>
+
+                    if (window.halaxyBookingTracker?.handleBookingClick) {                </div>
+
+                      window.halaxyBookingTracker.handleBookingClick(e);              </div>
+
+                    }
+
+                  }}              {/* Step 3: Confirmation */}
+
+                  className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"              <div className="mb-8">
+
+                >                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${
+
+                  Book Online Now                  serviceSelectionComplete
+
+                  <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">                    ? 'border-slate-200 bg-white'
+
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />                    : 'border-slate-200 bg-slate-50 opacity-50'
+
+                  </svg>                }`}>
+
+                </a>                  <div className="flex items-center gap-4 mb-4">
+
+                <p className="text-slate-600 mt-4">                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+
+                  Secure telehealth booking • Instant confirmation • Medicare & NDIS accepted                      serviceSelectionComplete
+
+                </p>                        ? 'bg-blue-500 text-white'
+
+              </div>                        : 'bg-slate-200 text-slate-400'
+
+            </div>                    }`}>
+
+          </div>                      3
+
+        </section>                    </div>
+
+                    <h3 className="text-lg font-semibold text-slate-900">
+
+        {/* Additional Information */}                      Confirm Your Booking
+
+        <section className="py-16 lg:py-24 bg-slate-50">                    </h3>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">                  </div>
+
+            <div className="text-center mb-16">
+
+              <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">                  <div className="text-slate-600">
+
+                What to Expect                    <p>
+
+              </h2>                      Review your booking details and confirm your appointment.
+
+              <p className="text-xl text-slate-700 max-w-2xl mx-auto">                    </p>
+
+                Your journey to better mental health starts here                  </div>
+
+              </p>                </div>
+
+            </div>              </div>
+
+
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">              {/* Step 4: Session */}
+
+              <div className="bg-white rounded-lg p-8 shadow-sm border border-slate-200">              <div className="mb-8">
+
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">                <div className={`rounded-lg p-6 border-2 transition-all duration-200 ${
+
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">                  serviceSelectionComplete
+
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />                    ? 'border-slate-200 bg-white'
+
+                  </svg>                    : 'border-slate-200 bg-slate-50 opacity-50'
+
+                </div>                }`}>
+
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">                  <div className="flex items-center gap-4 mb-4">
+
+                  Secure & Confidential                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+
+                </h3>                      serviceSelectionComplete
+
+                <p className="text-slate-600">                        ? 'bg-blue-500 text-white'
+
+                  All sessions are conducted through secure, encrypted telehealth platforms with complete privacy protection.                        : 'bg-slate-200 text-slate-400'
+
+                </p>                    }`}>
+
+              </div>                      4
+
+                    </div>
+
+              <div className="bg-white rounded-lg p-8 shadow-sm border border-slate-200">                    <h3 className="text-lg font-semibold text-slate-900">
+
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">                      Attend Your Session
+
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">                    </h3>
+
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />                  </div>
+
+                  </svg>
+
+                </div>                  <div className="text-slate-600">
+
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">                    <p>
+
+                  Medicare & NDIS Accepted                      Join your telehealth session at the scheduled time.
+
+                </h3>                    </p>
+
+                <p className="text-slate-600">                  </div>
+
+                  We accept Medicare rebates and NDIS funding. Check your eligibility and coverage on our Fees & Funding page.                </div>
+
+                </p>              </div>
+
+              </div>          </div>
+
+        </section>
+
+              <div className="bg-white rounded-lg p-8 shadow-sm border border-slate-200">
+
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">        </section>
+
+                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v10m0 0l-2-2m2 2l2-2m6-6v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6a2 2 0 012-2h8a2 2 0 012 2z" />        {/* Booking Call-to-Action Section */}
+
+                  </svg>                    <h3 className="text-lg font-semibold text-slate-900 mb-4">
+
+                </div>                      1. Which service do you need?
+
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">                    </h3>
+
+                  Flexible Scheduling                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                </h3>                      {Object.values(servicePricing).map((service) => (
+
+                <p className="text-slate-600">                        <button
+
+                  Book appointments that fit your schedule. Evening and weekend sessions available for your convenience.                          key={service.id}
+
+                </p>                          onClick={() => handleServiceSelect(service.id)}
+
+              </div>                          className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+
+            </div>                            selectedService === service.id
+
+          </div>                              ? `border-${service.color}-500 bg-${service.color}-50 text-${service.color}-900`
+
+        </section>                              : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+
+      </div>                          }`}
+
+    </>                        >
+
+  );                          <div className="flex items-center gap-3">
+
+};                            <span className="text-2xl">{service.icon}</span>
+
+                            <div>
+
+export default Appointments;                              <div className="font-medium text-sm">
+                                {service.name}
+                              </div>
+                              <div className="text-xs text-slate-600 mt-1">
+                                {service.description}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Question 2: Medicare Plan */}
+                  {selectedService &&
+                    !['couples', 'supervision'].includes(selectedService) && (
+                      <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
+                        <h3 className="text-lg font-semibold text-slate-900 mb-4">
+                          2. Do you have a Mental Health Care Plan from your GP?
+                        </h3>
+                        <div className="flex gap-3">
+                          {[
+                            { value: 'yes', label: 'Yes' },
+                            { value: 'no', label: 'No' },
+                            { value: 'not-sure', label: 'Not sure' },
+                          ].map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => handleMedicareSelect(option.value)}
+                              className={`px-4 py-2 rounded-lg border-2 transition-all duration-200 ${
+                                hasMedicarePlan === option.value
+                                  ? 'border-blue-500 bg-blue-50 text-blue-900'
+                                  : 'border-slate-200 bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Question 3: NDIS */}
+                  {selectedService === 'ndis' && (
+                    <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
+                      <h3 className="text-lg font-semibold text-slate-900 mb-4">
+                        3. Are you an NDIS participant with psychology in your
+                        plan?
+                      </h3>
+                      <div className="flex gap-3">
+                        {[
+                          { value: 'yes', label: 'Yes' },
+                          { value: 'no', label: 'No' },
+                        ].map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() => handleNdisSelect(option.value)}
+                            className={`px-4 py-2 rounded-lg border-2 transition-all duration-200 ${
+                              isNdisParticipant === option.value
+                                ? 'border-orange-500 bg-orange-50 text-orange-900'
+                                : 'border-slate-200 bg-white hover:border-slate-300'
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Question 4: Private Health */}
+                  {selectedService && selectedService !== 'ndis' && (
+                    <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
+                      <h3 className="text-lg font-semibold text-slate-900 mb-4">
+                        {selectedService === 'supervision'
+                          ? '3'
+                          : selectedService === 'ndis'
+                            ? '4'
+                            : '3'}
+                        . Do you have private health insurance with mental
+                        health cover?
+                      </h3>
+                      <div className="flex gap-3">
+                        {[
+                          { value: 'yes', label: 'Yes' },
+                          { value: 'no', label: 'No' },
+                          { value: 'not-sure', label: 'Not sure' },
+                        ].map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() =>
+                              handlePrivateHealthSelect(option.value)
+                            }
+                            className={`px-4 py-2 rounded-lg border-2 transition-all duration-200 ${
+                              hasPrivateHealth === option.value
+                                ? 'border-purple-500 bg-purple-50 text-purple-900'
+                                : 'border-slate-200 bg-white hover:border-slate-300'
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Cost Breakdown Section */}
+                <div className="lg:sticky lg:top-8">
+                  {costBreakdown ? (
+                    <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg p-6 border border-slate-200 shadow-sm">
+                      <div className="flex items-center gap-3 mb-6">
+                        <span className="text-3xl">{costBreakdown.icon}</span>
+                        <div>
+                          <h3 className="text-xl font-bold text-slate-900">
+                            {costBreakdown.serviceName}
+                          </h3>
+                          <p className="text-sm text-slate-600">
+                            Estimated Session Cost
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 mb-6">
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-700">Full Fee:</span>
+                          <span className="font-semibold">
+                            ${costBreakdown.fullPrice.toFixed(2)}
+                          </span>
+                        </div>
+
+                        {costBreakdown.medicareRebate > 0 && (
+                          <div className="flex justify-between items-center text-green-700">
+                            <span>Less Medicare:</span>
+                            <span>
+                              -${costBreakdown.medicareRebate.toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+
+                        {costBreakdown.privateHealthRebate > 0 && (
+                          <div className="flex justify-between items-center text-blue-700">
+                            <span>Less Health Fund:</span>
+                            <span>
+                              -${costBreakdown.privateHealthRebate.toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="border-t border-slate-300 pt-3">
+                          <div className="flex justify-between items-center text-lg font-bold text-slate-900">
+                            <span>Your Cost:</span>
+                            <span>
+                              ${costBreakdown.finalCost.toFixed(2)} per session
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Notes */}
+                      {costBreakdown.notes.length > 0 && (
+                        <div className="mb-6">
+                          {costBreakdown.notes.map((note, index) => (
+                            <div
+                              key={index}
+                              className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2"
+                            >
+                              <span className="font-medium">Note:</span> {note}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Sessions Available */}
+                      <div className="mb-6">
+                        <h4 className="font-semibold text-slate-900 mb-2">
+                          Sessions Available:
+                        </h4>
+                        <ul className="text-sm text-slate-700 space-y-1">
+                          {selectedService === 'ndis' ? (
+                            <li>• {costBreakdown.sessionsAvailable}</li>
+                          ) : (
+                            <>
+                              <li>
+                                • Medicare: Up to 10 per year (if applicable)
+                              </li>
+                              <li>• {costBreakdown.sessionsAvailable}</li>
+                            </>
+                          )}
+                        </ul>
+                      </div>
+
+                      {/* Book Now Button */}
+                      <button
+                        onClick={() =>
+                          window.halaxyBookingTracker?.handleBookingClick()
+                        }
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                      >
+                        <span>Book This Service</span>
+                        <span>→</span>
+                      </button>
+
+                      {/* Disclaimer */}
+                      <p className="text-xs text-slate-500 mt-4 text-center">
+                        *Exact rebates vary. We'll confirm your specific rebate
+                        at booking.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 rounded-lg p-8 border border-slate-200 text-center">
+                      <div className="text-4xl mb-4">💰</div>
+                      <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                        Your Estimated Cost
+                      </h3>
+                      <p className="text-slate-600">
+                        Answer the questions to see your personalized cost
+                        breakdown
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Booking Call-to-Action Section */}
+        <section className="py-16 lg:py-24 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-6">
+              Ready to Take the Next Step?
+            </h2>
+            <p className="text-xl mb-8 text-blue-100">
+              Book your appointment today and start your journey towards better
+              mental health
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+              <a
+                href={halaxyBookingUrl}
+                onClick={async (e) => {
+                  // Google Ads Conversion Tracking (handled by halaxyBookingTracker)
+                  // GA4 event tracking (legacy - keep for backward compatibility)
+                  const {
+                    trackBookNowClick: legacyTrackBookNowClick,
+                    intentScorer,
+                  } = await import('../utils/analytics');
+                  const intentScore = intentScorer.getScore();
+
+                  legacyTrackBookNowClick({
+                    button_location: 'appointments_page',
+                    button_text: 'Book Online Now',
+                    intent_score: intentScore,
+                    service_type: 'general',
+                  });
+
+                  if (window.halaxyBookingTracker) {
+                    window.halaxyBookingTracker.handleBookingClick(e);
+                  } else {
+                    console.warn(
+                      '[Appointments] halaxyBookingTracker not available'
+                    );
+                  }
+                }}
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-8 py-4 bg-white text-blue-600 font-semibold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+              >
+                <span className="flex items-center gap-3">
+                  <span className="text-xl">📅</span>
+                  <span>Book Online Now</span>
+                </span>
+              </a>
+
+              <a
+                href="mailto:info@lifepsychology.com.au"
+                className="inline-flex items-center px-6 py-3 bg-indigo-500 hover:bg-indigo-400 text-white font-semibold rounded-lg transition-colors duration-200"
+              >
+                <span className="flex items-center gap-2">
+                  <span>✉️</span>
+                  <span>Email Us</span>
+                </span>
+              </a>
+            </div>{' '}
+            <p className="text-blue-100 text-sm">
+              Need help choosing the right appointment type? Contact us and
+              we'll guide you through the process.
+            </p>
+          </div>
+        </section>
+
+        {/* Cancellation Policy Section */}
+        <section className="py-16 lg:py-24 bg-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+                Cancellation Policy
+              </h2>
+              <p className="text-xl text-slate-700">
+                We understand plans can change - here's how we handle
+                cancellations
+              </p>
+            </div>
+
+            <div className="bg-slate-50 rounded-lg p-8 border border-gray-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h3 className="text-xl font-semibold text-slate-900 mb-4">
+                    Cancellation Notice
+                  </h3>
+                  <ul className="space-y-3 text-slate-700">
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>24-hour notice required for full refund</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>Less than 24 hours: 50% cancellation fee</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>Same-day cancellation: full session fee</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-semibold text-slate-900 mb-4">
+                    Rescheduling Options
+                  </h3>
+                  <ul className="space-y-3 text-slate-700">
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>Free rescheduling with 48+ hours notice</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>Use online portal or contact us directly</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>Priority booking for rescheduled appointments</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer Section */}
+        <section className="py-16 lg:py-24 bg-slate-900 text-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-2xl lg:text-3xl font-bold mb-6">
+              Learn More About Our Services
+            </h2>
+            <p className="text-xl mb-8 text-slate-300">
+              <Link
+                to="/greater-hunter"
+                className="text-blue-400 hover:text-blue-300 underline font-medium transition-colors"
+              >
+                Learn more about our psychology services in Newcastle and the
+                Greater Hunter.
+              </Link>
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+              <div>
+                <h3 className="text-lg font-semibold mb-3">
+                  Contact Information
+                </h3>
+                <div className="space-y-2 text-slate-300">
+                  <p>✉️ info@lifepsychology.com.au</p>
+                  <p>📍 Telehealth Australia-wide</p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Quick Links</h3>
+                <div className="space-y-2">
+                  <Link
+                    to="/services"
+                    className="block text-slate-300 hover:text-white transition-colors"
+                  >
+                    Our Services
+                  </Link>
+                  <Link
+                    to="/about"
+                    className="block text-slate-300 hover:text-white transition-colors"
+                  >
+                    About Us
+                  </Link>
+                  <Link
+                    to="/faq"
+                    className="block text-slate-300 hover:text-white transition-colors"
+                  >
+                    FAQ
+                  </Link>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">
+                  Emergency Support
+                </h3>
+                <div className="space-y-2 text-slate-300">
+                  <p>Lifeline: 13 11 14</p>
+                  <p>Beyond Blue: 1300 224 636</p>
+                  <p>Emergency: 000</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </>
+  );
+};
+
+export default Appointments;

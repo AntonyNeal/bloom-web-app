@@ -1,0 +1,97 @@
+<step title="BackgroundTrace" date="2025-11-19T04:14:55.649" instance="9dfc7a" url="/api/zipdeploy" method="POST" >
+  <step title="Updating shutdown sentinel last write time" date="2025-11-19T04:14:55.695" SemaphoreCount="7" /><!-- duration: 31ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-11-19T04:14:55.758" /><!-- duration: 16ms -->
+  <step title="Creating temporary deployment" date="2025-11-19T04:14:55.805" /><!-- duration: 172ms -->
+  <step title="Performing fetch based deployment" date="2025-11-19T04:14:56.008" >
+    <step title="Fetching changes." date="2025-11-19T04:14:56.242" /><!-- duration: 31ms -->
+    <step title="Starting LocalZipHandler" date="2025-11-19T04:14:56.289" /><!-- duration: 31ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\4zg4ftij.zip (0.02 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-11-19T04:14:56.461" /><!-- duration: 16ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\4zg4ftij.zip (0.02 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-11-19T04:14:56.508" >
+      <step title="Renaming extractTargetDirectory(C:\local\Temp\zipdeploy\extracted) to tempDirectory(C:\local\Temp\zipdeploy\j3ac45hl.wo4)" date="2025-11-19T04:14:56.524" /><!-- duration: 31ms -->
+      <step title="Extracting 19 entries to C:\local\Temp\zipdeploy\extracted directory" date="2025-11-19T04:14:56.586" >
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\host.json ..." date="2025-11-19T04:14:56.602" /><!-- duration: 31ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\package-lock.json ..." date="2025-11-19T04:14:56.664" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\package.json ..." date="2025-11-19T04:14:56.711" /><!-- duration: 31ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\dist\app.js ..." date="2025-11-19T04:14:56.774" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\dist\app.js.map ..." date="2025-11-19T04:14:56.820" /><!-- duration: 31ms -->
+        <step title="Omitting extracting file traces ..." date="2025-11-19T04:14:56.883" /><!-- duration: 31ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\dist\functions\track-ab-test.js.map ..." date="2025-11-19T04:14:56.930" /><!-- duration: 31ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\dist\functions\upload.js ..." date="2025-11-19T04:14:56.992" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\dist\functions\upload.js.map ..." date="2025-11-19T04:14:57.056" /><!-- duration: 14ms -->
+      </step><!-- duration: 516ms -->
+    </step><!-- duration: 609ms -->
+    <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2025-11-19T04:14:57.149" /><!-- duration: 31ms -->
+    <step title="DeploymentManager.Deploy(id:b172192ef9f647fcb4b69b54599d959a)" date="2025-11-19T04:14:57.195" >
+      <step title="Collecting changeset information" date="2025-11-19T04:14:57.242" /><!-- duration: 188ms -->
+      <step title="Updating submodules" date="2025-11-19T04:14:57.445" >
+        <step title="Updating submodules." date="2025-11-19T04:14:57.664" /><!-- duration: 16ms -->
+      </step><!-- duration: 266ms -->
+      <step title="Preparing deployment for commit id &apos;b172192ef9&apos;." date="2025-11-19T04:14:57.914" /><!-- duration: 35ms -->
+      <step title="Determining deployment builder" date="2025-11-19T04:14:58.133" >
+        <step title="Builder is BasicBuilder" date="2025-11-19T04:14:58.164" /><!-- duration: 31ms -->
+      </step><!-- duration: 94ms -->
+      <step title="Copying SSH keys" date="2025-11-19T04:14:58.320" /><!-- duration: 47ms -->
+      <step title="Building" date="2025-11-19T04:14:58.383" >
+        <step title="Generating deployment script." date="2025-11-19T04:14:58.602" /><!-- duration: 31ms -->
+        <step title="Generating deployment script" date="2025-11-19T04:14:58.664" >
+          <step title="Using cached version of the deployment script for command: -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --basic --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;" date="2025-11-19T04:14:58.742" /><!-- duration: 16ms -->
+          <step title="Using cached version of deployment script (command: &apos;azure -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --basic --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;&apos;)." date="2025-11-19T04:14:58.822" /><!-- duration: 14ms -->
+        </step><!-- duration: 203ms -->
+        <step title="Running deployment command..." date="2025-11-19T04:14:59.102" /><!-- duration: 16ms -->
+        <step title="Command: &quot;C:\home\site\deployments\tools\deploy.cmd&quot;" date="2025-11-19T04:14:59.164" /><!-- duration: 31ms -->
+        <step title="Executing external process" date="2025-11-19T04:14:59.227" type="process" path="starter.cmd" arguments="&quot;C:\home\site\deployments\tools\deploy.cmd&quot;" >
+          <step title="Handling Basic Web Site deployment." date="2025-11-19T04:15:00.244" /><!-- duration: 31ms -->
+          <step title="Creating app_offline.htm" date="2025-11-19T04:15:00.697" /><!-- duration: 16ms -->
+          <step title="KuduSync.NET from: &apos;C:\local\Temp\zipdeploy\extracted&apos; to: &apos;C:\home\site\wwwroot&apos;" date="2025-11-19T04:15:00.791" /><!-- duration: 31ms -->
+          <step title="Deleting file: &apos;functions\ab-test.js&apos;" date="2025-11-19T04:15:00.901" /><!-- duration: 16ms -->
+          <step title="Deleting file: &apos;functions\ab-test.js.map&apos;" date="2025-11-19T04:15:00.963" /><!-- duration: 31ms -->
+          <step title="Deleting file: &apos;functions\health.js&apos;" date="2025-11-19T04:15:01.072" /><!-- duration: 47ms -->
+          <step title="Deleting file: &apos;functions\health.js.map&apos;" date="2025-11-19T04:15:01.184" /><!-- duration: 29ms -->
+          <step title="Deleting file: &apos;functions\proxy-ab-test.js&apos;" date="2025-11-19T04:15:01.307" /><!-- duration: 31ms -->
+          <step title="Deleting file: &apos;functions\proxy-ab-test.js.map&apos;" date="2025-11-19T04:15:01.385" /><!-- duration: 31ms -->
+          <step title="Deleting file: &apos;functions\track-ab-test.js&apos;" date="2025-11-19T04:15:01.479" /><!-- duration: 31ms -->
+          <step title="Deleting file: &apos;functions\track-ab-test.js.map&apos;" date="2025-11-19T04:15:01.588" /><!-- duration: 52ms -->
+          <step title="Deleting file: &apos;functions\upload.js&apos;" date="2025-11-19T04:15:01.713" /><!-- duration: 48ms -->
+          <step title="Deleting file: &apos;functions\upload.js.map&apos;" date="2025-11-19T04:15:01.885" /><!-- duration: 63ms -->
+          <step title="Deleting directory: &apos;functions&apos;" date="2025-11-19T04:15:02.010" /><!-- duration: 31ms -->
+          <step title="Deleting file: &apos;app.js&apos;" date="2025-11-19T04:15:02.152" /><!-- duration: 62ms -->
+          <step title="Deleting file: &apos;app.js.map&apos;" date="2025-11-19T04:15:02.340" /><!-- duration: 63ms -->
+          <step title="Deleting file: &apos;index.js&apos;" date="2025-11-19T04:15:02.620" /><!-- duration: 130ms -->
+          <step title="Deleting file: &apos;index.js.map&apos;" date="2025-11-19T04:15:02.826" /><!-- duration: 47ms -->
+          <step title="Copying file: &apos;host.json&apos;" date="2025-11-19T04:15:03.072" /><!-- duration: 47ms -->
+          <step title="Copying file: &apos;package-lock.json&apos;" date="2025-11-19T04:15:03.182" /><!-- duration: 141ms -->
+          <step title="Copying file: &apos;package.json&apos;" date="2025-11-19T04:15:03.385" /><!-- duration: 64ms -->
+          <step title="Copying file: &apos;dist\app.js&apos;" date="2025-11-19T04:15:03.512" /><!-- duration: 29ms -->
+          <step title="Copying file: &apos;dist\app.js.map&apos;" date="2025-11-19T04:15:03.699" /><!-- duration: 14ms -->
+          <step title="Copying file: &apos;dist\index.js&apos;" date="2025-11-19T04:15:03.794" /><!-- duration: 28ms -->
+          <step title="Copying file: &apos;dist\index.js.map&apos;" date="2025-11-19T04:15:03.916" /><!-- duration: 31ms -->
+          <step title="Copying file: &apos;dist\functions\ab-test.js&apos;" date="2025-11-19T04:15:04.041" /><!-- duration: 33ms -->
+          <step title="Copying file: &apos;dist\functions\ab-test.js.map&apos;" date="2025-11-19T04:15:04.166" /><!-- duration: 38ms -->
+          <step title="Copying file: &apos;dist\functions\health.js&apos;" date="2025-11-19T04:15:04.293" /><!-- duration: 62ms -->
+          <step title="Copying file: &apos;dist\functions\health.js.map&apos;" date="2025-11-19T04:15:04.417" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;dist\functions\proxy-ab-test.js&apos;" date="2025-11-19T04:15:04.559" /><!-- duration: 61ms -->
+          <step title="Copying file: &apos;dist\functions\proxy-ab-test.js.map&apos;" date="2025-11-19T04:15:04.729" /><!-- duration: 47ms -->
+          <step title="Copying file: &apos;dist\functions\track-ab-test.js&apos;" date="2025-11-19T04:15:04.964" /><!-- duration: 47ms -->
+          <step title="Copying file: &apos;dist\functions\track-ab-test.js.map&apos;" date="2025-11-19T04:15:05.089" /><!-- duration: 48ms -->
+          <step title="Copying file: &apos;dist\functions\upload.js&apos;" date="2025-11-19T04:15:05.215" /><!-- duration: 47ms -->
+          <step title="Copying file: &apos;dist\functions\upload.js.map&apos;" date="2025-11-19T04:15:05.323" /><!-- duration: 31ms -->
+          <step title="Deleting app_offline.htm" date="2025-11-19T04:15:05.449" /><!-- duration: 46ms -->
+          <step title="Finished successfully." date="2025-11-19T04:15:05.573" /><!-- duration: 16ms -->
+        </step><!-- duration: 6425ms -->
+        <step title="Running post deployment command(s)..." date="2025-11-19T04:15:06.042" /><!-- duration: 31ms -->
+        <step title="Triggering recycle (preview mode disabled)." date="2025-11-19T04:15:06.417" /><!-- duration: 47ms -->
+        <step title="Ignoring FS watcher based recycle request as this is a classic Windows app." date="2025-11-19T04:15:06.479" /><!-- duration: 32ms -->
+        <step title="Deployment successful. DEPLOYMENTINFO: deploymentPath = Functions App ZipDeploy. Extract zip. , deployer = GITHUB_ZIP_DEPLOY_FUNCTIONS_V1, os = windows, sku = Dynamic, language = node, siteName = fnt42kldozqahcu, slotName = Production, siteHostName = fnt42kldozqahcu.azurewebsites.net, deploymentStatus = Success" date="2025-11-19T04:15:06.776" /><!-- duration: 16ms -->
+        <step title="Purge deployment items" date="2025-11-19T04:15:07.511" >
+          <step title="Remove 59455d932, Success, received at 11/18/2025 11:05:44 PM" date="2025-11-19T04:15:07.886" /><!-- duration: 16ms -->
+        </step><!-- duration: 438ms -->
+      </step><!-- duration: 9721ms -->
+    </step><!-- duration: 10956ms -->
+    <step title="Cleaning up temp files" date="2025-11-19T04:15:08.167" /><!-- duration: 31ms -->
+    <step title="Begin HttpPost https://fnt42kldozqahcu.scm.azurewebsites.net/operations/settriggers, x-ms-request-id: 47fea361-10cc-4fb9-85f2-fa3c0155500d" date="2025-11-19T04:15:08.229" /><!-- duration: 63ms -->
+    <step title="End HttpPost, status: OK" date="2025-11-19T04:15:08.354" /><!-- duration: 47ms -->
+    <step title="Scheduling background sync triggers after delay" date="2025-11-19T04:15:08.432" /><!-- duration: 47ms -->
+  </step><!-- duration: 12550ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-11-19T04:15:08.604" /><!-- duration: 31ms -->
+  <step title="Deleting shutdown sentinel file" date="2025-11-19T04:15:08.682" SemaphoreCount="8" /><!-- duration: 31ms -->
+</step><!-- duration: 13112ms -->

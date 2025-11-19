@@ -1,0 +1,146 @@
+name: Visual Regression Testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      update_baselines:
+        description: 'Update baseline screenshots'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  visual-regression:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Download baseline screenshots
+        if: (github.event_name == 'push' || github.event_name == 'pull_request') && github.event.inputs.update_baselines != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: baseline-screenshots
+          path: tests/visual/baselines/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Ensure baseline directory exists
+        run: |
+          mkdir -p tests/visual/baselines
+          ls -la tests/visual/baselines/ || echo "No baseline files found"
+          echo "📁 Baseline directory ready"
+
+      - name: Check if baselines exist
+        id: check-baselines
+        run: |
+          mkdir -p tests/visual/baselines
+          if [ -d "tests/visual/baselines" ] && [ "$(find tests/visual/baselines -name '*.png' | wc -l)" -gt 0 ]; then
+            echo "baselines_exist=true" >> $GITHUB_OUTPUT
+            echo "📸 Found $(find tests/visual/baselines -name '*.png' | wc -l) baseline screenshots, running comparison tests"
+          else
+            echo "baselines_exist=false" >> $GITHUB_OUTPUT
+            echo "📸 No baseline screenshots found, will create them from current build"
+          fi
+
+      - name: Build application for visual testing
+        run: npm run build:ci
+
+      - name: Start preview server
+        run: npm run preview -- --port 5174 --host 0.0.0.0
+
+      - name: Wait for server to be ready
+        run: |
+          echo "Waiting for server to start on http://localhost:5174..."
+          timeout 120 bash -c 'until curl -f http://localhost:5174 > /dev/null 2>&1; do sleep 2; echo "Still waiting..."; done' || (echo "Server failed to start after 2 minutes" && exit 1)
+          echo "✅ Server is ready!"
+
+      - name: Run visual regression tests
+        run: npm run test:visual
+        env:
+          CI: true
+          GITHUB_ACTIONS: true
+          VISUAL_BASE_URL: http://localhost:5174
+          UPDATE_BASELINES: ${{ github.event.inputs.update_baselines == 'true' && 'true' || (steps.check-baselines.outputs.baselines_exist == 'false' && 'true' || 'false') }}
+        continue-on-error: ${{ github.event.inputs.update_baselines == 'true' || steps.check-baselines.outputs.baselines_exist == 'false' }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-regression-results-${{ github.run_number }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 30
+
+      - name: Upload new baseline screenshots
+        if: always() && (github.event.inputs.update_baselines == 'true' || steps.check-baselines.outputs.baselines_exist == 'false' || success())
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-screenshots
+          path: tests/visual/baselines/
+          retention-days: 365
+
+      - name: Comment on PR with visual differences
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            try {
+              // Check if there are visual differences
+              const diffDir = 'test-results/visual-diffs';
+              if (fs.existsSync(diffDir)) {
+                const diffFiles = fs.readdirSync(diffDir).filter(file => file.endsWith('.png'));
+
+                if (diffFiles.length > 0) {
+                  let comment = '## 🚨 Visual Regression Test Results\n\n';
+                  comment += 'Visual differences detected in the following screenshots:\n\n';
+
+                  diffFiles.forEach(file => {
+                    const baseName = file.replace('-diff.png', '');
+                    comment += `- **${baseName}**\n`;
+                    comment += `  - [View Difference](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/visual-regression-results-${{ github.run_number }}/${file})\n`;
+                  });
+
+                  comment += '\n### Next Steps:\n';
+                  comment += '1. Review the visual differences above\n';
+                  comment += '2. If changes are expected, update baselines by running this workflow with "Update baselines" enabled\n';
+                  comment += '3. If changes are unexpected, investigate and fix the visual issues\n';
+
+                  github.rest.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: comment
+                  });
+                }
+              }
+            } catch (error) {
+              console.error('Failed to create PR comment:', error);
+              // Don't fail the workflow if commenting fails
+            }

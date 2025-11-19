@@ -1,0 +1,47 @@
+name: Deployment Tracker
+on:
+  workflow_run:
+    workflows:
+      [
+        'Manual Deploy to Staging',
+        'Manual Deploy to Production',
+        'Rollback Production',
+      ]
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  track:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+      - name: Update DEPLOYMENTS.md
+        run: |
+          # Create file with header if it doesn't exist
+          if [ ! -f DEPLOYMENTS.md ]; then
+            echo "# Deployment Log" > DEPLOYMENTS.md
+            echo "" >> DEPLOYMENTS.md
+          fi
+          # Append new deployment entry
+          echo "- **${{ github.event.workflow_run.name }}** at $(date) by ${{ github.event.workflow_run.actor.login }}" >> DEPLOYMENTS.md
+          echo "  Commit: ${{ github.sha }}" >> DEPLOYMENTS.md
+          echo "  Run: ${{ github.event.workflow_run.html_url }}" >> DEPLOYMENTS.md
+          echo "" >> DEPLOYMENTS.md
+      - name: Commit and Push
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add DEPLOYMENTS.md
+          if ! git diff --cached --quiet -- DEPLOYMENTS.md; then
+            git commit -m "Update deployment log"
+            git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:main
+          else
+            echo "No changes to commit or push"
+          fi

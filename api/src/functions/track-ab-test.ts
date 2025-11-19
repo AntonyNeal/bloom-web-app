@@ -1,25 +1,14 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import * as sql from 'mssql';
+import { CosmosClient } from '@azure/cosmos';
 
-// Support both connection string and individual credentials
-const getConfig = (): string | sql.config => {
-  const connectionString = process.env.SQL_CONNECTION_STRING;
-
-  if (connectionString) {
-    return connectionString;
+// Get Cosmos DB client
+function getCosmosClient() {
+  const connectionString = process.env.COSMOS_DB_CONNECTION_STRING;
+  if (!connectionString) {
+    throw new Error('COSMOS_DB_CONNECTION_STRING not configured');
   }
-
-  return {
-    server: process.env.SQL_SERVER!,
-    database: process.env.SQL_DATABASE!,
-    user: process.env.SQL_USER!,
-    password: process.env.SQL_PASSWORD!,
-    options: {
-      encrypt: true,
-      trustServerCertificate: false,
-    },
-  };
-};
+  return new CosmosClient(connectionString);
+}
 
 async function trackABTestEventHandler(
   req: HttpRequest,
@@ -61,32 +50,35 @@ async function trackABTestEventHandler(
         };
       }
 
-      const config = getConfig();
-      const pool = await sql.connect(config);
+      const cosmosClient = getCosmosClient();
+      const database = cosmosClient.database('bloom-ab-testing');
+      const container = database.container('test-events');
 
-      const result = await pool
-        .request()
-        .input('test_name', sql.NVarChar, testName)
-        .input('user_id', sql.NVarChar, userId || null)
-        .input('session_id', sql.NVarChar, sessionId)
-        .input('variant', sql.NVarChar, variant)
-        .input('converted', sql.Bit, converted ? 1 : 0).query(`
-          INSERT INTO ab_test_events (test_name, user_id, session_id, variant, converted)
-          OUTPUT INSERTED.*
-          VALUES (@test_name, @user_id, @session_id, @variant, @converted)
-        `);
+      // Create event document
+      const event = {
+        id: `${sessionId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        testName,
+        variant,
+        sessionId,
+        userId: userId || null,
+        converted: converted || false,
+        timestamp: new Date().toISOString(),
+        _partitionKey: testName, // Partition by test name for efficient queries
+      };
 
-      context.log(`Event tracked for test: ${testName}, variant: ${variant}`);
+      await container.items.create(event);
+
+      context.log(`Event tracked for test: ${testName}, variant: ${variant}, converted: ${converted}`);
 
       return {
         status: 201,
         headers,
-        jsonBody: { success: true, eventId: result.recordset[0]?.id },
+        jsonBody: { success: true, eventId: event.id },
       };
     }
 
     if (method === 'GET') {
-      // Get test results in real-time
+      // Get test results in real-time from Cosmos DB
       const testName = req.query.get('testName');
 
       if (!testName) {
@@ -97,39 +89,46 @@ async function trackABTestEventHandler(
         };
       }
 
-      const config = getConfig();
-      const pool = await sql.connect(config);
+      const cosmosClient = getCosmosClient();
+      const database = cosmosClient.database('bloom-ab-testing');
+      const container = database.container('test-events');
 
-      const result = await pool.request().input('testName', sql.NVarChar, testName).query(`
-          SELECT
-            variant,
-            COUNT(*) as total_events,
-            SUM(CASE WHEN converted = 1 THEN 1 ELSE 0 END) as conversions,
-            CAST(SUM(CASE WHEN converted = 1 THEN 1 ELSE 0 END) AS FLOAT) / CAST(COUNT(*) AS FLOAT) as conversion_rate
-          FROM ab_test_events
-          WHERE test_name = @testName
-          GROUP BY variant
-          ORDER BY variant
-        `);
+      const query = {
+        query: 'SELECT c.variant, c.converted FROM c WHERE c.testName = @testName',
+        parameters: [{ name: '@testName', value: testName }],
+      };
+
+      const { resources } = await container.items.query(query).fetchAll();
+
+      // Aggregate results by variant
+      const variantStats: {
+        [key: string]: { allocations: number; conversions: number };
+      } = {};
+
+      for (const event of resources) {
+        const variant = event.variant;
+        if (!variantStats[variant]) {
+          variantStats[variant] = { allocations: 0, conversions: 0 };
+        }
+        variantStats[variant].allocations++;
+        if (event.converted) {
+          variantStats[variant].conversions++;
+        }
+      }
+
+      const variants = Object.entries(variantStats).map(([variant, stats]) => ({
+        variant,
+        allocations: stats.allocations,
+        conversions: stats.conversions,
+        conversionRate: stats.conversions / stats.allocations,
+      }));
 
       return {
         status: 200,
         headers,
         jsonBody: {
           testName,
-          variants: result.recordset.map(
-            (row: {
-              variant: string;
-              total_events: number;
-              conversions: number;
-              conversion_rate: number;
-            }) => ({
-              variant: row.variant,
-              allocations: row.total_events,
-              conversions: row.conversions,
-              conversionRate: row.conversion_rate,
-            })
-          ),
+          variants,
         },
       };
     }

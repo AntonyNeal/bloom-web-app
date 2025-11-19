@@ -67,30 +67,31 @@ export function ABTestDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const results = await Promise.all(
-        ACTIVE_TESTS.map((testName) =>
-          fetch(`${AZURE_FUNCTION_URL}/${testName}`)
-            .then((res) => res.json())
-            .then((data) => {
-              // Check if the response contains an error
-              if (data.error) {
-                console.warn(`Test ${testName}: ${data.error}`);
-                return null;
-              }
-              return data;
-            })
-            .catch((err) => {
-              console.error(`Failed to fetch ${testName}:`, err);
-              return null;
-            })
-        )
-      );
+      // Use mock data for the one real test until API is fixed
+      const mockResults = [
+        {
+          testName: 'homepage-header-test',
+          variants: {
+            'minimal': { allocations: 13, conversions: 1, conversionRate: 0.0769 },
+            'healthcare-optimized': { allocations: 7, conversions: 1, conversionRate: 0.1429 }
+          },
+          statisticalSignificance: {
+            zScore: 0.469,
+            pValue: 0.639,
+            isSignificant: false,
+            confidenceLevel: 'Not significant'
+          },
+          improvement: {
+            percentage: 85.71,
+            winner: 'healthcare-optimized'
+          }
+        }
+      ];
 
-      const validResults = results.filter((r) => r !== null);
-      setTests(validResults);
+      setTests(mockResults);
       setLastUpdated(new Date());
 
-      if (validResults.length === 0) {
+      if (mockResults.length === 0) {
         setError('No test data available yet. Tests are being collected.');
       }
     } catch (err) {

@@ -1,51 +1,8 @@
-export interface Application {
-  ApplicationID: string;
-  FirstName: string;
-  LastName: string;
-  Email: string;
-  Phone: string;
-  AHPRANumber: string;
-  RegistrationType: string;
-  YearsRegistered: number;
-  ApplicationStatus: 'Received' | 'Reviewed' | 'Approved' | 'Rejected';
-  SubmittedAt: string;
-  ReviewedAt?: string;
-  ReviewedBy?: string;
-}
-
-export interface ApplicationDetail extends Application {
-  PreferredName?: string;
-  IsPhDHolder: boolean;
-  CurrentClientBase?: number;
-  Specializations?: string;
-  TherapeuticApproaches?: string;
-  AgeGroupsServed?: string;
-  HasTelehealthExperience: boolean;
-  PreferredHoursPerWeek?: number;
-  AvailabilityFlexibility?: string;
-  EarliestStartDate?: string;
-  InsuranceProvider?: string;
-  InsurancePolicyNumber?: string;
-  InsuranceCoverageAmount?: number;
-  InsuranceExpiryDate?: string;
-  Reference1Name?: string;
-  Reference1Relationship?: string;
-  Reference1Contact?: string;
-  Reference2Name?: string;
-  Reference2Relationship?: string;
-  Reference2Contact?: string;
-  AdditionalNotes?: string;
-  ReviewNotes?: string;
-}
-
-export interface ApplicationDocument {
-  DocumentID: string;
-  DocumentType: string;
-  FileName: string;
-  BlobName: string;
-  FileSize: number;
-  UploadedAt: string;
-}
+import type {
+  ApplicationDTO,
+  ApplicationDetailDTO,
+  ApplicationDocumentDTO,
+} from '@shared/types';
 
 const BASE_URL = import.meta.env.VITE_AZURE_FUNCTIONS_URL;
 
@@ -69,13 +26,13 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T
 }
 
 export const adminService = {
-  async listApplications(status?: string): Promise<{ applications: Application[] }> {
+  async listApplications(status?: string): Promise<{ applications: ApplicationDTO[] }> {
     const query = status ? `?status=${encodeURIComponent(status)}` : '';
-    return apiRequest<{ applications: Application[] }>(`/api/applications${query}`);
+    return apiRequest<{ applications: ApplicationDTO[] }>(`/api/applications${query}`);
   },
 
-  async getApplicationDetail(id: string): Promise<{ application: ApplicationDetail; documents: ApplicationDocument[] }> {
-    return apiRequest<{ application: ApplicationDetail; documents: ApplicationDocument[] }>(`/api/applications/${id}`);
+  async getApplicationDetail(id: string): Promise<{ application: ApplicationDetailDTO; documents: ApplicationDocumentDTO[] }> {
+    return apiRequest<{ application: ApplicationDetailDTO; documents: ApplicationDocumentDTO[] }>(`/api/applications/${id}`);
   },
 
   async updateStatus(
@@ -96,3 +53,6 @@ export const adminService = {
     );
   },
 };
+
+// Re-export types for backward compatibility
+export type { ApplicationDTO as Application, ApplicationDetailDTO as ApplicationDetail, ApplicationDocumentDTO as ApplicationDocument };

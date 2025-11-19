@@ -14,6 +14,7 @@
     "migrate:validate": "node dist/cli.js validate"
   },
   "dependencies": {
+    "@shared/types": "workspace:*",
     "mssql": "^12.1.0",
     "@azure/cosmos": "^4.7.0",
     "commander": "^12.0.0",

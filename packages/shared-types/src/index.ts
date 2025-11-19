@@ -19,3 +19,7 @@ export interface ApiError {
   code?: string;
   statusCode?: number;
 }
+
+// Export all database types
+export * from './database';
+export * from './mappers';

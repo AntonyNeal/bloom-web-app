@@ -183,12 +183,11 @@ jobs:
         run: |
           echo "📦 Packaging API for deployment..."
           mkdir -p deploy-package
-          cp -r dist deploy-package/
-          cp -r node_modules deploy-package/
+          cp -r dist/* deploy-package/
           cp host.json deploy-package/
           cp package.json deploy-package/
           cp package-lock.json deploy-package/
-          echo "✅ Deployment package ready"
+          echo "✅ Deployment package ready ($(du -sh deploy-package | cut -f1))"
       
       - name: Upload API artifacts
         uses: actions/upload-artifact@v4

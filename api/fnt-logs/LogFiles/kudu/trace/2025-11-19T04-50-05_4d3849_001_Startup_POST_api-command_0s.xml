@@ -1,3 +1,0 @@
-<step title="Startup Request" date="2025-11-19T04:50:05.317" instance="4d3849" url="/api/command" method="POST" type="request" pid="952,2,7" ScmType="None" SCM_DO_BUILD_DURING_DEPLOYMENT="true" >
-  <step title="Cleanup Xml Logs" date="2025-11-19T04:50:05.348" /><!-- duration: 47ms -->
-</step><!-- duration: 109ms -->

@@ -1,1 +1,0 @@
-// Splose API integration

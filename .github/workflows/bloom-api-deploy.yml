@@ -11,7 +11,6 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'bloom-functions-prod'
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'apps/bloom/api'
   NODE_VERSION: '20.x'
 
@@ -20,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    env:
+      AZURE_FUNCTIONAPP_NAME: ${{ github.ref == 'refs/heads/main' && 'bloom-functions-prod' || 'bloom-functions-staging-new' }}
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
@@ -29,17 +30,21 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
       - name: 'Install dependencies'
         shell: bash
         run: |
-          cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          npm install
+          pnpm install --frozen-lockfile
 
       - name: 'Build TypeScript'
         shell: bash
         run: |
           cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          npm run build
+          pnpm run build
 
       - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1

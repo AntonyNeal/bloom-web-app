@@ -11,7 +11,6 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'lpa-functions-prod'
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'apps/website/functions'
   NODE_VERSION: '20.x'
 
@@ -20,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    env:
+      AZURE_FUNCTIONAPP_NAME: ${{ github.ref == 'refs/heads/main' && 'lpa-functions-prod' || 'lpa-functions-staging' }}
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4

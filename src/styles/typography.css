@@ -1,6 +1,0 @@
-/* 
- * REMOVED: Duplicate font imports and unused styles
- * Fonts are loaded via @fontsource in main.tsx (optimized Latin subset)
- * Body and heading styles managed via Tailwind and index.css
- * File kept for potential future use
- */

@@ -25,9 +25,40 @@ dist-ssr
 
 .env
 
+# Azure Functions
+**/local.settings.json
+**/publish-profiles/
+*.PublishSettings
+
+# Build outputs and dependencies
+node_modules/
+dist/
+dist-ssr/
+.turbo/
+*.tsbuildinfo
+
 # GitHub secrets setup (contains credentials)
-.github/SETUP_SECRETS.mdapps/website/functions/local.settings.json
+.github/SETUP_SECRETS.md
+
+# Archived documentation (moved to docs/)
+docs/archived-reports/
 
 # Sensitive config files
-apps/website/functions/local.settings.json
 *.local.settings.json
+
+# Old project structure (deprecated - use apps/* instead)
+/src/
+/public/
+/api/
+/assets/
+/@/
+index.html
+staticwebapp.config.json
+swa-cli.config.json
+components.json
+vite.config.ts
+tailwind.config.js
+postcss.config.js
+eslint.config.js
+tsconfig.json
+tsconfig.*.json

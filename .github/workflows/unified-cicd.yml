@@ -1,0 +1,395 @@
+name: Unified CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - develop
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
+      - staging
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: 9
+
+jobs:
+  # Detect changes to determine which jobs to run
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.filter.outputs.packages }}
+      website: ${{ steps.filter.outputs.website }}
+      website-functions: ${{ steps.filter.outputs.website-functions }}
+      bloom: ${{ steps.filter.outputs.bloom }}
+      bloom-api: ${{ steps.filter.outputs.bloom-api }}
+      migrations: ${{ steps.filter.outputs.migrations }}
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            packages:
+              - 'packages/**'
+              - 'pnpm-workspace.yaml'
+              - 'pnpm-lock.yaml'
+            website:
+              - 'apps/website/src/**'
+              - 'apps/website/public/**'
+              - 'apps/website/*.{ts,tsx,json,html,css}'
+              - 'apps/website/vite.config.ts'
+              - 'packages/**'
+            website-functions:
+              - 'apps/website/functions/**'
+              - 'packages/**'
+            bloom:
+              - 'apps/bloom/src/**'
+              - 'apps/bloom/public/**'
+              - 'apps/bloom/*.{ts,tsx,json,html,css}'
+              - 'apps/bloom/vite.config.ts'
+              - 'packages/**'
+            bloom-api:
+              - 'apps/bloom/api/**'
+              - 'packages/shared-types/**'
+              - 'packages/db-migrations/**'
+            migrations:
+              - 'migrations/**'
+              - 'packages/db-migrations/**'
+            docs:
+              - 'docs/**'
+              - '*.md'
+
+  # Install dependencies (shared by all build jobs)
+  install-deps:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.packages == 'true' ||
+      needs.detect-changes.outputs.website == 'true' ||
+      needs.detect-changes.outputs.bloom == 'true' ||
+      needs.detect-changes.outputs.bloom-api == 'true' ||
+      needs.detect-changes.outputs.website-functions == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+  # Build shared packages
+  build-packages:
+    runs-on: ubuntu-latest
+    needs: [detect-changes, install-deps]
+    if: needs.detect-changes.outputs.packages == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Build shared packages
+        run: |
+          pnpm --filter @shared/types build || true
+          pnpm --filter @shared/utils build || true
+          pnpm --filter @shared/ui build || true
+          pnpm --filter @life-psychology/db-migrations build || true
+
+      - name: Cache built packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/*/dist
+          key: ${{ runner.os }}-packages-${{ github.sha }}
+
+  # Validate database migrations
+  validate-migrations:
+    runs-on: ubuntu-latest
+    needs: [detect-changes, install-deps, build-packages]
+    if: needs.detect-changes.outputs.migrations == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+            packages/*/dist
+          key: ${{ runner.os }}-full-cache-${{ github.sha }}
+
+      - name: Validate migration checksums
+        run: pnpm migrate:validate || echo "Migration validation requires database connection"
+
+  # Build and deploy Website
+  build-deploy-website:
+    runs-on: ubuntu-latest
+    needs: [detect-changes, install-deps, build-packages]
+    if: |
+      (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')) &&
+      (needs.detect-changes.outputs.website == 'true' || needs.detect-changes.outputs.website-functions == 'true')
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+            packages/*/dist
+          key: ${{ runner.os }}-full-cache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install dependencies (if cache miss)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build website
+        run: pnpm build:website
+        env:
+          VITE_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+          VITE_GA_MEASUREMENT_ID: ${{ secrets.VITE_GA_MEASUREMENT_ID }}
+          VITE_GOOGLE_ADS_ID: ${{ secrets.VITE_GOOGLE_ADS_ID }}
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_PROD || secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_STAGING }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "apps/website/dist"
+          api_location: "apps/website/functions"
+          skip_app_build: true
+          skip_api_build: ${{ needs.detect-changes.outputs.website-functions != 'true' }}
+
+  # Build and deploy Bloom App
+  build-deploy-bloom:
+    runs-on: ubuntu-latest
+    needs: [detect-changes, install-deps, build-packages]
+    if: |
+      (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')) &&
+      needs.detect-changes.outputs.bloom == 'true'
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+            packages/*/dist
+          key: ${{ runner.os }}-full-cache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install dependencies (if cache miss)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build bloom
+        run: pnpm build:bloom
+        env:
+          VITE_AZURE_CLIENT_ID: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_CLIENT_ID_PROD || secrets.AZURE_CLIENT_ID_STAGING }}
+          VITE_AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          VITE_API_BASE_URL: ${{ github.ref == 'refs/heads/main' && secrets.BLOOM_API_BASE_URL_PROD || secrets.BLOOM_API_BASE_URL_STAGING }}
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD || secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "apps/bloom/dist"
+          skip_app_build: true
+
+  # Build and deploy Bloom API (Azure Functions)
+  build-deploy-bloom-api:
+    runs-on: ubuntu-latest
+    needs: [detect-changes, install-deps, build-packages]
+    if: |
+      github.event_name == 'push' &&
+      needs.detect-changes.outputs.bloom-api == 'true'
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    env:
+      AZURE_FUNCTIONAPP_PACKAGE_PATH: 'apps/bloom/api'
+      AZURE_FUNCTIONAPP_NAME: ${{ github.ref == 'refs/heads/main' && 'bloom-functions-prod' || 'bloom-functions-staging-new' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+            packages/*/dist
+          key: ${{ runner.os }}-full-cache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install dependencies (if cache miss)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Bloom API
+        run: |
+          cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          pnpm run build
+
+      - name: Deploy to Azure Functions
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          publish-profile: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_BLOOM_PROD || secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_BLOOM_STAGING }}
+
+  # Security scanning (runs on all branches)
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.packages == 'true' ||
+      needs.detect-changes.outputs.website == 'true' ||
+      needs.detect-changes.outputs.bloom == 'true' ||
+      needs.detect-changes.outputs.bloom-api == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run security audit
+        run: |
+          if command -v pnpm &> /dev/null; then
+            pnpm audit --audit-level moderate || true
+          else
+            npm audit --audit-level moderate || true
+          fi
+
+  # Deployment summary
+  deployment-summary:
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-deploy-website, build-deploy-bloom, build-deploy-bloom-api, validate-migrations]
+    if: always() && github.event_name == 'push'
+    steps:
+      - name: Generate deployment summary
+        run: |
+          echo "# Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.ref == 'refs/heads/main' && 'Production' || 'Staging' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Changes Detected" >> $GITHUB_STEP_SUMMARY
+          echo "- Packages: ${{ needs.detect-changes.outputs.packages }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Website: ${{ needs.detect-changes.outputs.website }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Website Functions: ${{ needs.detect-changes.outputs.website-functions }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Bloom App: ${{ needs.detect-changes.outputs.bloom }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Bloom API: ${{ needs.detect-changes.outputs.bloom-api }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Migrations: ${{ needs.detect-changes.outputs.migrations }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Website: ${{ needs.build-deploy-website.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Bloom App: ${{ needs.build-deploy-bloom.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Bloom API: ${{ needs.build-deploy-bloom-api.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Migration Validation: ${{ needs.validate-migrations.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY

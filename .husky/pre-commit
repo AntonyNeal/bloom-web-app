@@ -1,0 +1,4 @@
+# npm run update-version (disabled - script missing)
+# Add main.tsx from either old location (src/) or new monorepo location (apps/website/src/)
+git add src/main.tsx 2>/dev/null || git add apps/website/src/main.tsx 2>/dev/null || true
+npx lint-staged

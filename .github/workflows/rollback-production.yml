@@ -1,0 +1,42 @@
+name: Rollback Production
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Commit SHA to rollback to'
+        required: true
+        type: string
+      rollback_reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+
+jobs:
+  rollback-prod:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.commit_sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_GA_MEASUREMENT_ID: ${{ secrets.VITE_GA_MEASUREMENT_ID }}
+          VITE_GOOGLE_ADS_ID: ${{ secrets.GOOGLE_ADS_ID }}
+          VITE_GOOGLE_ADS_CONVERSION_LABEL: ${{ secrets.GOOGLE_ADS_CONVERSION_LABEL }}
+          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
+      - name: Rollback Deploy to Azure Static Web Apps (Prod)
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: 'upload'
+          app_location: 'dist'
+          output_location: '.'
+          skip_app_build: true
+      - name: Log Rollback
+        run: 'echo "Production rollback to ${{ github.event.inputs.commit_sha }} for reason: ${{ github.event.inputs.rollback_reason }}"'

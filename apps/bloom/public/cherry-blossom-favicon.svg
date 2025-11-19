@@ -1,0 +1,30 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cherry Blossom design - delicate 5-petal flower -->
+  <!-- Soft pink petals with yellow center -->
+  <g transform="translate(16, 16)">
+    <!-- Center circle (yellow stamen) -->
+    <circle cx="0" cy="0" r="2.5" fill="#FFD700"/>
+
+    <!-- 7 main petals (pink) arranged in circle -->
+    <ellipse cx="0" cy="-7" rx="3.5" ry="5" fill="#FFB6D9" transform="rotate(0)"/>
+    <ellipse cx="0" cy="-7" rx="3.5" ry="5" fill="#FFB6D9" transform="rotate(51.43)"/>
+    <ellipse cx="0" cy="-7" rx="3.5" ry="5" fill="#FFB6D9" transform="rotate(102.86)"/>
+    <ellipse cx="0" cy="-7" rx="3.5" ry="5" fill="#FFB6D9" transform="rotate(154.29)"/>
+    <ellipse cx="0" cy="-7" rx="3.5" ry="5" fill="#FFB6D9" transform="rotate(205.71)"/>
+    <ellipse cx="0" cy="-7" rx="3.5" ry="5" fill="#FFB6D9" transform="rotate(257.14)"/>
+    <ellipse cx="0" cy="-7" rx="3.5" ry="5" fill="#FFB6D9" transform="rotate(308.57)"/>
+
+    <!-- Darker pink inner petals for depth/shadow (7 petals) -->
+    <ellipse cx="0" cy="-5.5" rx="2.5" ry="3" fill="#FF9FBD" transform="rotate(25.71)"/>
+    <ellipse cx="0" cy="-5.5" rx="2.5" ry="3" fill="#FF9FBD" transform="rotate(77.14)"/>
+    <ellipse cx="0" cy="-5.5" rx="2.5" ry="3" fill="#FF9FBD" transform="rotate(128.57)"/>
+    <ellipse cx="0" cy="-5.5" rx="2.5" ry="3" fill="#FF9FBD" transform="rotate(180)"/>
+    <ellipse cx="0" cy="-5.5" rx="2.5" ry="3" fill="#FF9FBD" transform="rotate(231.43)"/>
+    <ellipse cx="0" cy="-5.5" rx="2.5" ry="3" fill="#FF9FBD" transform="rotate(282.86)"/>
+    <ellipse cx="0" cy="-5.5" rx="2.5" ry="3" fill="#FF9FBD" transform="rotate(334.29)"/>
+
+    <!-- Center stamen details -->
+    <circle cx="0" cy="0" r="1.8" fill="#FFC700" opacity="0.7"/>
+    <circle cx="-0.5" cy="-0.5" r="0.5" fill="#FFF" opacity="0.5"/>
+  </g>
+</svg>

@@ -1,0 +1,38 @@
+<step title="BackgroundTrace" date="2025-11-19T03:01:40.134" instance="4da4ce" url="/api/zipdeploy" method="POST" >
+  <step title="Updating shutdown sentinel last write time" date="2025-11-19T03:01:40.180" SemaphoreCount="7" /><!-- duration: 16ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-11-19T03:01:40.227" /><!-- duration: 16ms -->
+  <step title="Creating temporary deployment" date="2025-11-19T03:01:40.274" /><!-- duration: 141ms -->
+  <step title="Performing fetch based deployment" date="2025-11-19T03:01:40.446" >
+    <step title="Fetching changes." date="2025-11-19T03:01:40.665" /><!-- duration: 31ms -->
+    <step title="Starting LocalZipHandler" date="2025-11-19T03:01:40.727" /><!-- duration: 16ms -->
+    <step title="Starting ExtractTriggers" date="2025-11-19T03:01:40.774" /><!-- duration: 16ms -->
+    <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2025-11-19T03:01:40.884" /><!-- duration: 16ms -->
+    <step title="DeploymentManager.Deploy(id:5d211bf8785c4c50955444f9ade0408b)" date="2025-11-19T03:01:40.930" >
+      <step title="Collecting changeset information" date="2025-11-19T03:01:40.977" /><!-- duration: 156ms -->
+      <step title="Updating submodules" date="2025-11-19T03:01:41.165" >
+        <step title="Updating submodules." date="2025-11-19T03:01:41.368" /><!-- duration: 16ms -->
+      </step><!-- duration: 234ms -->
+      <step title="Preparing deployment for commit id &apos;5d211bf878&apos;." date="2025-11-19T03:01:41.618" /><!-- duration: 16ms -->
+      <step title="Determining deployment builder" date="2025-11-19T03:01:41.805" >
+        <step title="Builder is RunFromZipSiteBuilder" date="2025-11-19T03:01:41.837" /><!-- duration: 16ms -->
+      </step><!-- duration: 62ms -->
+      <step title="Copying SSH keys" date="2025-11-19T03:01:41.946" /><!-- duration: 31ms -->
+      <step title="Building" date="2025-11-19T03:01:41.993" >
+        <step title="Skipping build. Project type: Run-From-Zip" date="2025-11-19T03:01:42.446" /><!-- duration: 16ms -->
+        <step title="Skipping post build. Project type: Run-From-Zip" date="2025-11-19T03:01:42.649" /><!-- duration: 16ms -->
+        <step title="Triggering recycle (preview mode disabled)." date="2025-11-19T03:01:42.868" /><!-- duration: 16ms -->
+        <step title="Ignoring FS watcher based recycle request as this is a classic Windows app." date="2025-11-19T03:01:42.899" /><!-- duration: 16ms -->
+        <step title="Deployment successful. DEPLOYMENTINFO: deploymentPath = Functions App ZipDeploy. Run from package., deployer = GITHUB_ZIP_DEPLOY_FUNCTIONS_V1, os = windows, sku = Dynamic, language = node, siteName = fnt42kldozqahcu, slotName = Production, siteHostName = fnt42kldozqahcu.azurewebsites.net, deploymentStatus = Success" date="2025-11-19T03:01:43.102" /><!-- duration: 31ms -->
+        <step title="Purge deployment items" date="2025-11-19T03:01:43.493" >
+          <step title="Remove 495eaf16b, Success, received at 10/29/2025 10:07:13 PM" date="2025-11-19T03:01:43.727" /><!-- duration: 31ms -->
+        </step><!-- duration: 281ms -->
+      </step><!-- duration: 1875ms -->
+    </step><!-- duration: 2969ms -->
+    <step title="Cleaning up temp files" date="2025-11-19T03:01:43.915" /><!-- duration: 31ms -->
+    <step title="Updating C:\home\data\SitePackages\packagename.txt with deployment 20251119030139.zip" date="2025-11-19T03:01:43.977" /><!-- duration: 47ms -->
+    <step title="Begin HttpPost https://fnt42kldozqahcu.scm.azurewebsites.net/operations/settriggers, x-ms-request-id: a56be2f7-fed0-402e-9c88-a2f58cb49fce" date="2025-11-19T03:01:44.118" /><!-- duration: 16ms -->
+    <step title="End HttpPost, status: OK" date="2025-11-19T03:01:44.524" /><!-- duration: 31ms -->
+    <step title="Scheduling background sync triggers after delay" date="2025-11-19T03:01:44.587" /><!-- duration: 31ms -->
+  </step><!-- duration: 4391ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-11-19T03:01:44.868" /><!-- duration: 31ms -->
+</step><!-- duration: 4797ms -->

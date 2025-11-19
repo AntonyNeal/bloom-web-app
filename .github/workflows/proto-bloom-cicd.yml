@@ -46,6 +46,29 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
 
+  # DETECT CHANGES
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      api-changed: ${{ steps.filter.outputs.api }}
+      frontend-changed: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'api/**'
+            frontend:
+              - 'src/**'
+              - 'public/**'
+              - 'index.html'
+              - 'vite.config.ts'
+              - 'package.json'
+              - 'tsconfig.json'
+
   # DETERMINE ENVIRONMENT
   determine-environment:
     name: Determine Environment
@@ -128,9 +151,10 @@ jobs:
   build-api:
     name: Build API
     runs-on: ubuntu-latest
-    needs: [determine-environment, lint, type-check]
+    needs: [determine-environment, detect-changes, lint, type-check]
     if: |
       always() &&
+      needs.detect-changes.outputs.api-changed == 'true' &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success'
@@ -219,9 +243,10 @@ jobs:
   deploy-api:
     name: Deploy API to ${{ needs.determine-environment.outputs.environment }}
     runs-on: ubuntu-latest
-    needs: [determine-environment, build-api]
+    needs: [determine-environment, detect-changes, build-api]
     if: |
       always() &&
+      needs.detect-changes.outputs.api-changed == 'true' &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
       needs.build-api.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}

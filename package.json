@@ -41,7 +41,13 @@
                     "dev:website":  "pnpm --filter website dev",
                     "dev:bloom":  "pnpm --filter bloom dev",
                     "build:website":  "pnpm --filter website build",
-                    "build:bloom":  "pnpm --filter bloom build"
+                    "build:bloom":  "pnpm --filter bloom build",
+                    "migrate": "pnpm --filter @life-psychology/db-migrations migrate",
+                    "migrate:up": "pnpm --filter @life-psychology/db-migrations migrate up",
+                    "migrate:down": "pnpm --filter @life-psychology/db-migrations migrate down",
+                    "migrate:status": "pnpm --filter @life-psychology/db-migrations migrate:status",
+                    "migrate:validate": "pnpm --filter @life-psychology/db-migrations migrate:validate",
+                    "migrate:create": "pnpm --filter @life-psychology/db-migrations migrate:create"
                 },
     "lint-staged":  {
                         "src/**/*.{ts,tsx}":  [

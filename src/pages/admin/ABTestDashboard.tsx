@@ -64,9 +64,21 @@ export function ABTestDashboard() {
       const testStartDate = new Date('2025-10-30T00:48:58.371Z');
       const today = new Date();
       const daysRunning = Math.floor((today.getTime() - testStartDate.getTime()) / (1000 * 60 * 60 * 24));
-      const expectedDurationDays = 30; // Typical A/B test duration
-      const daysRemaining = Math.max(0, expectedDurationDays - daysRunning);
-      const progressPercentage = Math.min(100, Math.round((daysRunning / expectedDurationDays) * 100));
+      
+      // Calculate sample size needed for statistical significance
+      // Using minimum detectable effect (MDE) of 20%, baseline conversion ~10%, 95% confidence, 80% power
+      const totalAllocations = 20; // 13 + 7 from mock data
+      const sampleSizeNeeded = 385; // Per variant for 95% confidence, 80% power, 20% MDE
+      const totalSampleNeeded = sampleSizeNeeded * 2; // Two variants
+      
+      // Calculate visitor rate and estimate completion
+      const visitorsPerDay = totalAllocations / daysRunning;
+      const remainingAllocations = Math.max(0, totalSampleNeeded - totalAllocations);
+      const daysRemaining = visitorsPerDay > 0 
+        ? Math.ceil(remainingAllocations / visitorsPerDay)
+        : 999;
+      const expectedDurationDays = daysRunning + daysRemaining;
+      const progressPercentage = Math.min(100, Math.round((totalAllocations / totalSampleNeeded) * 100));
 
       const mockResults = [
         {
@@ -91,7 +103,7 @@ export function ABTestDashboard() {
             daysRemaining,
             expectedDurationDays,
             progressPercentage,
-            status: daysRemaining > 0 ? 'Running' : 'Complete'
+            status: progressPercentage >= 100 ? 'Complete' : 'Running'
           }
         }
       ];

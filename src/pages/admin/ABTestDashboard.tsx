@@ -124,7 +124,7 @@ export function ABTestDashboard() {
         data.allocations,
         data.conversions,
         (data.conversionRate * 100).toFixed(2) + '%',
-        name === testResult.improvement.winner
+        testResult.statisticalSignificance.isSignificant && name === testResult.improvement.winner
           ? 'WINNER +' + testResult.improvement.percentage.toFixed(1) + '%'
           : '',
       ]),
@@ -295,13 +295,17 @@ export function ABTestDashboard() {
                         <div className="text-center">
                           <p className="text-xs text-sage-600 mb-1">Winner</p>
                           <p className="text-sm font-bold text-sage-900">
-                            {test.improvement?.winner || 'N/A'}
+                            {test.statisticalSignificance?.isSignificant
+                              ? test.improvement?.winner || 'N/A'
+                              : 'Collecting data...'}
                           </p>
                         </div>
                         <div className="text-center">
                           <p className="text-xs text-sage-600 mb-1">Improvement</p>
                           <p className="text-lg font-bold text-green-600">
-                            +{test.improvement?.percentage?.toFixed(1) || '0'}%
+                            {test.statisticalSignificance?.isSignificant
+                              ? `+${test.improvement?.percentage?.toFixed(1) || '0'}%`
+                              : '—'}
                           </p>
                         </div>
                       </div>
@@ -381,7 +385,7 @@ export function ABTestDashboard() {
                               <div key={name} className="border border-sage-200 rounded-lg p-4">
                                 <div className="flex items-center justify-between mb-2">
                                   <span className="font-medium text-sage-900">{name}</span>
-                                  {name === test.improvement?.winner && (
+                                  {test.statisticalSignificance?.isSignificant && name === test.improvement?.winner && (
                                     <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">
                                       WINNER
                                     </span>

@@ -36,16 +36,8 @@ interface TestResult {
   };
 }
 
-const ACTIVE_TESTS = [
-  'homepage-header-test',
-  'hero-cta-test',
-  'mobile-touch-test',
-  'form-fields-test',
-  'trust-badges-test',
-];
-
 // Use Azure Function App directly (CORS now enabled)
-const AZURE_FUNCTION_URL = 'https://fnt42kldozqahcu.azurewebsites.net/api/ab-test/results';
+// const AZURE_FUNCTION_URL = 'https://fnt42kldozqahcu.azurewebsites.net/api/ab-test/results';
 
 export function ABTestDashboard() {
   const navigate = useNavigate();

@@ -60,6 +60,14 @@ export function ABTestDashboard() {
     setError(null);
     try {
       // Use mock data for the one real test until API is fixed
+      // Test started Oct 30, 2025 (last tracking event date from Cosmos DB)
+      const testStartDate = new Date('2025-10-30T00:48:58.371Z');
+      const today = new Date();
+      const daysRunning = Math.floor((today.getTime() - testStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      const expectedDurationDays = 30; // Typical A/B test duration
+      const daysRemaining = Math.max(0, expectedDurationDays - daysRunning);
+      const progressPercentage = Math.min(100, Math.round((daysRunning / expectedDurationDays) * 100));
+
       const mockResults = [
         {
           testName: 'homepage-header-test',
@@ -76,6 +84,14 @@ export function ABTestDashboard() {
           improvement: {
             percentage: 85.71,
             winner: 'healthcare-optimized'
+          },
+          duration: {
+            startedAt: testStartDate.toISOString(),
+            daysRunning,
+            daysRemaining,
+            expectedDurationDays,
+            progressPercentage,
+            status: daysRemaining > 0 ? 'Running' : 'Complete'
           }
         }
       ];

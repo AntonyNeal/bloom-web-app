@@ -183,7 +183,7 @@ jobs:
         run: |
           echo "📦 Packaging API for deployment..."
           mkdir -p deploy-package
-          cp -r dist/* deploy-package/
+          cp -r dist deploy-package/
           cp host.json deploy-package/
           cp package.json deploy-package/
           cp package-lock.json deploy-package/

@@ -41,8 +41,6 @@ const migration: Migration = {
         ]
       }
     });
-    
-    console.log('✅ A/B testing containers created');
   },
   
   async down() {
@@ -52,8 +50,6 @@ const migration: Migration = {
     // Delete containers
     await database.container('ab-test-events').delete();
     await database.container('ab-test-metadata').delete();
-    
-    console.log('✅ A/B testing containers deleted');
   }
 };
 

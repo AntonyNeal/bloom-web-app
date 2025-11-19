@@ -46,13 +46,13 @@ const IMAGE_DOMAINS = [
   'cdn.jsdelivr.net'
 ];
 
-// Cache durations optimized for Newcastle latency (shortened for debugging)
+// Cache durations optimized for Newcastle latency
 const CACHE_DURATIONS = {
-  CRITICAL: 1 * 60 * 60 * 1000, // 1 hour (was 24h)
-  STATIC: 1 * 24 * 60 * 60 * 1000, // 1 day (was 7d)
-  IMAGES: 7 * 24 * 60 * 60 * 1000, // 7 days (was 30d)
-  FONTS: 30 * 24 * 60 * 60 * 1000, // 30 days (was 1y)
-  API: 5 * 60 * 1000, // 5 minutes (unchanged)
+  CRITICAL: 24 * 60 * 60 * 1000, // 24 hours
+  STATIC: 7 * 24 * 60 * 60 * 1000, // 7 days
+  IMAGES: 30 * 24 * 60 * 60 * 1000, // 30 days
+  FONTS: 365 * 24 * 60 * 60 * 1000, // 1 year
+  API: 5 * 60 * 1000, // 5 minutes
 };
 
 // Install event - cache critical resources

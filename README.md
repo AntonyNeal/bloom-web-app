@@ -57,6 +57,17 @@ npm run preview
 
 ## 🏗️ Architecture (Nov 2025 Refactoring)
 
+### Monorepo Structure
+
+This project uses a **pnpm workspace monorepo** with the following applications:
+
+- **`apps/website`** - Public-facing React application (Life Psychology Australia)
+- **`apps/bloom`** - Admin dashboard for psychologist recruitment
+- **`apps/bloom/api`** - Azure Functions API for Bloom application
+- **`packages/*`** - Shared libraries (@shared/types, @shared/utils, @shared/ui, db-migrations)
+
+> **Note**: The legacy `bloom-functions/` directory at the repository root is deprecated. All Azure Functions development now happens in `apps/bloom/api`. The legacy directory will be removed in a future cleanup.
+
 ### Centralized Services
 
 - **`src/services/BookingService.ts`** - Singleton managing all booking operations and modal state
@@ -99,6 +110,30 @@ http://localhost:5176/ab-test-verification
 - **LCP**: <2.5s via critical CSS inlining
 - **Analytics**: Reduced tracking overhead by 66% with UnifiedTracker
 - **Testing**: Automated visual regression testing via Playwright
+
+## ⚙️ Environment Configuration
+
+### Environment File Precedence
+
+This project uses multiple environment files with a specific load order:
+
+1. **`.env`** - Base configuration (committed, shared defaults)
+2. **`.env.development`** - Development overrides (local only)
+3. **`.env.production`** - Production overrides (build-time)
+4. **`.env.example`** - Template for required variables
+
+**Best Practice**: 
+- Keep sensitive values out of `.env` and use `.env.development`/`.env.production` locally
+- Use GitHub Secrets for CI/CD deployment
+- Never commit API keys or secrets
+
+### Required Variables
+
+See `.env.example` for a complete list of required environment variables:
+- `VITE_GA_MEASUREMENT_ID` - Google Analytics 4
+- `VITE_GOOGLE_ADS_ID` - Google Ads tracking
+- `VITE_BOOKING_URL` - Halaxy booking endpoint
+- `VITE_AZURE_FUNCTION_URL` - Azure Functions API
 
 ## 🚦 Deployment
 

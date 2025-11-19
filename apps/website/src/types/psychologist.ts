@@ -18,12 +18,11 @@ export interface PsychologistApplication {
   hasPhD?: boolean; // For qualification gate
 
   // Professional Experience
-  yearsExperience: number;
-  yearsOfExperience?: number; // Added for Step 3
-  yearsOfExperienceAdults?: number; // Added for Step 3
+  yearsExperience: number; // Total years of experience
+  yearsOfExperienceAdults?: number; // Years specifically working with adults
   specialties: string[];
-  clientTypes?: string[]; // Added for Step 3
-  otherSpecialties?: string; // Added for Step 3
+  clientTypes?: string[];
+  otherSpecialties?: string;
   motivation: string;
 
   // Work Preferences
@@ -33,36 +32,35 @@ export interface PsychologistApplication {
     | 'replace-some'
     | 'supplement'
     | 'just-exploring';
-  preferredClientTypes: string[]; // Added
-  currentEmploymentStatus: string; // Added
-  availableStartDate: string; // Added
+  preferredClientTypes: string[];
+  currentEmploymentStatus: string;
+  availableStartDate: string;
 
   // Telehealth Setup
-  state: string; // Added
-  timezone: string; // Added
-  hasTelehealthExperience?: boolean; // Added
-  telehealthExperienceYears?: number; // Added
-  telehealthCapable?: boolean; // Added for Step 4
-  preferredPlatforms?: string[]; // Added for Step 4
-  sessionTypes?: string[]; // Added for Step 4
+  state: string;
+  timezone: string;
+  hasTelehealthExperience?: boolean;
+  telehealthExperienceYears?: number;
+  telehealthCapable?: boolean;
+  preferredPlatforms?: string[];
+  sessionTypes?: string[];
   availability?: {
-    // Added for Step 4
     days?: string[];
     earliestTime?: string;
     latestTime?: string;
   };
-  hasReliableInternet: boolean; // Added
-  hasQuietPrivateSpace: boolean; // Added
-  hasWebcamAndHeadset: boolean; // Added
-  willingToAcceptMedicare?: boolean; // Added
-  willingToAcceptPrivateOnly?: boolean; // Added
+  hasReliableInternet: boolean;
+  hasQuietPrivateSpace: boolean;
+  hasWebcamAndHeadset: boolean;
+  willingToAcceptMedicare?: boolean;
+  willingToAcceptPrivateOnly?: boolean;
 
   // Insurance & Compliance
   hasInsurance: boolean;
   insuranceProvider?: string;
   hasWorkingWithChildrenCheck: boolean;
   workingWithChildrenNumber?: string;
-  preferredHourlyRate?: number; // Added for Step 5
+  preferredHourlyRate?: number;
 
   // Professional References
   reference1Name: string;
@@ -74,8 +72,8 @@ export interface PsychologistApplication {
 
   // File Uploads
   cvFile?: File;
-  ahpraCertificateFile?: File; // Added for Step 7
-  insuranceCertificateFile?: File; // Added for Step 7
+  ahpraCertificateFile?: File;
+  insuranceCertificateFile?: File;
 
   // Consent & Legal
   privacyConsent: boolean;

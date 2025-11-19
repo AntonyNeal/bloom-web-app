@@ -7,11 +7,12 @@ import App from './App';
 import { loadRuntimeConfig } from './runtime-fetch';
 import { halaxyTracker } from './utils/halaxyBookingTracker';
 import { initializeApplicationInsights } from './utils/applicationInsights';
+import { log } from './utils/logger';
 
 // Lightweight build metadata logging (kept minimal)
 if (import.meta.env.DEV) {
-  console.log('Life Psychology Australia - Build 614');
-  console.log('[LOG] main.tsx - Starting app bootstrap');
+  log.info('Life Psychology Australia - Build 614', 'main.tsx');
+  log.debug('Starting app bootstrap', 'main.tsx');
 }
 
 // [VERSION] Deployed on 2025-11-19 - Iteration 811
@@ -19,12 +20,12 @@ if (import.meta.env.DEV) {
 async function bootstrapApp() {
   const rootElement = document.getElementById('root');
   if (!rootElement) {
-    console.error('[ERROR] main.tsx - Root element not found!');
+    log.error('Root element not found!', 'main.tsx');
     return;
   }
 
   if (import.meta.env.DEV) {
-    console.log('[LOG] main.tsx - Root element found');
+    log.debug('Root element found', 'main.tsx');
   }
 
   // Load runtime configuration from static file (replaced Function App)
@@ -165,7 +166,7 @@ async function bootstrapApp() {
 
 // Start the app
 bootstrapApp().catch((error) => {
-  console.error('[ERROR] main.tsx - Failed to bootstrap app:', error);
+  log.error('Failed to bootstrap app', 'main.tsx', error);
 });
 
 // Defer non-critical operations to reduce Total Blocking Time
@@ -177,10 +178,10 @@ if (typeof requestIdleCallback !== 'undefined') {
         .then(({ registerServiceWorker }) => {
           registerServiceWorker({
             onSuccess: () => {
-              console.log('[SW] Service worker registered successfully');
+              log.info('Service worker registered successfully', 'ServiceWorker');
             },
             onError: (error) => {
-              console.error('[SW] Service worker registration failed:', error);
+              log.error('Service worker registration failed', 'ServiceWorker', error);
             },
           });
         })
@@ -198,10 +199,10 @@ if (typeof requestIdleCallback !== 'undefined') {
       .then(({ registerServiceWorker }) => {
         registerServiceWorker({
           onSuccess: () => {
-            console.log('[SW] Service worker registered successfully');
+            log.info('Service worker registered successfully', 'ServiceWorker');
           },
           onError: (error) => {
-            console.error('[SW] Service worker registration failed:', error);
+            log.error('Service worker registration failed', 'ServiceWorker', error);
           },
         });
       })

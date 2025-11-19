@@ -19,16 +19,12 @@ export const API_ENDPOINTS = {
 
 // A/B Testing configuration
 export const AB_TEST_CONFIG = {
-  STORAGE_KEY: 'ab-test-variant',
-  USER_ID_KEY: 'ab-test-user-id',
   ALLOCATION_COOKIE_NAME: 'ab_variant',
   COOKIE_MAX_AGE_DAYS: 30,
 } as const;
 
 // Booking configuration
 export const BOOKING_CONFIG = {
-  SESSION_STORAGE_KEY: 'booking_session_id',
-  GCLID_STORAGE_KEY: 'gclid',
   SESSION_EXPIRY_HOURS: 24,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY_MS: 1000,
@@ -39,6 +35,19 @@ export const TRACKING_CONFIG = {
   SCROLL_DEPTH_THRESHOLDS: [25, 50, 75, 90, 100],
   HIGH_INTENT_TIMER_SECONDS: 30,
   DEBOUNCE_MS: 300,
+  GOOGLE_ADS_ID: 'AW-11563740075',
+  GOOGLE_ADS_CONVERSION_LABEL: 'FqhOCKymqUbEKvXgoor',
+  BOOKING_CONVERSION_LABEL: 'BV_MCN3Wx-gZEO20_k-',
+} as const;
+
+// Storage keys
+export const STORAGE_KEYS = {
+  GCLID: 'lpa_gclid',
+  BOOKING_INTENT: 'lpa_booking_intent',
+  AB_TEST_VARIANT: 'ab-test-variant',
+  AB_TEST_USER_ID: 'ab-test-user-id',
+  BOOKING_SESSION: 'booking_session_id',
+  STORAGE_TEST: '__storage_test__',
 } as const;
 
 // Performance configuration

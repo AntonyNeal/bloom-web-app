@@ -187,39 +187,142 @@ export const PsychologistApplicationForm: React.FC = () => {
     }
   };
 
-  // Success screen
+  // Success screen - Clinician-focused with support and community emphasis
   if (submitted) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
-        <svg
-          className="mx-auto h-16 w-16 text-green-600 mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Application Submitted!
-        </h2>
-        <p className="text-gray-700 mb-4">
-          Thank you for your interest in joining Life Psychology Australia.
-          We'll review your application and be in touch within 5 business days.
-        </p>
-        <p className="text-sm text-gray-600 mb-2">
-          Application ID:{' '}
-          <span className="font-mono font-semibold">
-            {formData.applicationId}
-          </span>
-        </p>
-        <p className="text-sm text-gray-600">
-          A confirmation email has been sent to {formData.email}
-        </p>
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-8 shadow-lg">
+          {/* Success Icon */}
+          <div className="text-center mb-6">
+            <svg
+              className="mx-auto h-20 w-20 text-green-600 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+              Welcome to the Life Psychology Community! 🎉
+            </h2>
+            <p className="text-lg text-gray-700">
+              Thank you for taking this step towards joining a practice built by a psychologist, for psychologists.
+            </p>
+          </div>
+
+          {/* Application Details */}
+          <div className="bg-white rounded-lg p-6 mb-6 border border-green-100">
+            <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Application Received
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-gray-600">Application ID</p>
+                <p className="font-mono font-semibold text-gray-900">{formData.applicationId}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">Confirmation sent to</p>
+                <p className="font-semibold text-gray-900">{formData.email}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* What Happens Next */}
+          <div className="bg-white rounded-lg p-6 mb-6 border border-gray-200">
+            <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              What Happens Next
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold mr-3">1</div>
+                <div>
+                  <p className="font-medium text-gray-900">Application Review</p>
+                  <p className="text-sm text-gray-600">Our team will carefully review your credentials and experience (1-2 business days)</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold mr-3">2</div>
+                <div>
+                  <p className="font-medium text-gray-900">Initial Contact</p>
+                  <p className="text-sm text-gray-600">We'll reach out within 5 business days to discuss next steps and answer your questions</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold mr-3">3</div>
+                <div>
+                  <p className="font-medium text-gray-900">Conversation</p>
+                  <p className="text-sm text-gray-600">A friendly chat about your goals, our approach, and how we support our clinicians</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Why Life Psychology is Different */}
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-6 border border-amber-200">
+            <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              Built by a Psychologist, For Psychologists
+            </h3>
+            <p className="text-sm text-gray-700 mb-3">
+              Life Psychology was founded by someone who understands your challenges firsthand:
+            </p>
+            <ul className="space-y-2 text-sm text-gray-700">
+              <li className="flex items-start">
+                <svg className="w-4 h-4 mr-2 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span>Fair revenue split that values your expertise</span>
+              </li>
+              <li className="flex items-start">
+                <svg className="w-4 h-4 mr-2 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span>Complete administrative support (scheduling, billing, compliance)</span>
+              </li>
+              <li className="flex items-start">
+                <svg className="w-4 h-4 mr-2 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span>Peer support network and clinical supervision options</span>
+              </li>
+              <li className="flex items-start">
+                <svg className="w-4 h-4 mr-2 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span>Flexibility to work your way (hours, location, client types)</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Questions/Support */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600 mb-3">
+              Have questions while you wait? We're here to help.
+            </p>
+            <a 
+              href="mailto:join@life-psychology.com.au" 
+              className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              join@life-psychology.com.au
+            </a>
+          </div>
+        </div>
       </div>
     );
   }

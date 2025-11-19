@@ -3,6 +3,8 @@
  * Handles all conversion tracking including Google Ads, GA4, and Microsoft Clarity
  */
 
+import { TRACKING_CONFIG, STORAGE_KEYS } from '../config/constants';
+
 // TypeScript interfaces
 export interface BookingData {
   timestamp: number;
@@ -22,11 +24,7 @@ export interface ConversionResult {
 }
 
 // Constants
-const GOOGLE_ADS_CONVERSION_ID = 'AW-11563740075';
-const GOOGLE_ADS_CONVERSION_LABEL = 'FqhOCKymqUbEKvXgoor';
 const DEFAULT_BOOKING_VALUE = 250; // $250 AUD
-const GCLID_STORAGE_KEY = 'lpa_gclid';
-const BOOKING_INTENT_KEY = 'lpa_booking_intent';
 
 /**
  * Store GCLID from URL to localStorage for later conversion tracking
@@ -43,7 +41,7 @@ export function captureGCLID(): void {
         timestamp: Date.now(),
         url: window.location.href,
       };
-      localStorage.setItem(GCLID_STORAGE_KEY, JSON.stringify(gclidData));
+      localStorage.setItem(STORAGE_KEYS.GCLID, JSON.stringify(gclidData));
       console.log('[ConversionTracking] GCLID captured:', gclid);
     }
   } catch (error) {
@@ -56,7 +54,7 @@ export function captureGCLID(): void {
  */
 export function getStoredGCLID(): string | null {
   try {
-    const stored = localStorage.getItem(GCLID_STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEYS.GCLID);
     if (!stored) return null;
 
     const gclidData = JSON.parse(stored);
@@ -70,7 +68,7 @@ export function getStoredGCLID(): string | null {
       return gclidData.gclid;
     } else {
       console.log('[ConversionTracking] Stored GCLID expired');
-      localStorage.removeItem(GCLID_STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEYS.GCLID);
       return null;
     }
   } catch (error) {

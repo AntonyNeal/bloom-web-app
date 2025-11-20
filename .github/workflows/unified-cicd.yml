@@ -198,6 +198,7 @@ jobs:
 
       - name: Restore packages cache
         uses: actions/cache@v4
+        continue-on-error: true
         with:
           path: packages/db-migrations/dist
           key: ${{ runner.os }}-packages-${{ github.sha }}
@@ -256,6 +257,7 @@ jobs:
 
       - name: Restore packages cache
         uses: actions/cache@v4
+        continue-on-error: true
         with:
           path: packages/db-migrations/dist
           key: ${{ runner.os }}-packages-${{ github.sha }}
@@ -334,6 +336,7 @@ jobs:
 
       - name: Restore packages cache
         uses: actions/cache@v4
+        continue-on-error: true
         with:
           path: packages/db-migrations/dist
           key: ${{ runner.os }}-packages-${{ github.sha }}
@@ -402,6 +405,7 @@ jobs:
 
       - name: Restore packages cache
         uses: actions/cache@v4
+        continue-on-error: true
         with:
           path: packages/db-migrations/dist
           key: ${{ runner.os }}-packages-${{ github.sha }}

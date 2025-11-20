@@ -143,12 +143,18 @@ jobs:
             packages/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
+      - name: Install dependencies (if cache miss)
+        run: pnpm install --frozen-lockfile
+
       - name: Build shared packages
         run: |
-          pnpm --filter @shared/types build || true
-          pnpm --filter @shared/utils build || true
-          pnpm --filter @shared/ui build || true
-          pnpm --filter @life-psychology/db-migrations build || true
+          # Only build packages that have build scripts (db-migrations)
+          pnpm --filter @life-psychology/db-migrations build
+
+      - name: Verify dist folders exist
+        run: |
+          echo "Checking for built package artifacts..."
+          ls -la packages/db-migrations/dist || echo "No dist folder for db-migrations"
 
       - name: Cache built packages
         uses: actions/cache@v4
@@ -192,6 +198,16 @@ jobs:
           key: ${{ runner.os }}-packages-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-packages-
+
+      - name: Install dependencies (if needed)
+        run: pnpm install --frozen-lockfile
+
+      - name: Rebuild packages if cache miss
+        run: |
+          if [ ! -d "packages/db-migrations/dist" ]; then
+            echo "Cache miss detected, rebuilding db-migrations..."
+            pnpm --filter @life-psychology/db-migrations build
+          fi
 
       - name: Validate migration checksums
         run: pnpm migrate:validate || echo "Migration validation requires database connection"
@@ -243,6 +259,13 @@ jobs:
 
       - name: Install dependencies (if cache miss)
         run: pnpm install --frozen-lockfile
+
+      - name: Rebuild packages if cache miss
+        run: |
+          if [ ! -d "packages/db-migrations/dist" ]; then
+            echo "Cache miss detected, rebuilding db-migrations..."
+            pnpm --filter @life-psychology/db-migrations build
+          fi
 
       - name: Build website
         run: pnpm build:website
@@ -316,6 +339,13 @@ jobs:
       - name: Install dependencies (if cache miss)
         run: pnpm install --frozen-lockfile
 
+      - name: Rebuild packages if cache miss
+        run: |
+          if [ ! -d "packages/db-migrations/dist" ]; then
+            echo "Cache miss detected, rebuilding db-migrations..."
+            pnpm --filter @life-psychology/db-migrations build
+          fi
+
       - name: Build bloom
         run: pnpm build:bloom
         env:
@@ -377,6 +407,13 @@ jobs:
 
       - name: Install dependencies (if cache miss)
         run: pnpm install --frozen-lockfile
+
+      - name: Rebuild packages if cache miss
+        run: |
+          if [ ! -d "packages/db-migrations/dist" ]; then
+            echo "Cache miss detected, rebuilding db-migrations..."
+            pnpm --filter @life-psychology/db-migrations build
+          fi
 
       - name: Install Bloom API dependencies
         run: |

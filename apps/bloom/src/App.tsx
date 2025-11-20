@@ -81,6 +81,7 @@ function LandingPage() {
             width: isMobile ? '280px' : '400px',
             height: isMobile ? '140px' : '180px',
             marginBottom: isMobile ? '24px' : '32px',
+            opacity: 1,
           }}
         >
           {/* === MAIN FLOWERS - The Three Greeters === */}
@@ -439,12 +440,12 @@ function LandingPage() {
         </div>
         */}
 
-        {/* Bloom Button - Positioned in top-right corner for subtle access */}
+        {/* Bloom Button - Positioned near "Paperwork" word in headline */}
         <div
           style={{
             position: 'absolute',
-            top: isMobile ? '16px' : '24px',
-            right: isMobile ? '16px' : '32px',
+            top: isMobile ? '32%' : '35%',
+            right: isMobile ? '3%' : '6%',
             zIndex: 20,
           }}
         >

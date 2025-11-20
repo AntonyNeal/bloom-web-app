@@ -62,10 +62,10 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
       initial={{ opacity: 0, y: 20, scale: 0.8 }}
       animate={{ opacity: 1, y: 0, scale: 1, rotate: [0, 0.5, 0, -0.5, 0] }}
       transition={{
-        delay: 4.0,
+        delay: 0.4,
         duration: 1.8,
         ease: [0.34, 1.56, 0.64, 1], // Bouncy easing like other flowers
-        rotate: { duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 5.8 }, // Start gentle rotation after entrance
+        rotate: { duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 2.2 }, // Start gentle rotation after entrance
       }}
     >
       {/* Perfect Circle Bloom Button - Extremely Subtle Glass Effect */}

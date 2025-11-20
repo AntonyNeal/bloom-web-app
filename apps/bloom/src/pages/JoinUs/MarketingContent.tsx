@@ -382,7 +382,9 @@ export function MarketingContent({ isMobile, onApplyClick }: MarketingContentPro
                 Complete flexibility
               </h3>
               <p style={{ fontSize: '16px', color: '#4A4A4A', lineHeight: '1.7', whiteSpace: 'pre-line' }}>
-                Supplement your current income or go full-time.\nPick up appointments anytime: early mornings, weekends, evenings.\nCompletely flexible. You make it yours.
+                {`Supplement your current income or go full-time.
+Pick up appointments anytime: early mornings, weekends, evenings.
+Completely flexible. You make it yours.`}
               </p>
             </motion.div>
           </div>

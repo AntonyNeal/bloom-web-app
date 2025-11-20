@@ -45,63 +45,53 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           // Core React ecosystem - load together to prevent createContext issues
-          if (
-            id.includes('node_modules/react/') ||
-            id.includes('node_modules/react-dom/') ||
-            id.includes('node_modules/react-router-dom') ||
-            id.includes('node_modules/scheduler/')
-          ) {
-            return 'vendor';
-          }
-          // Defer analytics until needed
-          if (
-            id.includes('react-ga4') ||
-            id.includes('applicationinsights-web')
-          ) {
-            return 'analytics';
-          }
-          // Defer heavy UI libraries
-          if (
-            id.includes('@headlessui') ||
-            id.includes('@heroicons') ||
-            id.includes('lucide-react')
-          ) {
-            return 'ui';
-          }
-          // Defer OpenAI (only used in assessment)
-          if (id.includes('openai')) {
-            return 'openai';
-          }
-          // Defer react-query
-          if (id.includes('@tanstack/react-query')) {
-            return 'query';
-          }
-          // Defer utility libraries (updated for react-helmet-async)
-          if (
-            id.includes('react-helmet-async') ||
-            id.includes('web-vitals') ||
-            id.includes('axios')
-          ) {
-            return 'utils';
-          }
-          // Split Tailwind and CSS libraries
-          if (
-            id.includes('@tailwindcss') ||
-            id.includes('tailwindcss') ||
-            id.includes('postcss')
-          ) {
-            return 'styles';
-          }
-          // Split testing libraries (if accidentally included in production)
-          if (
-            id.includes('@testing-library') ||
-            id.includes('vitest') ||
-            id.includes('jsdom')
-          ) {
-            return 'test-libs';
-          }
-          // Split other node_modules into smaller chunks
+          // Must check node_modules FIRST to catch all React-related packages
           if (id.includes('node_modules')) {
+            // React core and ecosystem
+            if (
+              id.includes('/react') || // Catches react, react-dom, react-router, react-ga4, react-helmet-async, react-query
+              id.includes('/scheduler/') ||
+              id.includes('/@remix-run/') // React Router v7 dependencies
+            ) {
+              return 'vendor';
+            }
+            // Defer analytics until needed
+            if (id.includes('applicationinsights-web')) {
+              return 'analytics';
+            }
+            // Defer heavy UI libraries
+            if (
+              id.includes('@headlessui') ||
+              id.includes('@heroicons') ||
+              id.includes('lucide-react')
+            ) {
+              return 'ui';
+            }
+            // Defer OpenAI (only used in assessment)
+            if (id.includes('openai')) {
+              return 'openai';
+            }
+            // Defer utility libraries
+            if (id.includes('web-vitals') || id.includes('axios')) {
+              return 'utils';
+            }
+            // Split Tailwind and CSS libraries
+            if (
+              id.includes('@tailwindcss') ||
+              id.includes('tailwindcss') ||
+              id.includes('postcss')
+            ) {
+              return 'styles';
+            }
+            // Split testing libraries (if accidentally included in production)
+            if (
+              id.includes('@testing-library') ||
+              id.includes('vitest') ||
+              id.includes('jsdom')
+            ) {
+              return 'test-libs';
+            }
+            // All other node_modules
             return 'vendor-misc';
           }
         },

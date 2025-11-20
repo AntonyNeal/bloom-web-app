@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { createContext, useContext } from 'react';
 
 // A/B Test Configuration
 export interface TestConfig {
@@ -16,12 +16,12 @@ export interface ABTestContextType {
   isDevMode: boolean;
 }
 
-export const ABTestContext = React.createContext<ABTestContextType | undefined>(
+export const ABTestContext = createContext<ABTestContextType | undefined>(
   undefined
 );
 
 export const useABTest = () => {
-  const context = React.useContext(ABTestContext);
+  const context = useContext(ABTestContext);
   if (context === undefined) {
     throw new Error('useABTest must be used within an ABTestProvider');
   }

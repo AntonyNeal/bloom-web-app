@@ -254,7 +254,7 @@ jobs:
       - name: Build website functions
         run: |
           cd apps/website/functions
-          npm ci
+          npm install
           npm run build
 
       - name: Deploy to Azure Static Web Apps

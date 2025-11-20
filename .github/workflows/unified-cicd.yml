@@ -294,7 +294,6 @@ jobs:
           app_location: "apps/website/dist"
           api_location: "apps/website/functions"
           skip_app_build: true
-          skip_api_build: true
 
   # Build and deploy Bloom App
   build-deploy-bloom:

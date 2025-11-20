@@ -54,7 +54,7 @@ if (isAuthConfigured()) {
         
         // Handle redirect promise if coming back from AAD
         if (msalInstance) {
-          msalInstance.handleRedirectPromise().catch((error) => {
+          msalInstance.handleRedirectPromise().catch((error: unknown) => {
             console.error('[Auth] Error handling redirect:', error);
           });
           
@@ -65,7 +65,7 @@ if (isAuthConfigured()) {
           }
         }
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         clearTimeout(initTimeout);
         console.error('[Auth] MSAL initialization failed:', error);
       });

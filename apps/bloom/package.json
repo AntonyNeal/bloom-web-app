@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@shared/types": "workspace:*",
+    "@azure/msal-browser": "^3.0.0",
     "@azure/msal-react": "^2.0.0",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.0.18",
@@ -38,7 +39,6 @@
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.22.4",
     "@shared/ui": "workspace:*",
-    "@shared/types": "workspace:*",
     "@shared/utils": "workspace:*",
     "@shared/azure": "workspace:*"
   },

@@ -189,9 +189,12 @@ importers:
 
   apps/bloom:
     dependencies:
+      '@azure/msal-browser':
+        specifier: ^3.0.0
+        version: 3.30.0
       '@azure/msal-react':
         specifier: ^2.0.0
-        version: 2.2.0(@azure/msal-browser@4.26.1)(react@18.3.1)
+        version: 2.2.0(@azure/msal-browser@3.30.0)(react@18.3.1)
       '@headlessui/react':
         specifier: ^1.7.18
         version: 1.7.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -4889,11 +4892,6 @@ snapshots:
   '@azure/msal-react@2.2.0(@azure/msal-browser@3.30.0)(react@18.3.1)':
     dependencies:
       '@azure/msal-browser': 3.30.0
-      react: 18.3.1
-
-  '@azure/msal-react@2.2.0(@azure/msal-browser@4.26.1)(react@18.3.1)':
-    dependencies:
-      '@azure/msal-browser': 4.26.1
       react: 18.3.1
 
   '@babel/code-frame@7.27.1':

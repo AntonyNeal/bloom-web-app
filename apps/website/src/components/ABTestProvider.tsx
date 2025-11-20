@@ -69,11 +69,13 @@ function allocateUserToVariant(userId: string, testConfig: TestConfig): string {
 // Call Azure Function for variant allocation (production)
 async function allocateVariantViaAzure(userId: string): Promise<string> {
   try {
-    const functionUrl =
-      import.meta.env.VITE_AZURE_FUNCTION_URL ||
-      'https://lpa-functions.azurewebsites.net';
-
-    const endpoint = `${functionUrl}/api/ab-test/allocate?test=homepage-header-test&userId=${userId}`;
+    const functionUrl = import.meta.env.VITE_AZURE_FUNCTION_URL || '';
+    
+    // Use relative path if no base URL configured (for Static Web App's own API)
+    const endpoint = functionUrl
+      ? `${functionUrl}/api/ab-test/allocate?test=homepage-header-test&userId=${userId}`
+      : `/api/ab-test/allocate?test=homepage-header-test&userId=${userId}`;
+      
     const result = await apiService.get<{ variant: string }>(endpoint);
 
     if (!result.success || !result.data) {

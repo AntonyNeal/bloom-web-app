@@ -174,15 +174,22 @@ jobs:
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - name: Restore caches
+      - name: Restore node_modules cache
         uses: actions/cache@v4
         with:
           path: |
             node_modules
             apps/*/node_modules
             packages/*/node_modules
-            packages/*/dist
-          key: ${{ runner.os }}-full-cache-${{ github.sha }}
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Restore packages cache
+        uses: actions/cache@v4
+        with:
+          path: packages/*/dist
+          key: ${{ runner.os }}-packages-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-packages-
 
       - name: Validate migration checksums
         run: pnpm migrate:validate || echo "Migration validation requires database connection"
@@ -209,17 +216,22 @@ jobs:
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - name: Restore caches
+      - name: Restore node_modules cache
         uses: actions/cache@v4
         with:
           path: |
             node_modules
             apps/*/node_modules
             packages/*/node_modules
-            packages/*/dist
-          key: ${{ runner.os }}-full-cache-${{ github.sha }}
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Restore packages cache
+        uses: actions/cache@v4
+        with:
+          path: packages/*/dist
+          key: ${{ runner.os }}-packages-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+            ${{ runner.os }}-packages-
 
       - name: Install dependencies (if cache miss)
         run: pnpm install --frozen-lockfile
@@ -264,17 +276,22 @@ jobs:
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - name: Restore caches
+      - name: Restore node_modules cache
         uses: actions/cache@v4
         with:
           path: |
             node_modules
             apps/*/node_modules
             packages/*/node_modules
-            packages/*/dist
-          key: ${{ runner.os }}-full-cache-${{ github.sha }}
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Restore packages cache
+        uses: actions/cache@v4
+        with:
+          path: packages/*/dist
+          key: ${{ runner.os }}-packages-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+            ${{ runner.os }}-packages-
 
       - name: Install dependencies (if cache miss)
         run: pnpm install --frozen-lockfile
@@ -320,17 +337,22 @@ jobs:
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - name: Restore caches
+      - name: Restore node_modules cache
         uses: actions/cache@v4
         with:
           path: |
             node_modules
             apps/*/node_modules
             packages/*/node_modules
-            packages/*/dist
-          key: ${{ runner.os }}-full-cache-${{ github.sha }}
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Restore packages cache
+        uses: actions/cache@v4
+        with:
+          path: packages/*/dist
+          key: ${{ runner.os }}-packages-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+            ${{ runner.os }}-packages-
 
       - name: Install dependencies (if cache miss)
         run: pnpm install --frozen-lockfile

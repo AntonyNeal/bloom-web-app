@@ -2,12 +2,12 @@
  * Application Constants
  *
  * Centralized configuration values used throughout the application
- * Workflow trigger test
+ * Build: 2025-11-20 - React bundling fix deployment
  */
 
 // Application metadata
 export const APP_NAME = 'Life Psychology Australia';
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.0.1';
 
 // API endpoints
 export const API_ENDPOINTS = {

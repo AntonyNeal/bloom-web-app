@@ -3,7 +3,7 @@
  * Handles all conversion tracking including Google Ads, GA4, and Microsoft Clarity
  */
 
-import { TRACKING_CONFIG, STORAGE_KEYS } from '../config/constants';
+import { STORAGE_KEYS } from '../config/constants';
 
 // TypeScript interfaces
 export interface BookingData {

@@ -154,7 +154,6 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   // Stable random values for floating seeds (prevents recalculation on each render)
   const seedValues = useMemo(() => {
     const count = isMobile ? 15 : 25;
-    // eslint-disable-next-line react-hooks/rules-of-hooks, react-hooks/purity
     return Array.from({ length: count }, (_, i) => {
       const startX = (i / count) * 100 + (Math.random() - 0.5) * 20;
       return {
@@ -172,7 +171,6 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   // Stable random values for ground wildflowers (prevents recalculation on each render)
   const wildflowerValues = useMemo(() => {
     const count = isMobile ? 12 : 20;
-    // eslint-disable-next-line react-hooks/rules-of-hooks, react-hooks/purity
     return Array.from({ length: count }, () => ({
       stemHeight: 30 + Math.random() * 50,
       flowerSize: 6 + Math.random() * 8,

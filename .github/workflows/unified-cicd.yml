@@ -153,8 +153,13 @@ jobs:
 
       - name: Verify dist folders exist
         run: |
-          echo "Checking for built package artifacts..."
-          ls -la packages/db-migrations/dist || echo "No dist folder for db-migrations"
+          echo "Verifying built package artifacts..."
+          if [ ! -d "packages/db-migrations/dist" ]; then
+            echo "ERROR: packages/db-migrations/dist not found after build"
+            exit 1
+          fi
+          echo "✓ packages/db-migrations/dist exists"
+          ls -la packages/db-migrations/dist
 
       - name: Cache built packages
         uses: actions/cache@v4

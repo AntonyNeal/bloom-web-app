@@ -2,6 +2,7 @@
  * Application Constants
  *
  * Centralized configuration values used throughout the application
+ * Workflow trigger test
  */
 
 // Application metadata

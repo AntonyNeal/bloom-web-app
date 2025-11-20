@@ -1,6 +1,6 @@
 {
   "name": "lpa-application-functions",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Azure Functions for psychologist application processing",
   "main": "dist/index.js",
   "scripts": {

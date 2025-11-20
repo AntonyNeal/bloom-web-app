@@ -1,6 +1,6 @@
 {
   "name": "@life-psychology/db-migrations",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Database migration management system (Liquibase-style) for Azure SQL and Cosmos DB",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

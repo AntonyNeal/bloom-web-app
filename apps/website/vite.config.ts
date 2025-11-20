@@ -4,6 +4,8 @@ import removeConsole from 'vite-plugin-remove-console';
 import { defineConfig } from 'vitest/config';
 import { criticalCssInline } from './src/plugins/critical-css-plugin';
 
+// Build timestamp: 2025-11-20 (React import fix deployment)
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [

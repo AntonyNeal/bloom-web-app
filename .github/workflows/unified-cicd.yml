@@ -21,14 +21,14 @@ jobs:
   # Detect changes to determine which jobs to run
   detect-changes:
     runs-on: ubuntu-latest
-    outputs:
-      packages: ${{ steps.filter.outputs.packages }}
-      website: ${{ steps.filter.outputs.website }}
-      website-functions: ${{ steps.filter.outputs.website-functions }}
-      bloom: ${{ steps.filter.outputs.bloom }}
-      bloom-api: ${{ steps.filter.outputs.bloom-api }}
-      migrations: ${{ steps.filter.outputs.migrations }}
-      docs: ${{ steps.filter.outputs.docs }}
+    outputs:  
+      packages: ${{ steps.filter.outputs.packages == 'true' }}
+      website: ${{ steps.filter.outputs.website == 'true' }}
+      website-functions: ${{ steps.filter.outputs.website-functions == 'true' }}
+      bloom: ${{ steps.filter.outputs.bloom == 'true' }}
+      bloom-api: ${{ steps.filter.outputs.bloom-api == 'true' }}
+      migrations: ${{ steps.filter.outputs.migrations == 'true' }}
+      docs: ${{ steps.filter.outputs.docs == 'true' }}
     steps:
       - uses: actions/checkout@v4
       
@@ -90,14 +90,15 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Get pnpm store directory
+        id: pnpm-cache
         shell: bash
         run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
-          path: ${{ env.STORE_PATH }}
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-

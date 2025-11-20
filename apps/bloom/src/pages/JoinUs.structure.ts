@@ -1,5 +1,9 @@
-// TODO: This file documents the new Join Us page structure
-// Implementation plan for JOIN_US_PAGE_RESTRUCTURE
+/**
+ * JOIN US PAGE RESTRUCTURE - Implementation Specification
+ * 
+ * This file documents the planned structure for the new Join Us page flow.
+ * See implementation checklist at the end of this file.
+ */
 
 /**
  * NEW PAGE FLOW:

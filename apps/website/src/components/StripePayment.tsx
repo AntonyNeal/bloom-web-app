@@ -9,8 +9,7 @@ import React, { useState } from 'react';
 import { apiService } from '../services/ApiService';
 import { log } from '../utils/logger';
 
-// Initialize Stripe with your publishable key
-// TODO: Replace with your actual Stripe publishable key from environment variables
+// Initialize Stripe with publishable key from environment variables
 const stripePromise = loadStripe(
   import.meta.env['VITE_STRIPE_PUBLISHABLE_KEY'] || ''
 );
@@ -66,7 +65,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         }
       );
 
-      if (!response.success) {
+      if (!response.success || !response.data) {
         log.error(
           'Failed to create payment intent',
           'StripePayment',

@@ -13,6 +13,5 @@
       "@shared/utils/*": ["../../packages/shared-utils/src/*"]
     }
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src"]
 }

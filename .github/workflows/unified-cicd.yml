@@ -456,7 +456,15 @@ jobs:
   deployment-summary:
     runs-on: ubuntu-latest
     needs: [detect-changes, build-deploy-website, build-deploy-bloom, build-deploy-bloom-api, validate-migrations]
-    if: always() && github.event_name == 'push'
+    if: |
+      always() && 
+      github.event_name == 'push' && 
+      (needs.detect-changes.outputs.packages == 'true' ||
+       needs.detect-changes.outputs.website == 'true' ||
+       needs.detect-changes.outputs.website-functions == 'true' ||
+       needs.detect-changes.outputs.bloom == 'true' ||
+       needs.detect-changes.outputs.bloom-api == 'true' ||
+       needs.detect-changes.outputs.migrations == 'true')
     steps:
       - name: Generate deployment summary
         run: |

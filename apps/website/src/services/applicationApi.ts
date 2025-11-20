@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { getEnvVar } from '../utils/env';
 import { PsychologistApplication } from '../types/psychologist';
+import { log } from '../utils/logger';
 
 // Get Azure Functions base URL from environment
 const FUNCTIONS_BASE_URL =
@@ -99,7 +100,7 @@ export async function uploadDocument(
           const percentCompleted = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total
           );
-          console.log(`Upload progress: ${percentCompleted}%`);
+          log.debug(`Upload progress: ${percentCompleted}%`, 'applicationApi', { percentCompleted });
           // Could emit events here for progress UI
         }
       },
@@ -195,7 +196,7 @@ export async function submitApplication(
     }
 
     // Wait for all uploads to complete
-    console.log('Uploading documents...');
+    log.info('Uploading documents...', 'applicationApi', { fileCount: uploadPromises.length });
     const uploadResults = await Promise.all(uploadPromises);
 
     // Step 2: Replace File objects with blob URLs
@@ -220,7 +221,7 @@ export async function submitApplication(
     );
 
     // Step 3: Submit application data to Azure Functions
-    console.log('Submitting application...');
+    log.info('Submitting application...', 'applicationApi');
     const response = await axios.post<ApplicationSubmissionResponse>(
       `${FUNCTIONS_BASE_URL}/api/applications/submit`,
       cleanData,

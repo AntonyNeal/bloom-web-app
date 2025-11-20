@@ -7,9 +7,10 @@
  */
 
 import { log } from './logger';
+import { TRACKING_CONFIG } from '../config/constants';
 
 // Google Ads configuration
-const GOOGLE_ADS_ID = 'AW-11563740075';
+const GOOGLE_ADS_ID = TRACKING_CONFIG.GOOGLE_ADS_ID;
 
 // Micro-conversion labels and values
 const MICRO_CONVERSIONS = {

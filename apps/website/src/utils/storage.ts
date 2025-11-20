@@ -5,6 +5,7 @@
  */
 
 import { logger } from './logger';
+import { STORAGE_KEYS } from '../config/constants';
 
 export class StorageService {
   private static instance: StorageService;
@@ -14,9 +15,8 @@ export class StorageService {
     try {
       this.storage = window.localStorage;
       // Test if localStorage is available
-      const test = '__storage_test__';
-      this.storage.setItem(test, test);
-      this.storage.removeItem(test);
+      this.storage.setItem(STORAGE_KEYS.STORAGE_TEST, STORAGE_KEYS.STORAGE_TEST);
+      this.storage.removeItem(STORAGE_KEYS.STORAGE_TEST);
     } catch (error) {
       logger.warn('localStorage not available', 'StorageService', error);
       this.storage = null;

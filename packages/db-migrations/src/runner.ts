@@ -5,6 +5,19 @@ import { Migration, MigrationConfig, MigrationExecutor } from './types';
 import { SqlMigrationExecutor } from './sql-executor';
 import { CosmosMigrationExecutor } from './cosmos-executor';
 
+/**
+ * Migration Runner for SQL and Cosmos DB
+ * 
+ * Note: This module uses console.* statements with chalk for formatted CLI output.
+ * This is intentional and appropriate for a command-line tool that requires:
+ * - Colored terminal output for better UX
+ * - Real-time progress feedback for long-running migrations
+ * - Clear visual hierarchy (success/warning/error states)
+ * 
+ * The structured logger pattern used elsewhere in the application is not suitable
+ * for CLI tools that need direct terminal formatting control.
+ */
+
 export class MigrationRunner {
   private sqlExecutor: SqlMigrationExecutor | null = null;
   private cosmosExecutor: CosmosMigrationExecutor | null = null;

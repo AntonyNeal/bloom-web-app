@@ -17,12 +17,13 @@ import {
   isGtagAvailable,
 } from './trackingCore';
 import { log } from './logger';
+import { TRACKING_CONFIG } from '../config/constants';
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
 
-export const GOOGLE_ADS_ID = 'AW-11563740075';
+export const GOOGLE_ADS_ID = TRACKING_CONFIG.GOOGLE_ADS_ID;
 export const GA4_MEASUREMENT_ID = 'G-XGGBRLPBKK';
 
 // ============================================================================

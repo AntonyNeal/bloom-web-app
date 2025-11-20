@@ -3,6 +3,7 @@ import { ABTestContext, TestConfig, useABTest } from '../hooks/useABTest';
 import { tracker } from '../utils/UnifiedTracker';
 import { apiService } from '../services/ApiService';
 import { log } from '../utils/logger';
+import { STORAGE_KEYS } from '../config/constants';
 
 // Homepage A/B testing configuration
 const HOMEPAGE_TEST_CONFIG: TestConfig = {
@@ -21,7 +22,7 @@ interface ABTestProviderProps {
 // Generate consistent user ID for A/B testing
 function generateUserId(): string {
   // Check if user already has an ID
-  let userId = localStorage.getItem('ab-test-user-id');
+  let userId = localStorage.getItem(STORAGE_KEYS.AB_TEST_USER_ID);
   if (userId) {
     return userId;
   }
@@ -38,7 +39,7 @@ function generateUserId(): string {
   ).substring(0, 16);
 
   userId = `user_${fingerprint}`;
-  localStorage.setItem('ab-test-user-id', userId);
+  localStorage.setItem(STORAGE_KEYS.AB_TEST_USER_ID, userId);
   return userId;
 }
 
@@ -150,7 +151,7 @@ export const ABTestProvider = ({ children }: ABTestProviderProps) => {
         }
 
         // Check if variant is already stored (for consistency across page loads)
-        const storedVariant = localStorage.getItem('ab-test-variant');
+        const storedVariant = localStorage.getItem(STORAGE_KEYS.AB_TEST_VARIANT);
         const storedUserId = localStorage.getItem('ab-test-user-id');
 
         if (
@@ -185,7 +186,7 @@ export const ABTestProvider = ({ children }: ABTestProviderProps) => {
         }
 
         // Store the allocation
-        localStorage.setItem('ab-test-variant', allocatedVariant);
+        localStorage.setItem(STORAGE_KEYS.AB_TEST_VARIANT, allocatedVariant);
         setVariantState(allocatedVariant);
 
         // Track allocation with unified tracker (with error handling)

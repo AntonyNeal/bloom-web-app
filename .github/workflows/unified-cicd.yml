@@ -251,6 +251,12 @@ jobs:
           VITE_GA_MEASUREMENT_ID: ${{ secrets.VITE_GA_MEASUREMENT_ID }}
           VITE_GOOGLE_ADS_ID: ${{ secrets.VITE_GOOGLE_ADS_ID }}
 
+      - name: Build website functions
+        run: |
+          cd apps/website/functions
+          npm ci
+          npm run build
+
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
@@ -260,7 +266,7 @@ jobs:
           app_location: "apps/website/dist"
           api_location: "apps/website/functions"
           skip_app_build: true
-          skip_api_build: ${{ needs.detect-changes.outputs.website-functions != 'true' }}
+          skip_api_build: true
 
   # Build and deploy Bloom App
   build-deploy-bloom:

@@ -19,7 +19,10 @@ export class ApiService {
   private defaultRetries = 3;
 
   private constructor() {
-    this.baseUrl = import.meta.env['VITE_AZURE_FUNCTION_URL'] || '';
+    // Check both variants of the env var for compatibility
+    this.baseUrl = import.meta.env['VITE_AZURE_FUNCTION_URL'] || 
+                   import.meta.env['VITE_AZURE_FUNCTIONS_URL'] || 
+                   '';
   }
 
   static getInstance(): ApiService {

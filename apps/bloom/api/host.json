@@ -23,7 +23,9 @@
   "cors": {
     "allowedOrigins": [
       "https://bloom.life-psychology.com.au",
+      "https://green-pond-009caac00.3.azurestaticapps.net",
       "http://localhost:5173",
+      "http://localhost:5174",
       "http://localhost:4280"
     ],
     "supportCredentials": false

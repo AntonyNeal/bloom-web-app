@@ -112,6 +112,7 @@ jobs:
           path: |
             node_modules
             apps/*/node_modules
+            apps/bloom/api/node_modules
             packages/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
@@ -180,6 +181,7 @@ jobs:
           path: |
             node_modules
             apps/*/node_modules
+            apps/bloom/api/node_modules
             packages/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
@@ -222,6 +224,7 @@ jobs:
           path: |
             node_modules
             apps/*/node_modules
+            apps/bloom/api/node_modules
             packages/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
@@ -282,6 +285,7 @@ jobs:
           path: |
             node_modules
             apps/*/node_modules
+            apps/bloom/api/node_modules
             packages/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
@@ -343,10 +347,11 @@ jobs:
           path: |
             node_modules
             apps/*/node_modules
+            apps/bloom/api/node_modules
             packages/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
-      - name: Restore packages cache
+      - name: Restore built packages cache
         uses: actions/cache@v4
         with:
           path: packages/*/dist

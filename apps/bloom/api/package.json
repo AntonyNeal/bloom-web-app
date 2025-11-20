@@ -1,6 +1,6 @@
 {
   "name": "bloom-api",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Proto-Bloom Azure Functions API - A/B Testing with Cosmos DB",
   "main": "{index.js,functions/*.js}",
   "scripts": {

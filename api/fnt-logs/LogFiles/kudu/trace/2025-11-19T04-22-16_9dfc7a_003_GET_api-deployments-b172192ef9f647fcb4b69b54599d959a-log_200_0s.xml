@@ -1,0 +1,6 @@
+<step title="Incoming Request" date="2025-11-19T04:22:16.079" instance="9dfc7a" url="/api/deployments/b172192ef9f647fcb4b69b54599d959a/log" method="GET" type="request" pid="5176,2,9" Accept="*/*" Accept-Encoding="gzip, deflate" Authorization="Bas..." Host="fnt42kldozqahcu.scm.azurewebsites.net" User-Agent="AZURECLI/2.54.0 (MSI)" x-ms-client-request-id="4e39c33c-c4ff-11f0-a68e-1c792dfc69dd" X-ARR-LOG-ID="4e39c33c-c4ff-11f0-a68e-1c792dfc69dd" CLIENT-IP="159.196.168.42:14031" X-SITE-DEPLOYMENT-ID="fnt42kldozqahcu" WAS-DEFAULT-HOSTNAME="fnt42kldozqahcu.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/deployments/b172192ef9f647fcb4b69b54599d959a/log" >
+  <step title="DeploymentService.GetLogEntry" date="2025-11-19T04:22:16.142" >
+    <step title="DeploymentManager.GetLogEntries(id:b172192ef9f647fcb4b69b54599d959a)" date="2025-11-19T04:22:16.174" /><!-- duration: 78ms -->
+  </step><!-- duration: 126ms -->
+  <step title="Outgoing response" date="2025-11-19T04:22:16.330" type="response" statusCode="200" statusText="OK" Server="Microsoft-IIS/10.0" x-ms-request-id="4e39c33c-c4ff-11f0-a68e-1c792dfc69dd" Cache-Control="private" X-AspNet-Version="4.0.30319" Content-Type="application/json; charset=utf-8" /><!-- duration: 31ms -->
+</step><!-- duration: 298ms -->

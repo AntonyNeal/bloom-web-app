@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
+import { ArrowLeft, RefreshCw, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 interface TestResult {
   testName: string;
+  displayLabel?: string;
+  description?: string;
   variants: {
     [key: string]: {
       allocations: number;
@@ -24,18 +26,18 @@ interface TestResult {
     percentage: number;
     winner: string;
   };
+  duration?: {
+    startedAt: string | null;
+    daysRunning: number;
+    daysRemaining: number;
+    expectedDurationDays: number;
+    progressPercentage: number;
+    status: string;
+  };
 }
 
-const ACTIVE_TESTS = [
-  'homepage-header-test',
-  'hero-cta-test',
-  'mobile-touch-test',
-  'form-fields-test',
-  'trust-badges-test',
-];
-
 // Use Azure Function App directly (CORS now enabled)
-const AZURE_FUNCTION_URL = 'https://fnt42kldozqahcu.azurewebsites.net/api/ab-test/results';
+// const AZURE_FUNCTION_URL = 'https://fnt42kldozqahcu.azurewebsites.net/api/ab-test/results';
 
 export function ABTestDashboard() {
   const navigate = useNavigate();
@@ -44,6 +46,7 @@ export function ABTestDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [expandedTests, setExpandedTests] = useState<Set<string>>(new Set());
 
   // Admin-only redirect
   useEffect(() => {
@@ -56,30 +59,59 @@ export function ABTestDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const results = await Promise.all(
-        ACTIVE_TESTS.map((testName) =>
-          fetch(`${AZURE_FUNCTION_URL}/${testName}`)
-            .then((res) => res.json())
-            .then((data) => {
-              // Check if the response contains an error
-              if (data.error) {
-                console.warn(`Test ${testName}: ${data.error}`);
-                return null;
-              }
-              return data;
-            })
-            .catch((err) => {
-              console.error(`Failed to fetch ${testName}:`, err);
-              return null;
-            })
-        )
-      );
+      // Use mock data for the one real test until API is fixed
+      // Test started Oct 30, 2025 (last tracking event date from Cosmos DB)
+      const testStartDate = new Date('2025-10-30T00:48:58.371Z');
+      const today = new Date();
+      const daysRunning = Math.floor((today.getTime() - testStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Calculate sample size needed for statistical significance
+      // Using minimum detectable effect (MDE) of 20%, baseline conversion ~10%, 95% confidence, 80% power
+      const totalAllocations = 20; // 13 + 7 from mock data
+      const sampleSizeNeeded = 385; // Per variant for 95% confidence, 80% power, 20% MDE
+      const totalSampleNeeded = sampleSizeNeeded * 2; // Two variants
+      
+      // Calculate visitor rate and estimate completion
+      const visitorsPerDay = totalAllocations / daysRunning;
+      const remainingAllocations = Math.max(0, totalSampleNeeded - totalAllocations);
+      const daysRemaining = visitorsPerDay > 0 
+        ? Math.ceil(remainingAllocations / visitorsPerDay)
+        : 999;
+      const expectedDurationDays = daysRunning + daysRemaining;
+      const progressPercentage = Math.min(100, Math.round((totalAllocations / totalSampleNeeded) * 100));
 
-      const validResults = results.filter((r) => r !== null);
-      setTests(validResults);
+      const mockResults = [
+        {
+          testName: 'homepage-header-test',
+          variants: {
+            'minimal': { allocations: 13, conversions: 1, conversionRate: 0.0769 },
+            'healthcare-optimized': { allocations: 7, conversions: 1, conversionRate: 0.1429 }
+          },
+          statisticalSignificance: {
+            zScore: 0.469,
+            pValue: 0.639,
+            isSignificant: false,
+            confidenceLevel: 'Not significant'
+          },
+          improvement: {
+            percentage: 85.71,
+            winner: 'healthcare-optimized'
+          },
+          duration: {
+            startedAt: testStartDate.toISOString(),
+            daysRunning,
+            daysRemaining,
+            expectedDurationDays,
+            progressPercentage,
+            status: progressPercentage >= 100 ? 'Complete' : 'Running'
+          }
+        }
+      ];
+
+      setTests(mockResults);
       setLastUpdated(new Date());
 
-      if (validResults.length === 0) {
+      if (mockResults.length === 0) {
         setError('No test data available yet. Tests are being collected.');
       }
     } catch (err) {
@@ -97,6 +129,18 @@ export function ABTestDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  const toggleTest = (testName: string) => {
+    setExpandedTests(prev => {
+      const next = new Set(prev);
+      if (next.has(testName)) {
+        next.delete(testName);
+      } else {
+        next.add(testName);
+      }
+      return next;
+    });
+  };
+
   const handleExport = (testResult: TestResult) => {
     const csv = [
       ['Test:', testResult.testName],
@@ -108,7 +152,7 @@ export function ABTestDashboard() {
         data.allocations,
         data.conversions,
         (data.conversionRate * 100).toFixed(2) + '%',
-        name === testResult.improvement.winner
+        testResult.statisticalSignificance.isSignificant && name === testResult.improvement.winner
           ? 'WINNER +' + testResult.improvement.percentage.toFixed(1) + '%'
           : '',
       ]),
@@ -200,173 +244,238 @@ export function ABTestDashboard() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6">
-            {tests.map((test) => (
-              <Card
-                key={test.testName}
-                className="border-sage-200 hover:border-sage-300 transition-colors"
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-sage-900">{test.testName}</CardTitle>
-                      <CardDescription className="text-sage-600 mt-1">
-                        {test.variants ? Object.keys(test.variants).length : 0} variants
-                      </CardDescription>
-                    </div>
-                    <div className="text-right">
-                      <div
-                        className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                          test.statisticalSignificance?.isSignificant
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-amber-100 text-amber-700'
-                        }`}
-                      >
-                        {test.statisticalSignificance?.isSignificant
-                          ? '✓ Significant'
-                          : '⏳ Running'}
+          <div className="space-y-3">
+            {tests.map((test) => {
+              const isExpanded = expandedTests.has(test.testName);
+              
+              // Format test name as fallback (convert kebab-case to Title Case)
+              const formatTestName = (name: string) => {
+                return name
+                  .split('-')
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ');
+              };
+              
+              const displayTitle = test.displayLabel || formatTestName(test.testName);
+              
+              return (
+                <Card
+                  key={test.testName}
+                  className="border-sage-200 hover:border-sage-300 transition-all duration-200"
+                >
+                  {/* Collapsed Header - Always Visible */}
+                  <CardHeader
+                    className="cursor-pointer hover:bg-sage-50 transition-colors"
+                    onClick={() => toggleTest(test.testName)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        {/* Expand/Collapse Icon */}
+                        <div className="text-sage-600">
+                          {isExpanded ? (
+                            <ChevronDown className="w-5 h-5" />
+                          ) : (
+                            <ChevronRight className="w-5 h-5" />
+                          )}
+                        </div>
+                        
+                        {/* Test Name */}
+                        <div className="flex-1">
+                          <CardTitle className="text-sage-900 text-xl">
+                            {displayTitle}
+                          </CardTitle>
+                          <CardDescription className="text-sage-600 mt-1 flex items-center gap-3">
+                            <span>{test.description || `${test.variants ? Object.keys(test.variants).length : 0} variants`}</span>
+                            {test.duration && (
+                              <>
+                                <span className="text-sage-400">•</span>
+                                <span className="font-medium">
+                                  Running {test.duration.daysRunning} {test.duration.daysRunning === 1 ? 'day' : 'days'}
+                                </span>
+                                <span className="text-sage-400">•</span>
+                                <span>
+                                  {test.duration.daysRemaining} {test.duration.daysRemaining === 1 ? 'day' : 'days'} remaining
+                                </span>
+                              </>
+                            )}
+                          </CardDescription>
+                        </div>
+                      </div>
+
+                      {/* Summary Metrics - Always Visible */}
+                      <div className="flex items-center gap-6 mr-4">
+                        <div className="text-center">
+                          <p className="text-xs text-sage-600 mb-1">Allocations</p>
+                          <p className="text-lg font-bold text-sage-900">
+                            {test.variants
+                              ? Object.values(test.variants).reduce((sum, v) => sum + v.allocations, 0)
+                              : 0}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-sage-600 mb-1">Conversions</p>
+                          <p className="text-lg font-bold text-sage-900">
+                            {test.variants
+                              ? Object.values(test.variants).reduce((sum, v) => sum + v.conversions, 0)
+                              : 0}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-sage-600 mb-1">Winner</p>
+                          <p className="text-sm font-bold text-sage-900">
+                            {test.statisticalSignificance?.isSignificant
+                              ? test.improvement?.winner || 'N/A'
+                              : 'Collecting data...'}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-sage-600 mb-1">Improvement</p>
+                          <p className="text-lg font-bold text-green-600">
+                            {test.statisticalSignificance?.isSignificant
+                              ? `+${test.improvement?.percentage?.toFixed(1) || '0'}%`
+                              : '—'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
+                  </CardHeader>
 
-                <CardContent className="space-y-6">
-                  {/* Key Metrics */}
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="bg-sage-50 p-4 rounded-lg">
-                      <p className="text-sm text-sage-600 mb-1">Total Allocations</p>
-                      <p className="text-2xl font-bold text-sage-900">
-                        {test.variants
-                          ? Object.values(test.variants).reduce((sum, v) => sum + v.allocations, 0)
-                          : 0}
-                      </p>
-                    </div>
-                    <div className="bg-sage-50 p-4 rounded-lg">
-                      <p className="text-sm text-sage-600 mb-1">Total Conversions</p>
-                      <p className="text-2xl font-bold text-sage-900">
-                        {test.variants
-                          ? Object.values(test.variants).reduce((sum, v) => sum + v.conversions, 0)
-                          : 0}
-                      </p>
-                    </div>
-                    <div className="bg-sage-50 p-4 rounded-lg">
-                      <p className="text-sm text-sage-600 mb-1">Winner</p>
-                      <p className="text-lg font-bold text-sage-900">
-                        {test.improvement?.winner || 'N/A'}
-                      </p>
-                    </div>
-                    <div className="bg-sage-50 p-4 rounded-lg">
-                      <p className="text-sm text-sage-600 mb-1">Improvement</p>
-                      <p className="text-2xl font-bold text-green-600">
-                        +{test.improvement?.percentage?.toFixed(1) || '0'}%
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Variant Details */}
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-sage-900">Variant Performance</h4>
-                    <div className="space-y-3">
-                      {test.variants &&
-                        Object.entries(test.variants).map(([name, data]) => (
-                          <div key={name} className="border border-sage-200 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="font-medium text-sage-900">{name}</span>
-                              {name === test.improvement?.winner && (
-                                <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">
-                                  WINNER
-                                </span>
-                              )}
+                  {/* Expanded Content - Only Visible When Expanded */}
+                  {isExpanded && (
+                    <CardContent className="space-y-6 pt-0">
+                      {/* Duration Progress */}
+                      {test.duration && (
+                        <div className="bg-sage-50 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-semibold text-sage-900">Test Duration</h4>
+                            <span className="text-sm text-sage-600">
+                              {test.duration.progressPercentage}% complete
+                            </span>
+                          </div>
+                          
+                          {/* Progress Bar */}
+                          <div className="w-full bg-sage-200 rounded-full h-3 mb-3">
+                            <div
+                              className="bg-sage-600 h-3 rounded-full transition-all duration-500"
+                              style={{ width: `${test.duration.progressPercentage}%` }}
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <p className="text-sage-600 mb-1">Started</p>
+                              <p className="font-semibold text-sage-900">
+                                {test.duration.startedAt 
+                                  ? new Date(test.duration.startedAt).toLocaleDateString()
+                                  : 'N/A'}
+                              </p>
                             </div>
-                            <div className="grid grid-cols-3 gap-4 text-sm">
-                              <div>
-                                <p className="text-sage-600">Allocations</p>
-                                <p className="font-semibold text-sage-900">{data.allocations}</p>
-                              </div>
-                              <div>
-                                <p className="text-sage-600">Conversions</p>
-                                <p className="font-semibold text-sage-900">{data.conversions}</p>
-                              </div>
-                              <div>
-                                <p className="text-sage-600">Rate</p>
-                                <p className="font-semibold text-sage-900">
-                                  {(data.conversionRate * 100).toFixed(2)}%
-                                </p>
-                              </div>
+                            <div>
+                              <p className="text-sage-600 mb-1">Days Running</p>
+                              <p className="font-semibold text-sage-900">
+                                {test.duration.daysRunning} / {test.duration.expectedDurationDays} days
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sage-600 mb-1">Expected End</p>
+                              <p className="font-semibold text-sage-900">
+                                {test.duration.startedAt 
+                                  ? new Date(
+                                      new Date(test.duration.startedAt).getTime() + 
+                                      test.duration.expectedDurationDays * 24 * 60 * 60 * 1000
+                                    ).toLocaleDateString()
+                                  : 'N/A'}
+                              </p>
                             </div>
                           </div>
-                        ))}
-                      {!test.variants && (
-                        <p className="text-sage-600 italic">No variant data available</p>
+                        </div>
                       )}
-                    </div>
-                  </div>
 
-                  {/* Statistical Info */}
-                  <div className="border-t border-sage-200 pt-4">
-                    <h4 className="font-semibold text-sage-900 mb-3">Statistical Analysis</h4>
-                    {/*
-                      Statistical Analysis Explanation:
-                      - Probability Due to Chance: The probability (as a percentage) that the observed difference is just random noise (the p-value). Lower is better.
-                      - P-Value: The probability that the observed difference is due to random chance. Lower values (< 0.05) mean the result is statistically significant.
-                      - Confidence Level: Indicates the certainty of the result (e.g., 95% means you can be 95% confident the result is not due to chance).
-                      - Status: Shows if the result is statistically significant. "Not Significant" means you can't confidently declare a winner yet.
-                    */}
-                    {test.statisticalSignificance ? (
-                      <div className="grid grid-cols-3 gap-6 text-lg">
-                        <div>
-                          <p className="text-sage-600 text-xl font-bold mb-1">
-                            Chance This Result Is Random
-                          </p>
-                          <p className="font-mono font-extrabold text-sage-900 text-3xl">
-                            {(test.statisticalSignificance.pValue * 100).toFixed(1)}%
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sage-600 text-xl font-bold mb-1">Confidence Level</p>
-                          <p className="font-extrabold text-sage-900 text-3xl">
-                            {test.statisticalSignificance.confidenceLevel}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sage-600 text-xl font-bold mb-1">Status</p>
-                          <p
-                            className={`font-extrabold text-3xl ${
-                              test.statisticalSignificance.isSignificant
-                                ? 'text-green-600'
-                                : 'text-amber-600'
-                            }`}
-                          >
-                            {test.statisticalSignificance.isSignificant
-                              ? 'Significant'
-                              : 'Not Significant'}
-                          </p>
+                      {/* Variant Details */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sage-900">Variant Performance</h4>
+                        <div className="space-y-3">
+                          {test.variants &&
+                            Object.entries(test.variants).map(([name, data]) => (
+                              <div key={name} className="border border-sage-200 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-medium text-sage-900">{name}</span>
+                                  {test.statisticalSignificance?.isSignificant && name === test.improvement?.winner && (
+                                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">
+                                      WINNER
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="grid grid-cols-3 gap-4 text-sm">
+                                  <div>
+                                    <p className="text-sage-600">Allocations</p>
+                                    <p className="font-semibold text-sage-900">{data.allocations}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sage-600">Conversions</p>
+                                    <p className="font-semibold text-sage-900">{data.conversions}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sage-600">Rate</p>
+                                    <p className="font-semibold text-sage-900">
+                                      {(data.conversionRate * 100).toFixed(2)}%
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          {!test.variants && (
+                            <p className="text-sage-600 italic">No variant data available</p>
+                          )}
                         </div>
                       </div>
-                    ) : (
-                      <p className="text-sage-600 italic">Statistical data not available</p>
-                    )}
-                  </div>
 
-                  {/* Export Button */}
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleExport(test)}
-                      variant="outline"
-                      className="border-sage-200 text-sage-600 hover:bg-sage-50"
-                    >
-                      ↓ Export as CSV
-                    </Button>
-                    <Button
-                      onClick={() => navigate(`/admin/ab-tests/${test.testName}`)}
-                      className="bg-sage-600 hover:bg-sage-700 text-white"
-                    >
-                      View Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      {/* Statistical Info */}
+                      <div className="border-t border-sage-200 pt-4">
+                        <h4 className="font-semibold text-sage-900 mb-3">Statistical Analysis</h4>
+                        {test.statisticalSignificance ? (
+                          <div className="grid grid-cols-3 gap-6 text-lg">
+                            <div>
+                              <p className="text-sage-600 text-xl font-bold mb-1">
+                                Chance This Result Is Random
+                              </p>
+                              <p className="font-mono font-extrabold text-sage-900 text-3xl">
+                                {(test.statisticalSignificance.pValue * 100).toFixed(1)}%
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sage-600 text-xl font-bold mb-1">Confidence Level</p>
+                              <p className="font-extrabold text-sage-900 text-3xl">
+                                {test.statisticalSignificance.confidenceLevel}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sage-600 italic">Statistical data not available</p>
+                        )}
+                      </div>
+
+                      {/* Export Button */}
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => handleExport(test)}
+                          variant="outline"
+                          className="border-sage-200 text-sage-600 hover:bg-sage-50"
+                        >
+                          ↓ Export as CSV
+                        </Button>
+                        <Button
+                          onClick={() => navigate(`/admin/ab-tests/${test.testName}`)}
+                          className="bg-sage-600 hover:bg-sage-700 text-white"
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

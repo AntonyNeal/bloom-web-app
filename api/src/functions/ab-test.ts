@@ -1,25 +1,14 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import * as sql from 'mssql';
+import { CosmosClient } from '@azure/cosmos';
 
-// Support both connection string and individual credentials
-const getConfig = (): string | sql.config => {
-  const connectionString = process.env.SQL_CONNECTION_STRING;
-
-  if (connectionString) {
-    return connectionString;
+// Get Cosmos DB client
+function getCosmosClient() {
+  const connectionString = process.env.COSMOS_DB_CONNECTION_STRING;
+  if (!connectionString) {
+    throw new Error('COSMOS_DB_CONNECTION_STRING not configured');
   }
-
-  return {
-    server: process.env.SQL_SERVER!,
-    database: process.env.SQL_DATABASE!,
-    user: process.env.SQL_USER!,
-    password: process.env.SQL_PASSWORD!,
-    options: {
-      encrypt: true,
-      trustServerCertificate: false,
-    },
-  };
-};
+  return new CosmosClient(connectionString);
+}
 
 // Calculate z-score and p-value for statistical significance
 function calculateStatisticalSignificance(
@@ -87,29 +76,43 @@ async function abTestHandler(
   }
 
   try {
-    const config = getConfig();
-    const pool = await sql.connect(config);
+    const cosmosClient = getCosmosClient();
+    const database = cosmosClient.database('bloom-ab-testing');
+    const container = database.container('test-events');
 
     if (method === 'GET' && testName) {
       context.log(`Fetching A/B test results for ${testName}`);
 
-      // Query test events from database
-      const result = await pool.request().input('testName', sql.NVarChar, testName).query(`
-          SELECT
-            variant,
-            COUNT(*) as allocations,
-            SUM(CASE WHEN converted = 1 THEN 1 ELSE 0 END) as conversions
-          FROM ab_test_events
-          WHERE test_name = @testName
-          GROUP BY variant
-        `);
+      // Query Cosmos DB for test events
+      const query = {
+        query: 'SELECT c.variant, c.converted FROM c WHERE c.testName = @testName',
+        parameters: [{ name: '@testName', value: testName }],
+      };
 
-      if (!result.recordset || result.recordset.length === 0) {
+      const { resources } = await container.items.query(query).fetchAll();
+
+      if (!resources || resources.length === 0) {
         return {
           status: 404,
           headers,
           jsonBody: { error: `No test data found for '${testName}'` },
         };
+      }
+
+      // Aggregate results by variant
+      const variantStats: {
+        [key: string]: { allocations: number; conversions: number };
+      } = {};
+
+      for (const event of resources) {
+        const variant = event.variant;
+        if (!variantStats[variant]) {
+          variantStats[variant] = { allocations: 0, conversions: 0 };
+        }
+        variantStats[variant].allocations++;
+        if (event.converted) {
+          variantStats[variant].conversions++;
+        }
       }
 
       // Build response with test data and calculate statistics
@@ -121,11 +124,11 @@ async function abTestHandler(
         };
       } = {};
 
-      for (const row of result.recordset) {
-        variants[row.variant] = {
-          allocations: row.allocations,
-          conversions: row.conversions,
-          conversionRate: row.conversions / row.allocations,
+      for (const [variantName, stats] of Object.entries(variantStats)) {
+        variants[variantName] = {
+          allocations: stats.allocations,
+          conversions: stats.conversions,
+          conversionRate: stats.conversions / stats.allocations,
         };
       }
 
@@ -170,14 +173,14 @@ async function abTestHandler(
       // Return all test summaries
       context.log('Fetching all A/B test summaries');
 
-      const result = await pool.request().query(`
-        SELECT DISTINCT test_name
-        FROM ab_test_events
-        ORDER BY test_name
-      `);
+      const query = {
+        query: 'SELECT DISTINCT c.testName FROM c',
+      };
 
-      const summaries = result.recordset.map((row: { test_name: string }) => ({
-        testName: row.test_name,
+      const { resources } = await container.items.query(query).fetchAll();
+
+      const summaries = resources.map((row: { testName: string }) => ({
+        testName: row.testName,
         lastUpdated: new Date().toISOString(),
       }));
 

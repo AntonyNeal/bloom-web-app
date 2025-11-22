@@ -1,0 +1,133 @@
+<step title="BackgroundTrace" date="2025-11-19T12:55:30.649" instance="aa70e5" url="/api/zipdeploy" method="POST" >
+  <step title="Updating shutdown sentinel last write time" date="2025-11-19T12:55:30.680" SemaphoreCount="7" /><!-- duration: 31ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-11-19T12:55:30.727" /><!-- duration: 16ms -->
+  <step title="Creating temporary deployment" date="2025-11-19T12:55:30.759" /><!-- duration: 125ms -->
+  <step title="Performing fetch based deployment" date="2025-11-19T12:55:30.915" >
+    <step title="Fetching changes." date="2025-11-19T12:55:31.087" /><!-- duration: 16ms -->
+    <step title="Starting LocalZipHandler" date="2025-11-19T12:55:31.134" /><!-- duration: 16ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\llqcynrj.zip (11.92 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-11-19T12:55:31.290" /><!-- duration: 31ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\llqcynrj.zip (11.92 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-11-19T12:55:31.337" >
+      <step title="Renaming extractTargetDirectory(C:\local\Temp\zipdeploy\extracted) to tempDirectory(C:\local\Temp\zipdeploy\x2a2acsv.350)" date="2025-11-19T12:55:31.352" /><!-- duration: 31ms -->
+      <step title="Extracting 10132 entries to C:\local\Temp\zipdeploy\extracted directory" date="2025-11-19T12:55:31.462" >
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\functions\ab-test-old.js ..." date="2025-11-19T12:55:31.477" /><!-- duration: 32ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\functions\ab-test-old.js.map ..." date="2025-11-19T12:55:31.525" /><!-- duration: 31ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\functions\ab-test.js ..." date="2025-11-19T12:55:31.572" /><!-- duration: 31ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\functions\ab-test.js.map ..." date="2025-11-19T12:55:31.634" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\functions\applications.js ..." date="2025-11-19T12:55:31.665" /><!-- duration: 16ms -->
+        <step title="Omitting extracting file traces ..." date="2025-11-19T12:55:31.712" /><!-- duration: 31ms -->
+      </step><!-- duration: 11651ms -->
+    </step><!-- duration: 11808ms -->
+    <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2025-11-19T12:55:43.160" /><!-- duration: 16ms -->
+    <step title="DeploymentManager.Deploy(id:685947dd699748c68c21573c11969a6e)" date="2025-11-19T12:55:43.207" >
+      <step title="Collecting changeset information" date="2025-11-19T12:55:43.238" /><!-- duration: 172ms -->
+      <step title="Updating submodules" date="2025-11-19T12:55:43.426" >
+        <step title="Updating submodules." date="2025-11-19T12:55:43.629" /><!-- duration: 16ms -->
+      </step><!-- duration: 234ms -->
+      <step title="Preparing deployment for commit id &apos;685947dd69&apos;." date="2025-11-19T12:55:43.879" /><!-- duration: 16ms -->
+      <step title="Determining deployment builder" date="2025-11-19T12:55:44.082" >
+        <step title="Builder is BasicBuilder" date="2025-11-19T12:55:44.097" /><!-- duration: 16ms -->
+      </step><!-- duration: 47ms -->
+      <step title="Copying SSH keys" date="2025-11-19T12:55:44.191" /><!-- duration: 31ms -->
+      <step title="Building" date="2025-11-19T12:55:44.238" >
+        <step title="Generating deployment script." date="2025-11-19T12:55:44.410" /><!-- duration: 31ms -->
+        <step title="Generating deployment script" date="2025-11-19T12:55:44.457" >
+          <step title="Using cached version of the deployment script for command: -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --basic --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;" date="2025-11-19T12:55:44.504" /><!-- duration: 31ms -->
+          <step title="Using cached version of deployment script (command: &apos;azure -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --basic --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;&apos;)." date="2025-11-19T12:55:44.566" /><!-- duration: 31ms -->
+        </step><!-- duration: 156ms -->
+        <step title="Running deployment command..." date="2025-11-19T12:55:44.816" /><!-- duration: 16ms -->
+        <step title="Command: &quot;C:\home\site\deployments\tools\deploy.cmd&quot;" date="2025-11-19T12:55:44.879" /><!-- duration: 16ms -->
+        <step title="Executing external process" date="2025-11-19T12:55:44.910" type="process" path="starter.cmd" arguments="&quot;C:\home\site\deployments\tools\deploy.cmd&quot;" >
+          <step title="Handling Basic Web Site deployment." date="2025-11-19T12:55:45.113" /><!-- duration: 31ms -->
+          <step title="Creating app_offline.htm" date="2025-11-19T12:55:45.847" /><!-- duration: 16ms -->
+          <step title="KuduSync.NET from: &apos;C:\local\Temp\zipdeploy\extracted&apos; to: &apos;C:\home\site\wwwroot&apos;" date="2025-11-19T12:55:45.894" /><!-- duration: 16ms -->
+          <step title="Deleting file: &apos;package-lock.json&apos;" date="2025-11-19T12:55:45.941" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.package-lock.json&apos;" date="2025-11-19T12:55:45.988" /><!-- duration: 31ms -->
+          <step title="Copying file: &apos;node_modules\.bin\fxparser&apos;" date="2025-11-19T12:55:46.066" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\fxparser.cmd&apos;" date="2025-11-19T12:55:46.113" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\fxparser.ps1&apos;" date="2025-11-19T12:55:46.176" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\LICENSE&apos;" date="2025-11-19T12:55:46.222" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\package.json&apos;" date="2025-11-19T12:55:46.285" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\README.md&apos;" date="2025-11-19T12:55:46.332" /><!-- duration: 31ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\abort-controller.d.ts&apos;" date="2025-11-19T12:55:46.410" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\AbortError.d.ts&apos;" date="2025-11-19T12:55:46.472" /><!-- duration: 31ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\AbortError.d.ts.map&apos;" date="2025-11-19T12:55:46.551" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\AbortError.js&apos;" date="2025-11-19T12:55:46.597" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\AbortError.js.map&apos;" date="2025-11-19T12:55:46.660" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\AbortSignalLike.d.ts&apos;" date="2025-11-19T12:55:46.707" /><!-- duration: 31ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\AbortSignalLike.d.ts.map&apos;" date="2025-11-19T12:55:46.769" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\AbortSignalLike.js&apos;" date="2025-11-19T12:55:46.816" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\AbortSignalLike.js.map&apos;" date="2025-11-19T12:55:46.863" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\index.d.ts&apos;" date="2025-11-19T12:55:46.926" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\index.d.ts.map&apos;" date="2025-11-19T12:55:46.972" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\index.js&apos;" date="2025-11-19T12:55:47.019" /><!-- duration: 31ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\index.js.map&apos;" date="2025-11-19T12:55:47.082" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\browser\package.json&apos;" date="2025-11-19T12:55:47.129" /><!-- duration: 31ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\AbortError.d.ts&apos;" date="2025-11-19T12:55:47.191" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\AbortError.d.ts.map&apos;" date="2025-11-19T12:55:47.238" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\AbortError.js&apos;" date="2025-11-19T12:55:47.301" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\AbortError.js.map&apos;" date="2025-11-19T12:55:47.347" /><!-- duration: 31ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\AbortSignalLike.d.ts&apos;" date="2025-11-19T12:55:47.441" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\AbortSignalLike.d.ts.map&apos;" date="2025-11-19T12:55:47.488" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\AbortSignalLike.js&apos;" date="2025-11-19T12:55:47.551" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\AbortSignalLike.js.map&apos;" date="2025-11-19T12:55:47.597" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\index.d.ts&apos;" date="2025-11-19T12:55:47.644" /><!-- duration: 21ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\index.d.ts.map&apos;" date="2025-11-19T12:55:47.712" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\index.js&apos;" date="2025-11-19T12:55:47.791" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\index.js.map&apos;" date="2025-11-19T12:55:47.853" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\package.json&apos;" date="2025-11-19T12:55:47.900" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\commonjs\tsdoc-metadata.json&apos;" date="2025-11-19T12:55:47.947" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\AbortError.d.ts&apos;" date="2025-11-19T12:55:47.994" /><!-- duration: 31ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\AbortError.d.ts.map&apos;" date="2025-11-19T12:55:48.056" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\AbortError.js&apos;" date="2025-11-19T12:55:48.119" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\AbortError.js.map&apos;" date="2025-11-19T12:55:48.166" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\AbortSignalLike.d.ts&apos;" date="2025-11-19T12:55:48.228" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\AbortSignalLike.d.ts.map&apos;" date="2025-11-19T12:55:48.276" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\AbortSignalLike.js&apos;" date="2025-11-19T12:55:48.323" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\AbortSignalLike.js.map&apos;" date="2025-11-19T12:55:48.378" /><!-- duration: 13ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\index.d.ts&apos;" date="2025-11-19T12:55:48.438" /><!-- duration: 17ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\index.d.ts.map&apos;" date="2025-11-19T12:55:48.486" /><!-- duration: 31ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\index.js&apos;" date="2025-11-19T12:55:48.548" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\@azure\abort-controller\dist\esm\index.js.map&apos;" date="2025-11-19T12:55:48.610" /><!-- duration: 16ms -->
+          <step title="Omitting next output lines..." date="2025-11-19T12:55:48.657" /><!-- duration: 16ms -->
+          <step title="Processed 664 files..." date="2025-11-19T12:56:06.944" /><!-- duration: 16ms -->
+          <step title="Processed 1267 files..." date="2025-11-19T12:56:26.969" /><!-- duration: 16ms -->
+          <step title="Processed 1853 files..." date="2025-11-19T12:56:47.004" /><!-- duration: 16ms -->
+          <step title="Processed 2481 files..." date="2025-11-19T12:57:07.038" /><!-- duration: 16ms -->
+          <step title="Processed 3058 files..." date="2025-11-19T12:57:27.058" /><!-- duration: 16ms -->
+          <step title="Processed 3696 files..." date="2025-11-19T12:57:47.060" /><!-- duration: 16ms -->
+          <step title="Processed 4288 files..." date="2025-11-19T12:58:07.109" /><!-- duration: 16ms -->
+          <step title="Processed 4824 files..." date="2025-11-19T12:58:27.192" /><!-- duration: 47ms -->
+          <step title="Processed 5248 files..." date="2025-11-19T12:58:47.167" /><!-- duration: 31ms -->
+          <step title="Processed 5649 files..." date="2025-11-19T12:59:07.155" /><!-- duration: 31ms -->
+          <step title="Processed 6029 files..." date="2025-11-19T12:59:27.189" /><!-- duration: 16ms -->
+          <step title="Processed 6385 files..." date="2025-11-19T12:59:47.219" /><!-- duration: 31ms -->
+          <step title="Processed 6681 files..." date="2025-11-19T13:00:07.273" /><!-- duration: 16ms -->
+          <step title="Processed 6944 files..." date="2025-11-19T13:00:27.336" /><!-- duration: 31ms -->
+          <step title="Processed 7202 files..." date="2025-11-19T13:00:47.399" /><!-- duration: 31ms -->
+          <step title="Processed 7451 files..." date="2025-11-19T13:01:07.417" /><!-- duration: 16ms -->
+          <step title="Processed 7687 files..." date="2025-11-19T13:01:27.506" /><!-- duration: 16ms -->
+          <step title="Processed 7909 files..." date="2025-11-19T13:01:47.544" /><!-- duration: 31ms -->
+          <step title="Processed 8122 files..." date="2025-11-19T13:02:07.631" /><!-- duration: 63ms -->
+          <step title="Processed 8321 files..." date="2025-11-19T13:02:27.722" /><!-- duration: 16ms -->
+          <step title="Processed 8516 files..." date="2025-11-19T13:02:47.795" /><!-- duration: 47ms -->
+          <step title="Processed 8924 files..." date="2025-11-19T13:03:07.815" /><!-- duration: 31ms -->
+          <step title="Processed 9427 files..." date="2025-11-19T13:03:27.848" /><!-- duration: 16ms -->
+          <step title="Processed 9887 files..." date="2025-11-19T13:03:47.918" /><!-- duration: 31ms -->
+          <step title="Finished successfully." date="2025-11-19T13:03:59.459" /><!-- duration: 31ms -->
+        </step><!-- duration: 494596ms -->
+        <step title="Running post deployment command(s)..." date="2025-11-19T13:03:59.709" /><!-- duration: 31ms -->
+        <step title="Triggering recycle (preview mode disabled)." date="2025-11-19T13:03:59.912" /><!-- duration: 16ms -->
+        <step title="Ignoring FS watcher based recycle request as this is a classic Windows app." date="2025-11-19T13:03:59.943" /><!-- duration: 31ms -->
+        <step title="Deployment successful. DEPLOYMENTINFO: deploymentPath = Functions App ZipDeploy. Extract zip. , deployer = az_cli_functions, os = windows, sku = Dynamic, language = node, siteName = fnt42kldozqahcu, slotName = Production, siteHostName = fnt42kldozqahcu.azurewebsites.net, deploymentStatus = Success" date="2025-11-19T13:04:00.162" /><!-- duration: 16ms -->
+        <step title="Purge deployment items" date="2025-11-19T13:04:00.605" >
+          <step title="Remove 6709996d1, Success, received at 11/19/2025 4:07:20 AM" date="2025-11-19T13:04:01.516" /><!-- duration: 16ms -->
+        </step><!-- duration: 958ms -->
+      </step><!-- duration: 497419ms -->
+    </step><!-- duration: 498481ms -->
+    <step title="Cleaning up temp files" date="2025-11-19T13:04:01.704" /><!-- duration: 16ms -->
+    <step title="Begin HttpPost https://fnt42kldozqahcu.scm.azurewebsites.net/operations/settriggers, x-ms-request-id: ffbd221b-c546-11f0-b01b-1c792dfc69dd" date="2025-11-19T13:04:01.782" /><!-- duration: 16ms -->
+    <step title="End HttpPost, status: OK" date="2025-11-19T13:04:01.875" /><!-- duration: 16ms -->
+    <step title="Scheduling background sync triggers after delay" date="2025-11-19T13:04:01.907" /><!-- duration: 16ms -->
+  </step><!-- duration: 511086ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-11-19T13:04:02.032" /><!-- duration: 16ms -->
+</step><!-- duration: 511429ms -->

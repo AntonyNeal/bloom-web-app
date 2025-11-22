@@ -1,0 +1,38 @@
+<step title="BackgroundTrace" date="2025-11-19T02:55:27.360" instance="4da4ce" url="/api/zipdeploy" method="POST" >
+  <step title="Updating shutdown sentinel last write time" date="2025-11-19T02:55:27.406" SemaphoreCount="7" /><!-- duration: 16ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-11-19T02:55:27.453" /><!-- duration: 16ms -->
+  <step title="Creating temporary deployment" date="2025-11-19T02:55:27.484" /><!-- duration: 156ms -->
+  <step title="Performing fetch based deployment" date="2025-11-19T02:55:27.672" >
+    <step title="Fetching changes." date="2025-11-19T02:55:27.891" /><!-- duration: 16ms -->
+    <step title="Starting LocalZipHandler" date="2025-11-19T02:55:27.922" /><!-- duration: 31ms -->
+    <step title="Starting ExtractTriggers" date="2025-11-19T02:55:27.969" /><!-- duration: 16ms -->
+    <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2025-11-19T02:55:28.068" /><!-- duration: 26ms -->
+    <step title="DeploymentManager.Deploy(id:f69ece6551ba4a0b9ea5bbc2ddac0ed2)" date="2025-11-19T02:55:28.125" >
+      <step title="Collecting changeset information" date="2025-11-19T02:55:28.156" /><!-- duration: 156ms -->
+      <step title="Updating submodules" date="2025-11-19T02:55:28.328" >
+        <step title="Updating submodules." date="2025-11-19T02:55:28.781" /><!-- duration: 16ms -->
+      </step><!-- duration: 484ms -->
+      <step title="Preparing deployment for commit id &apos;f69ece6551&apos;." date="2025-11-19T02:55:29.016" /><!-- duration: 16ms -->
+      <step title="Determining deployment builder" date="2025-11-19T02:55:29.235" >
+        <step title="Builder is RunFromZipSiteBuilder" date="2025-11-19T02:55:29.250" /><!-- duration: 31ms -->
+      </step><!-- duration: 62ms -->
+      <step title="Copying SSH keys" date="2025-11-19T02:55:29.360" /><!-- duration: 47ms -->
+      <step title="Building" date="2025-11-19T02:55:29.438" >
+        <step title="Skipping build. Project type: Run-From-Zip" date="2025-11-19T02:55:29.656" /><!-- duration: 31ms -->
+        <step title="Skipping post build. Project type: Run-From-Zip" date="2025-11-19T02:55:29.875" /><!-- duration: 16ms -->
+        <step title="Triggering recycle (preview mode disabled)." date="2025-11-19T02:55:30.094" /><!-- duration: 31ms -->
+        <step title="Ignoring FS watcher based recycle request as this is a classic Windows app." date="2025-11-19T02:55:30.141" /><!-- duration: 31ms -->
+        <step title="Deployment successful. DEPLOYMENTINFO: deploymentPath = Functions App ZipDeploy. Run from package., deployer = GITHUB_ZIP_DEPLOY_FUNCTIONS_V1, os = windows, sku = Dynamic, language = node, siteName = fnt42kldozqahcu, slotName = Production, siteHostName = fnt42kldozqahcu.azurewebsites.net, deploymentStatus = Success" date="2025-11-19T02:55:30.360" /><!-- duration: 16ms -->
+        <step title="Purge deployment items" date="2025-11-19T02:55:30.734" >
+          <step title="Remove 85c7f10bc, Success, received at 10/29/2025 9:51:58 PM" date="2025-11-19T02:55:30.969" /><!-- duration: 16ms -->
+        </step><!-- duration: 281ms -->
+      </step><!-- duration: 1672ms -->
+    </step><!-- duration: 3016ms -->
+    <step title="Cleaning up temp files" date="2025-11-19T02:55:31.156" /><!-- duration: 31ms -->
+    <step title="Updating C:\home\data\SitePackages\packagename.txt with deployment 20251119025526.zip" date="2025-11-19T02:55:31.219" /><!-- duration: 47ms -->
+    <step title="Begin HttpPost https://fnt42kldozqahcu.scm.azurewebsites.net/operations/settriggers, x-ms-request-id: 26f150a3-0c3d-4644-9fc0-0f796b0fbb38" date="2025-11-19T02:55:31.344" /><!-- duration: 16ms -->
+    <step title="End HttpPost, status: OK" date="2025-11-19T02:55:31.813" /><!-- duration: 16ms -->
+    <step title="Scheduling background sync triggers after delay" date="2025-11-19T02:55:31.844" /><!-- duration: 31ms -->
+  </step><!-- duration: 4422ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-11-19T02:55:32.125" /><!-- duration: 16ms -->
+</step><!-- duration: 4812ms -->

@@ -7,6 +7,7 @@ The Bloom Application Management System is the MVP onboarding solution for Life 
 ## Features
 
 ### ✅ Practitioner Application Form (`/join-us`)
+
 - **Personal Information**: Name, email, phone
 - **Professional Details**: AHPRA registration number, years of experience
 - **Cover Letter**: Free-form text to explain interest
@@ -15,6 +16,7 @@ The Bloom Application Management System is the MVP onboarding solution for Life 
 - **Success Feedback**: Toast notifications and success screen
 
 ### ✅ Admin Review Portal (`/admin`)
+
 - **Application List**: View all submitted applications with status badges
 - **Status Dashboard**: Quick overview of application counts by status
 - **Detail View**: Click any application to see full details
@@ -23,6 +25,7 @@ The Bloom Application Management System is the MVP onboarding solution for Life 
 - **Real-time Updates**: Status changes persist immediately to database
 
 ### ✅ Backend API (Azure Functions)
+
 - **GET /api/applications**: List all applications
 - **GET /api/applications/{id}**: Get single application details
 - **POST /api/applications**: Submit new application
@@ -118,17 +121,20 @@ CREATE TABLE applications (
 ### Local Development
 
 1. **Clone the repository**
+
    ```powershell
    git clone https://github.com/AntonyNeal/bloom-web-app.git
    cd bloom-web-app
    ```
 
 2. **Install frontend dependencies**
+
    ```powershell
    npm install
    ```
 
 3. **Install backend dependencies**
+
    ```powershell
    cd api
    npm install
@@ -136,8 +142,9 @@ CREATE TABLE applications (
    ```
 
 4. **Configure local settings**
-   
+
    Edit `api/local.settings.json`:
+
    ```json
    {
      "Values": {
@@ -151,17 +158,20 @@ CREATE TABLE applications (
    ```
 
 5. **Run database migrations**
+
    ```powershell
    az sql db query --server your-server --database your-db --file schema.sql
    ```
 
 6. **Start the backend** (in `api/` folder)
+
    ```powershell
    cd api
    func start
    ```
 
 7. **Start the frontend** (in new terminal)
+
    ```powershell
    npm run dev
    ```
@@ -194,7 +204,7 @@ git push origin staging
 ### Submitting an Application
 
 1. Navigate to `/join-us`
-2. Fill in all required fields (marked with *)
+2. Fill in all required fields (marked with \*)
 3. Upload required files:
    - CV/Resume (PDF, DOC, DOCX)
    - AHPRA Certificate (PDF, JPG, PNG)
@@ -224,18 +234,21 @@ git push origin staging
 ## API Endpoints
 
 ### List Applications
+
 ```http
 GET /api/applications
 Response: Array<Application>
 ```
 
 ### Get Single Application
+
 ```http
 GET /api/applications/{id}
 Response: Application
 ```
 
 ### Create Application
+
 ```http
 POST /api/applications
 Body: {
@@ -247,6 +260,7 @@ Response: Application
 ```
 
 ### Update Application Status
+
 ```http
 PUT /api/applications/{id}
 Body: { status, reviewed_by }
@@ -254,6 +268,7 @@ Response: Application
 ```
 
 ### Upload File
+
 ```http
 POST /api/upload?type={cv|certificate|photo}
 Body: multipart/form-data
@@ -263,12 +278,14 @@ Response: { url, fileName, size }
 ## Security Notes
 
 ⚠️ **MVP Limitations** (deferred to Phase 2):
+
 - No authentication on admin portal (manual access only)
 - No email verification for applicants
 - Basic CORS configuration
 - No rate limiting
 
 **Recommended for Production:**
+
 - Add Azure AD B2C authentication
 - Implement email verification flow
 - Add rate limiting to prevent abuse
@@ -286,6 +303,7 @@ Files are stored in Azure Blob Storage with private access. URLs are pre-signed 
 ## Environment Variables
 
 ### Backend (Azure Functions)
+
 ```env
 SQL_SERVER=lpa-sql-server.database.windows.net
 SQL_DATABASE=lpa-bloom-db
@@ -295,13 +313,16 @@ AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;...
 ```
 
 ### Frontend
+
 Configured in `src/config/api.ts`:
+
 - Development: `http://localhost:7071/api`
 - Production: `https://lpa-bloom-functions.azurewebsites.net/api`
 
 ## Monitoring
 
 ### Check Application Count
+
 ```powershell
 az sql db query \
   --server lpa-sql-server \
@@ -310,6 +331,7 @@ az sql db query \
 ```
 
 ### View Recent Uploads
+
 ```powershell
 az storage blob list \
   --container-name applications \
@@ -318,6 +340,7 @@ az storage blob list \
 ```
 
 ### Function Logs
+
 ```powershell
 az functionapp log tail \
   --name lpa-bloom-functions \
@@ -327,16 +350,19 @@ az functionapp log tail \
 ## Troubleshooting
 
 ### Issue: "Cannot connect to database"
+
 - Check SQL firewall rules allow your IP
 - Verify connection string in `local.settings.json`
 - Test connection: `az sql db show-connection-string`
 
 ### Issue: "File upload fails"
+
 - Verify storage connection string
 - Check blob container exists and has correct permissions
 - Ensure file size within limits
 
 ### Issue: "CORS error"
+
 - Add your origin to Function App CORS settings
 - Check `Host.CORS` in `local.settings.json` for local dev
 

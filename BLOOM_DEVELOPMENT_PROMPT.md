@@ -1,14 +1,16 @@
 # Bloom Development Prompt
+
 ## Comprehensive Design System & Implementation Guide
 
-**Project:** Bloom - Life Psychology Australia's Practitioner Onboarding Portal  
-**Design Philosophy:** "Warm Professional Fairy Godmother" (30% personality, 70% competence)  
-**Aesthetic:** Studio Ghibli meets Linear - warm, inviting professionalism  
+**Project:** Bloom - Life Psychology Australia's Practitioner Onboarding Portal
+**Design Philosophy:** "Warm Professional Fairy Godmother" (30% personality, 70% competence)
+**Aesthetic:** Studio Ghibli meets Linear - warm, inviting professionalism
 **Last Updated:** October 16, 2025
 
 ---
 
 ## Table of Contents
+
 1. [Design Philosophy](#design-philosophy)
 2. [Color System](#color-system)
 3. [Typography](#typography)
@@ -34,19 +36,23 @@
 ## Design Philosophy
 
 ### Core Principle: "Warm Professional"
+
 Bloom balances warmth and competence to create an environment where clinical psychologists feel both welcomed and respected. We're the fairy godmother who believes in you while maintaining professional standards.
 
 **Personality Mix:**
+
 - **30% Personality:** Warm, encouraging, human
 - **70% Competence:** Professional, trustworthy, clinical
 
 ### Voice & Tone
+
 - **Encouraging, not patronizing:** "Let's get you set up" not "Don't worry, this is easy"
 - **Clear, not clinical:** "We couldn't find that" not "Error 404: Resource not found"
 - **Warm, not casual:** "Welcome back!" not "Hey there!"
 - **Professional, not corporate:** "Your application is being reviewed" not "Your request has been processed"
 
 ### Visual Metaphor
+
 Think of a well-lit therapy room with plants, natural light, and comfortable furniture. Everything has its place, nothing feels sterile, but it's clearly a professional space.
 
 ---
@@ -54,7 +60,8 @@ Think of a well-lit therapy room with plants, natural light, and comfortable fur
 ## Color System
 
 ### Primary: Sage Green
-**Purpose:** Trust, growth, clinical professionalism  
+
+**Purpose:** Trust, growth, clinical professionalism
 **Usage:** Primary actions, headers, active states (60% of UI)
 
 ```javascript
@@ -73,7 +80,8 @@ sage: {
 ```
 
 ### Secondary: Lavender
-**Purpose:** Creativity, empathy, psychological care  
+
+**Purpose:** Creativity, empathy, psychological care
 **Usage:** Accents, success states, highlights (30% of UI)
 
 ```javascript
@@ -89,7 +97,8 @@ lavender: {
 ```
 
 ### Neutral: Warm Charcoal & Cream
-**Purpose:** Readability, hierarchy, backgrounds  
+
+**Purpose:** Readability, hierarchy, backgrounds
 **Usage:** Text, surfaces, structure (10% of UI)
 
 ```javascript
@@ -110,6 +119,7 @@ text: {
 ```
 
 ### Semantic Colors
+
 **Purpose:** System feedback and state communication
 
 ```javascript
@@ -138,25 +148,39 @@ info: {
 ### Font Families
 
 **Display Font: Poppins**
+
 ```css
-font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+font-family:
+  'Poppins',
+  system-ui,
+  -apple-system,
+  sans-serif;
 ```
+
 - **Usage:** Headings, labels, buttons, important UI elements
 - **Weights:** 600 (Semibold), 700 (Bold)
 - **Personality:** Friendly, approachable, modern
 
 **Body Font: Inter**
+
 ```css
-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+font-family:
+  'Inter',
+  system-ui,
+  -apple-system,
+  sans-serif;
 ```
+
 - **Usage:** Body text, paragraphs, descriptions
 - **Weights:** 400 (Regular), 500 (Medium), 600 (Semibold)
 - **Personality:** Clean, readable, professional
 
 **Monospace: IBM Plex Mono**
+
 ```css
 font-family: 'IBM Plex Mono', 'Courier New', monospace;
 ```
+
 - **Usage:** Code snippets, technical data, IDs
 - **Weights:** 400 (Regular), 500 (Medium)
 - **Personality:** Technical but warm
@@ -174,12 +198,12 @@ fontSize: {
   '2xl': ['1.5rem', { lineHeight: '2rem' }],      // 24px - Subheadings
   '3xl': ['1.875rem', { lineHeight: '2.25rem' }], // 30px - Section headers
   '4xl': ['2.25rem', { lineHeight: '2.5rem' }],   // 36px - Page titles
-  
+
   // Display sizes (Poppins)
   'display-lg': ['3.75rem', { lineHeight: '1.2', fontWeight: '700' }], // 60px - Hero
   'display-md': ['3rem', { lineHeight: '1.2', fontWeight: '700' }],    // 48px - Page hero
   'display-sm': ['2.25rem', { lineHeight: '1.3', fontWeight: '600' }], // 36px - Section hero
-  
+
   // Heading sizes (Poppins)
   'h1': ['2rem', { lineHeight: '1.3', fontWeight: '600' }],     // 32px
   'h2': ['1.75rem', { lineHeight: '1.4', fontWeight: '600' }],  // 28px
@@ -187,7 +211,7 @@ fontSize: {
   'h4': ['1.25rem', { lineHeight: '1.5', fontWeight: '600' }],  // 20px
   'h5': ['1.125rem', { lineHeight: '1.5', fontWeight: '600' }], // 18px
   'h6': ['1rem', { lineHeight: '1.5', fontWeight: '600' }],     // 16px
-  
+
   // Body sizes (Inter)
   'body-lg': ['1.125rem', { lineHeight: '1.75' }],  // 18px - Large body
   'body-base': ['1rem', { lineHeight: '1.625' }],   // 16px - Regular body
@@ -230,6 +254,7 @@ fontSize: {
 ## Spacing & Layout
 
 ### Spacing System (8px Grid)
+
 All spacing follows an 8px base unit for visual consistency.
 
 ```javascript
@@ -251,6 +276,7 @@ spacing: {
 ```
 
 ### Border Radius
+
 Creates soft, approachable corners without looking childish.
 
 ```javascript
@@ -265,6 +291,7 @@ borderRadius: {
 ```
 
 ### Shadows
+
 Subtle depth that feels natural, not heavy.
 
 ```javascript
@@ -278,6 +305,7 @@ boxShadow: {
 ```
 
 ### Transitions
+
 Smooth, natural animations that feel responsive.
 
 ```javascript
@@ -300,6 +328,7 @@ transitionTimingFunction: {
 ### Buttons
 
 **Primary Button (Sage)**
+
 ```tsx
 <Button className="bg-sage-600 hover:bg-sage-700 text-white font-display font-semibold py-6 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-normal">
   Submit Application
@@ -307,6 +336,7 @@ transitionTimingFunction: {
 ```
 
 **Secondary Button (Lavender)**
+
 ```tsx
 <Button className="bg-lavender-400 hover:bg-lavender-500 text-white font-display font-semibold py-6 px-8 rounded-lg shadow-sm hover:shadow-md transition-all duration-normal">
   View Details
@@ -314,6 +344,7 @@ transitionTimingFunction: {
 ```
 
 **Outline Button**
+
 ```tsx
 <Button className="bg-white border-2 border-sage-600 text-sage-600 hover:bg-sage-50 font-display font-semibold py-6 px-8 rounded-lg transition-all duration-normal">
   Cancel
@@ -323,6 +354,7 @@ transitionTimingFunction: {
 ### Form Inputs
 
 **Text Input**
+
 ```tsx
 <div className="space-y-2">
   <Label className="font-display text-body-sm text-text-primary">
@@ -340,6 +372,7 @@ transitionTimingFunction: {
 ```
 
 **Textarea**
+
 ```tsx
 <Textarea
   rows={6}
@@ -349,6 +382,7 @@ transitionTimingFunction: {
 ```
 
 **File Upload**
+
 ```tsx
 <Input
   type="file"
@@ -360,32 +394,28 @@ transitionTimingFunction: {
 ### Cards
 
 **Standard Card**
+
 ```tsx
 <Card className="border-sage-200 shadow-lg bg-white rounded-lg">
   <CardHeader>
-    <CardTitle className="font-display text-h2 text-text-primary">
-      Application Details
-    </CardTitle>
+    <CardTitle className="font-display text-h2 text-text-primary">Application Details</CardTitle>
     <CardDescription className="font-body text-body-base text-text-secondary">
       Review the information below
     </CardDescription>
   </CardHeader>
-  <CardContent className="space-y-4">
-    {/* Content */}
-  </CardContent>
+  <CardContent className="space-y-4">{/* Content */}</CardContent>
 </Card>
 ```
 
 **Highlighted Card (Lavender accent)**
+
 ```tsx
 <Card className="border-lavender-200 bg-lavender-50 shadow-md rounded-lg">
   <CardContent className="p-6">
     <div className="flex items-start gap-4">
       <Sparkles className="w-6 h-6 text-lavender-400 flex-shrink-0" />
       <div>
-        <h3 className="font-display text-h4 text-text-primary mb-2">
-          Success!
-        </h3>
+        <h3 className="font-display text-h4 text-text-primary mb-2">Success!</h3>
         <p className="font-body text-body-base text-text-secondary">
           Your application has been submitted.
         </p>
@@ -396,13 +426,16 @@ transitionTimingFunction: {
 ```
 
 ### Icons
+
 Use **lucide-react** for all icons. Maintain consistent sizing:
+
 - Small: `w-4 h-4` (16px)
 - Medium: `w-5 h-5` (20px)
 - Large: `w-6 h-6` (24px)
 - Hero: `w-8 h-8` (32px) or larger
 
 **Common Icons:**
+
 - `CheckCircle2` - Success states
 - `AlertCircle` - Warnings
 - `XCircle` - Errors
@@ -417,11 +450,13 @@ Use **lucide-react** for all icons. Maintain consistent sizing:
 ## Error Handling
 
 ### Philosophy
+
 Errors should feel like a helpful colleague tapping your shoulder, not a system failing. Use warm, encouraging language and always provide next steps.
 
 ### Error State Components
 
 **Network Error**
+
 ```tsx
 <NetworkErrorState
   onRetry={() => fetchData()}
@@ -430,14 +465,13 @@ Errors should feel like a helpful colleague tapping your shoulder, not a system 
 ```
 
 **Server Error**
+
 ```tsx
-<ServerErrorState
-  errorCode="500"
-  customMessage="Something went wrong on our end"
-/>
+<ServerErrorState errorCode="500" customMessage="Something went wrong on our end" />
 ```
 
 **Empty State**
+
 ```tsx
 <EmptyState
   icon={<FileText className="w-12 h-12 text-lavender-300" />}
@@ -447,23 +481,23 @@ Errors should feel like a helpful colleague tapping your shoulder, not a system 
 ```
 
 ### Loading States
+
 Use skeleton screens with sage tint rather than spinners:
 
 ```tsx
-<LoadingState
-  rows={5}
-  className="bg-sage-50"
-/>
+<LoadingState rows={5} className="bg-sage-50" />
 ```
 
 ### Error Messages
 
 **Good Examples:**
+
 - ✅ "We couldn't find that application. It may have been removed."
 - ✅ "Your session expired. Let's get you logged back in."
 - ✅ "This file is too large. Please upload a file under 10MB."
 
 **Bad Examples:**
+
 - ❌ "Error 404: Resource not found"
 - ❌ "Unauthorized access"
 - ❌ "Invalid input"
@@ -473,6 +507,7 @@ Use skeleton screens with sage tint rather than spinners:
 ## Technical Stack
 
 ### Frontend
+
 - **Framework:** React 18.3.24 with TypeScript 5.5
 - **Build Tool:** Vite 7.1.3
 - **Styling:** Tailwind CSS 3.4.18
@@ -482,6 +517,7 @@ Use skeleton screens with sage tint rather than spinners:
 - **Icons:** lucide-react 0.468
 
 ### Backend
+
 - **Runtime:** Azure Functions v4 (Node.js 18)
 - **Language:** TypeScript
 - **Database:** Azure SQL Database
@@ -489,6 +525,7 @@ Use skeleton screens with sage tint rather than spinners:
 - **API:** RESTful endpoints
 
 ### Deployment
+
 - **Platform:** Azure Static Web Apps
 - **Environment:** https://witty-ground-01f9d5100.3.azurestaticapps.net
 - **CI/CD:** GitHub Actions
@@ -513,7 +550,7 @@ export const QualificationCheck = ({ onEligible }: { onEligible: () => void }) =
 
   const handleCheckEligibility = () => {
     const eligible = isRegisteredPsychologist || hasPhd || yearsRegistered >= 8;
-    
+
     if (eligible) {
       setTimeout(() => onEligible(), 1500);
     }
@@ -535,7 +572,8 @@ export const QualificationCheck = ({ onEligible }: { onEligible: () => void }) =
             Qualification Check
           </h1>
           <p className="font-body text-body-base text-text-secondary text-center mb-8 leading-loose">
-            To ensure quality of care, we require applicants to meet at least one of the following criteria:
+            To ensure quality of care, we require applicants to meet at least one of the following
+            criteria:
           </p>
 
           {/* Criteria List */}
@@ -544,34 +582,36 @@ export const QualificationCheck = ({ onEligible }: { onEligible: () => void }) =
               Minimum Requirements
             </h2>
             <p className="font-body text-body-sm text-text-secondary mb-4">
-              To apply, you must meet at least <strong className="text-sage-600">ONE</strong> of these criteria:
+              To apply, you must meet at least <strong className="text-sage-600">ONE</strong> of
+              these criteria:
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-sage-600 flex-shrink-0 mt-0.5" />
                 <span className="font-body text-body-sm text-text-secondary">
-                  <strong className="text-text-primary">Registered Clinical Psychologist</strong> with AHPRA
+                  <strong className="text-text-primary">Registered Clinical Psychologist</strong>{' '}
+                  with AHPRA
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-sage-600 flex-shrink-0 mt-0.5" />
                 <span className="font-body text-body-sm text-text-secondary">
-                  <strong className="text-text-primary">8+ years</strong> as a registered psychologist with AHPRA
+                  <strong className="text-text-primary">8+ years</strong> as a registered
+                  psychologist with AHPRA
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-sage-600 flex-shrink-0 mt-0.5" />
                 <span className="font-body text-body-sm text-text-secondary">
-                  <strong className="text-text-primary">PhD in Psychology</strong> with current AHPRA registration
+                  <strong className="text-text-primary">PhD in Psychology</strong> with current
+                  AHPRA registration
                 </span>
               </li>
             </ul>
           </div>
 
           {/* Input Fields */}
-          <div className="space-y-6">
-            {/* Checkbox inputs... */}
-          </div>
+          <div className="space-y-6">{/* Checkbox inputs... */}</div>
 
           {/* Submit Button */}
           <Button
@@ -594,21 +634,17 @@ export const QualificationCheck = ({ onEligible }: { onEligible: () => void }) =
 <form onSubmit={handleSubmit} className="space-y-6">
   <Card className="border-sage-200 shadow-lg bg-white rounded-lg">
     <CardHeader>
-      <CardTitle className="font-display text-h2 text-text-primary">
-        Application Form
-      </CardTitle>
+      <CardTitle className="font-display text-h2 text-text-primary">Application Form</CardTitle>
       <CardDescription className="font-body text-body-base text-text-secondary">
         Tell us about yourself and your practice
       </CardDescription>
     </CardHeader>
-    
+
     <CardContent className="space-y-8">
       {/* Personal Information */}
       <div className="space-y-4">
-        <h3 className="font-display text-h4 text-text-primary">
-          Personal Information
-        </h3>
-        
+        <h3 className="font-display text-h4 text-text-primary">Personal Information</h3>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="font-display text-body-sm text-text-primary">
@@ -620,7 +656,7 @@ export const QualificationCheck = ({ onEligible }: { onEligible: () => void }) =
               className="border-sage-200 focus:border-sage-600 focus:ring-sage-600"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label className="font-display text-body-sm text-text-primary">
               Last Name <span className="text-error">*</span>
@@ -636,10 +672,8 @@ export const QualificationCheck = ({ onEligible }: { onEligible: () => void }) =
 
       {/* Professional Information */}
       <div className="space-y-4">
-        <h3 className="font-display text-h4 text-text-primary">
-          Professional Information
-        </h3>
-        
+        <h3 className="font-display text-h4 text-text-primary">Professional Information</h3>
+
         <div className="space-y-2">
           <Label className="font-display text-body-sm text-text-primary">
             Cover Letter <span className="text-error">*</span>
@@ -663,7 +697,7 @@ export const QualificationCheck = ({ onEligible }: { onEligible: () => void }) =
         disabled={uploading}
         className="w-full bg-sage-600 hover:bg-sage-700 text-white font-display text-body font-semibold py-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-normal"
       >
-        {uploading ? "Submitting..." : "Submit Application"}
+        {uploading ? 'Submitting...' : 'Submit Application'}
       </Button>
     </CardContent>
   </Card>
@@ -690,13 +724,14 @@ export const QualificationCheck = ({ onEligible }: { onEligible: () => void }) =
 
       {/* Description */}
       <p className="font-body text-body-lg text-text-secondary mb-8 leading-loose">
-        Thank you for applying. We'll review your application and get back to you within 3-5 business days.
+        Thank you for applying. We'll review your application and get back to you within 3-5
+        business days.
       </p>
 
       {/* Actions */}
       <div className="space-y-3">
         <Button
-          onClick={() => window.location.href = '/'}
+          onClick={() => (window.location.href = '/')}
           className="w-full bg-sage-600 hover:bg-sage-700 text-white font-display font-semibold py-6 rounded-lg"
         >
           Return Home
@@ -721,6 +756,7 @@ export const QualificationCheck = ({ onEligible }: { onEligible: () => void }) =
 When implementing new features, ensure:
 
 ### Visual Design
+
 - [ ] Uses sage green (#6B8066) for primary actions
 - [ ] Uses lavender (#B4A7D6) for secondary accents
 - [ ] Uses cream (#F5F3EE) for backgrounds
@@ -730,6 +766,7 @@ When implementing new features, ensure:
 - [ ] Shadows are subtle (rgba with low opacity)
 
 ### Typography
+
 - [ ] Headings use Poppins (font-display)
 - [ ] Body text uses Inter (font-body)
 - [ ] Labels use semibold weight (600)
@@ -737,6 +774,7 @@ When implementing new features, ensure:
 - [ ] Font sizes follow the defined scale
 
 ### Interaction
+
 - [ ] Transitions are 150-300ms
 - [ ] Hover states are clear but subtle
 - [ ] Focus states use sage-600 ring
@@ -744,6 +782,7 @@ When implementing new features, ensure:
 - [ ] Loading states use skeleton screens, not spinners
 
 ### Content
+
 - [ ] Error messages are warm and helpful
 - [ ] Success messages celebrate the user
 - [ ] Help text provides context, not just rules
@@ -751,6 +790,7 @@ When implementing new features, ensure:
 - [ ] Labels are clear and conversational
 
 ### Accessibility
+
 - [ ] Color contrast meets WCAG AA standards
 - [ ] Interactive elements have focus states
 - [ ] Error states are announced to screen readers
@@ -798,16 +838,20 @@ bloom-web-app/
 ## Common Patterns
 
 ### Form Validation Error
+
 ```tsx
-{errors.email && (
-  <p className="font-body text-body-xs text-error flex items-center gap-1">
-    <AlertCircle className="w-3 h-3" />
-    {errors.email}
-  </p>
-)}
+{
+  errors.email && (
+    <p className="font-body text-body-xs text-error flex items-center gap-1">
+      <AlertCircle className="w-3 h-3" />
+      {errors.email}
+    </p>
+  );
+}
 ```
 
 ### Status Badge
+
 ```tsx
 const statusColors = {
   pending: 'bg-warning-bg text-warning border-warning',
@@ -817,15 +861,14 @@ const statusColors = {
 
 <Badge className={`${statusColors[status]} font-display text-body-xs px-3 py-1 rounded-full`}>
   {status}
-</Badge>
+</Badge>;
 ```
 
 ### Data Table Header
+
 ```tsx
 <div className="bg-sage-50 border-b border-sage-200 px-6 py-4">
-  <h2 className="font-display text-h3 text-text-primary">
-    Applications
-  </h2>
+  <h2 className="font-display text-h3 text-text-primary">Applications</h2>
   <p className="font-body text-body-sm text-text-secondary mt-1">
     {applications.length} total applications
   </p>
@@ -836,19 +879,19 @@ const statusColors = {
 
 ## Quick Reference: Color Usage
 
-| Element | Primary Color | Alternative | Text |
-|---------|---------------|-------------|------|
-| Primary Button | sage-600 | hover:sage-700 | white |
-| Secondary Button | lavender-400 | hover:lavender-500 | white |
-| Page Background | cream-100 | cream-50 | - |
-| Card Background | white | sage-50 | - |
-| Input Border | sage-200 | focus:sage-600 | text-primary |
-| Heading | - | - | text-primary |
-| Body Text | - | - | text-secondary |
-| Help Text | - | - | text-tertiary |
-| Success | success | success-bg | text-primary |
-| Warning | warning | warning-bg | text-primary |
-| Error | error | error-bg | white |
+| Element          | Primary Color | Alternative        | Text           |
+| ---------------- | ------------- | ------------------ | -------------- |
+| Primary Button   | sage-600      | hover:sage-700     | white          |
+| Secondary Button | lavender-400  | hover:lavender-500 | white          |
+| Page Background  | cream-100     | cream-50           | -              |
+| Card Background  | white         | sage-50            | -              |
+| Input Border     | sage-200      | focus:sage-600     | text-primary   |
+| Heading          | -             | -                  | text-primary   |
+| Body Text        | -             | -                  | text-secondary |
+| Help Text        | -             | -                  | text-tertiary  |
+| Success          | success       | success-bg         | text-primary   |
+| Warning          | warning       | warning-bg         | text-primary   |
+| Error            | error         | error-bg           | white          |
 
 ---
 
@@ -890,18 +933,20 @@ const statusColors = {
 ## Australian Compliance & Formatting
 
 ### Philosophy
+
 As an Australian healthcare platform, Bloom must respect local conventions, regulatory requirements, and cultural expectations. Every date, phone number, and registration detail should feel locally appropriate.
 
 ### Date & Time Formatting
 
 **Australian Date Format (DD/MM/YYYY)**
+
 ```typescript
 // Always use DD/MM/YYYY, never MM/DD/YYYY
 const formatAustralianDate = (date: Date): string => {
   return new Intl.DateTimeFormat('en-AU', {
     day: '2-digit',
     month: '2-digit',
-    year: 'numeric'
+    year: 'numeric',
   }).format(date);
 };
 
@@ -911,13 +956,14 @@ formatAustralianDate(submitted); // Returns: "16/10/2025"
 ```
 
 **Date with Time (AEST/AEDT)**
+
 ```typescript
 const formatAustralianDateTime = (date: Date): string => {
   return new Intl.DateTimeFormat('en-AU', {
     dateStyle: 'short',
     timeStyle: 'short',
     timeZone: 'Australia/Sydney',
-    hour12: true
+    hour12: true,
   }).format(date);
 };
 
@@ -926,6 +972,7 @@ formatAustralianDateTime(new Date()); // "16/10/2025, 2:30 pm"
 ```
 
 **Relative Time Formatting**
+
 ```typescript
 const getRelativeTime = (date: Date): string => {
   const now = new Date();
@@ -937,7 +984,7 @@ const getRelativeTime = (date: Date): string => {
   if (diffMins < 60) return `${diffMins} minutes ago`;
   if (diffHours < 24) return `${diffHours} hours ago`;
   if (diffDays < 7) return `${diffDays} days ago`;
-  
+
   return formatAustralianDate(date);
 };
 
@@ -950,6 +997,7 @@ const getRelativeTime = (date: Date): string => {
 ### Phone Number Formatting
 
 **Australian Phone Patterns**
+
 ```typescript
 // Mobile: +61 4XX XXX XXX or 04XX XXX XXX
 // Landline: (02) XXXX XXXX or +61 2 XXXX XXXX
@@ -957,7 +1005,7 @@ const getRelativeTime = (date: Date): string => {
 const formatAustralianPhone = (phone: string): string => {
   // Remove all non-digits
   const cleaned = phone.replace(/\D/g, '');
-  
+
   // Handle international format (+61)
   if (cleaned.startsWith('61')) {
     const localPart = cleaned.slice(2);
@@ -969,7 +1017,7 @@ const formatAustralianPhone = (phone: string): string => {
       return `+61 ${localPart.slice(0, 1)} ${localPart.slice(1, 5)} ${localPart.slice(5)}`;
     }
   }
-  
+
   // Handle local format
   if (cleaned.startsWith('04')) {
     // Mobile: 04XX XXX XXX
@@ -996,6 +1044,7 @@ const formatAustralianPhone = (phone: string): string => {
 ### AHPRA Registration Validation
 
 **AHPRA Format: 3 Letters + 10 Digits**
+
 ```typescript
 // AHPRA psychologist numbers: PSY + 10 digits
 // Example: PSY0001234567
@@ -1008,7 +1057,7 @@ const validateAHPRA = (number: string): boolean => {
 const formatAHPRA = (value: string): string => {
   // Remove spaces and convert to uppercase
   const cleaned = value.toUpperCase().replace(/\s/g, '');
-  
+
   // Add space after letters for readability
   if (cleaned.length > 3) {
     return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
@@ -1019,18 +1068,18 @@ const formatAHPRA = (value: string): string => {
 // Component with real-time validation
 export const AHPRAInput = ({ value, onChange, error }: Props) => {
   const [localError, setLocalError] = useState('');
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatAHPRA(e.target.value);
     onChange(formatted);
-    
+
     if (formatted.length > 0 && !validateAHPRA(formatted)) {
       setLocalError('AHPRA numbers start with 3 letters (e.g., PSY) followed by 10 digits');
     } else {
       setLocalError('');
     }
   };
-  
+
   return (
     <div className="space-y-2">
       <Label className="font-display text-body-sm text-text-primary">
@@ -1055,7 +1104,7 @@ export const AHPRAInput = ({ value, onChange, error }: Props) => {
       )}
       <p className="font-body text-body-xs text-text-tertiary">
         Find your number at{' '}
-        <a 
+        <a
           href="https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx"
           target="_blank"
           rel="noopener noreferrer"
@@ -1072,6 +1121,7 @@ export const AHPRAInput = ({ value, onChange, error }: Props) => {
 ### Privacy Act Compliance
 
 **Consent Patterns**
+
 ```typescript
 // Privacy Act 1988 requires explicit, informed consent
 export const PrivacyConsent = ({ checked, onChange }: Props) => {
@@ -1080,14 +1130,14 @@ export const PrivacyConsent = ({ checked, onChange }: Props) => {
       <h3 className="font-display text-h4 text-text-primary">
         Privacy & Data Collection
       </h3>
-      
+
       <p className="font-body text-body-sm text-text-secondary leading-loose">
         Life Psychology Australia collects your personal information to assess your
         application and, if successful, manage your engagement as a practitioner.
         We handle all information in accordance with the Privacy Act 1988 and
         Australian Privacy Principles.
       </p>
-      
+
       <div className="space-y-3">
         <label className="flex items-start gap-3 cursor-pointer">
           <input
@@ -1106,16 +1156,16 @@ export const PrivacyConsent = ({ checked, onChange }: Props) => {
           </span>
         </label>
       </div>
-      
+
       <div className="flex gap-4 text-body-xs">
-        <a 
-          href="/privacy-policy" 
+        <a
+          href="/privacy-policy"
           className="font-body text-sage-600 hover:text-sage-700 underline"
         >
           Read Privacy Policy
         </a>
-        <a 
-          href="/data-handling" 
+        <a
+          href="/data-handling"
           className="font-body text-sage-600 hover:text-sage-700 underline"
         >
           How We Handle Your Data
@@ -1127,6 +1177,7 @@ export const PrivacyConsent = ({ checked, onChange }: Props) => {
 ```
 
 **Right to Withdraw Consent**
+
 ```typescript
 // Must provide easy way to withdraw consent
 export const WithdrawConsentButton = () => {
@@ -1134,19 +1185,19 @@ export const WithdrawConsentButton = () => {
     const confirmed = window.confirm(
       'Withdrawing consent will delete your application and all associated data. This cannot be undone. Continue?'
     );
-    
+
     if (confirmed) {
       await fetch('/api/applications/withdraw-consent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ applicationId: current.id })
       });
-      
+
       // Show confirmation
       toast.success('Your data has been deleted. You may close this window.');
     }
   };
-  
+
   return (
     <Button
       onClick={handleWithdraw}
@@ -1162,6 +1213,7 @@ export const WithdrawConsentButton = () => {
 ### AHPRA Advertising Compliance
 
 **Critical Restrictions**
+
 ```typescript
 // AHPRA prohibits certain claims in advertising
 // Source: National Law Section 133, Advertising Guidelines
@@ -1170,26 +1222,26 @@ const PROHIBITED_CONTENT = {
   testimonials: {
     forbidden: true,
     reason: 'Cannot use patient testimonials or reviews',
-    alternative: 'Use practitioner qualifications and experience instead'
+    alternative: 'Use practitioner qualifications and experience instead',
   },
-  
+
   beforeAfter: {
     forbidden: true,
     reason: 'Cannot show before/after or promise specific outcomes',
-    alternative: 'Describe treatment approaches, not guaranteed results'
+    alternative: 'Describe treatment approaches, not guaranteed results',
   },
-  
+
   guarantees: {
     forbidden: true,
     reason: 'Cannot guarantee cure or treatment success',
-    alternative: 'Use "may help" or "designed to support" language'
+    alternative: 'Use "may help" or "designed to support" language',
   },
-  
+
   comparisons: {
     forbidden: true,
     reason: 'Cannot compare to other practitioners negatively',
-    alternative: 'Focus on unique approaches without comparison'
-  }
+    alternative: 'Focus on unique approaches without comparison',
+  },
 };
 
 // Compliant practitioner bio template
@@ -1199,30 +1251,31 @@ export const PractitionerBioTemplate = {
     experience: '12 years experience working with anxiety and depression',
     approach: 'Uses evidence-based approaches including CBT and ACT',
     specialties: 'Specializes in adult mental health and trauma-informed care',
-    availability: 'Currently accepting new clients on weekdays'
+    availability: 'Currently accepting new clients on weekdays',
   },
-  
+
   // FORBIDDEN phrases
   avoid: [
     '100% success rate',
     '"Best psychologist in Sydney"',
     'Guaranteed results',
     'See our 5-star reviews',
-    'Before and after client stories'
+    'Before and after client stories',
   ],
-  
+
   // SAFE phrases
   use: [
     'Evidence-based treatment approaches',
     'Experienced in treating...',
     'Registered clinical psychologist with...',
     'Available for consultations',
-    'Trained in...'
-  ]
+    'Trained in...',
+  ],
 };
 ```
 
 **Warning Component for Admin**
+
 ```typescript
 export const AHPRAComplianceWarning = () => {
   return (
@@ -1240,7 +1293,7 @@ export const AHPRAComplianceWarning = () => {
             <li>Only use verified qualifications and registrations</li>
             <li>Do not make comparisons to other practitioners</li>
           </ul>
-          <a 
+          <a
             href="https://www.ahpra.gov.au/Publications/Advertising-hub.aspx"
             target="_blank"
             rel="noopener noreferrer"
@@ -1261,11 +1314,13 @@ export const AHPRAComplianceWarning = () => {
 ## Multi-Step Form Patterns
 
 ### Philosophy
+
 Long forms intimidate. Multi-step forms guide. Break the 7-section application into digestible chunks with clear progress, validation per step, and the ability to save progress.
 
 ### Step Progress Indicator
 
 **Desktop Implementation**
+
 ```typescript
 import { CheckCircle2, Circle } from 'lucide-react';
 
@@ -1296,7 +1351,7 @@ export const StepProgress = ({ steps, currentStep }: { steps: Step[], currentSte
                   <span className="font-display text-body-sm font-semibold">{step.id}</span>
                 )}
               </div>
-              
+
               {/* Step Label */}
               <span className={cn(
                 "font-display text-body-xs mt-3 text-center max-w-[100px]",
@@ -1305,7 +1360,7 @@ export const StepProgress = ({ steps, currentStep }: { steps: Step[], currentSte
                 {step.label}
               </span>
             </div>
-            
+
             {/* Connecting Line */}
             {index < steps.length - 1 && (
               <div className={cn(
@@ -1322,6 +1377,7 @@ export const StepProgress = ({ steps, currentStep }: { steps: Step[], currentSte
 ```
 
 **Mobile Implementation (Vertical)**
+
 ```typescript
 export const MobileStepProgress = ({ steps, currentStep }: Props) => {
   return (
@@ -1343,7 +1399,7 @@ export const MobileStepProgress = ({ steps, currentStep }: Props) => {
                   <span className="font-display text-body-xs font-semibold">{step.id}</span>
                 )}
               </div>
-              
+
               {/* Vertical Line */}
               {index < steps.length - 1 && (
                 <div className={cn(
@@ -1352,7 +1408,7 @@ export const MobileStepProgress = ({ steps, currentStep }: Props) => {
                 )} />
               )}
             </div>
-            
+
             {/* Step Content */}
             <div className="flex-1 pt-2">
               <h3 className={cn(
@@ -1378,6 +1434,7 @@ export const MobileStepProgress = ({ steps, currentStep }: Props) => {
 ### Form State Management
 
 **useMultiStepForm Hook**
+
 ```typescript
 import { useState, useEffect } from 'react';
 
@@ -1387,28 +1444,28 @@ interface FormData {
   lastName: string;
   email: string;
   phone: string;
-  
+
   // Step 2: Professional
   ahpra: string;
   yearsExperience: number;
   qualifications: string[];
-  
+
   // Step 3: Experience
   specialties: string[];
   approaches: string[];
-  
+
   // Step 4: Documents
   cvUrl?: string;
   certificateUrl?: string;
   photoUrl?: string;
-  
+
   // Step 5: Availability
   preferredDays: string[];
   hoursPerWeek: number;
-  
+
   // Step 6: Cover Letter
   coverLetter: string;
-  
+
   // Step 7: Review
   privacyConsent: boolean;
 }
@@ -1421,18 +1478,18 @@ export const useMultiStepForm = () => {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : getInitialFormData();
   });
-  
+
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
-  
+
   // Auto-save to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
   }, [formData]);
-  
+
   // Validation rules per step
   const validateStep = (step: number): boolean => {
     const newErrors: typeof errors = {};
-    
+
     switch (step) {
       case 1: // Personal
         if (!formData.firstName) newErrors.firstName = 'First name is required';
@@ -1442,7 +1499,7 @@ export const useMultiStepForm = () => {
         }
         if (!formData.phone) newErrors.phone = 'Phone number is required';
         break;
-        
+
       case 2: // Professional
         if (!formData.ahpra || !validateAHPRA(formData.ahpra)) {
           newErrors.ahpra = 'Valid AHPRA registration is required';
@@ -1451,41 +1508,41 @@ export const useMultiStepForm = () => {
           newErrors.yearsExperience = 'Minimum 5 years experience required';
         }
         break;
-        
+
       // ... other steps
-      
+
       case 7: // Review
         if (!formData.privacyConsent) {
           newErrors.privacyConsent = 'Privacy consent is required';
         }
         break;
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const nextStep = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 7));
+      setCurrentStep((prev) => Math.min(prev + 1, 7));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-  
+
   const previousStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
+
   const updateFormData = (updates: Partial<FormData>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
+    setFormData((prev) => ({ ...prev, ...updates }));
   };
-  
+
   const clearDraft = () => {
     localStorage.removeItem(STORAGE_KEY);
     setFormData(getInitialFormData());
   };
-  
+
   return {
     currentStep,
     formData,
@@ -1495,7 +1552,7 @@ export const useMultiStepForm = () => {
     updateFormData,
     validateStep,
     clearDraft,
-    totalSteps: 7
+    totalSteps: 7,
   };
 };
 ```
@@ -1503,14 +1560,15 @@ export const useMultiStepForm = () => {
 ### Navigation Component
 
 **Step Navigation Buttons**
+
 ```typescript
-export const StepNavigation = ({ 
-  currentStep, 
-  totalSteps, 
-  onPrevious, 
-  onNext, 
+export const StepNavigation = ({
+  currentStep,
+  totalSteps,
+  onPrevious,
+  onNext,
   onSubmit,
-  isLastStep 
+  isLastStep
 }: Props) => {
   return (
     <div className="flex items-center justify-between gap-4 pt-8 border-t border-sage-200">
@@ -1526,7 +1584,7 @@ export const StepNavigation = ({
           Previous
         </Button>
       )}
-      
+
       {/* Skip / Save Draft */}
       <div className="flex-1 flex justify-center">
         <Button
@@ -1542,7 +1600,7 @@ export const StepNavigation = ({
           Save & Continue Later
         </Button>
       </div>
-      
+
       {/* Next / Submit Button */}
       <Button
         type="button"
@@ -1560,23 +1618,24 @@ export const StepNavigation = ({
 ### Auto-Save & Resume
 
 **Draft Recovery Component**
+
 ```typescript
 export const DraftRecovery = ({ onRestore, onDiscard }: Props) => {
   const [showPrompt, setShowPrompt] = useState(false);
   const [draftDate, setDraftDate] = useState<Date | null>(null);
-  
+
   useEffect(() => {
     const draft = localStorage.getItem('bloom_application_draft');
     const savedAt = localStorage.getItem('draft_saved_at');
-    
+
     if (draft && savedAt) {
       setDraftDate(new Date(savedAt));
       setShowPrompt(true);
     }
   }, []);
-  
+
   if (!showPrompt || !draftDate) return null;
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -1587,16 +1646,16 @@ export const DraftRecovery = ({ onRestore, onDiscard }: Props) => {
         <div className="w-12 h-12 bg-lavender-100 rounded-full flex items-center justify-center flex-shrink-0">
           <FileText className="w-6 h-6 text-lavender-400" />
         </div>
-        
+
         <div className="flex-1">
           <h3 className="font-display text-h4 text-text-primary mb-2">
             Continue Your Application?
           </h3>
           <p className="font-body text-body-base text-text-secondary mb-4 leading-loose">
-            We found a draft you started {getRelativeTime(draftDate)}. 
+            We found a draft you started {getRelativeTime(draftDate)}.
             Would you like to continue where you left off?
           </p>
-          
+
           <div className="flex gap-3">
             <Button
               onClick={() => {
@@ -1630,11 +1689,13 @@ export const DraftRecovery = ({ onRestore, onDiscard }: Props) => {
 ## Document Upload & Management
 
 ### Philosophy
+
 Document uploads should feel confident and clear. Show progress, validate early, and give immediate feedback. Use Azure Blob Storage with SAS tokens for secure, direct uploads without routing sensitive files through our servers.
 
 ### Azure Blob Upload Pattern
 
 **Three-Step Upload Flow**
+
 ```typescript
 // Step 1: Request SAS token from backend
 const getSasToken = async (fileType: 'cv' | 'certificate' | 'photo'): Promise<SasTokenResponse> => {
@@ -1642,22 +1703,26 @@ const getSasToken = async (fileType: 'cv' | 'certificate' | 'photo'): Promise<Sa
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getAuthToken()}`
-    }
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
   });
-  
+
   if (!response.ok) {
     throw new Error('Failed to get upload token');
   }
-  
+
   return response.json(); // { sasUrl, blobName, container }
 };
 
 // Step 2: Upload directly to Azure Blob
-const uploadToBlob = async (file: File, sasUrl: string, onProgress?: (percent: number) => void): Promise<void> => {
+const uploadToBlob = async (
+  file: File,
+  sasUrl: string,
+  onProgress?: (percent: number) => void
+): Promise<void> => {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    
+
     // Track upload progress
     xhr.upload.addEventListener('progress', (e) => {
       if (e.lengthComputable && onProgress) {
@@ -1665,7 +1730,7 @@ const uploadToBlob = async (file: File, sasUrl: string, onProgress?: (percent: n
         onProgress(percent);
       }
     });
-    
+
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve();
@@ -1673,10 +1738,10 @@ const uploadToBlob = async (file: File, sasUrl: string, onProgress?: (percent: n
         reject(new Error(`Upload failed with status ${xhr.status}`));
       }
     });
-    
+
     xhr.addEventListener('error', () => reject(new Error('Upload failed')));
     xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
-    
+
     xhr.open('PUT', sasUrl);
     xhr.setRequestHeader('x-ms-blob-type', 'BlockBlob');
     xhr.setRequestHeader('Content-Type', file.type);
@@ -1692,19 +1757,21 @@ const handleDocumentUpload = async (file: File, type: 'cv' | 'certificate' | 'ph
     if (!validation.valid) {
       throw new Error(validation.error);
     }
-    
+
     // Get SAS token
     const { sasUrl, blobName } = await getSasToken(type);
-    
+
     // Upload to blob
     await uploadToBlob(file, sasUrl, (percent) => {
-      setUploadProgress(prev => ({ ...prev, [type]: percent }));
+      setUploadProgress((prev) => ({ ...prev, [type]: percent }));
     });
-    
+
     // Store blob reference for form submission
     updateFormData({ [`${type}Url`]: blobName });
-    
-    toast.success(`${type === 'cv' ? 'CV' : type === 'certificate' ? 'Certificate' : 'Photo'} uploaded successfully!`);
+
+    toast.success(
+      `${type === 'cv' ? 'CV' : type === 'certificate' ? 'Certificate' : 'Photo'} uploaded successfully!`
+    );
   } catch (error) {
     toast.error(error.message);
   }
@@ -1714,6 +1781,7 @@ const handleDocumentUpload = async (file: File, type: 'cv' | 'certificate' | 'ph
 ### File Validation
 
 **Comprehensive Validation Rules**
+
 ```typescript
 interface FileValidation {
   valid: boolean;
@@ -1723,74 +1791,81 @@ interface FileValidation {
 const FILE_RULES = {
   cv: {
     maxSize: 10 * 1024 * 1024, // 10MB
-    allowedTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    allowedTypes: [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ],
     allowedExtensions: ['.pdf', '.doc', '.docx'],
-    displayName: 'CV/Resume'
+    displayName: 'CV/Resume',
   },
   certificate: {
     maxSize: 5 * 1024 * 1024, // 5MB
     allowedTypes: ['application/pdf', 'image/jpeg', 'image/png'],
     allowedExtensions: ['.pdf', '.jpg', '.jpeg', '.png'],
-    displayName: 'AHPRA Certificate'
+    displayName: 'AHPRA Certificate',
   },
   photo: {
     maxSize: 5 * 1024 * 1024, // 5MB
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
     allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp'],
     displayName: 'Professional Photo',
-    minDimensions: { width: 400, height: 400 }
-  }
+    minDimensions: { width: 400, height: 400 },
+  },
 };
 
 const validateFile = async (file: File, type: keyof typeof FILE_RULES): Promise<FileValidation> => {
   const rules = FILE_RULES[type];
-  
+
   // Check file size
   if (file.size > rules.maxSize) {
     return {
       valid: false,
-      error: `${rules.displayName} must be under ${Math.round(rules.maxSize / 1024 / 1024)}MB. Your file is ${Math.round(file.size / 1024 / 1024)}MB.`
+      error: `${rules.displayName} must be under ${Math.round(rules.maxSize / 1024 / 1024)}MB. Your file is ${Math.round(file.size / 1024 / 1024)}MB.`,
     };
   }
-  
+
   // Check file type
   if (!rules.allowedTypes.includes(file.type)) {
     return {
       valid: false,
-      error: `${rules.displayName} must be one of: ${rules.allowedExtensions.join(', ')}`
+      error: `${rules.displayName} must be one of: ${rules.allowedExtensions.join(', ')}`,
     };
   }
-  
+
   // For images, check dimensions
   if (type === 'photo' && rules.minDimensions) {
     const dimensions = await getImageDimensions(file);
-    if (dimensions.width < rules.minDimensions.width || dimensions.height < rules.minDimensions.height) {
+    if (
+      dimensions.width < rules.minDimensions.width ||
+      dimensions.height < rules.minDimensions.height
+    ) {
       return {
         valid: false,
-        error: `Photo must be at least ${rules.minDimensions.width}x${rules.minDimensions.height}px. Your photo is ${dimensions.width}x${dimensions.height}px.`
+        error: `Photo must be at least ${rules.minDimensions.width}x${rules.minDimensions.height}px. Your photo is ${dimensions.width}x${dimensions.height}px.`,
       };
     }
   }
-  
+
   return { valid: true };
 };
 
 // Helper to get image dimensions
-const getImageDimensions = (file: File): Promise<{ width: number, height: number }> => {
+const getImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
-    
+
     img.onload = () => {
       URL.revokeObjectURL(url);
       resolve({ width: img.width, height: img.height });
     };
-    
+
     img.onerror = () => {
       URL.revokeObjectURL(url);
       reject(new Error('Failed to load image'));
     };
-    
+
     img.src = url;
   });
 };
@@ -1799,26 +1874,27 @@ const getImageDimensions = (file: File): Promise<{ width: number, height: number
 ### Document Upload Component
 
 **Full-Featured Upload Component**
+
 ```typescript
-export const DocumentUpload = ({ 
+export const DocumentUpload = ({
   type,
   label,
   required = false,
   helpText,
   value,
-  onChange 
+  onChange
 }: DocumentUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const handleFileSelect = async (file: File) => {
     setError(null);
     setUploading(true);
     setProgress(0);
-    
+
     try {
       // Validate
       const validation = await validateFile(file, type);
@@ -1827,17 +1903,17 @@ export const DocumentUpload = ({
         setUploading(false);
         return;
       }
-      
+
       // Generate preview for images
       if (file.type.startsWith('image/')) {
         const previewUrl = URL.createObjectURL(file);
         setPreview(previewUrl);
       }
-      
+
       // Upload
       const { sasUrl, blobName } = await getSasToken(type);
       await uploadToBlob(file, sasUrl, setProgress);
-      
+
       onChange(blobName);
       toast.success(`${label} uploaded successfully!`);
     } catch (err) {
@@ -1847,13 +1923,13 @@ export const DocumentUpload = ({
       setUploading(false);
     }
   };
-  
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file) handleFileSelect(file);
   };
-  
+
   const handleDelete = () => {
     onChange(null);
     setPreview(null);
@@ -1862,13 +1938,13 @@ export const DocumentUpload = ({
       fileInputRef.current.value = '';
     }
   };
-  
+
   return (
     <div className="space-y-2">
       <Label className="font-display text-body-sm text-text-primary">
         {label} {required && <span className="text-error">*</span>}
       </Label>
-      
+
       {/* Upload Area */}
       {!value && !uploading && (
         <div
@@ -1902,7 +1978,7 @@ export const DocumentUpload = ({
           />
         </div>
       )}
-      
+
       {/* Upload Progress */}
       {uploading && (
         <div className="border-2 border-sage-200 rounded-lg p-6 bg-sage-50">
@@ -1913,22 +1989,22 @@ export const DocumentUpload = ({
             </span>
           </div>
           <div className="w-full bg-cream-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-sage-600 h-2 rounded-full transition-all duration-normal"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
       )}
-      
+
       {/* Preview / Success State */}
       {value && !uploading && (
         <div className="border-2 border-sage-200 rounded-lg p-4 bg-white">
           <div className="flex items-center gap-4">
             {/* Preview Thumbnail */}
             {preview ? (
-              <img 
-                src={preview} 
+              <img
+                src={preview}
                 alt="Preview"
                 className="w-16 h-16 rounded object-cover border border-sage-200"
               />
@@ -1937,7 +2013,7 @@ export const DocumentUpload = ({
                 <FileText className="w-8 h-8 text-sage-600" />
               </div>
             )}
-            
+
             {/* File Info */}
             <div className="flex-1">
               <p className="font-display text-body-sm font-semibold text-text-primary">
@@ -1947,7 +2023,7 @@ export const DocumentUpload = ({
                 Ready to submit
               </p>
             </div>
-            
+
             {/* Actions */}
             <div className="flex gap-2">
               <Button
@@ -1972,7 +2048,7 @@ export const DocumentUpload = ({
           </div>
         </div>
       )}
-      
+
       {/* Error Message */}
       {error && (
         <p className="font-body text-body-xs text-error flex items-center gap-1">
@@ -1988,6 +2064,7 @@ export const DocumentUpload = ({
 ### PDF Preview Component
 
 **Thumbnail Generation**
+
 ```typescript
 import { Document, Page, pdfjs } from 'react-pdf';
 
@@ -1997,7 +2074,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 export const PDFPreview = ({ url }: { url: string }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  
+
   return (
     <div className="bg-white rounded-lg border border-sage-200 overflow-hidden">
       <Document
@@ -2016,14 +2093,14 @@ export const PDFPreview = ({ url }: { url: string }) => {
           </div>
         }
       >
-        <Page 
-          pageNumber={1} 
+        <Page
+          pageNumber={1}
           width={400}
           renderTextLayer={false}
           renderAnnotationLayer={false}
         />
       </Document>
-      
+
       {!loading && (
         <div className="bg-sage-50 px-4 py-3 border-t border-sage-200 flex items-center justify-between">
           <span className="font-body text-body-xs text-text-secondary">
@@ -2050,11 +2127,13 @@ export const PDFPreview = ({ url }: { url: string }) => {
 ## Admin Portal Patterns
 
 ### Philosophy
+
 The admin portal is for Life Psychology staff to review applications efficiently. Prioritize clarity, speed, and decision-making support. Surface key information immediately, provide context, and make approval/rejection workflows smooth.
 
 ### Application List Table
 
 **Sortable, Filterable Table**
+
 ```typescript
 export const ApplicationsTable = () => {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -2062,7 +2141,7 @@ export const ApplicationsTable = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [filterStatus, setFilterStatus] = useState<ApplicationStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Filter and sort logic
   const filteredApplications = applications
     .filter(app => {
@@ -2083,7 +2162,7 @@ export const ApplicationsTable = () => {
           return 0;
       }
     });
-  
+
   return (
     <div className="space-y-6">
       {/* Filters & Search */}
@@ -2101,7 +2180,7 @@ export const ApplicationsTable = () => {
             />
           </div>
         </div>
-        
+
         {/* Status Filter */}
         <select
           value={filterStatus}
@@ -2114,27 +2193,27 @@ export const ApplicationsTable = () => {
           <option value="rejected">Rejected</option>
         </select>
       </div>
-      
+
       {/* Table */}
       <div className="bg-white rounded-lg shadow-lg border border-sage-200 overflow-hidden">
         <table className="min-w-full divide-y divide-sage-200">
           <thead className="bg-sage-50">
             <tr>
-              <TableHeader 
+              <TableHeader
                 label="Applicant"
                 sortable
                 active={sortBy === 'name'}
                 order={sortOrder}
                 onClick={() => handleSort('name')}
               />
-              <TableHeader 
+              <TableHeader
                 label="Submitted"
                 sortable
                 active={sortBy === 'date'}
                 order={sortOrder}
                 onClick={() => handleSort('date')}
               />
-              <TableHeader 
+              <TableHeader
                 label="Status"
                 sortable
                 active={sortBy === 'status'}
@@ -2148,7 +2227,7 @@ export const ApplicationsTable = () => {
           </thead>
           <tbody className="divide-y divide-sage-100">
             {filteredApplications.map((app) => (
-              <tr 
+              <tr
                 key={app.id}
                 onClick={() => navigate(`/admin/applications/${app.id}`)}
                 className="hover:bg-cream-50 cursor-pointer transition-colors duration-fast"
@@ -2156,8 +2235,8 @@ export const ApplicationsTable = () => {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     {app.photoUrl ? (
-                      <img 
-                        src={app.photoUrl} 
+                      <img
+                        src={app.photoUrl}
                         alt={app.fullName}
                         className="w-10 h-10 rounded-full object-cover border-2 border-sage-200"
                       />
@@ -2217,7 +2296,7 @@ export const ApplicationsTable = () => {
             ))}
           </tbody>
         </table>
-        
+
         {/* Empty State */}
         {filteredApplications.length === 0 && (
           <div className="p-12">
@@ -2229,10 +2308,10 @@ export const ApplicationsTable = () => {
           </div>
         )}
       </div>
-      
+
       {/* Pagination */}
       {filteredApplications.length > 10 && (
-        <Pagination 
+        <Pagination
           currentPage={currentPage}
           totalPages={Math.ceil(filteredApplications.length / 10)}
           onPageChange={setCurrentPage}
@@ -2244,6 +2323,7 @@ export const ApplicationsTable = () => {
 ```
 
 **Status Badge Component**
+
 ```typescript
 const statusConfig = {
   pending: {
@@ -2268,7 +2348,7 @@ const statusConfig = {
 
 export const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
   const config = statusConfig[status];
-  
+
   return (
     <span className={cn(
       "inline-flex items-center gap-1.5 px-3 py-1 rounded-full border font-display text-body-xs font-semibold",
@@ -2290,9 +2370,11 @@ export const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
 ## Visual Warmth & Personality
 
 ### Philosophy: Make Bloom Feel Alive
+
 Current Bloom screens are technically correct (proper colors, spacing, typography) but feel **too monotonous and corporate**. They lack the warmth and personality that the "fairy godmother" philosophy promises.
 
 **The Problem:**
+
 - Too much empty cream/white space with no visual anchors
 - Everything perfectly centered (predictable, corporate)
 - No illustrations or botanical elements
@@ -2305,6 +2387,7 @@ Current Bloom screens are technically correct (proper colors, spacing, typograph
 Think: "What would Miyazaki add to make this feel more alive?" Ghibli films breathe—there's always gentle movement, organic asymmetry, nature peeking through, depth through layering.
 
 **Design Principles:**
+
 1. **Asymmetry is your friend** - Not everything needs to be perfectly centered
 2. **Gradients add warmth** - Use subtle sage-to-lavender gradients
 3. **Depth through layering** - Shadows, blurs, overlapping elements
@@ -2318,80 +2401,91 @@ Think: "What would Miyazaki add to make this feel more alive?" Ghibli films brea
 ### General Enhancements (Apply to All Screens)
 
 #### 1. Subtle Background Texture
+
 Instead of flat cream backgrounds:
 
 ```tsx
 // Add to root component or layout
-<div className="textured-background min-h-screen">
-  {children}
-</div>
+<div className="textured-background min-h-screen">{children}</div>
 ```
 
 ```css
 /* Add to your CSS or Tailwind config */
 .textured-background {
-  background-color: #F5F3EE;
-  background-image: 
+  background-color: #f5f3ee;
+  background-image:
     radial-gradient(circle at 20% 50%, rgba(107, 128, 102, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(180, 167, 214, 0.03) 0%, transparent 50%);
 }
 ```
 
 #### 2. Ambient Background Blobs
+
 Soft, organic shapes in the background:
 
 ```tsx
 // Add to page layouts
 <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
   {/* Large organic blob - top right */}
-  <div className="absolute -top-40 -right-40 w-96 h-96 
-                  bg-gradient-to-br from-sage-100 to-transparent 
-                  rounded-full blur-3xl opacity-40" />
-  
+  <div
+    className="absolute -top-40 -right-40 w-96 h-96
+                  bg-gradient-to-br from-sage-100 to-transparent
+                  rounded-full blur-3xl opacity-40"
+  />
+
   {/* Medium organic blob - bottom left */}
-  <div className="absolute -bottom-32 -left-32 w-80 h-80 
-                  bg-gradient-to-tr from-lavender-100 to-transparent 
-                  rounded-full blur-3xl opacity-30" />
-  
+  <div
+    className="absolute -bottom-32 -left-32 w-80 h-80
+                  bg-gradient-to-tr from-lavender-100 to-transparent
+                  rounded-full blur-3xl opacity-30"
+  />
+
   {/* Small accent - middle right */}
-  <div className="absolute top-1/3 right-16 w-32 h-32 
-                  bg-gradient-to-br from-blush-200 to-transparent 
-                  rounded-full blur-2xl opacity-20" />
+  <div
+    className="absolute top-1/3 right-16 w-32 h-32
+                  bg-gradient-to-br from-blush-200 to-transparent
+                  rounded-full blur-2xl opacity-20"
+  />
 </div>
 ```
 
 #### 3. Enhanced Card Depth
+
 Instead of flat shadows:
 
 ```tsx
-<Card className="bg-white rounded-lg 
+<Card
+  className="bg-white rounded-lg
                  shadow-[0_4px_24px_-2px_rgba(107,128,102,0.1),0_2px_8px_-2px_rgba(107,128,102,0.05)]
-                 border border-sage-100/50">
+                 border border-sage-100/50"
+>
   {/* Card content */}
 </Card>
 ```
 
 #### 4. Animated Loading States
+
 Skeleton screens that feel alive:
 
 ```tsx
 <motion.div
   className="h-4 bg-gradient-to-r from-sage-100 via-sage-200 to-sage-100 rounded"
-  animate={{ 
-    backgroundPosition: ['0% 0%', '200% 0%']
+  animate={{
+    backgroundPosition: ['0% 0%', '200% 0%'],
   }}
-  transition={{ 
-    duration: 1.5, 
-    repeat: Infinity, 
-    ease: 'linear' 
+  transition={{
+    duration: 1.5,
+    repeat: Infinity,
+    ease: 'linear',
   }}
-  style={{ 
-    backgroundSize: '200% 100%' 
+  style={{
+    backgroundSize: '200% 100%',
   }}
 />
 ```
 
 #### 5. Subtle Logo/Wordmark
+
 In the top-left corner of each page:
 
 ```tsx
@@ -2408,6 +2502,7 @@ In the top-left corner of each page:
 #### Qualification Check Screen (JoinUs.tsx)
 
 **Current Issues:**
+
 - Large white card floating in cream void
 - Icon circle is flat, no personality
 - Requirements box feels sterile
@@ -2422,22 +2517,22 @@ export const QualificationCheck = ({ onEligible }: Props) => {
       {/* Organic shape decorations in corners (very subtle) */}
       <div className="absolute top-0 right-0 w-64 h-64 opacity-5 pointer-events-none">
         <svg viewBox="0 0 200 200" className="w-full h-full">
-          <path 
-            d="M50,100 Q30,120 50,140 T90,160 Q110,170 130,160 T170,130 Q190,110 170,90 T130,60 Q110,50 90,60 T50,100" 
-            fill="#D1DCD1" 
+          <path
+            d="M50,100 Q30,120 50,140 T90,160 Q110,170 130,160 T170,130 Q190,110 170,90 T130,60 Q110,50 90,60 T50,100"
+            fill="#D1DCD1"
           />
         </svg>
       </div>
-      
+
       <div className="absolute bottom-0 left-0 w-48 h-48 opacity-5 pointer-events-none">
         <svg viewBox="0 0 200 200" className="w-full h-full">
-          <path 
-            d="M40,80 Q20,100 40,120 T80,140 Q100,150 120,140 T160,110 Q180,90 160,70 T120,50 Q100,40 80,50 T40,80" 
-            fill="#E5E1EF" 
+          <path
+            d="M40,80 Q20,100 40,120 T80,140 Q100,150 120,140 T160,110 Q180,90 160,70 T120,50 Q100,40 80,50 T40,80"
+            fill="#E5E1EF"
           />
         </svg>
       </div>
-      
+
       {/* Rest of content */}
     </div>
   );
@@ -2447,60 +2542,73 @@ export const QualificationCheck = ({ onEligible }: Props) => {
 **Enhancement 2: Illustrated Icon with Depth**
 
 ```tsx
-{/* Replace flat icon circle */}
-<div className="w-20 h-20 rounded-full flex items-center justify-center mb-6
-                bg-gradient-to-br from-sage-500 to-sage-600 
+{
+  /* Replace flat icon circle */
+}
+<div
+  className="w-20 h-20 rounded-full flex items-center justify-center mb-6
+                bg-gradient-to-br from-sage-500 to-sage-600
                 shadow-lg shadow-sage-200
-                relative mx-auto">
-  
+                relative mx-auto"
+>
   {/* Subtle decorative arc behind icon */}
-  <div className="absolute inset-0 rounded-full opacity-20 
-                  bg-gradient-to-tr from-transparent via-white to-transparent" />
-  
+  <div
+    className="absolute inset-0 rounded-full opacity-20
+                  bg-gradient-to-tr from-transparent via-white to-transparent"
+  />
+
   {/* Main icon */}
   <GraduationCap className="w-10 h-10 text-white relative z-10" />
-  
+
   {/* Tiny sparkle accent (personality touch) */}
   <motion.div
     className="absolute -top-1 -right-1"
-    animate={{ 
+    animate={{
       scale: [1, 1.2, 1],
-      opacity: [0.7, 1, 0.7]
+      opacity: [0.7, 1, 0.7],
     }}
-    transition={{ 
-      duration: 2, 
+    transition={{
+      duration: 2,
       repeat: Infinity,
-      ease: 'easeInOut'
+      ease: 'easeInOut',
     }}
   >
     <Sparkles className="w-4 h-4 text-lavender-300" />
   </motion.div>
-</div>
+</div>;
 ```
 
 **Enhancement 3: Inviting Requirements Box**
 
 ```tsx
-{/* Make requirements box more inviting */}
-<div className="relative bg-gradient-to-br from-lavender-50 via-white to-sage-50 
+{
+  /* Make requirements box more inviting */
+}
+<div
+  className="relative bg-gradient-to-br from-lavender-50 via-white to-sage-50
                 border-2 border-lavender-200 rounded-lg p-6 mb-8
-                shadow-sm hover:shadow-md transition-shadow duration-300">
-  
+                shadow-sm hover:shadow-md transition-shadow duration-300"
+>
   {/* Decorative corner element */}
-  <div className="absolute -top-3 -left-3 w-6 h-6 bg-lavender-400 rounded-full 
-                  opacity-20 blur-sm" />
-  
+  <div
+    className="absolute -top-3 -left-3 w-6 h-6 bg-lavender-400 rounded-full
+                  opacity-20 blur-sm"
+  />
+
   <div className="relative z-10">
-    <h2 className="font-display text-body font-semibold text-text-primary mb-4 
-                   flex items-center gap-2">
+    <h2
+      className="font-display text-body font-semibold text-text-primary mb-4
+                   flex items-center gap-2"
+    >
       <Sparkles className="w-4 h-4 text-sage-600" />
       Minimum Requirements
     </h2>
-    
+
     <p className="font-body text-body-sm text-text-secondary mb-4">
-      To apply, you must meet at least <strong className="text-sage-600">ONE</strong> of these criteria:
+      To apply, you must meet at least <strong className="text-sage-600">ONE</strong> of these
+      criteria:
     </p>
-    
+
     <ul className="space-y-3">
       <li className="flex items-start gap-3">
         <CheckCircle2 className="w-5 h-5 text-sage-600 flex-shrink-0 mt-0.5" />
@@ -2511,7 +2619,7 @@ export const QualificationCheck = ({ onEligible }: Props) => {
       {/* More criteria */}
     </ul>
   </div>
-</div>
+</div>;
 ```
 
 **Enhancement 4: Gentle Page Entrance**
@@ -2525,10 +2633,8 @@ import { motion } from 'framer-motion';
   transition={{ duration: 0.4, ease: 'easeOut' }}
   className="max-w-2xl w-full"
 >
-  <Card className="border-sage-200 shadow-xl bg-white rounded-lg">
-    {/* Card content */}
-  </Card>
-</motion.div>
+  <Card className="border-sage-200 shadow-xl bg-white rounded-lg">{/* Card content */}</Card>
+</motion.div>;
 ```
 
 ---
@@ -2536,6 +2642,7 @@ import { motion } from 'framer-motion';
 #### Landing Page (Homepage.tsx)
 
 **Current Issues:**
+
 - Extremely sparse (just text and buttons)
 - No visual interest whatsoever
 - Could be any generic SaaS landing page
@@ -2546,40 +2653,38 @@ import { motion } from 'framer-motion';
 ```tsx
 <div className="relative inline-block">
   {/* Small botanical illustrations around the title */}
-  <motion.div 
+  <motion.div
     className="absolute -top-12 left-1/4 opacity-30"
-    animate={{ 
+    animate={{
       y: [0, -10, 0],
-      rotate: [12, 15, 12]
+      rotate: [12, 15, 12],
     }}
-    transition={{ 
-      duration: 4, 
+    transition={{
+      duration: 4,
       repeat: Infinity,
-      ease: 'easeInOut'
+      ease: 'easeInOut',
     }}
   >
     <Leaf className="w-16 h-16 text-sage-300" />
   </motion.div>
-  
-  <motion.div 
+
+  <motion.div
     className="absolute -top-8 right-1/4 opacity-30"
-    animate={{ 
+    animate={{
       y: [0, -8, 0],
-      rotate: [-12, -15, -12]
+      rotate: [-12, -15, -12],
     }}
-    transition={{ 
-      duration: 3.5, 
+    transition={{
+      duration: 3.5,
       repeat: Infinity,
       ease: 'easeInOut',
-      delay: 0.5
+      delay: 0.5,
     }}
   >
     <Flower2 className="w-12 h-12 text-lavender-300" />
   </motion.div>
-  
-  <h1 className="font-display text-display-lg text-text-primary relative z-10">
-    Welcome to Bloom
-  </h1>
+
+  <h1 className="font-display text-display-lg text-text-primary relative z-10">Welcome to Bloom</h1>
 </div>
 ```
 
@@ -2588,34 +2693,36 @@ import { motion } from 'framer-motion';
 ```tsx
 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
   {/* Primary button with subtle shine effect */}
-  <motion.button 
-    className="relative group bg-sage-600 hover:bg-sage-700 
-               text-white font-display font-semibold 
-               px-8 py-4 rounded-lg shadow-md hover:shadow-lg 
+  <motion.button
+    className="relative group bg-sage-600 hover:bg-sage-700
+               text-white font-display font-semibold
+               px-8 py-4 rounded-lg shadow-md hover:shadow-lg
                transition-all duration-200
                overflow-hidden"
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
   >
     {/* Subtle shine effect on hover */}
-    <div className="absolute inset-0 bg-gradient-to-r from-transparent 
-                    via-white to-transparent opacity-0 group-hover:opacity-10 
-                    translate-x-[-100%] group-hover:translate-x-[100%] 
-                    transition-transform duration-700" />
-    
+    <div
+      className="absolute inset-0 bg-gradient-to-r from-transparent
+                    via-white to-transparent opacity-0 group-hover:opacity-10
+                    translate-x-[-100%] group-hover:translate-x-[100%]
+                    transition-transform duration-700"
+    />
+
     <span className="relative z-10 flex items-center gap-2">
       <Sprout className="w-5 h-5" />
       Join Our Team
       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
     </span>
   </motion.button>
-  
+
   {/* Secondary button with gradient */}
-  <motion.button 
-    className="bg-gradient-to-br from-lavender-400 to-lavender-500 
+  <motion.button
+    className="bg-gradient-to-br from-lavender-400 to-lavender-500
                hover:from-lavender-500 hover:to-lavender-600
-               text-white font-display font-semibold 
-               px-8 py-4 rounded-lg shadow-md hover:shadow-lg 
+               text-white font-display font-semibold
+               px-8 py-4 rounded-lg shadow-md hover:shadow-lg
                transition-all duration-200"
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
@@ -2634,30 +2741,35 @@ import { motion } from 'framer-motion';
 ```tsx
 <div className="relative max-w-2xl mx-auto">
   {/* Small decorative quotes */}
-  <span className="text-lavender-300 opacity-50 absolute -left-6 -top-2 
-                   text-4xl font-serif select-none pointer-events-none">
+  <span
+    className="text-lavender-300 opacity-50 absolute -left-6 -top-2
+                   text-4xl font-serif select-none pointer-events-none"
+  >
     "
   </span>
-  
+
   <p className="font-body text-body-lg text-text-secondary leading-loose px-8">
     Life Psychology Australia's Practitioner Onboarding Portal
   </p>
-  
-  <span className="text-lavender-300 opacity-50 absolute -right-6 -bottom-2 
-                   text-4xl font-serif select-none pointer-events-none">
+
+  <span
+    className="text-lavender-300 opacity-50 absolute -right-6 -bottom-2
+                   text-4xl font-serif select-none pointer-events-none"
+  >
     "
   </span>
 </div>
 ```
 
 **Enhancement 4: Ambient Background Blobs**
-*(Use the general enhancement code from above)*
+_(Use the general enhancement code from above)_
 
 ---
 
 #### Admin Error State (NetworkErrorState.tsx)
 
 **Current Issues:**
+
 - Most boring error state possible
 - No empathy or warmth
 - Flat icon, centered text, basic button
@@ -2668,67 +2780,68 @@ import { motion } from 'framer-motion';
 ```tsx
 export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
   const [isRetrying, setIsRetrying] = useState(false);
-  
+
   const handleRetry = async () => {
     setIsRetrying(true);
     await onRetry();
     setIsRetrying(false);
   };
-  
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
       {/* Illustrated "disconnected" scene */}
       <div className="relative w-32 h-32 mb-6">
         {/* Base circle with gradient */}
-        <div className="w-full h-full rounded-full 
-                        bg-gradient-to-br from-sage-100 to-sage-200 
+        <div
+          className="w-full h-full rounded-full
+                        bg-gradient-to-br from-sage-100 to-sage-200
                         flex items-center justify-center
-                        relative overflow-hidden">
-          
+                        relative overflow-hidden"
+        >
           {/* Decorative "searching" waves */}
           <div className="absolute inset-0">
             <motion.div
               className="absolute inset-0 border-2 border-sage-400 rounded-full"
-              animate={{ 
-                scale: [1, 1.5, 1.5], 
-                opacity: [0.6, 0, 0] 
+              animate={{
+                scale: [1, 1.5, 1.5],
+                opacity: [0.6, 0, 0],
               }}
-              transition={{ 
-                duration: 2, 
+              transition={{
+                duration: 2,
                 repeat: Infinity,
-                ease: 'easeOut'
+                ease: 'easeOut',
               }}
             />
             <motion.div
               className="absolute inset-0 border-2 border-sage-400 rounded-full"
-              animate={{ 
-                scale: [1, 1.5, 1.5], 
-                opacity: [0.6, 0, 0] 
+              animate={{
+                scale: [1, 1.5, 1.5],
+                opacity: [0.6, 0, 0],
               }}
-              transition={{ 
-                duration: 2, 
+              transition={{
+                duration: 2,
                 repeat: Infinity,
                 ease: 'easeOut',
-                delay: 0.7
+                delay: 0.7,
               }}
             />
           </div>
-          
+
           {/* Icon with personality */}
           <div className="relative z-10 text-sage-600">
             <WifiOff className="w-12 h-12" />
-            
+
             {/* Small plant/sprout waiting patiently */}
             <motion.div
               className="absolute -bottom-2 -right-2"
-              animate={{ 
+              animate={{
                 y: [0, -3, 0],
-                rotate: [-5, 5, -5]
+                rotate: [-5, 5, -5],
               }}
-              transition={{ 
-                duration: 2, 
+              transition={{
+                duration: 2,
                 repeat: Infinity,
-                ease: 'easeInOut'
+                ease: 'easeInOut',
               }}
             >
               <Sprout className="w-6 h-6 text-sage-500" />
@@ -2736,57 +2849,58 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
           </div>
         </div>
       </div>
-      
+
       {/* Empathetic, warm copy */}
       <h2 className="font-display text-h2 text-text-primary mb-3 text-center">
         Taking a Moment to Reconnect
       </h2>
-      
+
       <p className="font-body text-body-lg text-text-secondary leading-loose max-w-md mb-2 text-center">
-        {customMessage || "We're having a brief moment of connection trouble. Like a deep breath between sessions, sometimes we need to pause and reset."}
+        {customMessage ||
+          "We're having a brief moment of connection trouble. Like a deep breath between sessions, sometimes we need to pause and reset."}
       </p>
-      
+
       <p className="font-body text-body-sm text-text-tertiary mb-8 text-center">
         This typically resolves in less than a minute.
       </p>
-      
+
       {/* Inviting button with animation */}
       <motion.button
         onClick={handleRetry}
         disabled={isRetrying}
-        className="relative group bg-sage-600 hover:bg-sage-700 
+        className="relative group bg-sage-600 hover:bg-sage-700
                    disabled:bg-sage-400 disabled:cursor-not-allowed
-                   text-white font-display font-semibold 
-                   px-8 py-4 rounded-lg shadow-md hover:shadow-lg 
+                   text-white font-display font-semibold
+                   px-8 py-4 rounded-lg shadow-md hover:shadow-lg
                    transition-all duration-200"
         whileHover={{ scale: isRetrying ? 1 : 1.02 }}
         whileTap={{ scale: isRetrying ? 1 : 0.98 }}
       >
         <span className="flex items-center gap-2">
           <motion.div
-            animate={{ 
-              rotate: isRetrying ? 360 : 0 
+            animate={{
+              rotate: isRetrying ? 360 : 0,
             }}
-            transition={{ 
-              duration: 1, 
-              repeat: isRetrying ? Infinity : 0, 
-              ease: 'linear' 
+            transition={{
+              duration: 1,
+              repeat: isRetrying ? Infinity : 0,
+              ease: 'linear',
             }}
           >
             <RefreshCw className="w-5 h-5" />
           </motion.div>
-          {isRetrying ? "Reconnecting..." : "Try Again"}
+          {isRetrying ? 'Reconnecting...' : 'Try Again'}
         </span>
       </motion.button>
-      
+
       {/* Reassuring message */}
-      <motion.div 
+      <motion.div
         className="mt-8 text-body-xs text-text-tertiary flex items-center gap-2"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <motion.div 
+        <motion.div
           className="w-2 h-2 rounded-full bg-sage-400"
           animate={{ opacity: [0.4, 1, 0.4] }}
           transition={{ duration: 2, repeat: Infinity }}
@@ -2806,9 +2920,9 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
 
 ```tsx
 <motion.button
-  className="relative group bg-sage-600 hover:bg-sage-700 
-             text-white font-display font-semibold 
-             px-8 py-4 rounded-lg shadow-md hover:shadow-lg 
+  className="relative group bg-sage-600 hover:bg-sage-700
+             text-white font-display font-semibold
+             px-8 py-4 rounded-lg shadow-md hover:shadow-lg
              transition-all duration-200
              overflow-hidden"
   whileHover={{ scale: 1.02 }}
@@ -2821,7 +2935,7 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
     whileHover={{ x: '100%', opacity: 0.1 }}
     transition={{ duration: 0.6 }}
   />
-  
+
   <span className="relative z-10 flex items-center gap-2">
     <Sparkles className="w-5 h-5" />
     Submit Application
@@ -2833,10 +2947,10 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
 
 ```tsx
 <motion.button
-  className="bg-gradient-to-br from-lavender-400 to-lavender-500 
+  className="bg-gradient-to-br from-lavender-400 to-lavender-500
              hover:from-lavender-500 hover:to-lavender-600
-             text-white font-display font-semibold 
-             px-8 py-4 rounded-lg shadow-md hover:shadow-lg 
+             text-white font-display font-semibold
+             px-8 py-4 rounded-lg shadow-md hover:shadow-lg
              transition-all duration-200"
   whileHover={{ scale: 1.02 }}
   whileTap={{ scale: 0.98 }}
@@ -2901,42 +3015,43 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
   className="text-center"
 >
   {/* Icon with gradient and animation */}
-  <motion.div 
+  <motion.div
     className="flex justify-center mb-6"
-    animate={{ 
+    animate={{
       y: [0, -10, 0],
     }}
-    transition={{ 
+    transition={{
       duration: 2,
       repeat: Infinity,
-      ease: 'easeInOut'
+      ease: 'easeInOut',
     }}
   >
-    <div className="relative w-20 h-20 bg-gradient-to-br from-sage-100 to-lavender-100 
+    <div
+      className="relative w-20 h-20 bg-gradient-to-br from-sage-100 to-lavender-100
                     rounded-full flex items-center justify-center
-                    shadow-lg shadow-sage-200/50">
-      
+                    shadow-lg shadow-sage-200/50"
+    >
       {/* Decorative particles */}
       <motion.div
         className="absolute"
-        animate={{ 
+        animate={{
           scale: [0, 1.5, 0],
-          opacity: [0, 1, 0]
+          opacity: [0, 1, 0],
         }}
-        transition={{ 
+        transition={{
           duration: 2,
           repeat: Infinity,
-          ease: 'easeOut'
+          ease: 'easeOut',
         }}
       >
         <Sparkles className="w-20 h-20 text-lavender-400 opacity-30" />
       </motion.div>
-      
+
       <Sparkles className="w-10 h-10 text-sage-600 relative z-10" />
     </div>
   </motion.div>
-  
-  <motion.h2 
+
+  <motion.h2
     className="font-display text-display-sm text-text-primary mb-3"
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -2944,14 +3059,15 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
   >
     Application Submitted!
   </motion.h2>
-  
-  <motion.p 
+
+  <motion.p
     className="font-body text-body-lg text-text-secondary leading-loose mb-8"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ delay: 0.4 }}
   >
-    Thank you for applying. We'll review your application and get back to you within 3-5 business days.
+    Thank you for applying. We'll review your application and get back to you within 3-5 business
+    days.
   </motion.p>
 </motion.div>
 ```
@@ -2961,6 +3077,7 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
 ### Implementation Priority
 
 **Phase 1: Quick Wins (Do First)**
+
 1. ✅ Add ambient background blobs to all screens
 2. ✅ Enhance button styling with gradients and hover effects
 3. ✅ Add gentle page entrance animations
@@ -2968,6 +3085,7 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
 5. ✅ Add background texture to cream surfaces
 
 **Phase 2: Visual Interest (Next Session)**
+
 1. ⏳ Add decorative botanical elements around headings
 2. ⏳ Create illustrated error state scenes
 3. ⏳ Add decorative corner elements to cards
@@ -2975,6 +3093,7 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
 5. ⏳ Add animated "searching" waves for loading states
 
 **Phase 3: Polish (Future)**
+
 1. ⏳ Custom botanical illustrations for hero sections
 2. ⏳ Animated success celebrations
 3. ⏳ Advanced animation sequences
@@ -2985,6 +3104,7 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
 ### What NOT to Do
 
 **❌ Don't:**
+
 - Add too many decorative elements (still professional, not busy)
 - Use bright, saturated colors (keep soft and muted)
 - Add cartoon characters (warm ≠ childish)
@@ -2995,6 +3115,7 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
 - Ignore depth (layering makes things feel real)
 
 **✅ Do:**
+
 - Add subtle organic shapes in corners
 - Use soft gradients (sage to lavender)
 - Include gentle animations (breathing, pulsing)
@@ -3010,24 +3131,28 @@ export const NetworkErrorState = ({ onRetry, customMessage }: Props) => {
 Before considering a component "Bloom-ready," ensure:
 
 **Visual Warmth:**
+
 - [ ] Has depth through layering (shadows, gradients, overlays)
 - [ ] Uses warm colors (sage/lavender gradients, not flat)
 - [ ] Includes subtle personality touches (sparkles, botanical accents)
 - [ ] Has organic shapes (rounded, blob-like, not perfect geometry)
 
 **Animation:**
+
 - [ ] Gentle entrance animation (fade-up, scale)
 - [ ] Hover states are smooth and inviting
 - [ ] Loading states feel alive (pulsing, flowing)
 - [ ] Success states celebrate the user
 
 **Typography & Space:**
+
 - [ ] Not everything is perfectly centered
 - [ ] Adequate breathing room around elements
 - [ ] Visual hierarchy through size and weight
 - [ ] Warm copy that matches visual warmth
 
 **Technical:**
+
 - [ ] Animations use Framer Motion
 - [ ] Performance optimized (GPU-accelerated)
 - [ ] Accessible (keyboard, screen reader friendly)
@@ -3042,11 +3167,13 @@ Before considering a component "Bloom-ready," ensure:
 ## Implementation Phases & Priorities
 
 ### Philosophy: Build for Today, Design for Tomorrow
+
 Proto-Bloom is intentionally minimal. We're building only what's needed to hire psychologist #2, while laying the foundation for future scale.
 
 ### Proto-Bloom (Current - Q4 2025)
 
 **Build NOW - MVP Features:**
+
 ```markdown
 ✅ Application form (7-step multi-step form)
 ✅ Document upload with Azure Blob Storage
@@ -3058,6 +3185,7 @@ Proto-Bloom is intentionally minimal. We're building only what's needed to hire 
 ```
 
 **Explicitly SKIP for Proto-Bloom:**
+
 ```markdown
 ❌ Token economy system (needs 5+ practitioners to matter)
 ❌ Practitioner dashboard (Halaxy handles this)
@@ -3073,47 +3201,56 @@ Proto-Bloom is intentionally minimal. We're building only what's needed to hire 
 ### Bloom v1.0 (Q1-Q2 2026)
 
 **Add WHEN first hire happens (clinic at 80% capacity):**
+
 ```markdown
 🎯 Practitioner onboarding workflow
-  - Welcome email sequence
-  - Profile auto-generation for website
-  - Email @life-psychology.com.au setup
-  - Halaxy account creation
+
+- Welcome email sequence
+- Profile auto-generation for website
+- Email @life-psychology.com.au setup
+- Halaxy account creation
 
 🎯 Basic scheduling coordination
-  - View practitioner availability
-  - Block out PD days
-  - Holiday requests
+
+- View practitioner availability
+- Block out PD days
+- Holiday requests
 
 🎯 Halaxy integration (Phase 1)
-  - Webhook for new bookings
-  - Daily booking summary email
-  - Client waitlist management
+
+- Webhook for new bookings
+- Daily booking summary email
+- Client waitlist management
 ```
 
 ### Bloom v2.0 (2027+ with 5-10 practitioners)
 
 **Scale AFTER proven business model:**
+
 ```markdown
 🚀 Token economy
-  - PD credit tracking
-  - Community contribution rewards
-  - Token marketplace
+
+- PD credit tracking
+- Community contribution rewards
+- Token marketplace
 
 🚀 Revenue split automation
-  - Automatic calculations
-  - Monthly reports
-  - Tax documentation
+
+- Automatic calculations
+- Monthly reports
+- Tax documentation
 
 🚀 Advanced reporting
-  - Practitioner performance
-  - Client outcomes tracking
-  - Financial analytics
+
+- Practitioner performance
+- Client outcomes tracking
+- Financial analytics
 
 🚀 AI-assisted admin
-  - Application screening
-  - Schedule optimization
-  - Client matching
+
+- Application screening
+- Schedule optimization
+- Client matching
 ```
 
 ### Decision Framework
@@ -3123,11 +3260,11 @@ Proto-Bloom is intentionally minimal. We're building only what's needed to hire 
 ```typescript
 interface FeatureDecision {
   name: string;
-  requiredForProtoBloom: boolean;  // Blocks hiring psychologist #2?
-  isLowComplexity: boolean;         // Can build in <2 weeks?
-  requiresScaleToMatter: boolean;   // Only useful with 5+ practitioners?
-  validatesBusinessModel: boolean;  // Tests core assumptions?
-  canUseManualWorkaround: boolean;  // Spreadsheet/email suffices?
+  requiredForProtoBloom: boolean; // Blocks hiring psychologist #2?
+  isLowComplexity: boolean; // Can build in <2 weeks?
+  requiresScaleToMatter: boolean; // Only useful with 5+ practitioners?
+  validatesBusinessModel: boolean; // Tests core assumptions?
+  canUseManualWorkaround: boolean; // Spreadsheet/email suffices?
 }
 
 const shouldBuildNow = (feature: FeatureDecision): boolean => {
@@ -3135,40 +3272,40 @@ const shouldBuildNow = (feature: FeatureDecision): boolean => {
   if (!feature.requiredForProtoBloom || !feature.isLowComplexity) {
     return false;
   }
-  
+
   // Skip if it needs scale to matter
   if (feature.requiresScaleToMatter) {
     return false;
   }
-  
+
   // Skip if manual workaround exists
   if (feature.canUseManualWorkaround && !feature.validatesBusinessModel) {
     return false;
   }
-  
+
   return true;
 };
 
 // Example: Token Economy
 const tokenEconomy: FeatureDecision = {
-  name: "Token Economy System",
-  requiredForProtoBloom: false,     // Can hire without it
-  isLowComplexity: false,            // 2-3 months of work
-  requiresScaleToMatter: true,       // Meaningless with 2-3 practitioners
-  validatesBusinessModel: false,     // Doesn't test hiring process
-  canUseManualWorkaround: true       // Spreadsheet tracks PD credits
+  name: 'Token Economy System',
+  requiredForProtoBloom: false, // Can hire without it
+  isLowComplexity: false, // 2-3 months of work
+  requiresScaleToMatter: true, // Meaningless with 2-3 practitioners
+  validatesBusinessModel: false, // Doesn't test hiring process
+  canUseManualWorkaround: true, // Spreadsheet tracks PD credits
 };
 
 shouldBuildNow(tokenEconomy); // ❌ false - build in v2.0
 
 // Example: Application Review
 const applicationReview: FeatureDecision = {
-  name: "Admin Application Review",
-  requiredForProtoBloom: true,      // Can't hire without reviewing applications!
-  isLowComplexity: true,             // ~1 week of work
-  requiresScaleToMatter: false,      // Works with 1st applicant
-  validatesBusinessModel: true,      // Tests if psychologists apply
-  canUseManualWorkaround: false      // Email review is unprofessional
+  name: 'Admin Application Review',
+  requiredForProtoBloom: true, // Can't hire without reviewing applications!
+  isLowComplexity: true, // ~1 week of work
+  requiresScaleToMatter: false, // Works with 1st applicant
+  validatesBusinessModel: true, // Tests if psychologists apply
+  canUseManualWorkaround: false, // Email review is unprofessional
 };
 
 shouldBuildNow(applicationReview); // ✅ true - build in Proto-Bloom
@@ -3177,24 +3314,19 @@ shouldBuildNow(applicationReview); // ✅ true - build in Proto-Bloom
 ### Current Sprint Priorities (October 2025)
 
 **Week 1-2:**
+
 1. ✅ Multi-step application form
 2. ✅ Document upload (CV, AHPRA certificate, photo)
 3. ✅ Form validation with Bloom error handling
 
-**Week 3-4:**
-4. Admin review interface
-5. Approve/reject workflow with email notifications
-6. Application status tracking
+**Week 3-4:** 4. Admin review interface 5. Approve/reject workflow with email notifications 6. Application status tracking
 
-**Week 5-6:**
-7. Mobile responsiveness testing
-8. Error handling polish
-9. Performance optimization
-10. User acceptance testing with Anthony
+**Week 5-6:** 7. Mobile responsiveness testing 8. Error handling polish 9. Performance optimization 10. User acceptance testing with Anthony
 
 ### Feature Backlog (Post-Launch)
 
 **Nice-to-Have for Proto-Bloom (if time permits):**
+
 - [ ] Auto-save form progress
 - [ ] Email confirmation when application received
 - [ ] Admin dashboard with application statistics
@@ -3202,12 +3334,14 @@ shouldBuildNow(applicationReview); // ✅ true - build in Proto-Bloom
 - [ ] Application search by name/email
 
 **Blocked Until First Hire:**
+
 - [ ] Practitioner profile page generation
 - [ ] Welcome email automation
 - [ ] Halaxy webhook setup
 - [ ] Booking notification system
 
 **Blocked Until 5+ Practitioners:**
+
 - [ ] Token economy
 - [ ] Revenue split calculator
 - [ ] Advanced analytics
@@ -3218,6 +3352,7 @@ shouldBuildNow(applicationReview); // ✅ true - build in Proto-Bloom
 ## Testing & Quality Assurance
 
 ### Testing Philosophy
+
 Bloom is a healthcare platform handling sensitive personal information and regulatory documents. Testing isn't optional—it's essential for trust.
 
 ### Testing Pyramid
@@ -3237,6 +3372,7 @@ Bloom is a healthcare platform handling sensitive personal information and regul
 ### Component Testing
 
 **Button Component Test**
+
 ```typescript
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -3246,27 +3382,27 @@ describe('Button Component', () => {
   it('applies Bloom sage styling for primary variant', () => {
     render(<Button variant="primary">Submit</Button>);
     const button = screen.getByRole('button');
-    
+
     expect(button).toHaveClass('bg-sage-600');
     expect(button).toHaveClass('text-white');
     expect(button).toHaveClass('font-display');
   });
-  
+
   it('shows loading state when disabled', () => {
     render(<Button disabled>Submitting...</Button>);
     const button = screen.getByRole('button');
-    
+
     expect(button).toBeDisabled();
     expect(button).toHaveClass('opacity-50');
   });
-  
+
   it('calls onClick handler when clicked', async () => {
     const handleClick = jest.fn();
     render(<Button onClick={handleClick}>Click Me</Button>);
-    
+
     const button = screen.getByRole('button');
     await userEvent.click(button);
-    
+
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 });
@@ -3275,6 +3411,7 @@ describe('Button Component', () => {
 ### Form Validation Testing
 
 **AHPRA Validation Test**
+
 ```typescript
 import { validateAHPRA } from '@/lib/validation';
 
@@ -3283,14 +3420,14 @@ describe('AHPRA Validation', () => {
     expect(validateAHPRA('PSY0001234567')).toBe(true);
     expect(validateAHPRA('OCC9876543210')).toBe(true);
   });
-  
+
   it('rejects invalid formats', () => {
-    expect(validateAHPRA('PSY123')).toBe(false);           // Too short
-    expect(validateAHPRA('12PSY0001234567')).toBe(false);  // Numbers first
-    expect(validateAHPRA('PSYCH0001234567')).toBe(false);  // 5 letters
-    expect(validateAHPRA('psy0001234567')).toBe(false);    // Lowercase
+    expect(validateAHPRA('PSY123')).toBe(false); // Too short
+    expect(validateAHPRA('12PSY0001234567')).toBe(false); // Numbers first
+    expect(validateAHPRA('PSYCH0001234567')).toBe(false); // 5 letters
+    expect(validateAHPRA('psy0001234567')).toBe(false); // Lowercase
   });
-  
+
   it('provides helpful error message', () => {
     const result = validateAHPRA('PSY123');
     expect(result.error).toBe('AHPRA numbers must start with 3 letters followed by 10 digits');
@@ -3299,28 +3436,29 @@ describe('AHPRA Validation', () => {
 ```
 
 **File Upload Validation Test**
+
 ```typescript
 describe('Document Upload Validation', () => {
   it('accepts valid file types', () => {
     const pdfFile = new File(['content'], 'cv.pdf', { type: 'application/pdf' });
     expect(validateDocument(pdfFile, 'cv')).toBe(true);
-    
+
     const jpgFile = new File(['content'], 'photo.jpg', { type: 'image/jpeg' });
     expect(validateDocument(jpgFile, 'photo')).toBe(true);
   });
-  
+
   it('rejects files over size limit', () => {
     const largeFile = new File(['x'.repeat(11_000_000)], 'cv.pdf');
     const result = validateDocument(largeFile, 'cv');
-    
+
     expect(result.valid).toBe(false);
     expect(result.error).toBe('CV must be under 10MB');
   });
-  
+
   it('rejects invalid file types', () => {
     const exeFile = new File(['content'], 'virus.exe');
     const result = validateDocument(exeFile, 'cv');
-    
+
     expect(result.valid).toBe(false);
     expect(result.error).toContain('PDF, JPG, or PNG');
   });
@@ -3330,6 +3468,7 @@ describe('Document Upload Validation', () => {
 ### Integration Testing
 
 **Application Submission Flow Test**
+
 ```typescript
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -3339,33 +3478,33 @@ import { server } from '@/mocks/server';
 describe('Application Submission Flow', () => {
   it('completes full application journey', async () => {
     render(<JoinUs />);
-    
+
     // Step 1: Qualification Check
     const clinicalPsychCheckbox = screen.getByLabelText(/Registered Clinical Psychologist/i);
     await userEvent.click(clinicalPsychCheckbox);
-    
+
     const checkEligibilityBtn = screen.getByRole('button', { name: /Check Eligibility/i });
     await userEvent.click(checkEligibilityBtn);
-    
+
     // Step 2: Fill Application Form
     await waitFor(() => {
       expect(screen.getByText(/Application Form/i)).toBeInTheDocument();
     });
-    
+
     await userEvent.type(screen.getByLabelText(/First Name/i), 'Sarah');
     await userEvent.type(screen.getByLabelText(/Last Name/i), 'Johnson');
     await userEvent.type(screen.getByLabelText(/Email/i), 'sarah@example.com');
     await userEvent.type(screen.getByLabelText(/AHPRA/i), 'PSY0001234567');
-    
+
     // Upload documents
     const cvInput = screen.getByLabelText(/Upload CV/i);
     const cvFile = new File(['cv content'], 'cv.pdf', { type: 'application/pdf' });
     await userEvent.upload(cvInput, cvFile);
-    
+
     // Submit
     const submitBtn = screen.getByRole('button', { name: /Submit Application/i });
     await userEvent.click(submitBtn);
-    
+
     // Step 3: Success State
     await waitFor(() => {
       expect(screen.getByText(/Application Submitted!/i)).toBeInTheDocument();
@@ -3377,6 +3516,7 @@ describe('Application Submission Flow', () => {
 ### Accessibility Testing
 
 **Keyboard Navigation Test**
+
 ```typescript
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -3385,40 +3525,40 @@ import { ApplicationForm } from '@/components/ApplicationForm';
 describe('Accessibility', () => {
   it('supports full keyboard navigation', async () => {
     render(<ApplicationForm />);
-    
+
     const firstNameInput = screen.getByLabelText(/First Name/i);
     const lastNameInput = screen.getByLabelText(/Last Name/i);
     const emailInput = screen.getByLabelText(/Email/i);
-    
+
     // Tab through form fields
     await userEvent.tab();
     expect(firstNameInput).toHaveFocus();
-    
+
     await userEvent.tab();
     expect(lastNameInput).toHaveFocus();
-    
+
     await userEvent.tab();
     expect(emailInput).toHaveFocus();
   });
-  
+
   it('announces errors to screen readers', () => {
     render(<ApplicationForm />);
-    
+
     const ahpraInput = screen.getByLabelText(/AHPRA/i);
     const errorMessage = screen.queryByRole('alert');
-    
+
     expect(ahpraInput).toHaveAttribute('aria-invalid', 'false');
     expect(ahpraInput).toHaveAttribute('aria-describedby');
-    
+
     // After validation error
     fireEvent.blur(ahpraInput);
     expect(ahpraInput).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
-  
+
   it('has sufficient color contrast', () => {
     const { container } = render(<Button variant="primary">Submit</Button>);
-    
+
     // Sage-600 text on white background meets WCAG AA
     const styles = window.getComputedStyle(container.firstChild);
     expect(getContrastRatio(styles.color, styles.backgroundColor)).toBeGreaterThan(4.5);
@@ -3429,6 +3569,7 @@ describe('Accessibility', () => {
 ### Visual Regression Testing
 
 **Setup with Chromatic (Recommended)**
+
 ```bash
 # Install Chromatic
 npm install --save-dev chromatic
@@ -3441,6 +3582,7 @@ npx chromatic --project-token=<token>
 ```
 
 **Key Screens to Test:**
+
 - Application form (all 7 steps)
 - Admin portal (list view, detail view)
 - Error states (network, server, validation)
@@ -3450,6 +3592,7 @@ npx chromatic --project-token=<token>
 
 **Mobile vs Desktop Views:**
 Test at breakpoints:
+
 - Mobile: 375px width
 - Tablet: 768px width
 - Desktop: 1440px width
@@ -3457,6 +3600,7 @@ Test at breakpoints:
 ### End-to-End Testing
 
 **Critical User Flows (Playwright)**
+
 ```typescript
 import { test, expect } from '@playwright/test';
 
@@ -3464,23 +3608,23 @@ test.describe('Applicant Journey', () => {
   test('psychologist can submit application', async ({ page }) => {
     // Navigate to join page
     await page.goto('/join-us');
-    
+
     // Complete qualification check
     await page.check('text=Registered Clinical Psychologist');
     await page.click('button:has-text("Check Eligibility")');
-    
+
     // Fill application
     await page.fill('input[name="first_name"]', 'Emily');
     await page.fill('input[name="last_name"]', 'Chen');
     await page.fill('input[name="email"]', 'emily.chen@example.com');
     await page.fill('input[name="ahpra"]', 'PSY0001234567');
-    
+
     // Upload CV
     await page.setInputFiles('input[type="file"][id="cv"]', 'tests/fixtures/sample-cv.pdf');
-    
+
     // Submit
     await page.click('button:has-text("Submit Application")');
-    
+
     // Verify success
     await expect(page.locator('text=Application Submitted!')).toBeVisible();
   });
@@ -3493,23 +3637,23 @@ test.describe('Admin Journey', () => {
     await page.fill('input[name="email"]', 'admin@life-psychology.com.au');
     await page.fill('input[name="password"]', process.env.TEST_ADMIN_PASSWORD);
     await page.click('button:has-text("Sign In")');
-    
+
     // View applications
     await expect(page.locator('h1:has-text("Application Management")')).toBeVisible();
-    
+
     // Click first pending application
     await page.click('tr:has-text("Pending") >> nth=0');
-    
+
     // Review documents
     await expect(page.locator('text=AHPRA Certificate')).toBeVisible();
-    
+
     // Approve
     await page.fill('textarea[name="review_notes"]', 'Excellent qualifications');
     await page.click('button:has-text("Approve Application")');
-    
+
     // Confirm
     await page.click('button:has-text("Confirm Approval")');
-    
+
     // Verify success
     await expect(page.locator('text=Application approved successfully')).toBeVisible();
   });
@@ -3519,12 +3663,14 @@ test.describe('Admin Journey', () => {
 ### Test Coverage Goals
 
 **Minimum Coverage Targets:**
+
 - **Statements:** 80%
 - **Branches:** 75%
 - **Functions:** 80%
 - **Lines:** 80%
 
 **Critical Paths (100% Coverage Required):**
+
 - AHPRA validation
 - File upload validation
 - Application submission
@@ -3534,8 +3680,10 @@ test.describe('Admin Journey', () => {
 ### Manual Testing Checklist
 
 **Before Each Release:**
+
 ```markdown
 ## Functional Testing
+
 - [ ] Complete application submission (all steps)
 - [ ] Document upload (CV, certificate, photo)
 - [ ] Qualification check (all 3 criteria paths)
@@ -3545,6 +3693,7 @@ test.describe('Admin Journey', () => {
 - [ ] Email notifications sent correctly
 
 ## Browser Testing
+
 - [ ] Chrome (latest)
 - [ ] Firefox (latest)
 - [ ] Safari (latest)
@@ -3553,12 +3702,14 @@ test.describe('Admin Journey', () => {
 - [ ] Mobile Chrome (Android 12+)
 
 ## Responsive Testing
+
 - [ ] iPhone 13 (390x844)
 - [ ] iPad (810x1080)
 - [ ] Desktop (1440x900)
 - [ ] Large desktop (1920x1080)
 
 ## Accessibility Testing
+
 - [ ] Screen reader (NVDA/VoiceOver)
 - [ ] Keyboard navigation only
 - [ ] Color contrast (Chrome DevTools)
@@ -3566,6 +3717,7 @@ test.describe('Admin Journey', () => {
 - [ ] Form labels announced correctly
 
 ## Performance Testing
+
 - [ ] Lighthouse score 90+ (performance)
 - [ ] First Contentful Paint <1.5s
 - [ ] Time to Interactive <3s
@@ -3573,6 +3725,7 @@ test.describe('Admin Journey', () => {
 - [ ] Images optimized (WebP format)
 
 ## Security Testing
+
 - [ ] HTTPS enforced
 - [ ] CORS configured correctly
 - [ ] File upload size limits enforced
@@ -3585,11 +3738,13 @@ test.describe('Admin Journey', () => {
 ## Performance & Optimization
 
 ### Performance Philosophy
+
 Bloom should feel instant. Psychologists are busy—every second of loading time erodes trust. Aim for <2 seconds to interactive on 3G.
 
 ### Bundle Size Optimization
 
 **Current Target: <250KB gzipped**
+
 ```bash
 # Monitor bundle size
 npm run build
@@ -3602,6 +3757,7 @@ npx vite-bundle-visualizer
 ```
 
 **Code Splitting Strategy:**
+
 ```typescript
 // Lazy load admin portal (not needed by applicants)
 const AdminPortal = lazy(() => import('./pages/admin/ApplicationManagement'));
@@ -3618,6 +3774,7 @@ const DocumentUpload = lazy(() => import('./components/DocumentUpload'));
 ```
 
 **Tree Shaking:**
+
 ```typescript
 // ✅ Good - only imports what you need
 import { CheckCircle2, AlertCircle } from 'lucide-react';
@@ -3629,6 +3786,7 @@ import * as Icons from 'lucide-react';
 ### Image Optimization
 
 **Use WebP with Fallback:**
+
 ```tsx
 <picture>
   <source srcSet="/profile-photo.webp" type="image/webp" />
@@ -3637,6 +3795,7 @@ import * as Icons from 'lucide-react';
 ```
 
 **Resize Profile Photos:**
+
 ```typescript
 // Client-side resize before upload
 import { resizeImage } from '@/lib/image-utils';
@@ -3644,20 +3803,21 @@ import { resizeImage } from '@/lib/image-utils';
 const handlePhotoUpload = async (file: File) => {
   // Resize to 400x400 max
   const resized = await resizeImage(file, 400, 400);
-  
+
   // Convert to WebP if browser supports
   const webp = await convertToWebP(resized);
-  
+
   // Upload optimized version
   await uploadToBlob(webp);
 };
 ```
 
 **Lazy Load Images:**
+
 ```tsx
-<img 
-  src="/profile-photo.jpg" 
-  loading="lazy"  // Native lazy loading
+<img
+  src="/profile-photo.jpg"
+  loading="lazy" // Native lazy loading
   className="rounded-full w-32 h-32"
 />
 ```
@@ -3665,6 +3825,7 @@ const handlePhotoUpload = async (file: File) => {
 ### Database Optimization
 
 **Index Strategy (Azure SQL):**
+
 ```sql
 -- Index on frequently queried columns
 CREATE INDEX idx_applications_status ON applications(status);
@@ -3672,11 +3833,12 @@ CREATE INDEX idx_applications_submitted_at ON applications(submitted_at DESC);
 CREATE INDEX idx_applications_email ON applications(email);
 
 -- Composite index for filtered queries
-CREATE INDEX idx_applications_status_submitted 
+CREATE INDEX idx_applications_status_submitted
 ON applications(status, submitted_at DESC);
 ```
 
 **Query Optimization:**
+
 ```typescript
 // ✅ Good - only fetch needed columns
 const applications = await sql`
@@ -3696,6 +3858,7 @@ const applications = await sql`
 ### API Response Optimization
 
 **Use Compression:**
+
 ```typescript
 // Azure Functions - enable compression in host.json
 {
@@ -3712,6 +3875,7 @@ const applications = await sql`
 ```
 
 **Paginate Large Responses:**
+
 ```typescript
 // Return paginated data
 interface PaginatedResponse<T> {
@@ -3726,18 +3890,18 @@ app.get('/api/applications', async (req: Request) => {
   const page = parseInt(req.query.page) || 1;
   const pageSize = 20;
   const offset = (page - 1) * pageSize;
-  
+
   const [applications, total] = await Promise.all([
     getApplications(offset, pageSize),
-    getApplicationsCount()
+    getApplicationsCount(),
   ]);
-  
+
   return {
     data: applications,
     page,
     pageSize,
     total,
-    hasMore: offset + pageSize < total
+    hasMore: offset + pageSize < total,
   };
 });
 ```
@@ -3745,6 +3909,7 @@ app.get('/api/applications', async (req: Request) => {
 ### Frontend Performance
 
 **Use React.memo for Expensive Components:**
+
 ```typescript
 export const ApplicationCard = React.memo(({ application }: Props) => {
   return (
@@ -3759,21 +3924,22 @@ export const ApplicationCard = React.memo(({ application }: Props) => {
 ```
 
 **Debounce Search Input:**
+
 ```typescript
 import { useDebounce } from '@/hooks/useDebounce';
 
 export const ApplicationSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
-  
+
   useEffect(() => {
     if (debouncedQuery) {
       searchApplications(debouncedQuery);
     }
   }, [debouncedQuery]);
-  
+
   return (
-    <Input 
+    <Input
       value={searchQuery}
       onChange={(e) => setSearchQuery(e.target.value)}
       placeholder="Search applications..."
@@ -3783,23 +3949,24 @@ export const ApplicationSearch = () => {
 ```
 
 **Virtualize Long Lists:**
+
 ```typescript
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 export const ApplicationList = ({ applications }: Props) => {
   const parentRef = useRef<HTMLDivElement>(null);
-  
+
   const virtualizer = useVirtualizer({
     count: applications.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 100, // Row height
   });
-  
+
   return (
     <div ref={parentRef} className="h-screen overflow-auto">
       <div style={{ height: `${virtualizer.getTotalSize()}px` }}>
         {virtualizer.getVirtualItems().map((virtualRow) => (
-          <ApplicationCard 
+          <ApplicationCard
             key={applications[virtualRow.index].id}
             application={applications[virtualRow.index]}
           />
@@ -3813,6 +3980,7 @@ export const ApplicationList = ({ applications }: Props) => {
 ### Caching Strategy
 
 **Service Worker for Static Assets:**
+
 ```typescript
 // Register service worker for offline support
 if ('serviceWorker' in navigator) {
@@ -3828,7 +3996,7 @@ self.addEventListener('install', (event) => {
         '/styles.css',
         '/main.js',
         '/fonts/poppins.woff2',
-        '/fonts/inter.woff2'
+        '/fonts/inter.woff2',
       ]);
     })
   );
@@ -3836,20 +4004,21 @@ self.addEventListener('install', (event) => {
 ```
 
 **SWR for Data Fetching:**
+
 ```typescript
 import useSWR from 'swr';
 
 export const useApplications = () => {
   const { data, error, mutate } = useSWR('/api/applications', fetcher, {
-    revalidateOnFocus: false,  // Don't refetch on window focus
-    dedupingInterval: 60000,   // Dedupe requests within 1 minute
+    revalidateOnFocus: false, // Don't refetch on window focus
+    dedupingInterval: 60000, // Dedupe requests within 1 minute
   });
-  
+
   return {
     applications: data,
     isLoading: !error && !data,
     isError: error,
-    refresh: mutate
+    refresh: mutate,
   };
 };
 ```
@@ -3857,12 +4026,14 @@ export const useApplications = () => {
 ### Lighthouse Score Targets
 
 **Minimum Scores (Mobile):**
+
 - **Performance:** 90+
 - **Accessibility:** 100
 - **Best Practices:** 95+
 - **SEO:** 100
 
 **Performance Metrics:**
+
 - **First Contentful Paint (FCP):** <1.5s
 - **Largest Contentful Paint (LCP):** <2.5s
 - **Time to Interactive (TTI):** <3.0s
@@ -3872,6 +4043,7 @@ export const useApplications = () => {
 ### Monitoring & Analytics
 
 **Setup Vercel Analytics (or similar):**
+
 ```typescript
 // Track key metrics
 import { Analytics } from '@vercel/analytics/react';
@@ -3887,21 +4059,23 @@ export default function App() {
 ```
 
 **Track Custom Events:**
+
 ```typescript
 // Track application submissions
 import { track } from '@vercel/analytics';
 
 const handleSubmit = async (data: FormData) => {
   await submitApplication(data);
-  
+
   track('application_submitted', {
     qualification_type: data.qualification_type,
-    years_experience: data.years_experience
+    years_experience: data.years_experience,
   });
 };
 ```
 
 **Performance Budget:**
+
 ```json
 {
   "budgets": [
@@ -3931,6 +4105,7 @@ const handleSubmit = async (data: FormData) => {
 ## Questions & Support
 
 When in doubt, ask:
+
 1. **Does this feel warm and professional?**
 2. **Would a clinical psychologist feel respected and welcomed?**
 3. **Is the action clear without being bossy?**
@@ -3940,4 +4115,4 @@ When in doubt, ask:
 
 ---
 
-*"We're the fairy godmother who believes in you while maintaining professional standards."*
+_"We're the fairy godmother who believes in you while maintaining professional standards."_

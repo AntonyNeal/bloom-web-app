@@ -1,16 +1,42 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# BLOOM CI/CD WORKFLOW
+# Multi-Environment Deployment Pipeline
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# ENVIRONMENTS:
+# - Development (develop branch)  → lpa-bloom-dev + bloom-functions-dev
+# - Staging (staging branch)      → lpa-bloom-staging + bloom-functions-staging-new  
+# - Production (main branch)      → lpa-bloom-prod + bloom-platform-functions-v2
+#
+# TRIGGERS:
+# - Frontend changes (src/**, public/**, index.html, vite.config.ts)
+# - API changes (api/**)
+# - Infrastructure changes (.github/workflows/**)
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
 name: Bloom CI/CD
 
 on:
   push:
     branches:
-      - main
-      - staging
-      - develop
+      - main        # Production
+      - staging     # Staging
+      - develop     # Development
   pull_request:
     branches:
       - main
       - staging
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
 
 permissions:
   contents: read
@@ -19,265 +45,482 @@ permissions:
 
 env:
   NODE_VERSION: '20'
+  NODE_VERSION_API: '18'
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 1: CODE QUALITY & CHANGE DETECTION
+# ═══════════════════════════════════════════════════════════════════════════════
 
 jobs:
-  # QUALITY CHECKS (parallel)
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Quality Checks (Run in Parallel)
+  # ─────────────────────────────────────────────────────────────────────────────
+  
   lint:
-    name: Lint
+    name: 🔍 Lint Code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - run: npm ci
-      - run: npm run lint
+      
+      - name: Install Dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
 
   type-check:
-    name: Type Check
+    name: 🔍 Type Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - run: npm ci
-      - run: npx tsc --noEmit
+      
+      - name: Install Dependencies
+        run: npm ci
+      
+      - name: Run TypeScript Compiler
+        run: npx tsc --noEmit
 
-  # DETECT CHANGES
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Change Detection (Determine What to Build/Deploy)
+  # ─────────────────────────────────────────────────────────────────────────────
+  
   detect-changes:
-    name: Detect Changes
+    name: 🔎 Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      api-changed: ${{ steps.filter.outputs.api }}
-      frontend-changed: ${{ steps.filter.outputs.frontend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      api: ${{ steps.filter.outputs.api }}
+      infrastructure: ${{ steps.filter.outputs.infrastructure }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      
+      - name: Detect File Changes
+        uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
-            api:
-              - 'api/**'
             frontend:
               - 'src/**'
               - 'public/**'
               - 'index.html'
               - 'vite.config.ts'
               - 'package.json'
+              - 'package-lock.json'
               - 'tsconfig.json'
+            api:
+              - 'api/**'
+            infrastructure:
+              - '.github/workflows/**'
+      
+      - name: Display Changes
+        run: |
+          echo "🎨 Frontend Changed: ${{ steps.filter.outputs.frontend }}"
+          echo "🔌 API Changed: ${{ steps.filter.outputs.api }}"
+          echo "🏗️ Infrastructure Changed: ${{ steps.filter.outputs.infrastructure }}"
 
-  # DETERMINE ENVIRONMENT
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Environment Determination
+  # ─────────────────────────────────────────────────────────────────────────────
+  
   determine-environment:
-    name: Determine Environment
+    name: 🌍 Determine Environment
     runs-on: ubuntu-latest
     outputs:
-      environment: ${{ steps.set-env.outputs.environment }}
-      app-name: ${{ steps.set-env.outputs.app-name }}
-      should-deploy: ${{ steps.set-env.outputs.should-deploy }}
+      environment: ${{ steps.config.outputs.environment }}
+      frontend-app: ${{ steps.config.outputs.frontend_app }}
+      api-app: ${{ steps.config.outputs.api_app }}
+      should-deploy: ${{ steps.config.outputs.should_deploy }}
+      frontend-secret: ${{ steps.config.outputs.frontend_secret }}
+      api-secret: ${{ steps.config.outputs.api_secret }}
     steps:
-      - name: Determine environment from branch
-        id: set-env
+      - name: Set Environment Configuration
+        id: config
         run: |
           REF="${{ github.ref }}"
-          echo "Branch/Ref: $REF"
-
-          case "$REF" in
-            refs/heads/main)
-              ENV="production"
-              APP_NAME="lpa-bloom"
+          MANUAL_ENV="${{ github.event.inputs.environment }}"
+          
+          echo "📍 Branch/Ref: $REF"
+          echo "🎯 Manual Override: $MANUAL_ENV"
+          
+          # Use manual input if workflow_dispatch, otherwise use branch
+          if [ -n "$MANUAL_ENV" ]; then
+            ENV="$MANUAL_ENV"
+          else
+            case "$REF" in
+              refs/heads/main)
+                ENV="production"
+                ;;
+              refs/heads/staging)
+                ENV="staging"
+                ;;
+              refs/heads/develop)
+                ENV="development"
+                ;;
+              refs/pull/*)
+                ENV="preview"
+                ;;
+              *)
+                ENV="preview"
+                ;;
+            esac
+          fi
+          
+          # Set resource names based on environment
+          case "$ENV" in
+            production)
+              FRONTEND_APP="lpa-bloom-prod"
+              API_APP="bloom-platform-functions-v2"
               SHOULD_DEPLOY="true"
+              FRONTEND_SECRET="BLOOM_PROD_DEPLOYMENT_TOKEN"
+              API_SECRET="BLOOM_PROD_API_PUBLISH_PROFILE"
               ;;
-            refs/heads/staging)
-              ENV="staging"
-              APP_NAME="lpa-bloom"
+            staging)
+              FRONTEND_APP="lpa-bloom-staging"
+              API_APP="bloom-functions-staging-new"
               SHOULD_DEPLOY="true"
+              FRONTEND_SECRET="BLOOM_STAGING_DEPLOYMENT_TOKEN"
+              API_SECRET="BLOOM_STAGING_API_PUBLISH_PROFILE"
               ;;
-            refs/heads/develop)
-              ENV="development"
-              APP_NAME="lpa-bloom"
+            development)
+              FRONTEND_APP="lpa-bloom-dev"
+              API_APP="bloom-functions-dev"
               SHOULD_DEPLOY="true"
+              FRONTEND_SECRET="BLOOM_DEV_DEPLOYMENT_TOKEN"
+              API_SECRET="BLOOM_DEV_API_PUBLISH_PROFILE"
               ;;
-            *)
-              ENV="preview"
-              APP_NAME="lpa-bloom"
+            preview)
+              FRONTEND_APP="lpa-bloom-dev"
+              API_APP="bloom-functions-dev"
               SHOULD_DEPLOY="false"
+              FRONTEND_SECRET=""
+              API_SECRET=""
               ;;
           esac
-
+          
+          # Output configuration
           echo "environment=$ENV" >> $GITHUB_OUTPUT
-          echo "app-name=$APP_NAME" >> $GITHUB_OUTPUT
-          echo "should-deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
-          echo "✅ Environment: $ENV | App: $APP_NAME | Deploy: $SHOULD_DEPLOY"
+          echo "frontend_app=$FRONTEND_APP" >> $GITHUB_OUTPUT
+          echo "api_app=$API_APP" >> $GITHUB_OUTPUT
+          echo "should_deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+          echo "frontend_secret=$FRONTEND_SECRET" >> $GITHUB_OUTPUT
+          echo "api_secret=$API_SECRET" >> $GITHUB_OUTPUT
+          
+          echo ""
+          echo "═══════════════════════════════════════════════════════"
+          echo "✅ ENVIRONMENT CONFIGURATION"
+          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment:    $ENV"
+          echo "🎨 Frontend App:   $FRONTEND_APP"
+          echo "🔌 API App:        $API_APP"
+          echo "🚀 Should Deploy:  $SHOULD_DEPLOY"
+          echo "═══════════════════════════════════════════════════════"
 
-  # BUILD APPLICATION
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [determine-environment, lint, type-check]
-    if: |
-      always() &&
-      needs.determine-environment.outputs.should-deploy == 'true' &&
-      needs.lint.result == 'success' &&
-      needs.type-check.result == 'success'
-    environment: ${{ needs.determine-environment.outputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - run: npm ci
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 2: BUILD ARTIFACTS
+# ═══════════════════════════════════════════════════════════════════════════════
 
-      - name: Build Application
-        run: |
-          echo "Building Bloom application..."
-          echo "Environment: ${{ needs.determine-environment.outputs.environment }}"
-          npm run build
-          echo "✅ Build finished"
-        env:
-          VITE_ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist
-          retention-days: 7
-
-  # BUILD AZURE FUNCTIONS API
-  build-api:
-    name: Build API
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Build Frontend (React + Vite)
+  # ─────────────────────────────────────────────────────────────────────────────
+  
+  build-frontend:
+    name: 🎨 Build Frontend
     runs-on: ubuntu-latest
     needs: [determine-environment, detect-changes, lint, type-check]
     if: |
       always() &&
-      needs.detect-changes.outputs.api-changed == 'true' &&
+      (needs.detect-changes.outputs.frontend == 'true' || 
+       needs.detect-changes.outputs.infrastructure == 'true') &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: api/package-lock.json
-
-      - name: Install API dependencies
-        working-directory: ./api
+      
+      - name: Install Dependencies
         run: npm ci
-
-      - name: Build API
-        working-directory: ./api
+      
+      - name: Build Application
         run: |
-          echo "Building Azure Functions API..."
+          echo "🎨 Building Bloom Frontend..."
+          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "📦 Target: ${{ needs.determine-environment.outputs.frontend-app }}"
           npm run build
-          echo "✅ API build finished"
-
-      - name: Prepare API deployment package
-        working-directory: ./api
-        run: |
-          echo "📦 Packaging API for deployment..."
-          mkdir -p deploy-package
-          cp -r dist/* deploy-package/
-          cp host.json deploy-package/
-          cp package.json deploy-package/
-          cp package-lock.json deploy-package/
-          cp -r node_modules deploy-package/
-          echo "✅ Deployment package ready ($(du -sh deploy-package | cut -f1))"
-
-      - name: Upload API artifacts
+          echo "✅ Build complete"
+        env:
+          VITE_ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
+          VITE_API_URL: ${{ needs.determine-environment.outputs.environment == 'production' && 'https://bloom-platform-functions-v2.azurewebsites.net/api' || needs.determine-environment.outputs.environment == 'staging' && 'https://bloom-functions-staging-new.azurewebsites.net/api' || 'https://bloom-functions-dev.azurewebsites.net/api' }}
+      
+      - name: Upload Frontend Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: api-dist
-          path: api/deploy-package
+          name: frontend-${{ needs.determine-environment.outputs.environment }}
+          path: dist
           retention-days: 7
 
-  # DEPLOY APPLICATION
-  deploy:
-    name: Deploy to ${{ needs.determine-environment.outputs.environment }}
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Build API (Azure Functions)
+  # ─────────────────────────────────────────────────────────────────────────────
+  
+  build-api:
+    name: 🔌 Build API
     runs-on: ubuntu-latest
-    needs: [determine-environment, build]
+    needs: [determine-environment, detect-changes, lint, type-check]
     if: |
       always() &&
+      (needs.detect-changes.outputs.api == 'true' || 
+       needs.detect-changes.outputs.infrastructure == 'true') &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
-      needs.build.result == 'success'
+      needs.lint.result == 'success' &&
+      needs.type-check.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION_API }}
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+      
+      - name: Install API Dependencies
+        working-directory: ./api
+        run: npm ci
+      
+      - name: Build API
+        working-directory: ./api
+        run: |
+          echo "🔌 Building Azure Functions API..."
+          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "📦 Target: ${{ needs.determine-environment.outputs.api-app }}"
+          npm run build
+          echo "✅ API build complete"
+      
+      - name: Package API for Deployment
+        working-directory: ./api
+        run: |
+          echo "📦 Packaging API deployment..."
+          mkdir -p deploy-package
+          
+          # Copy compiled functions
+          cp -r dist/* deploy-package/
+          
+          # Copy configuration
+          cp host.json deploy-package/
+          cp package.json deploy-package/
+          cp package-lock.json deploy-package/
+          
+          # Copy production dependencies
+          cp -r node_modules deploy-package/
+          
+          # Display package info
+          echo "✅ Package ready"
+          du -sh deploy-package
+          ls -la deploy-package/
+      
+      - name: Upload API Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-${{ needs.determine-environment.outputs.environment }}
+          path: api/deploy-package
+          retention-days: 7
 
-      - name: Download build artifacts
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 3: DEPLOY TO AZURE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Deploy Frontend (Azure Static Web Apps)
+  # ─────────────────────────────────────────────────────────────────────────────
+  
+  deploy-frontend:
+    name: 🚀 Deploy Frontend → ${{ needs.determine-environment.outputs.environment }}
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, build-frontend]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.frontend == 'true' || 
+       needs.detect-changes.outputs.infrastructure == 'true') &&
+      needs.determine-environment.outputs.should-deploy == 'true' &&
+      needs.build-frontend.result == 'success'
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download Frontend Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dist
+          name: frontend-${{ needs.determine-environment.outputs.environment }}
           path: dist
-
-      - name: Verify build artifacts
+      
+      - name: Verify Artifacts
         run: |
           echo "🔍 Verifying build artifacts..."
+          
           if [ ! -f "dist/index.html" ]; then
             echo "❌ dist/index.html not found!"
             exit 1
           fi
-          echo "✅ Build artifacts verified"
-          ls -la dist/
-
+          
+          echo "✅ Artifacts verified"
+          echo "📦 Contents:"
+          ls -lah dist/
+      
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.BLOOM_AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          azure_static_web_apps_api_token: ${{ secrets[needs.determine-environment.outputs.frontend-secret] }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: 'upload'
           app_location: '.'
           output_location: 'dist'
           skip_deploy_on_missing_secrets: true
-
-      - name: Post deployment notification
+      
+      - name: Deployment Summary
         run: |
-          echo "✅ Successfully deployed to ${{ needs.determine-environment.outputs.environment }} environment"
-          echo "🌐 Application URL: https://${{ needs.determine-environment.outputs.app-name }}.azurestaticapps.net"
+          echo ""
+          echo "═══════════════════════════════════════════════════════"
+          echo "✅ FRONTEND DEPLOYMENT COMPLETE"
+          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
+          echo "🎨 Application:  ${{ needs.determine-environment.outputs.frontend-app }}"
+          echo "🔗 URL:          https://${{ needs.determine-environment.outputs.frontend-app }}.azurestaticapps.net"
+          echo "═══════════════════════════════════════════════════════"
 
-  # DEPLOY AZURE FUNCTIONS API
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Deploy API (Azure Functions)
+  # ─────────────────────────────────────────────────────────────────────────────
+  
   deploy-api:
-    name: Deploy API to ${{ needs.determine-environment.outputs.environment }}
+    name: 🚀 Deploy API → ${{ needs.determine-environment.outputs.environment }}
     runs-on: ubuntu-latest
     needs: [determine-environment, detect-changes, build-api]
     if: |
       always() &&
-      needs.detect-changes.outputs.api-changed == 'true' &&
+      (needs.detect-changes.outputs.api == 'true' || 
+       needs.detect-changes.outputs.infrastructure == 'true') &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
       needs.build-api.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
-      - name: Download API artifacts
+      - name: Download API Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: api-dist
+          name: api-${{ needs.determine-environment.outputs.environment }}
           path: api-dist
-
-      - name: Verify API artifacts
+      
+      - name: Verify API Artifacts
         run: |
           echo "🔍 Verifying API artifacts..."
-          ls -la api-dist/
+          
           if [ ! -f "api-dist/host.json" ]; then
             echo "❌ host.json not found!"
             exit 1
           fi
+          
+          if [ ! -d "api-dist/functions" ]; then
+            echo "❌ functions directory not found!"
+            exit 1
+          fi
+          
           echo "✅ API artifacts verified"
-
+          echo "📦 Contents:"
+          ls -lah api-dist/
+          echo ""
+          echo "📁 Functions:"
+          ls -lah api-dist/functions/
+      
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
-          app-name: bloom-platform-functions-v2
+          app-name: ${{ needs.determine-environment.outputs.api-app }}
           package: api-dist
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ secrets[needs.determine-environment.outputs.api-secret] }}
           respect-funcignore: true
-
-      - name: Post API deployment notification
+      
+      - name: Deployment Summary
         run: |
-          echo "✅ Successfully deployed API to ${{ needs.determine-environment.outputs.environment }} environment"
-          echo "🔗 API URL: https://bloom-platform-functions-v2.azurewebsites.net"
+          echo ""
+          echo "═══════════════════════════════════════════════════════"
+          echo "✅ API DEPLOYMENT COMPLETE"
+          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
+          echo "🔌 Function App: ${{ needs.determine-environment.outputs.api-app }}"
+          echo "🔗 URL:          https://${{ needs.determine-environment.outputs.api-app }}.azurewebsites.net"
+          echo "═══════════════════════════════════════════════════════"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 4: POST-DEPLOYMENT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Deployment Status Summary
+  # ─────────────────────────────────────────────────────────────────────────────
+  
+  deployment-summary:
+    name: 📊 Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, deploy-frontend, deploy-api]
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo ""
+          echo "╔═══════════════════════════════════════════════════════════════╗"
+          echo "║           🌸 BLOOM DEPLOYMENT SUMMARY 🌸                      ║"
+          echo "╚═══════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "🌍 Environment:     ${{ needs.determine-environment.outputs.environment }}"
+          echo "📅 Date:            $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "🔖 Commit:          ${{ github.sha }}"
+          echo "👤 Triggered by:    ${{ github.actor }}"
+          echo ""
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "CHANGES DETECTED"
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "🎨 Frontend:        ${{ needs.detect-changes.outputs.frontend }}"
+          echo "🔌 API:             ${{ needs.detect-changes.outputs.api }}"
+          echo "🏗️ Infrastructure:  ${{ needs.detect-changes.outputs.infrastructure }}"
+          echo ""
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "DEPLOYMENT STATUS"
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "🎨 Frontend:        ${{ needs.deploy-frontend.result }}"
+          echo "   └─ App:          ${{ needs.determine-environment.outputs.frontend-app }}"
+          echo "🔌 API:             ${{ needs.deploy-api.result }}"
+          echo "   └─ App:          ${{ needs.determine-environment.outputs.api-app }}"
+          echo ""
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "APPLICATION URLS"
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "🌐 Frontend:        https://${{ needs.determine-environment.outputs.frontend-app }}.azurestaticapps.net"
+          echo "🔗 API:             https://${{ needs.determine-environment.outputs.api-app }}.azurewebsites.net"
+          echo ""
+          
+          # Check for failures
+          if [[ "${{ needs.deploy-frontend.result }}" == "failure" ]] || [[ "${{ needs.deploy-api.result }}" == "failure" ]]; then
+            echo "❌ DEPLOYMENT FAILED - See logs above for details"
+            exit 1
+          else
+            echo "✅ DEPLOYMENT SUCCESSFUL"
+          fi

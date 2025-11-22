@@ -1308,32 +1308,18 @@ export function JoinUs() {
                     value={formData.experience_years || ""}
                     onChange={(e) => setFormData({ ...formData, experience_years: parseInt(e.target.value) || 0 })}
                     placeholder="5"
-                    readOnly={qualificationData?.qualificationType === 'clinical' || qualificationData?.qualificationType === 'phd'}
                     style={{
                       width: '100%',
                       padding: '12px 16px',
                       fontSize: '16px',
                       borderRadius: '8px',
                       border: `2px solid rgba(107, 142, 127, 0.3)`,
-                      background: qualificationData?.qualificationType === 'clinical' || qualificationData?.qualificationType === 'phd' 
-                        ? 'rgba(107, 142, 127, 0.05)' 
-                        : bloomStyles.colors.paperWhite,
+                      background: bloomStyles.colors.paperWhite,
                       outline: 'none',
                       transition: 'all 0.2s',
-                      cursor: qualificationData?.qualificationType === 'clinical' || qualificationData?.qualificationType === 'phd' 
-                        ? 'not-allowed' 
-                        : 'text',
+                      cursor: 'text',
                     }}
                   />
-                  {qualificationData && (qualificationData.qualificationType === 'clinical' || qualificationData.qualificationType === 'phd') && (
-                    <p style={{ 
-                      fontSize: '12px', 
-                      color: bloomStyles.colors.eucalyptusSage, 
-                      marginTop: '4px' 
-                    }}>
-                      Not required for your qualification.
-                    </p>
-                  )}
                 </motion.div>
               </motion.div>
 

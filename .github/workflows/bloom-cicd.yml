@@ -183,21 +183,21 @@ jobs:
               FRONTEND_APP="lpa-bloom-prod"
               API_APP="bloom-platform-functions-v2"
               SHOULD_DEPLOY="true"
-              FRONTEND_SECRET="BLOOM_PROD_DEPLOYMENT_TOKEN"
-              API_SECRET="BLOOM_PROD_API_PUBLISH_PROFILE"
+              FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD"
+              API_SECRET="AZURE_FUNCTIONAPP_PUBLISH_PROFILE"
               ;;
             staging)
               FRONTEND_APP="lpa-bloom-staging"
               API_APP="bloom-functions-staging-new"
               SHOULD_DEPLOY="true"
-              FRONTEND_SECRET="BLOOM_STAGING_DEPLOYMENT_TOKEN"
+              FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING"
               API_SECRET="BLOOM_STAGING_API_PUBLISH_PROFILE"
               ;;
             development)
               FRONTEND_APP="lpa-bloom-dev"
               API_APP="bloom-functions-dev"
               SHOULD_DEPLOY="true"
-              FRONTEND_SECRET="BLOOM_DEV_DEPLOYMENT_TOKEN"
+              FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_DEV"
               API_SECRET="BLOOM_DEV_API_PUBLISH_PROFILE"
               ;;
             preview)

@@ -83,7 +83,7 @@ jobs:
         run: |
           REF="${{ github.ref }}"
           echo "Branch/Ref: $REF"
-          
+
           case "$REF" in
             refs/heads/main)
               ENV="production"
@@ -106,7 +106,7 @@ jobs:
               SHOULD_DEPLOY="false"
               ;;
           esac
-          
+
           echo "environment=$ENV" >> $GITHUB_OUTPUT
           echo "app-name=$APP_NAME" >> $GITHUB_OUTPUT
           echo "should-deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
@@ -130,7 +130,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci
-      
+
       - name: Build Application
         run: |
           echo "Building Proto-Bloom application..."
@@ -139,7 +139,7 @@ jobs:
           echo "✅ Build finished"
         env:
           VITE_ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
-      
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -166,18 +166,18 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: api/package-lock.json
-      
+
       - name: Install API dependencies
         working-directory: ./api
         run: npm ci
-      
+
       - name: Build API
         working-directory: ./api
         run: |
           echo "Building Azure Functions API..."
           npm run build
           echo "✅ API build finished"
-      
+
       - name: Prepare API deployment package
         working-directory: ./api
         run: |
@@ -189,7 +189,7 @@ jobs:
           cp package-lock.json deploy-package/
           cp -r node_modules deploy-package/
           echo "✅ Deployment package ready ($(du -sh deploy-package | cut -f1))"
-      
+
       - name: Upload API artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -209,13 +209,13 @@ jobs:
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
-      
+
       - name: Verify build artifacts
         run: |
           echo "🔍 Verifying build artifacts..."
@@ -225,7 +225,7 @@ jobs:
           fi
           echo "✅ Build artifacts verified"
           ls -la dist/
-      
+
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
@@ -234,7 +234,7 @@ jobs:
           action: 'upload'
           app_location: '.'
           output_location: 'dist'
-      
+
       - name: Post deployment notification
         run: |
           echo "✅ Successfully deployed to ${{ needs.determine-environment.outputs.environment }} environment"
@@ -257,7 +257,7 @@ jobs:
         with:
           name: api-dist
           path: api-dist
-      
+
       - name: Verify API artifacts
         run: |
           echo "🔍 Verifying API artifacts..."
@@ -267,16 +267,16 @@ jobs:
             exit 1
           fi
           echo "✅ API artifacts verified"
-      
+
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
-          app-name: fnt42kldozqahcu
+          app-name: bloom-platform-functions-v2
           package: api-dist
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
           respect-funcignore: true
-      
+
       - name: Post API deployment notification
         run: |
           echo "✅ Successfully deployed API to ${{ needs.determine-environment.outputs.environment }} environment"
-          echo "🔗 API URL: https://fnt42kldozqahcu.azurewebsites.net"
+          echo "🔗 API URL: https://bloom-platform-functions-v2.azurewebsites.net"

@@ -13,12 +13,13 @@ Bloom is Life Psychology Australia's practitioner onboarding platform, enabling 
 ## 📋 Features
 
 ### Application Management System
+
 - **Application Form** (`/join-us`) - Practitioners can submit applications with:
   - Personal information and qualifications
   - AHPRA registration details
   - File uploads (CV, certificates, profile photo)
   - Experience details and cover letter
-  
+
 - **Admin Portal** (`/admin`) - Review and manage applications:
   - Dashboard with application statistics
   - List view with filtering and sorting
@@ -27,6 +28,7 @@ Bloom is Life Psychology Australia's practitioner onboarding platform, enabling 
   - Document access and download
 
 ### Design System
+
 - Custom design system based on Bloom brand guidelines
 - Sage green (#8CA88C) and terracotta (#D97757) color palette
 - Poppins (headings) and Inter (body) typography
@@ -35,6 +37,7 @@ Bloom is Life Psychology Australia's practitioner onboarding platform, enabling 
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **Framework**: React 18 + TypeScript
 - **Build Tool**: Vite
 - **UI Components**: shadcn/ui + Tailwind CSS
@@ -43,6 +46,7 @@ Bloom is Life Psychology Australia's practitioner onboarding platform, enabling 
 - **Forms**: React Hook Form + Zod validation
 
 ### Backend
+
 - **API**: Azure Functions (Node.js/TypeScript)
 - **Database**: Azure SQL Database
 - **Storage**: Azure Blob Storage
@@ -69,6 +73,7 @@ bloom-web-app/
 ## 🔧 Development Setup
 
 ### Prerequisites
+
 - Node.js 20+
 - npm or yarn
 - Azure account (for deployment)
@@ -105,6 +110,7 @@ npm run preview      # Preview production build
 The project uses GitHub Actions for automated deployments across three environments:
 
 #### Environment Strategy
+
 - **Development** (`develop` branch)
   - Frontend: https://lpa-bloom-dev.azurestaticapps.net
   - API: https://bloom-functions-dev.azurewebsites.net
@@ -124,7 +130,9 @@ The project uses GitHub Actions for automated deployments across three environme
   - Live production environment
 
 #### Deployment Pipeline
+
 The workflow automatically:
+
 1. **Detects Changes**: Uses intelligent path filtering to identify frontend/API/infrastructure changes
 2. **Quality Checks**: Runs parallel lint and type-check validations
 3. **Builds**: Compiles only changed components (frontend with Vite, API with TypeScript)
@@ -132,7 +140,9 @@ The workflow automatically:
 5. **Reports**: Provides comprehensive deployment summary
 
 #### Manual Deployments
+
 Use GitHub Actions UI to manually trigger deployments:
+
 1. Go to Actions → Bloom CI/CD
 2. Click "Run workflow"
 3. Select branch and optionally specify target environment
@@ -150,11 +160,13 @@ See [CICD_CONFIGURATION_COMPLETE.md](./CICD_CONFIGURATION_COMPLETE.md) for curre
 Set these in your GitHub repository settings (`Settings > Secrets and variables > Actions`):
 
 #### Frontend Deployment Tokens
+
 - `BLOOM_DEV_DEPLOYMENT_TOKEN` - Dev Static Web App deployment token
 - `BLOOM_STAGING_DEPLOYMENT_TOKEN` - Staging Static Web App deployment token
 - `BLOOM_PROD_DEPLOYMENT_TOKEN` - Production Static Web App deployment token
 
 #### API Deployment Profiles
+
 - `BLOOM_DEV_API_PUBLISH_PROFILE` - Dev Azure Functions publish profile (XML)
 - `BLOOM_STAGING_API_PUBLISH_PROFILE` - Staging Azure Functions publish profile (XML)
 - `BLOOM_PROD_API_PUBLISH_PROFILE` - Production Azure Functions publish profile (XML)
@@ -185,6 +197,7 @@ NODE_ENV=development|staging|production
 The application follows Life Psychology Australia's Bloom brand guidelines:
 
 ### Colors
+
 - **Primary**: Sage Green (#8CA88C)
 - **Secondary**: Terracotta (#D97757)
 - **Accent**: Warm Yellow (#F4C95D)
@@ -192,6 +205,7 @@ The application follows Life Psychology Australia's Bloom brand guidelines:
 - **Background**: Soft Cream (#FAF8F3)
 
 ### Typography
+
 - **Headings**: Poppins (600 weight)
 - **Body**: Inter (400 weight)
 
@@ -209,5 +223,6 @@ Copyright © 2025 Life Psychology Australia
 ## 🆘 Support
 
 For issues or questions:
+
 - Open an issue on GitHub
 - Contact the development team

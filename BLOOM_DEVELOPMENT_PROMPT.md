@@ -1,7 +1,7 @@
 # Bloom Development Prompt
 ## Comprehensive Design System & Implementation Guide
 
-**Project:** Proto-Bloom - Life Psychology Australia's Practitioner Onboarding Portal  
+**Project:** Bloom - Life Psychology Australia's Practitioner Onboarding Portal  
 **Design Philosophy:** "Warm Professional Fairy Godmother" (30% personality, 70% competence)  
 **Aesthetic:** Studio Ghibli meets Linear - warm, inviting professionalism  
 **Last Updated:** October 16, 2025

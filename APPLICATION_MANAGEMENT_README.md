@@ -1,8 +1,8 @@
-# Proto-Bloom Application Management System
+# Bloom Application Management System
 
 ## Overview
 
-The Proto-Bloom Application Management System is the MVP onboarding solution for Life Psychology Australia's Bloom platform. It enables psychologists to submit applications online and provides an admin portal for reviewing and managing these applications.
+The Bloom Application Management System is the MVP onboarding solution for Life Psychology Australia's Bloom platform. It enables psychologists to submit applications online and provides an admin portal for reviewing and managing these applications.
 
 ## Features
 

@@ -2,7 +2,7 @@
 
 **Document Version:** 1.0
 **Created:** November 22, 2025
-**Project:** Proto-Bloom Application Management System
+**Project:** Bloom Application Management System
 **Owner:** Life Psychology Australia
 
 ---

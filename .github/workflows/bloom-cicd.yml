@@ -1,4 +1,4 @@
-name: Proto-Bloom CI/CD
+name: Bloom CI/CD
 
 on:
   push:
@@ -87,22 +87,22 @@ jobs:
           case "$REF" in
             refs/heads/main)
               ENV="production"
-              APP_NAME="lpa-proto-bloom"
+              APP_NAME="lpa-bloom"
               SHOULD_DEPLOY="true"
               ;;
             refs/heads/staging)
               ENV="staging"
-              APP_NAME="lpa-proto-bloom"
+              APP_NAME="lpa-bloom"
               SHOULD_DEPLOY="true"
               ;;
             refs/heads/develop)
               ENV="development"
-              APP_NAME="lpa-proto-bloom"
+              APP_NAME="lpa-bloom"
               SHOULD_DEPLOY="true"
               ;;
             *)
               ENV="preview"
-              APP_NAME="lpa-proto-bloom"
+              APP_NAME="lpa-bloom"
               SHOULD_DEPLOY="false"
               ;;
           esac
@@ -133,7 +133,7 @@ jobs:
 
       - name: Build Application
         run: |
-          echo "Building Proto-Bloom application..."
+          echo "Building Bloom application..."
           echo "Environment: ${{ needs.determine-environment.outputs.environment }}"
           npm run build
           echo "✅ Build finished"

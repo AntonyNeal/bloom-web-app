@@ -1,12 +1,14 @@
-# Proto-Bloom Web Application
+# Bloom Web Application
 
-[![CI/CD](https://github.com/AntonyNeal/bloom-web-app/actions/workflows/proto-bloom-cicd.yml/badge.svg)](https://github.com/AntonyNeal/bloom-web-app/actions/workflows/proto-bloom-cicd.yml)
+[![CI/CD](https://github.com/AntonyNeal/bloom-web-app/actions/workflows/bloom-cicd.yml/badge.svg)](https://github.com/AntonyNeal/bloom-web-app/actions/workflows/bloom-cicd.yml)
 
-Proto-Bloom is the MVP onboarding system for Life Psychology Australia's Bloom platform, enabling psychologists and mental health practitioners to apply to join the Bloom network.
+Bloom is Life Psychology Australia's practitioner onboarding platform, enabling psychologists and mental health practitioners to apply to join the Bloom network.
 
-## 🚀 Live Deployment
+## 🚀 Live Deployments
 
-- **Staging**: https://witty-ground-01f9d5100.3.azurestaticapps.net
+- **Development**: https://lpa-bloom-dev.azurestaticapps.net
+- **Staging**: https://lpa-bloom-staging.azurestaticapps.net
+- **Production**: https://lpa-bloom-prod.azurestaticapps.net (https://bloom.life-psychology.com.au)
 
 ## 📋 Features
 
@@ -98,29 +100,48 @@ npm run preview      # Preview production build
 
 ## 🚢 Deployment
 
-### Automated CI/CD
+### Multi-Environment CI/CD
 
-The project uses GitHub Actions for continuous deployment:
+The project uses GitHub Actions for automated deployments across three environments:
 
-- **Triggers**: Push to `main`, `staging`, or `develop` branches
-- **Pipeline Steps**:
-  1. ✅ Lint code (ESLint)
-  2. ✅ Type check (TypeScript)
-  3. ✅ Build application (Vite)
-  4. ✅ Deploy to Azure Static Web Apps
+#### Environment Strategy
+- **Development** (`develop` branch)
+  - Frontend: https://lpa-bloom-dev.azurestaticapps.net
+  - API: https://bloom-functions-dev.azurewebsites.net
+  - Auto-deploys on push to `develop`
+  - Suitable for active development and testing
 
-### Manual Deployment
+- **Staging** (`staging` branch)
+  - Frontend: https://lpa-bloom-staging.azurestaticapps.net
+  - API: https://bloom-functions-staging-new.azurewebsites.net
+  - Auto-deploys on push to `staging`
+  - Pre-production testing and UAT
 
-```bash
-# Build the application
-npm run build
+- **Production** (`main` branch)
+  - Frontend: https://lpa-bloom-prod.azurestaticapps.net
+  - API: https://bloom-platform-functions-v2.azurewebsites.net
+  - Auto-deploys on push to `main`
+  - Live production environment
 
-# Deploy using Azure Static Web Apps CLI
-npx @azure/static-web-apps-cli deploy \
-  --deployment-token <YOUR_TOKEN> \
-  --app-location . \
-  --output-location dist
-```
+#### Deployment Pipeline
+The workflow automatically:
+1. **Detects Changes**: Uses intelligent path filtering to identify frontend/API/infrastructure changes
+2. **Quality Checks**: Runs parallel lint and type-check validations
+3. **Builds**: Compiles only changed components (frontend with Vite, API with TypeScript)
+4. **Deploys**: Pushes to environment-specific Azure resources
+5. **Reports**: Provides comprehensive deployment summary
+
+#### Manual Deployments
+Use GitHub Actions UI to manually trigger deployments:
+1. Go to Actions → Bloom CI/CD
+2. Click "Run workflow"
+3. Select branch and optionally specify target environment
+4. Click "Run workflow"
+
+### Setup Requirements
+
+See [CICD_SETUP_GUIDE.md](./CICD_SETUP_GUIDE.md) for complete configuration instructions.
+See [CICD_CONFIGURATION_COMPLETE.md](./CICD_CONFIGURATION_COMPLETE.md) for current setup status.
 
 ## 🔐 Environment Configuration
 
@@ -128,27 +149,36 @@ npx @azure/static-web-apps-cli deploy \
 
 Set these in your GitHub repository settings (`Settings > Secrets and variables > Actions`):
 
-- `AZURE_STATIC_WEB_APPS_API_TOKEN` - Azure Static Web Apps deployment token
+#### Frontend Deployment Tokens
+- `BLOOM_DEV_DEPLOYMENT_TOKEN` - Dev Static Web App deployment token
+- `BLOOM_STAGING_DEPLOYMENT_TOKEN` - Staging Static Web App deployment token
+- `BLOOM_PROD_DEPLOYMENT_TOKEN` - Production Static Web App deployment token
+
+#### API Deployment Profiles
+- `BLOOM_DEV_API_PUBLISH_PROFILE` - Dev Azure Functions publish profile (XML)
+- `BLOOM_STAGING_API_PUBLISH_PROFILE` - Staging Azure Functions publish profile (XML)
+- `BLOOM_PROD_API_PUBLISH_PROFILE` - Production Azure Functions publish profile (XML)
+
+See [CICD_CONFIGURATION_COMPLETE.md](./CICD_CONFIGURATION_COMPLETE.md) for actual secret values (secure this file!).
 
 ### Backend Environment Variables
 
-Configure in Azure Functions Application Settings:
+Configure in Azure Functions Application Settings for each environment:
 
 ```
-SQL_SERVER=your-server.database.windows.net
-SQL_DATABASE=bloom-platform
-SQL_USER=your-username
-SQL_PASSWORD=your-password
-AZURE_STORAGE_CONNECTION_STRING=your-connection-string
+AZURE_SQL_CONNECTION_STRING=Server=tcp:lpa-sql-server.database.windows.net,1433;Database=lpa-applications-db;...
+AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=lpastorage13978;...
+NODE_ENV=development|staging|production
 ```
 
 ## 📚 Documentation
 
-- [Architecture Overview](./ARCHITECTURE.md)
-- [Deployment Guide](./DEPLOYMENT.md)
-- [Quick Start Guide](./QUICKSTART.md)
-- [Application Management](./APPLICATION_MANAGEMENT_README.md)
-- [Implementation Summary](./IMPLEMENTATION_SUMMARY.md)
+- [CI/CD Setup Guide](./CICD_SETUP_GUIDE.md) - Complete workflow documentation and troubleshooting
+- [CI/CD Configuration Complete](./CICD_CONFIGURATION_COMPLETE.md) - Current setup status and secrets
+- [Future Development Roadmap](./FUTURE_DEVELOPMENT_ROADMAP.md) - Feature backlog and Jira tickets
+- [Architecture Overview](./ARCHITECTURE.md) - System design and infrastructure
+- [Application Management](./APPLICATION_MANAGEMENT_README.md) - Admin features and workflows
+- [Implementation Summary](./IMPLEMENTATION_SUMMARY.md) - Development history
 
 ## 🎨 Design System
 

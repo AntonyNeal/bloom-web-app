@@ -449,8 +449,39 @@ jobs:
           echo ""
           echo "📁 Functions:"
           ls -lah api-dist/functions/
-
+      
+      - name: Check Publish Profile Secret
+        id: check-secret
+        run: |
+          SECRET_NAME="${{ needs.determine-environment.outputs.api-secret }}"
+          echo "🔍 Checking for publish profile secret: $SECRET_NAME"
+          
+          # Check if secret exists (will be empty string if not set)
+          if [ -z "${{ secrets[needs.determine-environment.outputs.api-secret] }}" ]; then
+            echo "secret-exists=false" >> $GITHUB_OUTPUT
+            echo "❌ Secret '$SECRET_NAME' is not configured"
+          else
+            echo "secret-exists=true" >> $GITHUB_OUTPUT
+            echo "✅ Secret '$SECRET_NAME' is configured"
+          fi
+      
+      - name: Skip API Deploy (Missing Secret)
+        if: steps.check-secret.outputs.secret-exists == 'false'
+        run: |
+          echo ""
+          echo "⚠️  API DEPLOYMENT SKIPPED"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Publish profile secret '${{ needs.determine-environment.outputs.api-secret }}' is not configured."
+          echo ""
+          echo "To enable API deployments for this environment:"
+          echo "1. Go to: Settings → Secrets and variables → Actions"
+          echo "2. Add secret: ${{ needs.determine-environment.outputs.api-secret }}"
+          echo "3. Value: Full XML from Function App publish profile"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+      
       - name: Deploy to Azure Functions
+        if: steps.check-secret.outputs.secret-exists == 'true'
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ needs.determine-environment.outputs.api-app }}
@@ -459,6 +490,7 @@ jobs:
           respect-funcignore: true
 
       - name: Deployment Summary
+        if: steps.check-secret.outputs.secret-exists == 'true'
         run: |
           echo ""
           echo "═══════════════════════════════════════════════════════"
@@ -517,10 +549,15 @@ jobs:
           echo "🔗 API:             https://${{ needs.determine-environment.outputs.api-app }}.azurewebsites.net"
           echo ""
 
-          # Check for failures
-          if [[ "${{ needs.deploy-frontend.result }}" == "failure" ]] || [[ "${{ needs.deploy-api.result }}" == "failure" ]]; then
+          # Check for failures (excluding skipped deployments)
+          FRONTEND_RESULT="${{ needs.deploy-frontend.result }}"
+          API_RESULT="${{ needs.deploy-api.result }}"
+          
+          if [[ "$FRONTEND_RESULT" == "failure" ]] || [[ "$API_RESULT" == "failure" ]]; then
             echo "❌ DEPLOYMENT FAILED - See logs above for details"
             exit 1
+          elif [[ "$FRONTEND_RESULT" == "skipped" ]] && [[ "$API_RESULT" == "skipped" ]]; then
+            echo "ℹ️  NO CHANGES DETECTED - Deployment skipped"
           else
             echo "✅ DEPLOYMENT SUCCESSFUL"
           fi

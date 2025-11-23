@@ -9,7 +9,7 @@
  * 6. Would this work in Kiki's Delivery Service?
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, startTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -83,11 +83,13 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
 
   // Phase 6: Calculate years-based recognition
   useEffect(() => {
-    if (yearsRegistered >= 16) setYearsIcon('honored');
-    else if (yearsRegistered >= 8) setYearsIcon('flower');
-    else if (yearsRegistered >= 5) setYearsIcon('bud');
-    else if (yearsRegistered >= 3) setYearsIcon('leaf');
-    else setYearsIcon('none');
+    startTransition(() => {
+      if (yearsRegistered >= 16) setYearsIcon('honored');
+      else if (yearsRegistered >= 8) setYearsIcon('flower');
+      else if (yearsRegistered >= 5) setYearsIcon('bud');
+      else if (yearsRegistered >= 3) setYearsIcon('leaf');
+      else setYearsIcon('none');
+    });
   }, [yearsRegistered]);
 
   // Phase 6: Track if qualifications are complete
@@ -97,10 +99,16 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   // Phase 6: iPhone-Safe delayed bloom - using requestAnimationFrame instead of setTimeout
   useEffect(() => {
     if (yearsRegistered >= 8 && hasQualification && !showDelayedBloom) {
-      setShowDelayedBloom(true);
+      startTransition(() => {
+        setShowDelayedBloom(true);
+      });
       // iPhone-Safe: Use requestAnimationFrame with fallback
       const animationId = requestAnimationFrame(() => {
-        setTimeout(() => setShowDelayedBloom(false), 2000);
+        setTimeout(() => {
+          startTransition(() => {
+            setShowDelayedBloom(false);
+          });
+        }, 2000);
       });
       return () => cancelAnimationFrame(animationId);
     }
@@ -122,10 +130,16 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
     }
 
     if (message) {
-      setSrAnnouncement(message);
+      startTransition(() => {
+        setSrAnnouncement(message);
+      });
       // iPhone-Safe: Use requestAnimationFrame before setTimeout
       const animationId = requestAnimationFrame(() => {
-        const timer = setTimeout(() => setSrAnnouncement(''), 3000);
+        const timer = setTimeout(() => {
+          startTransition(() => {
+            setSrAnnouncement('');
+          });
+        }, 3000);
         return () => clearTimeout(timer);
       });
       return () => cancelAnimationFrame(animationId);

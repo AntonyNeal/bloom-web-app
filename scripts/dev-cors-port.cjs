@@ -15,7 +15,6 @@ function checkPort(port) {
 
 (async () => {
   for (const port of ports) {
-    // eslint-disable-next-line no-await-in-loop
     if (await checkPort(port)) {
       console.log(`Starting vite on CORS-legal port: ${port}`);
       execSync(`npx vite --port ${port} --strictPort`, { stdio: 'inherit' });

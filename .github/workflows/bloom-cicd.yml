@@ -282,7 +282,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-${{ needs.determine-environment.outputs.environment }}
-          path: dist
+          path: dist/**
+          if-no-files-found: error
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────────
@@ -350,7 +351,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: api-${{ needs.determine-environment.outputs.environment }}
-          path: api/deploy-package
+          path: api/deploy-package/**
+          if-no-files-found: error
           retention-days: 7
 
   # ═══════════════════════════════════════════════════════════════════════════════

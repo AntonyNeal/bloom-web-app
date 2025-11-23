@@ -352,27 +352,69 @@ jobs:
 
       - name: Build Bloom Application
         run: |
+          set -x
           echo "🌸 Building Bloom Frontend..."
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
           echo "📦 Target: ${{ needs.determine-environment.outputs.bloom-frontend-app }}"
           npm run build:bloom
           echo "✅ Build complete"
 
+      - name: Post-build diagnostics
+        run: |
+          set -x
+          echo "=== Build environment ==="
+          node -v || true
+          npm -v || true
+          echo "PWD=$(pwd)"
+          echo "USER=$(whoami)"
+          echo "Workspace contents (top 50 lines):"
+          ls -la . | head -n 50
+          echo "Frontend dist contents:"
+          if [ -d "./dist" ]; then
+            ls -la ./dist | head -n 100
+            echo "Recursive listing (first 200 files):"
+            find ./dist -type f -print | head -n 200
+            echo "SHA256 checksums (first 200 files):"
+            find ./dist -type f -print0 | head -z -n 200 | xargs -0 sha256sum 2>/dev/null || true
+            echo "Disk usage:"
+            du -sh ./dist || true
+            echo "File count:"
+            find ./dist -type f | wc -l
+          else
+            echo "❌ No ./dist directory found after build!"
+            exit 1
+          fi
+
       - name: Verify Build Output
         run: |
           echo "🔍 Checking build output..."
-          ls -lah dist/
           if [ ! -f "dist/index.html" ]; then
             echo "❌ dist/index.html not found after build!"
+            echo "Directory contents:"
+            ls -R dist/ || true
             exit 1
           fi
-          echo "✅ Build output verified"
+          echo "✅ Build output verified: dist/index.html exists"
+          ls -lh dist/index.html
+
+      - name: Package frontend artifacts
+        run: |
+          set -x
+          echo "📦 Creating packaged artifact with checksums..."
+          tar -czf bloom-frontend-dist.tar.gz dist
+          sha256sum bloom-frontend-dist.tar.gz > bloom-frontend-dist.tar.gz.sha256
+          echo "Package size:"
+          ls -lh bloom-frontend-dist.tar.gz
+          echo "Checksum:"
+          cat bloom-frontend-dist.tar.gz.sha256
 
       - name: Upload Bloom Frontend Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: bloom-frontend-${{ needs.determine-environment.outputs.environment }}
-          path: dist/
+          path: |
+            bloom-frontend-dist.tar.gz
+            bloom-frontend-dist.tar.gz.sha256
           if-no-files-found: error
           retention-days: 7
 
@@ -594,27 +636,84 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Download Bloom Frontend Artifacts
+        id: download
         uses: actions/download-artifact@v4
         with:
           name: bloom-frontend-${{ needs.determine-environment.outputs.environment }}
-          path: dist
+          path: artifact-download
 
-      - name: Verify Artifacts
+      - name: Verify downloaded artifacts
+        id: verify-artifacts
         run: |
-          echo "🔍 Verifying Bloom build artifacts..."
-          echo "📂 Working directory:"
-          pwd
-          echo "📂 Artifact structure:"
-          find dist -type f -name "*.html" | head -10
-          echo "📂 Artifact contents:"
-          ls -lah dist/
-          if [ ! -f "dist/index.html" ]; then
-            echo "❌ dist/index.html not found!"
-            echo "📂 Full directory structure:"
-            ls -R dist/
+          set -x
+          echo "=== Artifact Download Verification ==="
+          echo "Download path: artifact-download"
+          echo "PWD=$(pwd)"
+          echo "Listing artifact-download:"
+          ls -la artifact-download/ | head -n 100
+          
+          # Verify checksum file exists
+          if [ ! -f "artifact-download/bloom-frontend-dist.tar.gz.sha256" ]; then
+            echo "❌ Checksum file missing!"
+            ls -R artifact-download/ | head -n 200
             exit 1
           fi
-          echo "✅ Artifacts verified"
+          
+          # Verify archive exists
+          if [ ! -f "artifact-download/bloom-frontend-dist.tar.gz" ]; then
+            echo "❌ Archive file missing!"
+            ls -R artifact-download/ | head -n 200
+            exit 1
+          fi
+          
+          # Validate checksum
+          echo "Validating checksum..."
+          cd artifact-download
+          sha256sum -c bloom-frontend-dist.tar.gz.sha256 || {
+            echo "❌ Checksum validation failed!"
+            exit 1
+          }
+          echo "✅ Checksum validated"
+          
+          # List archive contents
+          echo "Archive contents (first 200 entries):"
+          tar -tzf bloom-frontend-dist.tar.gz | head -n 200
+          
+          # Extract archive
+          echo "Extracting archive..."
+          tar -xzf bloom-frontend-dist.tar.gz
+          cd ..
+          
+          # Verify extracted contents
+          echo "Post-extract listing:"
+          ls -la artifact-download/dist/ | head -n 100 || true
+          echo "File checksums (first 200):"
+          find artifact-download/dist -type f -print0 | head -z -n 200 | xargs -0 sha256sum 2>/dev/null || true
+          
+          # Critical check: index.html must exist
+          if [ ! -f "artifact-download/dist/index.html" ]; then
+            echo "❌ dist/index.html missing after extraction!"
+            echo "Creating debug archive for inspection..."
+            tar -czf debug-workspace.tar.gz . 2>/dev/null || true
+            echo "Debug archive created"
+            exit 1
+          fi
+          
+          echo "✅ Artifacts verified successfully"
+          ls -lh artifact-download/dist/index.html
+          
+          # Copy to expected location for deployment
+          cp -r artifact-download/dist ./dist
+          echo "✅ Artifacts copied to ./dist for deployment"
+
+      - name: Upload debug workspace on failure
+        if: failure() && steps.verify-artifacts.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-workspace-${{ needs.determine-environment.outputs.environment }}-${{ github.run_id }}
+          path: debug-workspace.tar.gz
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1

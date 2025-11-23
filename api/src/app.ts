@@ -1,4 +1,3 @@
-import './functions/applications';
 import './functions/upload';
 import './functions/health';
 import './functions/ab-test';

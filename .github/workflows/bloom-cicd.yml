@@ -383,6 +383,18 @@ jobs:
           name: frontend-${{ needs.determine-environment.outputs.environment }}
           path: dist
 
+      - name: Debug Artifact Structure
+        run: |
+          echo "🔍 Debugging artifact structure..."
+          echo "Workspace root:"
+          ls -lah
+          echo ""
+          echo "Contents of dist/:"
+          ls -lah dist/ || echo "dist/ not found"
+          echo ""
+          echo "Searching for index.html:"
+          find . -maxdepth 3 -name "index.html" -print || true
+
       - name: Verify Artifacts
         run: |
           echo "🔍 Verifying build artifacts..."
@@ -402,8 +414,8 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets[needs.determine-environment.outputs.frontend-secret] }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: 'upload'
-          app_location: '.'
-          output_location: 'dist'
+          app_location: 'dist'
+          skip_app_build: true
 
       - name: Deployment Summary
         run: |

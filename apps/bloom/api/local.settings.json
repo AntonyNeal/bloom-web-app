@@ -1,0 +1,16 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "SQL_SERVER": "lpa-sql-server.database.windows.net",
+    "SQL_DATABASE": "lpa-bloom-db",
+    "SQL_USER": "your_admin",
+    "SQL_PASSWORD": "your_password",
+    "AZURE_STORAGE_CONNECTION_STRING": "your_connection_string"
+  },
+  "Host": {
+    "CORS": "*",
+    "CORSCredentials": false
+  }
+}

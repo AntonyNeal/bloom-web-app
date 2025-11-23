@@ -1,0 +1,864 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# LIFE PSYCHOLOGY MONOREPO CI/CD WORKFLOW
+# Multi-App Deployment Pipeline
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# APPLICATIONS:
+# 1. Bloom Portal (apps/bloom) + Bloom API (apps/bloom/api)
+# 2. Website (apps/website) + Website API (apps/website/functions)
+# 3. Shared Packages (@shared/*)
+#
+# ENVIRONMENTS:
+# - Development (develop branch)
+# - Staging (staging branch)
+# - Production (main branch)
+#
+# TRIGGERS:
+# - Auto-deploy on push to main/staging/develop
+# - Manual deployment via workflow_dispatch
+# - Smart change detection per app
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: Monorepo Deploy
+
+on:
+  push:
+    branches:
+      - main      # Production
+      - staging   # Staging
+      - develop   # Development
+  pull_request:
+    branches:
+      - main
+      - staging
+      - develop
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      deploy_bloom:
+        description: 'Deploy Bloom Portal'
+        required: false
+        type: boolean
+        default: true
+      deploy_website:
+        description: 'Deploy Website'
+        required: false
+        type: boolean
+        default: true
+      deploy_apis:
+        description: 'Deploy APIs'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+env:
+  NODE_VERSION: '20'
+  NODE_VERSION_API: '18'
+  PNPM_VERSION: '9'
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 1: SETUP & CHANGE DETECTION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Detect Changes (Determine What to Build/Deploy)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  detect-changes:
+    name: 🔎 Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      bloom-frontend: ${{ steps.filter.outputs.bloom-frontend }}
+      bloom-api: ${{ steps.filter.outputs.bloom-api }}
+      website-frontend: ${{ steps.filter.outputs.website-frontend }}
+      website-api: ${{ steps.filter.outputs.website-api }}
+      shared-packages: ${{ steps.filter.outputs.shared-packages }}
+      infrastructure: ${{ steps.filter.outputs.infrastructure }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect File Changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            bloom-frontend:
+              - 'apps/bloom/src/**'
+              - 'apps/bloom/public/**'
+              - 'apps/bloom/index.html'
+              - 'apps/bloom/vite.config.ts'
+              - 'apps/bloom/package.json'
+              - 'apps/bloom/staticwebapp.config.json'
+            bloom-api:
+              - 'apps/bloom/api/**'
+            website-frontend:
+              - 'apps/website/src/**'
+              - 'apps/website/public/**'
+              - 'apps/website/index.html'
+              - 'apps/website/vite.config.ts'
+              - 'apps/website/package.json'
+              - 'apps/website/staticwebapp.config.json'
+            website-api:
+              - 'apps/website/functions/**'
+            shared-packages:
+              - 'packages/**'
+            infrastructure:
+              - '.github/workflows/**'
+              - 'pnpm-workspace.yaml'
+              - 'package.json'
+
+      - name: Display Changes
+        run: |
+          echo "🌸 Bloom Frontend: ${{ steps.filter.outputs.bloom-frontend }}"
+          echo "🔌 Bloom API: ${{ steps.filter.outputs.bloom-api }}"
+          echo "🌐 Website Frontend: ${{ steps.filter.outputs.website-frontend }}"
+          echo "⚡ Website API: ${{ steps.filter.outputs.website-api }}"
+          echo "📦 Shared Packages: ${{ steps.filter.outputs.shared-packages }}"
+          echo "🏗️ Infrastructure: ${{ steps.filter.outputs.infrastructure }}"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Environment Configuration
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  determine-environment:
+    name: 🌍 Determine Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.config.outputs.environment }}
+      should-deploy: ${{ steps.config.outputs.should_deploy }}
+      # Bloom Portal
+      bloom-frontend-app: ${{ steps.config.outputs.bloom_frontend_app }}
+      bloom-api-app: ${{ steps.config.outputs.bloom_api_app }}
+      bloom-frontend-secret: ${{ steps.config.outputs.bloom_frontend_secret }}
+      bloom-api-secret: ${{ steps.config.outputs.bloom_api_secret }}
+      # Website
+      website-frontend-app: ${{ steps.config.outputs.website_frontend_app }}
+      website-api-app: ${{ steps.config.outputs.website_api_app }}
+      website-frontend-secret: ${{ steps.config.outputs.website_frontend_secret }}
+      website-api-secret: ${{ steps.config.outputs.website_api_secret }}
+    steps:
+      - name: Set Environment Configuration
+        id: config
+        run: |
+          REF="${{ github.ref }}"
+          MANUAL_ENV="${{ github.event.inputs.environment }}"
+
+          echo "📍 Branch/Ref: $REF"
+          echo "🎯 Manual Override: $MANUAL_ENV"
+
+          # Use manual input if workflow_dispatch, otherwise use branch
+          if [ -n "$MANUAL_ENV" ]; then
+            ENV="$MANUAL_ENV"
+          else
+            case "$REF" in
+              refs/heads/main)
+                ENV="production"
+                ;;
+              refs/heads/staging)
+                ENV="staging"
+                ;;
+              refs/heads/develop)
+                ENV="development"
+                ;;
+              refs/pull/*)
+                ENV="preview"
+                ;;
+              *)
+                ENV="preview"
+                ;;
+            esac
+          fi
+
+          # Set resource names based on environment
+          case "$ENV" in
+            production)
+              # Bloom Portal - Production
+              BLOOM_FRONTEND_APP="lpa-bloom-prod"
+              BLOOM_API_APP="bloom-platform-functions-v2"
+              BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD"
+              BLOOM_API_SECRET="BLOOM_PROD_API_PUBLISH_PROFILE"
+              
+              # Website - Production
+              WEBSITE_FRONTEND_APP="lpa-website-prod"
+              WEBSITE_API_APP="lpa-website-functions-prod"
+              WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_PROD"
+              WEBSITE_API_SECRET="WEBSITE_PROD_API_PUBLISH_PROFILE"
+              
+              SHOULD_DEPLOY="true"
+              ;;
+            staging)
+              # Bloom Portal - Staging
+              BLOOM_FRONTEND_APP="lpa-bloom-staging"
+              BLOOM_API_APP="bloom-functions-staging-new"
+              BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING"
+              BLOOM_API_SECRET="BLOOM_STAGING_API_PUBLISH_PROFILE"
+              
+              # Website - Staging
+              WEBSITE_FRONTEND_APP="lpa-website-staging"
+              WEBSITE_API_APP="lpa-website-functions-staging"
+              WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_STAGING"
+              WEBSITE_API_SECRET="WEBSITE_STAGING_API_PUBLISH_PROFILE"
+              
+              SHOULD_DEPLOY="true"
+              ;;
+            development)
+              # Bloom Portal - Development
+              BLOOM_FRONTEND_APP="lpa-bloom-dev"
+              BLOOM_API_APP="bloom-functions-dev"
+              BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_DEV"
+              BLOOM_API_SECRET="BLOOM_DEV_API_PUBLISH_PROFILE"
+              
+              # Website - Development
+              WEBSITE_FRONTEND_APP="lpa-website-dev"
+              WEBSITE_API_APP="lpa-website-functions-dev"
+              WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_DEV"
+              WEBSITE_API_SECRET="WEBSITE_DEV_API_PUBLISH_PROFILE"
+              
+              SHOULD_DEPLOY="true"
+              ;;
+            preview)
+              # Preview - use dev resources
+              BLOOM_FRONTEND_APP="lpa-bloom-dev"
+              BLOOM_API_APP="bloom-functions-dev"
+              BLOOM_FRONTEND_SECRET=""
+              BLOOM_API_SECRET=""
+              
+              WEBSITE_FRONTEND_APP="lpa-website-dev"
+              WEBSITE_API_APP="lpa-website-functions-dev"
+              WEBSITE_FRONTEND_SECRET=""
+              WEBSITE_API_SECRET=""
+              
+              SHOULD_DEPLOY="false"
+              ;;
+          esac
+
+          # Output configuration
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          echo "should_deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+          
+          # Bloom Portal
+          echo "bloom_frontend_app=$BLOOM_FRONTEND_APP" >> $GITHUB_OUTPUT
+          echo "bloom_api_app=$BLOOM_API_APP" >> $GITHUB_OUTPUT
+          echo "bloom_frontend_secret=$BLOOM_FRONTEND_SECRET" >> $GITHUB_OUTPUT
+          echo "bloom_api_secret=$BLOOM_API_SECRET" >> $GITHUB_OUTPUT
+          
+          # Website
+          echo "website_frontend_app=$WEBSITE_FRONTEND_APP" >> $GITHUB_OUTPUT
+          echo "website_api_app=$WEBSITE_API_APP" >> $GITHUB_OUTPUT
+          echo "website_frontend_secret=$WEBSITE_FRONTEND_SECRET" >> $GITHUB_OUTPUT
+          echo "website_api_secret=$WEBSITE_API_SECRET" >> $GITHUB_OUTPUT
+
+          echo ""
+          echo "═══════════════════════════════════════════════════════"
+          echo "✅ ENVIRONMENT CONFIGURATION"
+          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment:         $ENV"
+          echo "🚀 Should Deploy:       $SHOULD_DEPLOY"
+          echo ""
+          echo "🌸 Bloom Frontend:      $BLOOM_FRONTEND_APP"
+          echo "🔌 Bloom API:           $BLOOM_API_APP"
+          echo ""
+          echo "🌐 Website Frontend:    $WEBSITE_FRONTEND_APP"
+          echo "⚡ Website API:         $WEBSITE_API_APP"
+          echo "═══════════════════════════════════════════════════════"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Quality Checks (Run in Parallel)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  lint:
+    name: 🔍 Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+  type-check:
+    name: 🔍 Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check
+        run: npx tsc --noEmit
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 2: BUILD APPLICATIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Build Bloom Frontend
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  build-bloom-frontend:
+    name: 🌸 Build Bloom Frontend
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, lint, type-check]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.bloom-frontend == 'true' ||
+       needs.detect-changes.outputs.shared-packages == 'true' ||
+       needs.detect-changes.outputs.infrastructure == 'true' ||
+       github.event.inputs.deploy_bloom == 'true') &&
+      needs.determine-environment.outputs.should-deploy == 'true' &&
+      needs.lint.result == 'success' &&
+      needs.type-check.result == 'success'
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Bloom Application
+        run: |
+          echo "🌸 Building Bloom Frontend..."
+          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "📦 Target: ${{ needs.determine-environment.outputs.bloom-frontend-app }}"
+          npm run build:bloom
+          echo "✅ Build complete"
+
+      - name: Upload Bloom Frontend Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bloom-frontend-${{ needs.determine-environment.outputs.environment }}
+          path: dist/**
+          if-no-files-found: error
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Build Website Frontend
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  build-website-frontend:
+    name: 🌐 Build Website Frontend
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, lint, type-check]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.website-frontend == 'true' ||
+       needs.detect-changes.outputs.shared-packages == 'true' ||
+       needs.detect-changes.outputs.infrastructure == 'true' ||
+       github.event.inputs.deploy_website == 'true') &&
+      needs.determine-environment.outputs.should-deploy == 'true' &&
+      needs.lint.result == 'success' &&
+      needs.type-check.result == 'success'
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Root Dependencies
+        run: npm ci
+
+      - name: Install Website Dependencies
+        working-directory: apps/website
+        run: npm install
+
+      - name: Build Website Application
+        run: |
+          echo "🌐 Building Website Frontend..."
+          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "📦 Target: ${{ needs.determine-environment.outputs.website-frontend-app }}"
+          npm run build:website
+          echo "✅ Build complete"
+
+      - name: Upload Website Frontend Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-frontend-${{ needs.determine-environment.outputs.environment }}
+          path: apps/website/dist/**
+          if-no-files-found: error
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Build Bloom API
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  build-bloom-api:
+    name: 🔌 Build Bloom API
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, lint, type-check]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.bloom-api == 'true' ||
+       needs.detect-changes.outputs.shared-packages == 'true' ||
+       needs.detect-changes.outputs.infrastructure == 'true' ||
+       github.event.inputs.deploy_apis == 'true') &&
+      needs.determine-environment.outputs.should-deploy == 'true' &&
+      needs.lint.result == 'success' &&
+      needs.type-check.result == 'success'
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION_API }}
+          cache: 'npm'
+
+      - name: Install API Dependencies
+        working-directory: ./api
+        run: npm install
+
+      - name: Build Bloom API
+        working-directory: ./api
+        run: |
+          echo "🔌 Building Bloom API..."
+          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "📦 Target: ${{ needs.determine-environment.outputs.bloom-api-app }}"
+          npm run build
+          echo "✅ API build complete"
+
+      - name: Package Bloom API
+        working-directory: ./api
+        run: |
+          echo "📦 Packaging Bloom API..."
+          mkdir -p deploy-package
+          
+          # Copy compiled functions
+          cp -r dist/* deploy-package/ || true
+          
+          # Copy configuration
+          cp host.json deploy-package/ || true
+          cp package.json deploy-package/
+          
+          # Install production dependencies
+          cd deploy-package
+          npm install --production
+          
+          echo "✅ Package ready"
+          du -sh .
+          ls -la
+
+      - name: Upload Bloom API Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bloom-api-${{ needs.determine-environment.outputs.environment }}
+          path: api/deploy-package/**
+          if-no-files-found: error
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Build Website API
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  build-website-api:
+    name: ⚡ Build Website API
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, lint, type-check]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.website-api == 'true' ||
+       needs.detect-changes.outputs.shared-packages == 'true' ||
+       needs.detect-changes.outputs.infrastructure == 'true' ||
+       github.event.inputs.deploy_apis == 'true') &&
+      needs.determine-environment.outputs.should-deploy == 'true' &&
+      needs.lint.result == 'success' &&
+      needs.type-check.result == 'success'
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION_API }}
+          cache: 'npm'
+
+      - name: Install Website API Dependencies
+        working-directory: ./apps/website/functions
+        run: npm install
+
+      - name: Build Website API
+        working-directory: ./apps/website/functions
+        run: |
+          echo "⚡ Building Website API..."
+          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "📦 Target: ${{ needs.determine-environment.outputs.website-api-app }}"
+          npm run build
+          echo "✅ API build complete"
+
+      - name: Package Website API
+        working-directory: ./apps/website/functions
+        run: |
+          echo "📦 Packaging Website API..."
+          mkdir -p deploy-package
+          
+          # Copy compiled functions
+          cp -r dist/* deploy-package/ || true
+          
+          # Copy configuration
+          cp host.json deploy-package/ || true
+          cp package.json deploy-package/
+          
+          # Install production dependencies
+          cd deploy-package
+          npm install --production
+          
+          echo "✅ Package ready"
+          du -sh .
+          ls -la
+
+      - name: Upload Website API Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-api-${{ needs.determine-environment.outputs.environment }}
+          path: apps/website/functions/deploy-package/**
+          if-no-files-found: error
+          retention-days: 7
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 3: DEPLOY TO AZURE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Deploy Bloom Frontend
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  deploy-bloom-frontend:
+    name: 🚀 Deploy Bloom Frontend → ${{ needs.determine-environment.outputs.environment }}
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, build-bloom-frontend]
+    if: |
+      always() &&
+      needs.build-bloom-frontend.result == 'success'
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Bloom Frontend Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: bloom-frontend-${{ needs.determine-environment.outputs.environment }}
+          path: bloom-dist
+
+      - name: Verify Artifacts
+        run: |
+          echo "🔍 Verifying Bloom build artifacts..."
+          echo "📂 Artifact contents:"
+          ls -lah bloom-dist/
+          if [ ! -f "bloom-dist/index.html" ]; then
+            echo "❌ bloom-dist/index.html not found!"
+            exit 1
+          fi
+          echo "✅ Artifacts verified"
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets[needs.determine-environment.outputs.bloom-frontend-secret] }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: 'upload'
+          app_location: 'bloom-dist'
+          skip_app_build: true
+          skip_api_build: true
+
+      - name: Deployment Summary
+        run: |
+          echo ""
+          echo "═══════════════════════════════════════════════════════"
+          echo "✅ BLOOM FRONTEND DEPLOYED"
+          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
+          echo "🌸 Application:  ${{ needs.determine-environment.outputs.bloom-frontend-app }}"
+          echo "🔗 URL:          https://${{ needs.determine-environment.outputs.bloom-frontend-app }}.azurestaticapps.net"
+          echo "═══════════════════════════════════════════════════════"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Deploy Website Frontend
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  deploy-website-frontend:
+    name: 🚀 Deploy Website Frontend → ${{ needs.determine-environment.outputs.environment }}
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, build-website-frontend]
+    if: |
+      always() &&
+      needs.build-website-frontend.result == 'success'
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Website Frontend Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: website-frontend-${{ needs.determine-environment.outputs.environment }}
+          path: website-dist
+
+      - name: Verify Artifacts
+        run: |
+          echo "🔍 Verifying Website build artifacts..."
+          echo "📂 Artifact contents:"
+          ls -lah website-dist/
+          if [ ! -f "website-dist/index.html" ]; then
+            echo "❌ website-dist/index.html not found!"
+            exit 1
+          fi
+          echo "✅ Artifacts verified"
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets[needs.determine-environment.outputs.website-frontend-secret] }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: 'upload'
+          app_location: 'website-dist'
+          skip_app_build: true
+          skip_api_build: true
+
+      - name: Deployment Summary
+        run: |
+          echo ""
+          echo "═══════════════════════════════════════════════════════"
+          echo "✅ WEBSITE FRONTEND DEPLOYED"
+          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
+          echo "🌐 Application:  ${{ needs.determine-environment.outputs.website-frontend-app }}"
+          echo "🔗 URL:          https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net"
+          echo "═══════════════════════════════════════════════════════"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Deploy Bloom API
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  deploy-bloom-api:
+    name: 🚀 Deploy Bloom API → ${{ needs.determine-environment.outputs.environment }}
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, build-bloom-api]
+    if: |
+      always() &&
+      needs.build-bloom-api.result == 'success'
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - name: Download Bloom API Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: bloom-api-${{ needs.determine-environment.outputs.environment }}
+          path: bloom-api-dist
+
+      - name: Verify Bloom API Artifacts
+        run: |
+          echo "🔍 Verifying Bloom API artifacts..."
+          if [ ! -f "bloom-api-dist/host.json" ]; then
+            echo "⚠️  host.json not found, but continuing..."
+          fi
+          echo "✅ Bloom API artifacts ready"
+          ls -lah bloom-api-dist/
+
+      - name: Check Publish Profile Secret
+        id: check-secret
+        run: |
+          SECRET_NAME="${{ needs.determine-environment.outputs.bloom-api-secret }}"
+          echo "🔍 Checking for publish profile: $SECRET_NAME"
+          
+          if [ -z "${{ secrets[needs.determine-environment.outputs.bloom-api-secret] }}" ]; then
+            echo "secret-exists=false" >> $GITHUB_OUTPUT
+            echo "❌ Secret not configured"
+          else
+            echo "secret-exists=true" >> $GITHUB_OUTPUT
+            echo "✅ Secret configured"
+          fi
+
+      - name: Deploy to Azure Functions
+        if: steps.check-secret.outputs.secret-exists == 'true'
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ needs.determine-environment.outputs.bloom-api-app }}
+          package: bloom-api-dist
+          publish-profile: ${{ secrets[needs.determine-environment.outputs.bloom-api-secret] }}
+
+      - name: Deployment Summary
+        if: steps.check-secret.outputs.secret-exists == 'true'
+        run: |
+          echo ""
+          echo "═══════════════════════════════════════════════════════"
+          echo "✅ BLOOM API DEPLOYED"
+          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
+          echo "🔌 Function App: ${{ needs.determine-environment.outputs.bloom-api-app }}"
+          echo "🔗 URL:          https://${{ needs.determine-environment.outputs.bloom-api-app }}.azurewebsites.net"
+          echo "═══════════════════════════════════════════════════════"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Deploy Website API
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  deploy-website-api:
+    name: 🚀 Deploy Website API → ${{ needs.determine-environment.outputs.environment }}
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, build-website-api]
+    if: |
+      always() &&
+      needs.build-website-api.result == 'success'
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - name: Download Website API Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: website-api-${{ needs.determine-environment.outputs.environment }}
+          path: website-api-dist
+
+      - name: Verify Website API Artifacts
+        run: |
+          echo "🔍 Verifying Website API artifacts..."
+          if [ ! -f "website-api-dist/host.json" ]; then
+            echo "⚠️  host.json not found, but continuing..."
+          fi
+          echo "✅ Website API artifacts ready"
+          ls -lah website-api-dist/
+
+      - name: Check Publish Profile Secret
+        id: check-secret
+        run: |
+          SECRET_NAME="${{ needs.determine-environment.outputs.website-api-secret }}"
+          echo "🔍 Checking for publish profile: $SECRET_NAME"
+          
+          if [ -z "${{ secrets[needs.determine-environment.outputs.website-api-secret] }}" ]; then
+            echo "secret-exists=false" >> $GITHUB_OUTPUT
+            echo "❌ Secret not configured"
+          else
+            echo "secret-exists=true" >> $GITHUB_OUTPUT
+            echo "✅ Secret configured"
+          fi
+
+      - name: Deploy to Azure Functions
+        if: steps.check-secret.outputs.secret-exists == 'true'
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ needs.determine-environment.outputs.website-api-app }}
+          package: website-api-dist
+          publish-profile: ${{ secrets[needs.determine-environment.outputs.website-api-secret] }}
+
+      - name: Deployment Summary
+        if: steps.check-secret.outputs.secret-exists == 'true'
+        run: |
+          echo ""
+          echo "═══════════════════════════════════════════════════════"
+          echo "✅ WEBSITE API DEPLOYED"
+          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
+          echo "⚡ Function App: ${{ needs.determine-environment.outputs.website-api-app }}"
+          echo "🔗 URL:          https://${{ needs.determine-environment.outputs.website-api-app }}.azurewebsites.net"
+          echo "═══════════════════════════════════════════════════════"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 4: POST-DEPLOYMENT SUMMARY
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  deployment-summary:
+    name: 📊 Deployment Summary
+    runs-on: ubuntu-latest
+    needs:
+      - determine-environment
+      - detect-changes
+      - deploy-bloom-frontend
+      - deploy-bloom-api
+      - deploy-website-frontend
+      - deploy-website-api
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo ""
+          echo "╔═══════════════════════════════════════════════════════════════╗"
+          echo "║        🌸 LIFE PSYCHOLOGY DEPLOYMENT SUMMARY 🌸               ║"
+          echo "╚═══════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "🌍 Environment:     ${{ needs.determine-environment.outputs.environment }}"
+          echo "📅 Date:            $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "🔖 Commit:          ${{ github.sha }}"
+          echo "👤 Triggered by:    ${{ github.actor }}"
+          echo ""
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "CHANGES DETECTED"
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "🌸 Bloom Frontend:  ${{ needs.detect-changes.outputs.bloom-frontend }}"
+          echo "🔌 Bloom API:       ${{ needs.detect-changes.outputs.bloom-api }}"
+          echo "🌐 Website Frontend: ${{ needs.detect-changes.outputs.website-frontend }}"
+          echo "⚡ Website API:     ${{ needs.detect-changes.outputs.website-api }}"
+          echo "📦 Shared Packages: ${{ needs.detect-changes.outputs.shared-packages }}"
+          echo ""
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "DEPLOYMENT STATUS"
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "🌸 Bloom Frontend:  ${{ needs.deploy-bloom-frontend.result }}"
+          echo "   └─ App:          ${{ needs.determine-environment.outputs.bloom-frontend-app }}"
+          echo "🔌 Bloom API:       ${{ needs.deploy-bloom-api.result }}"
+          echo "   └─ App:          ${{ needs.determine-environment.outputs.bloom-api-app }}"
+          echo "🌐 Website Frontend: ${{ needs.deploy-website-frontend.result }}"
+          echo "   └─ App:          ${{ needs.determine-environment.outputs.website-frontend-app }}"
+          echo "⚡ Website API:     ${{ needs.deploy-website-api.result }}"
+          echo "   └─ App:          ${{ needs.determine-environment.outputs.website-api-app }}"
+          echo ""
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "APPLICATION URLS"
+          echo "─────────────────────────────────────────────────────────────────"
+          echo "🌸 Bloom Portal:    https://${{ needs.determine-environment.outputs.bloom-frontend-app }}.azurestaticapps.net"
+          echo "🔌 Bloom API:       https://${{ needs.determine-environment.outputs.bloom-api-app }}.azurewebsites.net"
+          echo "🌐 Website:         https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net"
+          echo "⚡ Website API:     https://${{ needs.determine-environment.outputs.website-api-app }}.azurewebsites.net"
+          echo ""
+
+          # Check for failures
+          BLOOM_FE="${{ needs.deploy-bloom-frontend.result }}"
+          BLOOM_API="${{ needs.deploy-bloom-api.result }}"
+          WEBSITE_FE="${{ needs.deploy-website-frontend.result }}"
+          WEBSITE_API="${{ needs.deploy-website-api.result }}"
+          
+          if [[ "$BLOOM_FE" == "failure" ]] || [[ "$BLOOM_API" == "failure" ]] || \
+             [[ "$WEBSITE_FE" == "failure" ]] || [[ "$WEBSITE_API" == "failure" ]]; then
+            echo "❌ DEPLOYMENT FAILED - See logs above"
+            exit 1
+          elif [[ "$BLOOM_FE" == "skipped" ]] && [[ "$BLOOM_API" == "skipped" ]] && \
+               [[ "$WEBSITE_FE" == "skipped" ]] && [[ "$WEBSITE_API" == "skipped" ]]; then
+            echo "ℹ️  NO CHANGES - Deployment skipped"
+          else
+            echo "✅ DEPLOYMENT SUCCESSFUL"
+          fi

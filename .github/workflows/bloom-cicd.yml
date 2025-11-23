@@ -266,6 +266,14 @@ jobs:
           echo "📦 Target: ${{ needs.determine-environment.outputs.frontend-app }}"
           npm run build
           echo "✅ Build complete"
+          echo ""
+          echo "📦 Verifying build output:"
+          ls -lah dist/
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ ERROR: dist/index.html not found after build!"
+            exit 1
+          fi
+          echo "✅ dist/index.html exists"
         env:
           VITE_ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
           VITE_API_URL: ${{ needs.determine-environment.outputs.environment == 'production' && 'https://bloom-platform-functions-v2.azurewebsites.net/api' || needs.determine-environment.outputs.environment == 'staging' && 'https://bloom-functions-staging-new.azurewebsites.net/api' || 'https://bloom-functions-dev.azurewebsites.net/api' }}
@@ -394,7 +402,6 @@ jobs:
           action: 'upload'
           app_location: '.'
           output_location: 'dist'
-          skip_deploy_on_missing_secrets: true
 
       - name: Deployment Summary
         run: |

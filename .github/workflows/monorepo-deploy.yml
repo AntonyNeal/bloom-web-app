@@ -339,34 +339,49 @@ jobs:
       needs.type-check.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Use Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: 20
           cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build Bloom Application
+      - name: Install & build webapp (root)
+        working-directory: .
         run: |
-          echo "🌸 Building Bloom Frontend..."
+          set -euo pipefail
+          echo "🌸 Building Bloom Frontend from repository root..."
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
           echo "📦 Target: ${{ needs.determine-environment.outputs.bloom-frontend-app }}"
+          npm ci
           npm run build:bloom
           echo "✅ Build complete"
 
-      - name: Verify Build Output
+      - name: Show build output (diagnostic)
+        working-directory: .
         run: |
-          echo "🔍 Checking build output..."
-          ls -lah dist/
+          pwd
+          echo "Repo root listing:"
+          ls -la
+          echo "dist listing:"
+          ls -la dist || true
+          echo "recursive dist:"
+          ls -R dist || true
+
+      - name: Verify artifacts
+        working-directory: .
+        run: |
           if [ ! -f "dist/index.html" ]; then
-            echo "❌ dist/index.html not found after build!"
+            echo "❌ dist/index.html not found! Build output not in ./dist"
+            echo "Repo root listing:"
+            ls -la
+            echo "dist recursive:"
+            ls -R dist || true
             exit 1
           fi
-          echo "✅ Build output verified"
+          echo "✅ Artifacts verified"
 
       - name: Upload Bloom Frontend Artifacts
         uses: actions/upload-artifact@v4
@@ -375,6 +390,12 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 7
+
+      - name: Upload dist for debugging (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist-debug-${{ needs.determine-environment.outputs.environment }}
+          path: dist
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Build Website Frontend
@@ -615,6 +636,15 @@ jobs:
             exit 1
           fi
           echo "✅ Artifacts verified"
+
+      - name: Validate Azure SWA token presence
+        run: |
+          if [ -z "${{ secrets[needs.determine-environment.outputs.bloom-frontend-secret] }}" ]; then
+            echo "❌ Azure Static Web Apps deployment token is not set"
+            echo "Expected secret: ${{ needs.determine-environment.outputs.bloom-frontend-secret }}"
+            exit 1
+          fi
+          echo "✅ Deployment token validated"
 
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1

@@ -136,6 +136,15 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   const isMobile = useIsMobile();
   const shouldReduceMotion = useReducedMotion();
 
+  // Generate a stable random seed once per component mount (pure function requirement)
+  const [randomSeed] = useState(() => Math.random());
+
+  // Simple seeded pseudo-random function for stable, repeatable random values
+  const seededRandom = useCallback((seed: number) => {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  }, []);
+
   // Animation configuration based on device and user preferences - memoized for performance
   const animationConfig = useMemo(
     () => ({
@@ -166,30 +175,36 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   );
 
   // Stable random values for floating seeds (prevents recalculation on each render)
+  // Using seeded random generator to comply with React's purity requirements
   const seedValues = useMemo(() => {
     const count = isMobile ? 15 : 25;
     return Array.from({ length: count }, (_, i) => {
-      const startX = (i / count) * 100 + (Math.random() - 0.5) * 20;
+      const base = randomSeed + i;
+      const startX = (i / count) * 100 + (seededRandom(base + 1) - 0.5) * 20;
       return {
         startX,
-        endX: startX + (Math.random() - 0.5) * 30,
-        duration: 10 + Math.random() * 8,
-        delay: Math.random() * 2,
-        width: 2 + Math.random() * 3,
-        height: 2 + Math.random() * 3,
-        blur: 0.5 + Math.random() * 0.5,
+        endX: startX + (seededRandom(base + 2) - 0.5) * 30,
+        duration: 10 + seededRandom(base + 3) * 8,
+        delay: seededRandom(base + 4) * 2,
+        width: 2 + seededRandom(base + 5) * 3,
+        height: 2 + seededRandom(base + 6) * 3,
+        blur: 0.5 + seededRandom(base + 7) * 0.5,
       };
     });
-  }, [isMobile]);
+  }, [isMobile, randomSeed, seededRandom]);
 
   // Stable random values for ground wildflowers (prevents recalculation on each render)
+  // Using seeded random generator to comply with React's purity requirements
   const wildflowerValues = useMemo(() => {
     const count = isMobile ? 12 : 20;
-    return Array.from({ length: count }, () => ({
-      stemHeight: 30 + Math.random() * 50,
-      flowerSize: 6 + Math.random() * 8,
-    }));
-  }, [isMobile]);
+    return Array.from({ length: count }, (_, i) => {
+      const base = randomSeed + 1000 + i; // Offset to get different values from seedValues
+      return {
+        stemHeight: 30 + seededRandom(base + 1) * 50,
+        flowerSize: 6 + seededRandom(base + 2) * 8,
+      };
+    });
+  }, [isMobile, randomSeed, seededRandom]);
 
   const handleCheckEligibility = useCallback(() => {
     // iPhone-Safe Implementation: No setTimeout delays

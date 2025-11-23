@@ -358,11 +358,21 @@ jobs:
           npm run build:bloom
           echo "✅ Build complete"
 
+      - name: Verify Build Output
+        run: |
+          echo "🔍 Checking build output..."
+          ls -lah dist/
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ dist/index.html not found after build!"
+            exit 1
+          fi
+          echo "✅ Build output verified"
+
       - name: Upload Bloom Frontend Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: bloom-frontend-${{ needs.determine-environment.outputs.environment }}
-          path: dist/**
+          path: dist/
           if-no-files-found: error
           retention-days: 7
 
@@ -408,11 +418,21 @@ jobs:
           npm run build:website
           echo "✅ Build complete"
 
+      - name: Verify Build Output
+        run: |
+          echo "🔍 Checking website build output..."
+          ls -lah apps/website/dist/
+          if [ ! -f "apps/website/dist/index.html" ]; then
+            echo "❌ apps/website/dist/index.html not found after build!"
+            exit 1
+          fi
+          echo "✅ Build output verified"
+
       - name: Upload Website Frontend Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: website-frontend-${{ needs.determine-environment.outputs.environment }}
-          path: apps/website/dist/**
+          path: apps/website/dist/
           if-no-files-found: error
           retention-days: 7
 
@@ -577,15 +597,21 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: bloom-frontend-${{ needs.determine-environment.outputs.environment }}
-          path: bloom-dist
+          path: dist
 
       - name: Verify Artifacts
         run: |
           echo "🔍 Verifying Bloom build artifacts..."
+          echo "📂 Working directory:"
+          pwd
+          echo "📂 Artifact structure:"
+          find dist -type f -name "*.html" | head -10
           echo "📂 Artifact contents:"
-          ls -lah bloom-dist/
-          if [ ! -f "bloom-dist/index.html" ]; then
-            echo "❌ bloom-dist/index.html not found!"
+          ls -lah dist/
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ dist/index.html not found!"
+            echo "📂 Full directory structure:"
+            ls -R dist/
             exit 1
           fi
           echo "✅ Artifacts verified"
@@ -596,7 +622,7 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets[needs.determine-environment.outputs.bloom-frontend-secret] }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: 'upload'
-          app_location: 'bloom-dist'
+          app_location: 'dist'
           skip_app_build: true
           skip_api_build: true
 
@@ -630,15 +656,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: website-frontend-${{ needs.determine-environment.outputs.environment }}
-          path: website-dist
+          path: dist
 
       - name: Verify Artifacts
         run: |
           echo "🔍 Verifying Website build artifacts..."
+          echo "📂 Working directory:"
+          pwd
           echo "📂 Artifact contents:"
-          ls -lah website-dist/
-          if [ ! -f "website-dist/index.html" ]; then
-            echo "❌ website-dist/index.html not found!"
+          ls -lah dist/
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ dist/index.html not found!"
+            echo "📂 Full directory structure:"
+            ls -R dist/
             exit 1
           fi
           echo "✅ Artifacts verified"
@@ -649,7 +679,7 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets[needs.determine-environment.outputs.website-frontend-secret] }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: 'upload'
-          app_location: 'website-dist'
+          app_location: 'dist'
           skip_app_build: true
           skip_api_build: true
 

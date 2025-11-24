@@ -835,7 +835,7 @@ jobs:
           app_location: 'dist'
           api_location: 'api-dist'
           skip_app_build: true
-          skip_api_build: false
+          skip_api_build: true
         env:
           NODE_VERSION: ${{ env.NODE_VERSION_API }}
 

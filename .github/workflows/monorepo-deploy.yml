@@ -192,11 +192,11 @@ jobs:
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD"
               BLOOM_API_SECRET="BLOOM_PROD_API_PUBLISH_PROFILE"
               
-              # Website - Production
-              WEBSITE_FRONTEND_APP="lpa-website-prod"
-              WEBSITE_API_APP="lpa-website-functions-prod"
+              # Website - Production (API deployed as managed functions with SWA)
+              WEBSITE_FRONTEND_APP="lpa-frontend-prod"
+              WEBSITE_API_APP=""  # Managed functions - no standalone Function App
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_PROD"
-              WEBSITE_API_SECRET="WEBSITE_PROD_API_PUBLISH_PROFILE"
+              WEBSITE_API_SECRET=""  # Not used for managed functions
               
               SHOULD_DEPLOY="true"
               ;;
@@ -207,11 +207,11 @@ jobs:
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING"
               BLOOM_API_SECRET="BLOOM_STAGING_API_PUBLISH_PROFILE"
               
-              # Website - Staging
-              WEBSITE_FRONTEND_APP="lpa-website-staging"
-              WEBSITE_API_APP="lpa-website-functions-staging"
+              # Website - Staging (API deployed as managed functions with SWA)
+              WEBSITE_FRONTEND_APP="lpa-frontend-staging"
+              WEBSITE_API_APP=""  # Managed functions - no standalone Function App
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_STAGING"
-              WEBSITE_API_SECRET="WEBSITE_STAGING_API_PUBLISH_PROFILE"
+              WEBSITE_API_SECRET=""  # Not used for managed functions
               
               SHOULD_DEPLOY="true"
               ;;
@@ -222,11 +222,11 @@ jobs:
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_DEV"
               BLOOM_API_SECRET="BLOOM_DEV_API_PUBLISH_PROFILE"
               
-              # Website - Development
-              WEBSITE_FRONTEND_APP="lpa-website-dev"
-              WEBSITE_API_APP="lpa-website-functions-dev"
+              # Website - Development (API deployed as managed functions with SWA)
+              WEBSITE_FRONTEND_APP="lpa-frontend-dev"
+              WEBSITE_API_APP=""  # Managed functions - no standalone Function App
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_DEV"
-              WEBSITE_API_SECRET="WEBSITE_DEV_API_PUBLISH_PROFILE"
+              WEBSITE_API_SECRET=""  # Not used for managed functions
               
               SHOULD_DEPLOY="true"
               ;;
@@ -237,8 +237,8 @@ jobs:
               BLOOM_FRONTEND_SECRET=""
               BLOOM_API_SECRET=""
               
-              WEBSITE_FRONTEND_APP="lpa-website-dev"
-              WEBSITE_API_APP="lpa-website-functions-dev"
+              WEBSITE_FRONTEND_APP="lpa-frontend-dev"
+              WEBSITE_API_APP=""  # Managed functions
               WEBSITE_FRONTEND_SECRET=""
               WEBSITE_API_SECRET=""
               

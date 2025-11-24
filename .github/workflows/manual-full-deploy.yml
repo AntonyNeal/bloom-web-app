@@ -61,30 +61,30 @@ jobs:
           if [ "$ENV" = "production" ]; then
             echo "bloom-frontend-app=lpa-bloom-prod" >> $GITHUB_OUTPUT
             echo "bloom-frontend-secret=AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD" >> $GITHUB_OUTPUT
-            echo "bloom-api-app=lpa-bloom-api-prod" >> $GITHUB_OUTPUT
+            echo "bloom-api-app=bloom-platform-functions-v2" >> $GITHUB_OUTPUT
             echo "bloom-api-secret=BLOOM_PROD_API_PUBLISH_PROFILE" >> $GITHUB_OUTPUT
-            echo "website-frontend-app=lpa-website-prod" >> $GITHUB_OUTPUT
+            echo "website-frontend-app=lpa-frontend-prod" >> $GITHUB_OUTPUT
             echo "website-frontend-secret=AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_PROD" >> $GITHUB_OUTPUT
-            echo "website-api-app=lpa-website-api-prod" >> $GITHUB_OUTPUT
-            echo "website-api-secret=WEBSITE_PROD_API_PUBLISH_PROFILE" >> $GITHUB_OUTPUT
+            echo "website-api-app=" >> $GITHUB_OUTPUT  # Managed functions
+            echo "website-api-secret=" >> $GITHUB_OUTPUT  # Not used
           elif [ "$ENV" = "staging" ]; then
             echo "bloom-frontend-app=lpa-bloom-staging" >> $GITHUB_OUTPUT
             echo "bloom-frontend-secret=AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING" >> $GITHUB_OUTPUT
-            echo "bloom-api-app=lpa-bloom-api-staging" >> $GITHUB_OUTPUT
+            echo "bloom-api-app=bloom-functions-staging-new" >> $GITHUB_OUTPUT
             echo "bloom-api-secret=BLOOM_STAGING_API_PUBLISH_PROFILE" >> $GITHUB_OUTPUT
-            echo "website-frontend-app=lpa-website-staging" >> $GITHUB_OUTPUT
+            echo "website-frontend-app=lpa-frontend-staging" >> $GITHUB_OUTPUT
             echo "website-frontend-secret=AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_STAGING" >> $GITHUB_OUTPUT
-            echo "website-api-app=lpa-website-api-staging" >> $GITHUB_OUTPUT
-            echo "website-api-secret=WEBSITE_STAGING_API_PUBLISH_PROFILE" >> $GITHUB_OUTPUT
+            echo "website-api-app=" >> $GITHUB_OUTPUT  # Managed functions
+            echo "website-api-secret=" >> $GITHUB_OUTPUT  # Not used
           else
             echo "bloom-frontend-app=lpa-bloom-dev" >> $GITHUB_OUTPUT
             echo "bloom-frontend-secret=AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_DEV" >> $GITHUB_OUTPUT
-            echo "bloom-api-app=lpa-bloom-api-dev" >> $GITHUB_OUTPUT
+            echo "bloom-api-app=bloom-functions-dev" >> $GITHUB_OUTPUT
             echo "bloom-api-secret=BLOOM_DEV_API_PUBLISH_PROFILE" >> $GITHUB_OUTPUT
-            echo "website-frontend-app=lpa-website-dev" >> $GITHUB_OUTPUT
+            echo "website-frontend-app=lpa-frontend-dev" >> $GITHUB_OUTPUT
             echo "website-frontend-secret=AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_DEV" >> $GITHUB_OUTPUT
-            echo "website-api-app=lpa-website-api-dev" >> $GITHUB_OUTPUT
-            echo "website-api-secret=WEBSITE_DEV_API_PUBLISH_PROFILE" >> $GITHUB_OUTPUT
+            echo "website-api-app=" >> $GITHUB_OUTPUT  # Managed functions
+            echo "website-api-secret=" >> $GITHUB_OUTPUT  # Not used
           fi
 
   # ────────────────────────────────────────────────────────────────[…]

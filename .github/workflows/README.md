@@ -109,14 +109,14 @@ Environment-specific variables are set in Azure:
 - **Production**: `bloom-platform-functions-v2` (Function App)
 
 ### Website
-- **Development**: `lpa-website-dev` (Static Web App)
-- **Staging**: `lpa-website-staging` (Static Web App)
-- **Production**: `lpa-website-prod` (Static Web App)
+- **Development**: `lpa-frontend-dev` (Static Web App)
+- **Staging**: `lpa-frontend-staging` (Static Web App)
+- **Production**: `lpa-frontend-prod` (Static Web App)
 
 ### Website API
-- **Development**: `lpa-website-functions-dev` (Function App)
-- **Staging**: `lpa-website-functions-staging` (Function App)
-- **Production**: `lpa-website-functions-prod` (Function App)
+- **All Environments**: Deployed as **managed functions** with Azure Static Web Apps
+- No standalone Function Apps - API code is bundled with frontend deployment
+- API endpoint: `https://<swa-hostname>/api/*`
 
 ## Deployment Flow
 

@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import removeConsole from 'vite-plugin-remove-console';
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite';
 import { criticalCssInline } from './src/plugins/critical-css-plugin';
 
 // https://vite.dev/config/
@@ -32,11 +32,6 @@ export default defineConfig({
   // Define VITE_ENVIRONMENT at build time to prevent tree-shaking
   define: {
     'import.meta.env.VITE_ENVIRONMENT': JSON.stringify('production'),
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/test/setup.ts',
   },
   build: {
     rollupOptions: {

@@ -38,46 +38,44 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           // Core React ecosystem - load together to prevent createContext issues
+          // Include ALL packages that depend on React to avoid createContext errors
           if (
             id.includes('node_modules/react/') ||
             id.includes('node_modules/react-dom/') ||
-            id.includes('node_modules/react-router-dom') ||
+            id.includes('node_modules/react-router') ||
             id.includes('node_modules/react-helmet-async') ||
-            id.includes('node_modules/scheduler/')
+            id.includes('node_modules/scheduler/') ||
+            id.includes('node_modules/prop-types/') ||
+            id.includes('@stripe/react-stripe-js') ||
+            id.includes('@stripe/stripe-js') ||
+            id.includes('node_modules/@headlessui') ||
+            id.includes('node_modules/@heroicons') ||
+            id.includes('node_modules/lucide-react')
           ) {
             return 'vendor';
           }
-          // Defer analytics until needed
+          // Defer analytics - BUT ApplicationInsights vendor-misc
           if (
-            id.includes('react-ga4') ||
-            id.includes('applicationinsights-web')
+            id.includes('react-ga4')
           ) {
             return 'analytics';
           }
-          // Defer heavy UI libraries
-          if (
-            id.includes('@headlessui') ||
-            id.includes('@heroicons') ||
-            id.includes('lucide-react')
-          ) {
-            return 'ui';
-          }
-          // Defer OpenAI (only used in assessment)
+          // OpenAI (only used in assessment)
           if (id.includes('openai')) {
             return 'openai';
           }
-          // Defer react-query
+          // React-query
           if (id.includes('@tanstack/react-query')) {
             return 'query';
           }
-          // Defer utility libraries
+          // Utility libraries
           if (
             id.includes('web-vitals') ||
             id.includes('axios')
           ) {
             return 'utils';
           }
-          // Split Tailwind and CSS libraries
+          // Tailwind and CSS libraries
           if (
             id.includes('@tailwindcss') ||
             id.includes('tailwindcss') ||
@@ -85,7 +83,7 @@ export default defineConfig({
           ) {
             return 'styles';
           }
-          // Split testing libraries (if accidentally included in production)
+          // Testing libraries (if accidentally included in production)
           if (
             id.includes('@testing-library') ||
             id.includes('vitest') ||
@@ -93,9 +91,9 @@ export default defineConfig({
           ) {
             return 'test-libs';
           }
-          // Split other node_modules into smaller chunks
+          // All other node_modules go into vendor to ensure proper loading order
           if (id.includes('node_modules')) {
-            return 'vendor-misc';
+            return 'vendor';
           }
         },
         // Ensure proper file extensions for all chunks

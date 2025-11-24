@@ -13,24 +13,7 @@
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
 
-    <!-- Performance Optimizations: Resource Preloading -->
-    <!-- Preload hero image with modern format support -->
-    <link
-      rel="preload"
-      as="image"
-      href="/assets/hero-zoe-main.webp"
-      type="image/webp"
-      fetchpriority="high"
-    />
-    <!-- Fallback preload for JPEG -->
-    <link
-      rel="preload"
-      as="image"
-      href="/assets/hero-zoe-main.jpg"
-      type="image/jpeg"
-      fetchpriority="high"
-      media="(max-width: 768px)"
-    />
+    <!-- Performance Optimizations: Resource Preloading -->\n    <!-- Hero image preload moved to UnifiedHeader component for conditional loading -->
     <!-- Preload critical fonts with async loading and swap display -->
     <link
       rel="preload"

@@ -9,4 +9,7 @@ import '../applications/get-sas-token/index';
 import './ab-testing/allocateVariant';
 import './ab-testing/trackConversion';
 
+// Import payment functions
+import './functions/create-payment-intent';
+
 export { app };

@@ -749,7 +749,8 @@ jobs:
     needs: [determine-environment, detect-changes, build-website-frontend, build-website-api]
     if: |
       always() &&
-      needs.build-website-frontend.result == 'success'
+      needs.build-website-frontend.result == 'success' &&
+      (needs.build-website-api.result == 'success' || needs.build-website-api.result == 'skipped')
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -760,9 +761,9 @@ jobs:
           name: website-frontend-${{ needs.determine-environment.outputs.environment }}
           path: dist
 
-      - name: Download Website API Artifacts (if available)
+      - name: Download Website API Artifacts (if built)
         uses: actions/download-artifact@v4
-        continue-on-error: true
+        if: needs.build-website-api.result == 'success'
         with:
           name: website-api-${{ needs.determine-environment.outputs.environment }}
           path: api-dist

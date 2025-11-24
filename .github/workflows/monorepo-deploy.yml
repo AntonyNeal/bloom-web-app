@@ -746,7 +746,7 @@ jobs:
   deploy-website-frontend:
     name: 🚀 Deploy Website Frontend → ${{ needs.determine-environment.outputs.environment }}
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, build-website-frontend]
+    needs: [determine-environment, detect-changes, build-website-frontend, build-website-api]
     if: |
       always() &&
       needs.build-website-frontend.result == 'success'
@@ -759,6 +759,13 @@ jobs:
         with:
           name: website-frontend-${{ needs.determine-environment.outputs.environment }}
           path: dist
+
+      - name: Download Website API Artifacts (if available)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: website-api-${{ needs.determine-environment.outputs.environment }}
+          path: api-dist
 
       - name: Verify Artifacts
         run: |
@@ -782,6 +789,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: 'upload'
           app_location: 'dist'
+          api_location: 'api-dist'
           skip_app_build: true
           skip_api_build: true
 

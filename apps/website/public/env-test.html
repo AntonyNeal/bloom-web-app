@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Variable Test</title>
+</head>
+<body>
+    <h1>Environment Variable Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        console.log('🔥 SIMPLE ENV TEST - STARTING');
+        console.log('🔥 =================================');
+        
+        try {
+            // Test multiple ways to access environment variables
+            console.log('🔥 Testing different methods...');
+            
+            // Method 1: import.meta
+            console.log('🔥 import.meta exists:', typeof import.meta !== 'undefined');
+            console.log('🔥 import.meta:', import.meta);
+            
+            if (import.meta) {
+                console.log('🔥 import.meta.env exists:', typeof import.meta.env !== 'undefined');
+                console.log('🔥 import.meta.env:', import.meta.env);
+                
+                if (import.meta.env) {
+                    console.log('🔥 Environment variables found!');
+                    console.log('🔥 All env keys:', Object.keys(import.meta.env));
+                    console.log('🔥 VITE_GA_MEASUREMENT_ID:', import.meta.env.VITE_GA_MEASUREMENT_ID);
+                    console.log('🔥 VITE_GOOGLE_ADS_ID:', import.meta.env.VITE_GOOGLE_ADS_ID);
+                    console.log('🔥 VITE_CHAT_ENABLED:', import.meta.env.VITE_CHAT_ENABLED);
+                    console.log('🔥 MODE:', import.meta.env.MODE);
+                    console.log('🔥 DEV:', import.meta.env.DEV);
+                    console.log('🔥 PROD:', import.meta.env.PROD);
+                    console.log('🔥 BASE_URL:', import.meta.env.BASE_URL);
+                    
+                    // Display on page
+                    const results = document.getElementById('results');
+                    results.innerHTML = `
+                        <h2>✅ Environment Variables Found!</h2>
+                        <p><strong>VITE_GA_MEASUREMENT_ID:</strong> ${import.meta.env.VITE_GA_MEASUREMENT_ID || 'MISSING'}</p>
+                        <p><strong>VITE_GOOGLE_ADS_ID:</strong> ${import.meta.env.VITE_GOOGLE_ADS_ID || 'MISSING'}</p>
+                        <p><strong>VITE_CHAT_ENABLED:</strong> ${import.meta.env.VITE_CHAT_ENABLED || 'MISSING'}</p>
+                        <p><strong>MODE:</strong> ${import.meta.env.MODE || 'MISSING'}</p>
+                        <p><strong>DEV:</strong> ${import.meta.env.DEV}</p>
+                        <p><strong>PROD:</strong> ${import.meta.env.PROD}</p>
+                        <p><strong>BASE_URL:</strong> ${import.meta.env.BASE_URL || 'MISSING'}</p>
+                        <p><strong>Total env vars:</strong> ${Object.keys(import.meta.env).length}</p>
+                        <hr>
+                        <h3>All Environment Variables:</h3>
+                        <pre>${JSON.stringify(import.meta.env, null, 2)}</pre>
+                    `;
+                } else {
+                    console.log('🔥 ❌ import.meta.env is undefined or null');
+                    document.getElementById('results').innerHTML = '<p style="color: red;">❌ import.meta.env is undefined or null</p>';
+                }
+            } else {
+                console.log('🔥 ❌ import.meta is undefined');
+                document.getElementById('results').innerHTML = '<p style="color: red;">❌ import.meta is undefined</p>';
+            }
+            
+            // Method 2: Check if we're in the right context
+            console.log('🔥 Browser context checks:');
+            console.log('🔥 window exists:', typeof window !== 'undefined');
+            console.log('🔥 location.href:', window.location.href);
+            console.log('🔥 Script type:', document.currentScript?.type);
+            
+        } catch (error) {
+            console.log('🔥 ❌ Error accessing environment:', error);
+            console.log('🔥 Error stack:', error.stack);
+            document.getElementById('results').innerHTML = `
+                <p style="color: red;">❌ Error: ${error.message}</p>
+                <pre style="color: red;">${error.stack}</pre>
+            `;
+        }
+        
+        console.log('🔥 =================================');
+    </script>
+</body>
+</html>

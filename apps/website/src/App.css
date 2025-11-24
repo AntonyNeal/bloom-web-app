@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS for healthcare-grade styling */
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-life-psychology-primary {
+    color: #2563eb;
+  }
+  .bg-life-psychology-primary {
+    background-color: #2563eb;
+  }
+
+  /* Screen reader only - visually hidden but accessible */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 1.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .headline-glow {
+    text-shadow: 0 0 30px rgba(30, 58, 138, 0.3);
+  }
+
+  .animate-pulse-slow {
+    animation: pulseSlow 3s ease-in-out infinite;
+  }
+
+  @keyframes pulseSlow {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.9;
+      transform: scale(1.02);
+    }
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  padding: 16px 32px;
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.availability-notice {
+  background: #f9fafb;
+  padding: 12px 16px;
+  margin-top: 2rem;
+  font-style: normal;
+  color: #4b5563;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+.availability-message {
+  color: #6b7280;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.availability-message strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.hero-content {
+  line-height: 1.6;
+}
+
+.hero-content .greeting {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #374151;
+}
+
+.hero-content .greeting strong {
+  color: #1f2937;
+  font-size: 1.2rem;
+}
+
+.hero-content .empathy {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: #4b5563;
+  font-style: italic;
+}
+
+.hero-content .practical {
+  font-size: 1rem;
+  color: #374151;
+  font-weight: 500;
+}

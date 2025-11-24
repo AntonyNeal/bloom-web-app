@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="brainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+
+  <!-- Decorative elements -->
+  <circle cx="150" cy="150" r="80" fill="#3B82F6" opacity="0.1"/>
+  <circle cx="1050" cy="480" r="120" fill="#1E40AF" opacity="0.1"/>
+  <circle cx="1100" cy="200" r="60" fill="#60A5FA" opacity="0.1"/>
+
+  <!-- Main brain icon -->
+  <g transform="translate(200, 200)">
+    <circle cx="100" cy="50" r="80" fill="url(#brainGradient)" opacity="0.9"/>
+    <circle cx="70" cy="35" r="15" fill="white" opacity="0.8"/>
+    <circle cx="130" cy="35" r="15" fill="white" opacity="0.8"/>
+    <circle cx="100" cy="80" r="8" fill="#60A5FA" opacity="0.7"/>
+    <circle cx="85" cy="65" r="5" fill="#93C5FD" opacity="0.6"/>
+    <circle cx="115" cy="65" r="5" fill="#93C5FD" opacity="0.6"/>
+  </g>
+
+  <!-- Text content -->
+  <text x="450" y="200" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#1E40AF">
+    Life Psychology Australia
+  </text>
+
+  <text x="450" y="250" font-family="Arial, sans-serif" font-size="24" fill="#374151">
+    Professional Psychologist
+  </text>
+
+  <text x="450" y="290" font-family="Arial, sans-serif" font-size="24" fill="#374151">
+    Newcastle & Greater Hunter
+  </text>
+
+  <!-- Services list -->
+  <text x="450" y="360" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1E40AF">
+    Our Services:
+  </text>
+
+  <text x="450" y="390" font-family="Arial, sans-serif" font-size="18" fill="#374151">
+    • Anxiety & Depression Therapy
+  </text>
+
+  <text x="450" y="420" font-family="Arial, sans-serif" font-size="18" fill="#374151">
+    • Couples Counselling
+  </text>
+
+  <text x="450" y="450" font-family="Arial, sans-serif" font-size="18" fill="#374151">
+    • Neurodiversity Support
+  </text>
+
+  <text x="450" y="480" font-family="Arial, sans-serif" font-size="18" fill="#374151">
+    • NDIS Psychology Services
+  </text>
+
+  <!-- Call to action -->
+  <text x="450" y="530" font-family="Arial, sans-serif" font-size="16" fill="#6B7280">
+    Secure telehealth sessions available
+  </text>
+
+  <!-- Website URL -->
+  <text x="450" y="560" font-family="Arial, sans-serif" font-size="16" fill="#3B82F6">
+    www.life-psychology.com.au
+  </text>
+</svg>

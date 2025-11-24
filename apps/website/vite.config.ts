@@ -42,6 +42,7 @@ export default defineConfig({
             id.includes('node_modules/react/') ||
             id.includes('node_modules/react-dom/') ||
             id.includes('node_modules/react-router-dom') ||
+            id.includes('node_modules/react-helmet-async') ||
             id.includes('node_modules/scheduler/')
           ) {
             return 'vendor';
@@ -69,9 +70,8 @@ export default defineConfig({
           if (id.includes('@tanstack/react-query')) {
             return 'query';
           }
-          // Defer utility libraries (updated for react-helmet-async)
+          // Defer utility libraries
           if (
-            id.includes('react-helmet-async') ||
             id.includes('web-vitals') ||
             id.includes('axios')
           ) {

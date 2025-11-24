@@ -1,3 +1,4 @@
+// Force rebuild - 2025-11-24
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 
 async function healthHandler(

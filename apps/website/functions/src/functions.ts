@@ -1,3 +1,4 @@
+// Force rebuild - 2025-11-24
 import { app } from '@azure/functions';
 
 // Import and register all functions

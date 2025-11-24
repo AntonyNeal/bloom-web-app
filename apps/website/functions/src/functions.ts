@@ -1,4 +1,4 @@
-// Force rebuild - 2025-11-24
+// Force rebuild - 2025-11-24 - Deploy payment integration
 import { app } from '@azure/functions';
 
 // Import and register all functions

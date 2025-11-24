@@ -1,4 +1,4 @@
-// Force rebuild for payment integration deployment - 2025-11-24
+// Force rebuild for payment integration deployment - Deploy with managed API - 2025-11-24
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, Suspense, lazy } from 'react';
 import Header from './components/Header';

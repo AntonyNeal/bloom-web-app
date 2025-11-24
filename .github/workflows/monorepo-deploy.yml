@@ -749,19 +749,46 @@ jobs:
     needs: [determine-environment, detect-changes, build-website-frontend, build-website-api]
     if: |
       always() &&
-      needs.build-website-frontend.result == 'success' &&
-      (needs.build-website-api.result == 'success' || needs.build-website-api.result == 'skipped')
+      (needs.build-website-frontend.result == 'success' || needs.build-website-api.result == 'success') &&
+      needs.determine-environment.outputs.should-deploy == 'true'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Website Frontend Artifacts
+      - name: Download Website Frontend Artifacts (if built)
+        id: download-frontend
         uses: actions/download-artifact@v4
+        if: needs.build-website-frontend.result == 'success'
         with:
           name: website-frontend-${{ needs.determine-environment.outputs.environment }}
           path: dist
 
+      - name: Build Website Frontend (if not already built)
+        if: needs.build-website-frontend.result != 'success'
+        run: |
+          echo "🔧 Frontend was not built in this run, building now for API deployment..."
+          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          
+      - name: Setup Node.js (for on-the-fly build)
+        if: needs.build-website-frontend.result != 'success'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install and Build (for on-the-fly build)
+        if: needs.build-website-frontend.result != 'success'
+        working-directory: apps/website
+        run: |
+          npm install
+          npm run build:website
+          # Move build output to expected location
+          mv dist ../../dist
+        env:
+          MODE: ${{ needs.determine-environment.outputs.environment }}
+
       - name: Download Website API Artifacts (if built)
+        id: download-api
         uses: actions/download-artifact@v4
         if: needs.build-website-api.result == 'success'
         with:
@@ -770,18 +797,34 @@ jobs:
 
       - name: Verify Artifacts
         run: |
-          echo "🔍 Verifying Website build artifacts..."
+          echo "🔍 Verifying Website deployment artifacts..."
           echo "📂 Working directory:"
           pwd
-          echo "📂 Artifact contents:"
-          ls -lah dist/
-          if [ ! -f "dist/index.html" ]; then
-            echo "❌ dist/index.html not found!"
-            echo "📂 Full directory structure:"
-            ls -R dist/
+          
+          echo ""
+          echo "📦 Frontend artifacts:"
+          if [ -d "dist" ]; then
+            ls -lah dist/
+            if [ ! -f "dist/index.html" ]; then
+              echo "❌ dist/index.html not found!"
+              echo "📂 Full directory structure:"
+              ls -R dist/
+              exit 1
+            fi
+            echo "✅ Frontend artifacts verified"
+          else
+            echo "❌ dist directory not found!"
             exit 1
           fi
-          echo "✅ Artifacts verified"
+          
+          echo ""
+          echo "📦 API artifacts:"
+          if [ -d "api-dist" ]; then
+            ls -lah api-dist/
+            echo "✅ API artifacts found (will be deployed as managed functions)"
+          else
+            echo "ℹ️  No API artifacts (API deployment skipped)"
+          fi
 
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
@@ -868,16 +911,15 @@ jobs:
           echo "═══════════════════════════════════════════════════════"
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Deploy Website API
+  # Deploy Website API (DISABLED - Using Managed Functions with Static Web App)
   # ─────────────────────────────────────────────────────────────────────────────
 
   deploy-website-api:
     name: 🚀 Deploy Website API → ${{ needs.determine-environment.outputs.environment }}
     runs-on: ubuntu-latest
     needs: [determine-environment, detect-changes, build-website-api]
-    if: |
-      always() &&
-      needs.build-website-api.result == 'success'
+    # DISABLED: API is now deployed as managed functions with the frontend
+    if: false
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - name: Download Website API Artifacts
@@ -973,10 +1015,9 @@ jobs:
           echo "   └─ App:          ${{ needs.determine-environment.outputs.bloom-frontend-app }}"
           echo "🔌 Bloom API:       ${{ needs.deploy-bloom-api.result }}"
           echo "   └─ App:          ${{ needs.determine-environment.outputs.bloom-api-app }}"
-          echo "🌐 Website Frontend: ${{ needs.deploy-website-frontend.result }}"
+          echo "🌐 Website (Frontend + API): ${{ needs.deploy-website-frontend.result }}"
           echo "   └─ App:          ${{ needs.determine-environment.outputs.website-frontend-app }}"
-          echo "⚡ Website API:     ${{ needs.deploy-website-api.result }}"
-          echo "   └─ App:          ${{ needs.determine-environment.outputs.website-api-app }}"
+          echo "   └─ Note:         API deployed as managed functions"
           echo ""
           echo "─────────────────────────────────────────────────────────────────"
           echo "APPLICATION URLS"
@@ -984,21 +1025,20 @@ jobs:
           echo "🌸 Bloom Portal:    https://${{ needs.determine-environment.outputs.bloom-frontend-app }}.azurestaticapps.net"
           echo "🔌 Bloom API:       https://${{ needs.determine-environment.outputs.bloom-api-app }}.azurewebsites.net"
           echo "🌐 Website:         https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net"
-          echo "⚡ Website API:     https://${{ needs.determine-environment.outputs.website-api-app }}.azurewebsites.net"
+          echo "⚡ Website API:     https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net/api"
           echo ""
 
           # Check for failures
           BLOOM_FE="${{ needs.deploy-bloom-frontend.result }}"
           BLOOM_API="${{ needs.deploy-bloom-api.result }}"
-          WEBSITE_FE="${{ needs.deploy-website-frontend.result }}"
-          WEBSITE_API="${{ needs.deploy-website-api.result }}"
+          WEBSITE="${{ needs.deploy-website-frontend.result }}"
           
           if [[ "$BLOOM_FE" == "failure" ]] || [[ "$BLOOM_API" == "failure" ]] || \
-             [[ "$WEBSITE_FE" == "failure" ]] || [[ "$WEBSITE_API" == "failure" ]]; then
+             [[ "$WEBSITE" == "failure" ]]; then
             echo "❌ DEPLOYMENT FAILED - See logs above"
             exit 1
           elif [[ "$BLOOM_FE" == "skipped" ]] && [[ "$BLOOM_API" == "skipped" ]] && \
-               [[ "$WEBSITE_FE" == "skipped" ]] && [[ "$WEBSITE_API" == "skipped" ]]; then
+               [[ "$WEBSITE" == "skipped" ]]; then
             echo "ℹ️  NO CHANGES - Deployment skipped"
           else
             echo "✅ DEPLOYMENT SUCCESSFUL"

@@ -14,6 +14,7 @@ import {
 } from './components/ABTestProvider';
 import { trackScrollDepth } from './utils/trackingEvents';
 import { trackPageView } from './utils/applicationInsights';
+import { initHighIntentTimer } from './utils/microConversions';
 // Lazy load ChatAssistant since it's conditionally rendered
 // const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
 import './App.css';

@@ -462,6 +462,8 @@ jobs:
           echo "📦 Target: ${{ needs.determine-environment.outputs.website-frontend-app }}"
           npm run build:website
           echo "✅ Build complete"
+        env:
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
 
       - name: Verify Build Output
         run: |

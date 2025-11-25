@@ -546,8 +546,11 @@ jobs:
           cp host.json deploy-package/ || true
           cp package.json deploy-package/
           
-          # Install production dependencies
+          # Fix main entry point (files are at root, not in dist/)
           cd deploy-package
+          sed -i 's|"main": "dist/index.js"|"main": "index.js"|' package.json
+          
+          # Install production dependencies
           npm install --production
           
           echo "✅ Package ready"

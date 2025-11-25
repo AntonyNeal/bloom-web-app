@@ -145,6 +145,7 @@ jobs:
       bloom-api-app: ${{ steps.config.outputs.bloom_api_app }}
       bloom-frontend-secret: ${{ steps.config.outputs.bloom_frontend_secret }}
       bloom-api-secret: ${{ steps.config.outputs.bloom_api_secret }}
+      bloom-api-url: ${{ steps.config.outputs.bloom_api_url }}
       # Website
       website-frontend-app: ${{ steps.config.outputs.website_frontend_app }}
       website-api-app: ${{ steps.config.outputs.website_api_app }}
@@ -189,6 +190,7 @@ jobs:
               # Bloom Portal - Production
               BLOOM_FRONTEND_APP="lpa-bloom-prod"
               BLOOM_API_APP="bloom-platform-functions-v2"
+              BLOOM_API_URL="https://bloom-platform-functions-v2.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD"
               BLOOM_API_SECRET="BLOOM_PROD_API_PUBLISH_PROFILE"
               
@@ -204,6 +206,7 @@ jobs:
               # Bloom Portal - Staging
               BLOOM_FRONTEND_APP="lpa-bloom-staging"
               BLOOM_API_APP="bloom-functions-staging-new"
+              BLOOM_API_URL="https://bloom-functions-staging-new.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING"
               BLOOM_API_SECRET="BLOOM_STAGING_API_PUBLISH_PROFILE"
               
@@ -219,6 +222,7 @@ jobs:
               # Bloom Portal - Development
               BLOOM_FRONTEND_APP="lpa-bloom-dev"
               BLOOM_API_APP="bloom-functions-dev"
+              BLOOM_API_URL="https://bloom-functions-dev.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_DEV"
               BLOOM_API_SECRET="BLOOM_DEV_API_PUBLISH_PROFILE"
               
@@ -234,6 +238,7 @@ jobs:
               # Preview - use dev resources
               BLOOM_FRONTEND_APP="lpa-bloom-dev"
               BLOOM_API_APP="bloom-functions-dev"
+              BLOOM_API_URL="https://bloom-functions-dev.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET=""
               BLOOM_API_SECRET=""
               
@@ -253,6 +258,7 @@ jobs:
           # Bloom Portal
           echo "bloom_frontend_app=$BLOOM_FRONTEND_APP" >> $GITHUB_OUTPUT
           echo "bloom_api_app=$BLOOM_API_APP" >> $GITHUB_OUTPUT
+          echo "bloom_api_url=$BLOOM_API_URL" >> $GITHUB_OUTPUT
           echo "bloom_frontend_secret=$BLOOM_FRONTEND_SECRET" >> $GITHUB_OUTPUT
           echo "bloom_api_secret=$BLOOM_API_SECRET" >> $GITHUB_OUTPUT
           
@@ -271,6 +277,7 @@ jobs:
           echo ""
           echo "🌸 Bloom Frontend:      $BLOOM_FRONTEND_APP"
           echo "🔌 Bloom API:           $BLOOM_API_APP"
+          echo "🔗 Bloom API URL:       $BLOOM_API_URL"
           echo ""
           echo "🌐 Website Frontend:    $WEBSITE_FRONTEND_APP"
           echo "⚡ Website API:         $WEBSITE_API_APP"
@@ -353,11 +360,13 @@ jobs:
       - name: Build Bloom Application
         env:
           MODE: ${{ needs.determine-environment.outputs.environment == 'production' && 'production' || 'development' }}
+          VITE_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
         run: |
           set -x
           echo "🌸 Building Bloom Frontend..."
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
           echo "🏗️  Build Mode: $MODE"
+          echo "🔗 API URL: $VITE_API_URL"
           echo "📦 Target: ${{ needs.determine-environment.outputs.bloom-frontend-app }}"
           npm run build:bloom -- --mode $MODE
           echo "✅ Build complete"

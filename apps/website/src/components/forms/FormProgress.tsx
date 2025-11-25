@@ -34,11 +34,11 @@ export const FormProgress: React.FC<FormProgressProps> = ({
             <div className="flex flex-col items-center flex-shrink-0">
               {/* Step Circle with gradient */}
               <div
-                className={`relative w-14 h-14 rounded-full flex items-center justify-center font-bold text-white shadow-lg transition-all duration-300 ${
+                className={`relative w-14 h-14 rounded-full flex items-center justify-center font-bold text-white shadow-lg transition-[transform,box-shadow] duration-300 ${
                   step.completed
                     ? `bg-gradient-to-br ${stepColors[index]} scale-100`
                     : step.number === currentStep
-                      ? `bg-gradient-to-br ${stepColors[index]} scale-110 ring-4 ring-blue-200 animate-pulse`
+                      ? `bg-gradient-to-br ${stepColors[index]} scale-110 ring-4 ring-blue-200`
                       : 'bg-gray-300 text-gray-500 scale-90'
                 }`}
               >

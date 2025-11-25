@@ -1,13 +1,23 @@
 /**
  * API Configuration
- * In development: Uses Vite proxy (/api -> production backend)
- * In production: Uses production API directly
+ * 
+ * IMPORTANT: Bloom uses standalone Azure Functions, NOT managed functions with Static Web Apps.
+ * 
+ * Each environment has its own Function App:
+ * - Development: bloom-functions-dev.azurewebsites.net (uses Dev DB)
+ * - Staging: bloom-functions-staging-new.azurewebsites.net (uses Dev DB)
+ * - Production: bloom-platform-functions-v2.azurewebsites.net (uses Prod DB)
+ * 
+ * The VITE_API_URL is injected at build time by the CI/CD pipeline.
+ * Local development uses Vite proxy (/api -> dev backend) via vite.config.ts
  */
 
-export const API_BASE_URL =
-  import.meta.env.MODE === 'production'
-    ? 'https://bloom-platform-functions-v2.azurewebsites.net/api'
-    : '/api'; // Proxied to production via Vite
+const isDevelopmentServer = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+
+// Use injected API URL from build, fallback to /api for local dev (Vite proxy)
+export const API_BASE_URL = isDevelopmentServer
+  ? '/api' // Vite proxy for local development
+  : (import.meta.env.VITE_API_URL || 'https://bloom-platform-functions-v2.azurewebsites.net/api');
 
 export const API_ENDPOINTS = {
   applications: `${API_BASE_URL}/applications`,

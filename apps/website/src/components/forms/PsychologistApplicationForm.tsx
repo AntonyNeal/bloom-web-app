@@ -252,7 +252,7 @@ export const PsychologistApplicationForm: React.FC = () => {
               </div>
 
               <div className="space-y-6 mb-8">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-md border border-blue-100 hover:shadow-lg transition-all duration-200">
+                <div className="bg-white rounded-xl p-6 shadow-md border border-blue-100 hover:shadow-lg transition-shadow duration-200">
                   <div className="flex items-start">
                     <input
                       type="checkbox"
@@ -280,7 +280,7 @@ export const PsychologistApplicationForm: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-md border border-blue-100">
+                <div className="bg-white rounded-xl p-6 shadow-md border border-blue-100">
                   <FormField
                     label="Years Registered with AHPRA"
                     name="yearsRegisteredWithAHPRA"
@@ -298,7 +298,7 @@ export const PsychologistApplicationForm: React.FC = () => {
                   />
                 </div>
 
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-md border border-blue-100 hover:shadow-lg transition-all duration-200">
+                <div className="bg-white rounded-xl p-6 shadow-md border border-blue-100 hover:shadow-lg transition-shadow duration-200">
                   <div className="flex items-start">
                     <input
                       type="checkbox"
@@ -355,7 +355,7 @@ export const PsychologistApplicationForm: React.FC = () => {
                     setQualificationPassed(false);
                   }
                 }}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 text-lg"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-[transform,box-shadow] duration-200 text-lg"
               >
                 ✨ Check Eligibility
               </button>
@@ -423,7 +423,7 @@ export const PsychologistApplicationForm: React.FC = () => {
                 </p>
               </div>
 
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-md border border-purple-100 space-y-6">
+              <div className="bg-white rounded-xl p-6 shadow-md border border-purple-100 space-y-6">
                 <FormField
                   label="Full Name"
                   name="fullName"
@@ -1436,7 +1436,7 @@ export const PsychologistApplicationForm: React.FC = () => {
               <button
                 type="button"
                 onClick={nextStep}
-                className="ml-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                className="ml-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-[transform,box-shadow,background-color] duration-200"
               >
                 Next Step →
               </button>
@@ -1446,7 +1446,7 @@ export const PsychologistApplicationForm: React.FC = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="ml-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="ml-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-[transform,box-shadow,background-color] duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {submitting ? 'Submitting...' : 'Submit Application'}
               </button>

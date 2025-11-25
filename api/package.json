@@ -2,7 +2,7 @@
   "name": "bloom-api",
   "version": "1.0.2",
   "description": "Bloom Azure Functions API - A/B Testing with Cosmos DB",
-  "main": "{index.js,functions/*.js}",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",

@@ -103,8 +103,9 @@ jobs:
               - 'apps/bloom/vite.config.ts'
               - 'apps/bloom/package.json'
               - 'apps/bloom/staticwebapp.config.json'
+              - 'src/**'
             bloom-api:
-              - 'apps/bloom/api/**'
+              - 'api/**'
             website-frontend:
               - 'apps/website/src/**'
               - 'apps/website/public/**'

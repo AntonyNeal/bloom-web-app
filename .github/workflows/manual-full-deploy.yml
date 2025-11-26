@@ -317,7 +317,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Debug: print workspace and locate lockfiles
+      - name: "Debug: print workspace and locate lockfiles"
         run: |
           echo "WORKING DIR: $(pwd)"
           echo "TOP LEVEL:"

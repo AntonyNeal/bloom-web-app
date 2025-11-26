@@ -24,6 +24,7 @@ const AdminDashboard = lazy(() =>
 const ABTestDashboard = lazy(() =>
   import('./pages/admin/ABTestDashboard').then((m) => ({ default: m.ABTestDashboard }))
 );
+const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
 
 // Lazy-loaded flower components - keep original React components for visual fidelity
 const Tier1Flower = lazy(() =>
@@ -155,6 +156,8 @@ function LandingPage() {
               position: 'absolute',
               bottom: '20%',
               left: '35%',
+              opacity: 0,
+              transform: 'scale(0.50)',
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
@@ -248,6 +251,8 @@ function LandingPage() {
               position: 'absolute',
               top: '48%',
               right: '30%',
+              opacity: 0,
+              transform: 'scale(0.48)',
             }}
           >
             <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
@@ -534,18 +539,6 @@ function LandingPage() {
               }}
             />
             <span style={{ position: 'relative', zIndex: 1 }}>Explore Joining</span>
-            {/* Subtle arrow indicator */}
-            <span
-              style={{
-                position: 'relative',
-                zIndex: 1,
-                fontSize: '14px',
-                transform: 'translateX(2px)',
-                transition: 'transform 0.3s ease',
-              }}
-            >
-              →
-            </span>
           </button>
         </div>
       </main>
@@ -571,6 +564,20 @@ function AnimatedRoutes() {
 
         {/* Login redirect - triggers Azure AD authentication */}
         <Route path="/login" element={<LoginRedirect />} />
+
+        {/* Bloom Homepage - Practice dashboard with blossom tree */}
+        <Route
+          path="/bloom-home"
+          element={
+            <ErrorBoundary>
+              <Suspense
+                fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+              >
+                <BloomHomepage />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
 
         {/* Qualification check - Joining journey */}
         <Route

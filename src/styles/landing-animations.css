@@ -126,6 +126,19 @@
   animation-delay: 5.2s;
 }
 
+.flower-small-7 {
+  animation-delay: 2.4s;
+  animation-duration: 0.8s, 20s;
+}
+
+.flower-small-8 {
+  animation-delay: 5.5s;
+}
+
+.flower-small-9 {
+  animation-delay: 5.8s;
+}
+
 .headline {
   animation: fadeInUp 0.7s ease-out 0s both; /* Removed delay for LCP */
 }

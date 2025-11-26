@@ -866,16 +866,69 @@ jobs:
           echo "═══════════════════════════════════════════════════════"
 
   # ─────────────────────────────────────────────────────────────────────────────
+  # Run Database Migrations
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  migrate-database:
+    name: 🗄️ Run Database Migrations → ${{ needs.determine-environment.outputs.environment }}
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes]
+    if: needs.determine-environment.outputs.should-deploy == 'true'
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Migration Dependencies
+        working-directory: ./db
+        run: npm install
+
+      - name: Run Flyway Migrations
+        working-directory: ./db
+        env:
+          DB_ENV: ${{ needs.determine-environment.outputs.environment }}
+          DB_DEV_SERVER: lpa-sql-server.database.windows.net
+          DB_DEV_DATABASE: lpa-bloom-db-dev
+          DB_DEV_USER: sqladmin
+          DB_DEV_PASSWORD: ${{ secrets.DB_DEV_PASSWORD }}
+          DB_STAGING_SERVER: lpa-sql-server.database.windows.net
+          DB_STAGING_DATABASE: lpa-bloom-db-staging
+          DB_STAGING_USER: sqladmin
+          DB_STAGING_PASSWORD: ${{ secrets.DB_STAGING_PASSWORD }}
+          DB_PROD_SERVER: lpa-sql-server.database.windows.net
+          DB_PROD_DATABASE: lpa-bloom-db-prod
+          DB_PROD_USER: sqladmin
+          DB_PROD_PASSWORD: ${{ secrets.DB_PROD_PASSWORD }}
+        run: |
+          echo "🚀 Running database migrations for $DB_ENV"
+          npm run migrate
+          echo "✅ Database migrations completed successfully"
+
+      - name: Migration Summary
+        run: |
+          echo "═══════════════════════════════════════════════════════"
+          echo "✅ DATABASE MIGRATIONS COMPLETED"
+          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
+          echo "🗄️  Database:     lpa-bloom-db-${{ needs.determine-environment.outputs.environment }}"
+          echo "═══════════════════════════════════════════════════════"
+
+  # ─────────────────────────────────────────────────────────────────────────────
   # Deploy Bloom API
   # ─────────────────────────────────────────────────────────────────────────────
 
   deploy-bloom-api:
     name: 🚀 Deploy Bloom API → ${{ needs.determine-environment.outputs.environment }}
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, build-bloom-api]
+    needs: [determine-environment, detect-changes, build-bloom-api, migrate-database]
     if: |
       always() &&
-      needs.build-bloom-api.result == 'success'
+      needs.build-bloom-api.result == 'success' &&
+      needs.migrate-database.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - name: Download Bloom API Artifacts

@@ -5,6 +5,7 @@ import './functions/applications';
 import './functions/upload';
 import './functions/ab-test';
 import './functions/track-ab-test';
+import './functions/dbvc';
 
 export * from './functions/health';
 export * from './functions/applications';

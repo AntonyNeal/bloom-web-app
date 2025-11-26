@@ -1,0 +1,652 @@
+name: Database Migrations
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DATABASE MIGRATIONS CI/CD WORKFLOW
+# Automated Database Version Control Pipeline
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# DATABASE ARCHITECTURE (4 databases total):
+#   - 2 SQL databases: lpa-bloom-db-dev, lpa-bloom-db-prod
+#   - 2 Cosmos databases: lpa-cosmos-dev, lpa-cosmos-prod
+#
+# BRANCH → DATABASE MAPPING:
+#   - develop branch  → dev DBs (first deployment)
+#   - staging branch  → dev DBs (second validation pass with extended tests)
+#   - main branch     → prod DBs
+#
+# WORKFLOW:
+# 1. Validate migration scripts
+# 2. Run migrations against target environment
+# 3. Run extended validation tests (staging branch only)
+# 4. Capture schema snapshot
+# 5. Verify integrity
+# 6. Rollback on failure
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - develop
+    paths:
+      - 'db/migrations/**'
+      - 'api/src/db-version-control/**'
+      - 'scripts/db-version-control/**'
+      - '.github/workflows/db-migrations.yml'
+  
+  pull_request:
+    branches:
+      - main
+      - staging
+      - develop
+    paths:
+      - 'db/migrations/**'
+      - 'api/src/db-version-control/**'
+  
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (staging uses dev DBs)'
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+      database:
+        description: 'Target database (or "all")'
+        required: false
+        type: string
+        default: 'all'
+      dry_run:
+        description: 'Dry run (preview only)'
+        required: false
+        type: boolean
+        default: false
+      force_snapshot:
+        description: 'Force schema snapshot'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+env:
+  NODE_VERSION: '18'
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# JOBS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Determine Environment
+  # ─────────────────────────────────────────────────────────────────────────────
+  
+  setup:
+    name: 🔧 Setup
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.config.outputs.environment }}
+      database: ${{ steps.config.outputs.database }}
+      dry_run: ${{ steps.config.outputs.dry_run }}
+      should_run: ${{ steps.config.outputs.should_run }}
+      is_staging_validation: ${{ steps.config.outputs.is_staging_validation }}
+      source_branch: ${{ steps.config.outputs.source_branch }}
+    
+    steps:
+      - name: Determine Configuration
+        id: config
+        run: |
+          # Determine environment from branch or input
+          # Branch mapping: develop/staging -> dev, main -> prod
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+            echo "database=${{ inputs.database || 'all' }}" >> $GITHUB_OUTPUT
+            echo "dry_run=${{ inputs.dry_run }}" >> $GITHUB_OUTPUT
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "is_staging_validation=false" >> $GITHUB_OUTPUT
+            echo "source_branch=manual" >> $GITHUB_OUTPUT
+          else
+            SOURCE_BRANCH="${{ github.ref_name }}"
+            echo "source_branch=$SOURCE_BRANCH" >> $GITHUB_OUTPUT
+            
+            case "$SOURCE_BRANCH" in
+              main)
+                # Production deployment
+                echo "environment=prod" >> $GITHUB_OUTPUT
+                echo "is_staging_validation=false" >> $GITHUB_OUTPUT
+                ;;
+              staging)
+                # Staging uses dev DBs but with extended validation
+                # This is the "second pass" before prod
+                echo "environment=dev" >> $GITHUB_OUTPUT
+                echo "is_staging_validation=true" >> $GITHUB_OUTPUT
+                ;;
+              *)
+                # develop and feature branches use dev
+                echo "environment=dev" >> $GITHUB_OUTPUT
+                echo "is_staging_validation=false" >> $GITHUB_OUTPUT
+                ;;
+            esac
+            echo "database=all" >> $GITHUB_OUTPUT
+            echo "dry_run=${{ github.event_name == 'pull_request' }}" >> $GITHUB_OUTPUT
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Display Configuration
+        run: |
+          echo "🌍 Environment: ${{ steps.config.outputs.environment }}"
+          echo "📦 Database: ${{ steps.config.outputs.database }}"
+          echo "🔍 Dry Run: ${{ steps.config.outputs.dry_run }}"
+          echo "🔄 Source Branch: ${{ steps.config.outputs.source_branch }}"
+          echo "✅ Staging Validation: ${{ steps.config.outputs.is_staging_validation }}"
+          if [ "${{ steps.config.outputs.is_staging_validation }}" == "true" ]; then
+            echo "📋 Note: Staging branch deploys to DEV DBs with extended validation (second pass before prod)"
+          fi
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Validate Migrations
+  # ─────────────────────────────────────────────────────────────────────────────
+  
+  validate:
+    name: ✅ Validate Migrations
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.should_run == 'true'
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+      
+      - name: Install Dependencies
+        working-directory: api
+        run: npm ci
+      
+      - name: Build API
+        working-directory: api
+        run: npm run build
+      
+      - name: Validate Migration Scripts
+        run: |
+          echo "🔍 Validating migration scripts..."
+          
+          # Check for SQL syntax errors (basic validation)
+          for file in db/migrations/V*.sql; do
+            if [ -f "$file" ]; then
+              echo "   Checking: $file"
+              # Basic checks
+              if grep -qi "DROP DATABASE" "$file"; then
+                echo "❌ Error: DROP DATABASE found in $file"
+                exit 1
+              fi
+              if grep -qi "TRUNCATE.*applications" "$file" && [ "${{ needs.setup.outputs.environment }}" == "prod" ]; then
+                echo "⚠️ Warning: TRUNCATE on applications table in production"
+              fi
+            fi
+          done
+          
+          echo "✅ All migration scripts validated"
+      
+      - name: Check Migration Naming Convention
+        run: |
+          echo "🔍 Checking migration naming conventions..."
+          
+          for file in db/migrations/V*.sql; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              if ! [[ "$filename" =~ ^V[0-9]+__[a-z0-9_]+\.sql$ ]]; then
+                echo "⚠️ Warning: $filename doesn't follow naming convention V{version}__{description}.sql"
+              fi
+            fi
+          done
+          
+          echo "✅ Naming convention check complete"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Run Migrations
+  # ─────────────────────────────────────────────────────────────────────────────
+  
+  migrate:
+    name: 🚀 Run Migrations (${{ needs.setup.outputs.environment }})
+    runs-on: ubuntu-latest
+    needs: [setup, validate]
+    if: needs.setup.outputs.should_run == 'true'
+    environment: ${{ needs.setup.outputs.environment == 'prod' && 'production' || needs.setup.outputs.environment }}
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+      
+      - name: Install Dependencies
+        working-directory: api
+        run: npm ci
+      
+      - name: Build API
+        working-directory: api
+        run: npm run build
+      
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Get Connection Strings from Key Vault
+        id: secrets
+        run: |
+          # Get SQL connection string (only DEV or PROD now)
+          ENV_SUFFIX="${{ needs.setup.outputs.environment == 'prod' && 'PROD' || 'DEV' }}"
+          
+          SQL_CONN=$(az keyvault secret show \
+            --name "SQL-${ENV_SUFFIX}-CONNECTION-STRING" \
+            --vault-name "lpa-kv-${{ needs.setup.outputs.environment }}" \
+            --query value -o tsv 2>/dev/null || echo "")
+          
+          if [ -z "$SQL_CONN" ]; then
+            echo "⚠️ Using environment variable fallback for SQL connection"
+          else
+            echo "SQL_CONNECTION_STRING=$SQL_CONN" >> $GITHUB_ENV
+          fi
+          
+          # Get Cosmos connection string (simplified naming)
+          COSMOS_CONN=$(az keyvault secret show \
+            --name "COSMOS-${ENV_SUFFIX}-CONNECTION-STRING" \
+            --vault-name "lpa-kv-${{ needs.setup.outputs.environment }}" \
+            --query value -o tsv 2>/dev/null || echo "")
+          
+          if [ -z "$COSMOS_CONN" ]; then
+            echo "⚠️ Using environment variable fallback for Cosmos connection"
+          else
+            echo "DBVC_COSMOS_CONNECTION_STRING=$COSMOS_CONN" >> $GITHUB_ENV
+          fi
+      
+      - name: Run Migrations
+        id: migrate
+        working-directory: api
+        env:
+          SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
+          DBVC_COSMOS_CONNECTION_STRING: ${{ env.DBVC_COSMOS_CONNECTION_STRING || secrets.COSMOS_DB_CONNECTION_STRING }}
+          DBVC_ENVIRONMENT: ${{ needs.setup.outputs.environment }}
+        run: |
+          echo "🚀 Running migrations for ${{ needs.setup.outputs.environment }}..."
+          
+          # Create migration runner script
+          cat > run-dbvc-migrations.js << 'EOF'
+          const { migrationService } = require('./dist/db-version-control/migration-service');
+          
+          async function main() {
+            const environment = process.env.DBVC_ENVIRONMENT || 'dev';
+            const database = process.env.DBVC_DATABASE || 'all';
+            const dryRun = process.env.DBVC_DRY_RUN === 'true';
+            
+            console.log(`Environment: ${environment}`);
+            console.log(`Database: ${database}`);
+            console.log(`Dry Run: ${dryRun}`);
+            
+            try {
+              await migrationService.connect();
+              
+              // Get status first
+              const status = await migrationService.getMigrationStatus({
+                environment: environment
+              });
+              
+              console.log('\n📊 Current Status:');
+              for (const db of status.databases) {
+                console.log(`  ${db.databaseName}: ${db.pendingMigrations} pending`);
+              }
+              
+              // Run migrations for each database
+              const databases = database === 'all' 
+                ? status.databases.map(d => d.databaseId)
+                : [database];
+              
+              let allSuccess = true;
+              const results = [];
+              
+              for (const dbId of databases) {
+                console.log(`\n🚀 Running migrations for ${dbId}...`);
+                
+                const result = await migrationService.runMigrations({
+                  databaseId: dbId,
+                  environment: environment,
+                  dryRun: dryRun,
+                  executor: `github-actions/${process.env.GITHUB_RUN_ID || 'local'}`,
+                  executionContext: {
+                    pipelineRunId: process.env.GITHUB_RUN_ID,
+                    commitSha: process.env.GITHUB_SHA,
+                    branch: process.env.GITHUB_REF_NAME,
+                    workflowName: process.env.GITHUB_WORKFLOW
+                  }
+                });
+                
+                results.push({ database: dbId, ...result });
+                
+                if (!result.success) {
+                  allSuccess = false;
+                  console.log(`❌ Migration failed for ${dbId}: ${result.failedMigration}`);
+                } else {
+                  console.log(`✅ ${result.executedMigrations.length} migrations applied`);
+                }
+              }
+              
+              // Output results
+              console.log('\n📋 Summary:');
+              console.log(JSON.stringify(results, null, 2));
+              
+              // Set output
+              const fs = require('fs');
+              fs.appendFileSync(process.env.GITHUB_OUTPUT || '/dev/null', 
+                `success=${allSuccess}\n`);
+              fs.appendFileSync(process.env.GITHUB_OUTPUT || '/dev/null', 
+                `results=${JSON.stringify(results)}\n`);
+              
+              await migrationService.disconnect();
+              
+              process.exit(allSuccess ? 0 : 1);
+            } catch (error) {
+              console.error('❌ Migration error:', error.message);
+              process.exit(1);
+            }
+          }
+          
+          main();
+          EOF
+          
+          node run-dbvc-migrations.js
+        continue-on-error: ${{ needs.setup.outputs.dry_run == 'true' }}
+      
+      - name: Capture Schema Snapshot
+        if: success() && needs.setup.outputs.dry_run != 'true'
+        working-directory: api
+        env:
+          SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
+          DBVC_COSMOS_CONNECTION_STRING: ${{ env.DBVC_COSMOS_CONNECTION_STRING || secrets.COSMOS_DB_CONNECTION_STRING }}
+          DBVC_ENVIRONMENT: ${{ needs.setup.outputs.environment }}
+        run: |
+          echo "📸 Capturing schema snapshot..."
+          
+          cat > capture-snapshot.js << 'EOF'
+          const { migrationService } = require('./dist/db-version-control/migration-service');
+          
+          async function main() {
+            const environment = process.env.DBVC_ENVIRONMENT || 'dev';
+            
+            try {
+              await migrationService.connect();
+              
+              const status = await migrationService.getMigrationStatus({ environment });
+              
+              for (const db of status.databases) {
+                if (db.databaseType === 'SQL') {
+                  console.log(`📸 Capturing snapshot for ${db.databaseId}...`);
+                  
+                  const result = await migrationService.captureSchemaSnapshot({
+                    databaseId: db.databaseId,
+                    environment: environment,
+                    captureType: 'auto',
+                    capturedBy: `github-actions/${process.env.GITHUB_RUN_ID || 'local'}`
+                  });
+                  
+                  console.log(`✅ Snapshot: ${result.snapshotId}`);
+                }
+              }
+              
+              await migrationService.disconnect();
+            } catch (error) {
+              console.error('❌ Snapshot error:', error.message);
+              process.exit(1);
+            }
+          }
+          
+          main();
+          EOF
+          
+          node capture-snapshot.js
+      
+      # Extended validation for staging branch (second pass before prod)
+      - name: Extended Validation Tests (Staging)
+        if: success() && needs.setup.outputs.is_staging_validation == 'true' && needs.setup.outputs.dry_run != 'true'
+        working-directory: api
+        env:
+          SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
+          DBVC_COSMOS_CONNECTION_STRING: ${{ env.DBVC_COSMOS_CONNECTION_STRING || secrets.COSMOS_DB_CONNECTION_STRING }}
+          DBVC_ENVIRONMENT: ${{ needs.setup.outputs.environment }}
+        run: |
+          echo "🔬 Running extended validation tests (staging branch - second pass)..."
+          echo "📋 This validates migrations are safe to promote to production"
+          
+          cat > extended-validation.js << 'EOF'
+          const { migrationService } = require('./dist/db-version-control/migration-service');
+          
+          async function main() {
+            const environment = process.env.DBVC_ENVIRONMENT || 'dev';
+            let allPassed = true;
+            
+            try {
+              await migrationService.connect();
+              
+              console.log('\n🔬 EXTENDED VALIDATION SUITE');
+              console.log('━'.repeat(50));
+              
+              // 1. Verify all migrations applied successfully
+              console.log('\n📊 Test 1: Migration Application Status');
+              const status = await migrationService.getMigrationStatus({ environment });
+              
+              for (const db of status.databases) {
+                if (db.pendingMigrations > 0) {
+                  console.log(`❌ ${db.databaseId}: ${db.pendingMigrations} pending migrations`);
+                  allPassed = false;
+                } else {
+                  console.log(`✅ ${db.databaseId}: All migrations applied`);
+                }
+              }
+              
+              // 2. Integrity check
+              console.log('\n🔍 Test 2: Data Integrity Verification');
+              for (const db of status.databases) {
+                const integrity = await migrationService.verifyIntegrity({
+                  databaseId: db.databaseId,
+                  environment: environment,
+                  fixDrift: false
+                });
+                
+                if (integrity.isValid) {
+                  console.log(`✅ ${db.databaseId}: Integrity verified`);
+                } else {
+                  console.log(`❌ ${db.databaseId}: ${integrity.issues.length} integrity issues found`);
+                  allPassed = false;
+                }
+              }
+              
+              // 3. Checksum validation
+              console.log('\n🔐 Test 3: Migration Checksum Validation');
+              for (const db of status.databases) {
+                const integrity = await migrationService.verifyIntegrity({
+                  databaseId: db.databaseId,
+                  environment: environment
+                });
+                
+                if (integrity.checksumMismatches.length === 0) {
+                  console.log(`✅ ${db.databaseId}: All checksums match`);
+                } else {
+                  console.log(`❌ ${db.databaseId}: ${integrity.checksumMismatches.length} checksum mismatches`);
+                  allPassed = false;
+                }
+              }
+              
+              console.log('\n' + '━'.repeat(50));
+              if (allPassed) {
+                console.log('✅ EXTENDED VALIDATION PASSED');
+                console.log('📋 Migrations are safe to promote to production');
+              } else {
+                console.log('❌ EXTENDED VALIDATION FAILED');
+                console.log('🚫 Do NOT merge to main until issues are resolved');
+              }
+              
+              await migrationService.disconnect();
+              process.exit(allPassed ? 0 : 1);
+              
+            } catch (error) {
+              console.error('❌ Extended validation error:', error.message);
+              process.exit(1);
+            }
+          }
+          
+          main();
+          EOF
+          
+          node extended-validation.js
+      
+      - name: Verify Integrity
+        if: success() && needs.setup.outputs.dry_run != 'true'
+        working-directory: api
+        env:
+          SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
+          DBVC_COSMOS_CONNECTION_STRING: ${{ env.DBVC_COSMOS_CONNECTION_STRING || secrets.COSMOS_DB_CONNECTION_STRING }}
+          DBVC_ENVIRONMENT: ${{ needs.setup.outputs.environment }}
+        run: |
+          echo "🔍 Verifying integrity..."
+          
+          cat > verify-integrity.js << 'EOF'
+          const { migrationService } = require('./dist/db-version-control/migration-service');
+          
+          async function main() {
+            const environment = process.env.DBVC_ENVIRONMENT || 'dev';
+            
+            try {
+              await migrationService.connect();
+              
+              const status = await migrationService.getMigrationStatus({ environment });
+              let allValid = true;
+              
+              for (const db of status.databases) {
+                console.log(`🔍 Verifying ${db.databaseId}...`);
+                
+                const result = await migrationService.verifyIntegrity({
+                  databaseId: db.databaseId,
+                  environment: environment,
+                  fixDrift: false
+                });
+                
+                if (result.isValid) {
+                  console.log(`✅ ${db.databaseId} integrity verified`);
+                } else {
+                  console.log(`⚠️ ${db.databaseId} has integrity issues:`);
+                  result.issues.forEach(issue => {
+                    console.log(`   - [${issue.severity}] ${issue.description}`);
+                  });
+                  allValid = false;
+                }
+              }
+              
+              await migrationService.disconnect();
+              process.exit(allValid ? 0 : 1);
+            } catch (error) {
+              console.error('❌ Integrity check error:', error.message);
+              process.exit(1);
+            }
+          }
+          
+          main();
+          EOF
+          
+          node verify-integrity.js
+      
+      - name: Post Migration Summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const success = '${{ steps.migrate.outcome }}' === 'success';
+            const environment = '${{ needs.setup.outputs.environment }}';
+            const dryRun = '${{ needs.setup.outputs.dry_run }}' === 'true';
+            
+            const summary = `## 🗃️ Database Migration Summary
+            
+            | Property | Value |
+            |----------|-------|
+            | Environment | \`${environment}\` |
+            | Dry Run | ${dryRun ? '✅ Yes' : '❌ No'} |
+            | Status | ${success ? '✅ Success' : '❌ Failed'} |
+            | Commit | \`${context.sha.substring(0, 7)}\` |
+            | Workflow | [Run #${context.runNumber}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) |
+            
+            ${success ? '### ✅ All migrations completed successfully!' : '### ❌ Migration failed - please check the logs'}
+            `;
+            
+            await core.summary.addRaw(summary).write();
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Rollback on Failure (Production only)
+  # ─────────────────────────────────────────────────────────────────────────────
+  
+  rollback:
+    name: 🔄 Rollback (if needed)
+    runs-on: ubuntu-latest
+    needs: [setup, migrate]
+    if: failure() && needs.setup.outputs.environment == 'prod' && needs.setup.outputs.dry_run != 'true'
+    environment: production
+    
+    steps:
+      - name: Rollback Alert
+        run: |
+          echo "⚠️ Production migration failed!"
+          echo "Manual rollback may be required."
+          echo ""
+          echo "To rollback, run:"
+          echo "  ./scripts/db-version-control/Undo-Migration.ps1 -MigrationId <failed-migration-id> -Database <database> -Environment prod"
+      
+      # Note: Automatic rollback is intentionally not implemented for production
+      # to prevent cascading failures. Manual intervention is required.
+      
+      - name: Create Issue for Failed Migration
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Production Migration Failed - ${new Date().toISOString().split('T')[0]}`,
+              body: `## Production Migration Failure
+              
+              A database migration failed in production and may require manual intervention.
+              
+              **Workflow Run:** [#${context.runNumber}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+              **Commit:** ${context.sha}
+              **Branch:** ${context.ref}
+              
+              ### Action Required
+              
+              1. Check the workflow logs for the specific migration that failed
+              2. Determine if rollback is needed
+              3. If rollback is needed, run:
+                 \`\`\`powershell
+                 ./scripts/db-version-control/Undo-Migration.ps1 -MigrationId <id> -Database <db> -Environment prod -Force
+                 \`\`\`
+              4. Fix the migration script and re-run the workflow
+              
+              /cc @${context.actor}
+              `,
+              labels: ['bug', 'production', 'database', 'urgent']
+            });

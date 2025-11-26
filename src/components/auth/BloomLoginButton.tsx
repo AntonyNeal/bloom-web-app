@@ -33,6 +33,15 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
     setIsClicked(true);
     setTimeout(() => setIsClicked(false), 2000);
 
+    // On localhost, bypass authentication and go directly to dashboard
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (isLocalhost) {
+      console.log('[BloomLoginButton] Running on localhost - bypassing auth, navigating to Bloom homepage');
+      navigate('/bloom-home');
+      return;
+    }
+
     if (!isAuthenticated) {
       console.log('[BloomLoginButton] Triggering Azure AD login - will redirect to Microsoft');
       try {

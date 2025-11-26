@@ -1,0 +1,16 @@
+# Environment files with credentials
+.env
+
+# Node modules
+node_modules/
+
+# Flyway CLI downloads
+flyway-cli/
+
+# Log files
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db

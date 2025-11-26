@@ -1,0 +1,26 @@
+{
+  "name": "@bloom/db-migrations",
+  "version": "1.0.0",
+  "description": "Database migration management for Bloom using node-flywaydb",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "migrate": "node scripts/migrate.js",
+    "migrate:dev": "cross-env DB_ENV=development node scripts/migrate.js",
+    "migrate:staging": "cross-env DB_ENV=staging node scripts/migrate.js",
+    "migrate:prod": "cross-env DB_ENV=production node scripts/migrate.js",
+    "info": "node scripts/migrate.js info",
+    "validate": "node scripts/migrate.js validate",
+    "baseline": "node scripts/migrate.js baseline",
+    "repair": "node scripts/migrate.js repair",
+    "clean": "node scripts/migrate.js clean"
+  },
+  "dependencies": {
+    "node-flywaydb": "^3.0.7",
+    "dotenv": "^16.4.5",
+    "cross-env": "^7.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30"
+  }
+}

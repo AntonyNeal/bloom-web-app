@@ -1011,7 +1011,7 @@ export function JoinUs() {
             marginBottom: '32px',
           }}
         >
-          We'll nurture your application with care. Expect to hear from us within 5-7 days.
+          We'll nurture your application with care. Expect to hear from us.
         </motion.p>
 
         <motion.button

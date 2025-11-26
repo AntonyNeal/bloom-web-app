@@ -73,7 +73,15 @@ export const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 
   // Redirect to /join-us if not authenticated
   // Users must click "Bloom" button and authenticate before accessing admin routes
+  // EXCEPT on localhost for development convenience
   if (!isAuthenticated) {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (isLocalhost) {
+      console.log('[ProtectedRoute] Localhost detected - bypassing authentication for development');
+      return children;
+    }
+    
     return (
       <Navigate 
         to="/join-us" 

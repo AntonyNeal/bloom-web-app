@@ -256,6 +256,18 @@ const Footer = () => {
               >
                 Privacy Policy
               </Link>
+              {/* Smoke Test Link - navigates to bloom admin */}
+              {import.meta.env.DEV && (
+                <a
+                  href="http://localhost:5174/admin/smoke-tests"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-blue-400 transition-colors min-h-[44px] flex items-center py-1 opacity-50 hover:opacity-100"
+                  title="Run Smoke Tests (Dev Only)"
+                >
+                  🧪 Smoke Tests
+                </a>
+              )}
             </div>
           </div>
         </div>

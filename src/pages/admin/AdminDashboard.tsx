@@ -1,5 +1,5 @@
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, TrendingUp, Sparkles, ArrowLeft, LogOut, BarChart3 } from 'lucide-react';
+import { FileText, TrendingUp, Sparkles, ArrowLeft, LogOut, BarChart3, FlaskConical } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,6 +21,13 @@ export function AdminDashboard() {
       icon: BarChart3,
       href: '/admin/ab-tests',
       color: 'lavender',
+    },
+    {
+      title: 'Smoke Tests',
+      description: 'Test APIs, databases, and schema integrity',
+      icon: FlaskConical,
+      href: '/admin/smoke-tests',
+      color: 'blush',
     },
   ];
 

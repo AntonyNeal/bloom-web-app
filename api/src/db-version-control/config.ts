@@ -102,16 +102,21 @@ export function getSqlConfig(): string | object {
 /**
  * Get Cosmos DB connection string for version control database
  */
-export function getCosmosConfig(): { connectionString: string; database: string } {
+export function getCosmosConfig(): { connectionString: string; database: string; container: string } {
   const connectionString = process.env.DBVC_COSMOS_CONNECTION_STRING || process.env.COSMOS_DB_CONNECTION_STRING;
   
   if (!connectionString) {
     throw new Error('DBVC_COSMOS_CONNECTION_STRING or COSMOS_DB_CONNECTION_STRING not configured');
   }
   
+  const environment = getCurrentEnvironment();
+  const database = process.env.DBVC_COSMOS_DATABASE || (environment === 'prod' ? 'lpa-dbvc-prod' : 'lpa-dbvc-dev');
+  const container = process.env.DBVC_COSMOS_CONTAINER || 'version-control';
+  
   return {
     connectionString,
-    database: process.env.DBVC_COSMOS_DATABASE || 'version-control',
+    database,
+    container,
   };
 }
 
@@ -196,7 +201,23 @@ export function isValidMigrationId(migrationId: string): boolean {
 }
 
 // ============================================================================
-// Cosmos DB Container Names
+// Cosmos DB Container Configuration
+// ============================================================================
+
+/**
+ * Single container approach with entityType partition key
+ * Documents will have entityType field: 'migration', 'snapshot', or 'change-event'
+ */
+export const COSMOS_CONTAINER = 'version-control';
+
+export const ENTITY_TYPES = {
+  MIGRATION: 'migration',
+  SCHEMA_SNAPSHOT: 'schema-snapshot',
+  CHANGE_EVENT: 'change-event',
+} as const;
+
+// ============================================================================
+// Legacy container names (deprecated - using single container now)
 // ============================================================================
 
 export const COSMOS_CONTAINERS = {

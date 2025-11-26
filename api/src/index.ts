@@ -6,9 +6,11 @@ import './functions/upload';
 import './functions/ab-test';
 import './functions/track-ab-test';
 import './functions/dbvc';
+import './functions/smoke-test';
 
 export * from './functions/health';
 export * from './functions/applications';
 export * from './functions/upload';
 export * from './functions/ab-test';
 export * from './functions/track-ab-test';
+export * from './functions/smoke-test';

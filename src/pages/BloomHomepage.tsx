@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { BlossomTreeSophisticated } from '@/components/bloom-tree/BlossomTreeSophisticated';
 
 // ============================================================================
@@ -586,8 +587,14 @@ const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
 
       {/* Right: Admin & User */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <a
-          href="/admin"
+        <Link
+          to="/admin/dashboard"
+          onClick={(e) => {
+            console.log('🔧 Admin Tools button clicked!');
+            console.log('Target URL:', '/admin/dashboard');
+            console.log('Current location:', window.location.href);
+            console.log('Event:', e);
+          }}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -608,7 +615,7 @@ const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
         >
           <WrenchIcon />
           <span>Admin Tools</span>
-        </a>
+        </Link>
 
         {/* User Dropdown */}
         <div style={{ position: 'relative' }}>

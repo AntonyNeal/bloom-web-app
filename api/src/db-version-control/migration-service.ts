@@ -44,7 +44,7 @@ import {
   generateSnapshotId,
   calculateChecksum,
   dbvcConfig,
-  COSMOS_CONTAINERS,
+  ENTITY_TYPES,
   SQL_TABLES,
 } from './config';
 
@@ -56,6 +56,7 @@ export class MigrationService {
   private sqlPool: sql.ConnectionPool | null = null;
   private cosmosClient: CosmosClient | null = null;
   private cosmosDb: Database | null = null;
+  private cosmosContainer: Container | null = null;
 
   // ──────────────────────────────────────────────────────────────────────────
   // Connection Management
@@ -73,9 +74,10 @@ export class MigrationService {
 
     // Cosmos DB Connection
     if (!this.cosmosClient) {
-      const { connectionString, database } = getCosmosConfig();
+      const { connectionString, database, container } = getCosmosConfig();
       this.cosmosClient = new CosmosClient(connectionString);
       this.cosmosDb = this.cosmosClient.database(database);
+      this.cosmosContainer = this.cosmosDb.container(container);
     }
   }
 
@@ -89,16 +91,17 @@ export class MigrationService {
     }
     this.cosmosClient = null;
     this.cosmosDb = null;
+    this.cosmosContainer = null;
   }
 
   /**
-   * Get Cosmos container by name
+   * Get Cosmos container (single container for all entity types)
    */
-  private getContainer(name: string): Container {
-    if (!this.cosmosDb) {
+  private getContainer(): Container {
+    if (!this.cosmosContainer) {
       throw new Error('Cosmos DB not connected. Call connect() first.');
     }
-    return this.cosmosDb.container(name);
+    return this.cosmosContainer;
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -155,10 +158,11 @@ export class MigrationService {
         dependsOn: input.dependsOn || null,
         tags: input.tags || null,
         appliedEnvironments: {},
-        _partitionKey: input.databaseId,
+        entityType: ENTITY_TYPES.MIGRATION,
+        _partitionKey: ENTITY_TYPES.MIGRATION,
       };
 
-      await this.getContainer(COSMOS_CONTAINERS.MIGRATIONS).items.create(migrationDoc);
+      await this.getContainer().items.create(migrationDoc);
 
       return {
         success: true,
@@ -619,10 +623,11 @@ export class MigrationService {
       environment: input.environment,
       captureType: input.captureType || 'auto',
       capturedBy: input.capturedBy,
-      _partitionKey: input.databaseId,
+      entityType: ENTITY_TYPES.SCHEMA_SNAPSHOT,
+      _partitionKey: ENTITY_TYPES.SCHEMA_SNAPSHOT,
     };
 
-    const { resource } = await this.getContainer(COSMOS_CONTAINERS.SCHEMA_SNAPSHOTS)
+    const { resource } = await this.getContainer()
       .items.create(snapshotDoc);
 
     // Also record in SQL for quick lookup
@@ -1067,10 +1072,11 @@ export class MigrationService {
       id: `${event.databaseId}_${event.migrationId}_${Date.now()}`,
       ...event,
       timestamp: new Date().toISOString(),
-      _partitionKey: event.databaseId,
+      entityType: ENTITY_TYPES.CHANGE_EVENT,
+      _partitionKey: ENTITY_TYPES.CHANGE_EVENT,
     };
 
-    await this.getContainer(COSMOS_CONTAINERS.CHANGE_EVENTS).items.create(doc);
+    await this.getContainer().items.create(doc);
   }
 }
 

@@ -125,7 +125,8 @@ export interface ChangeEvent {
   environment: Environment;
   executionContext: ExecutionContext;
   stateSnapshot?: unknown; // Optional before/after for critical changes
-  _partitionKey?: string; // Cosmos partition key (same as databaseId)
+  entityType?: string; // 'change-event' for single container partition
+  _partitionKey?: string; // Cosmos partition key
 }
 
 /**
@@ -141,7 +142,8 @@ export interface SchemaSnapshot {
   environment: Environment;
   captureType: CaptureType;
   capturedBy: string;
-  _partitionKey?: string; // Cosmos partition key (same as databaseId)
+  entityType?: string; // 'schema-snapshot' for single container partition
+  _partitionKey?: string; // Cosmos partition key
 }
 
 /**
@@ -166,6 +168,7 @@ export interface MigrationDocument {
       appliedBy: string;
     };
   };
+  entityType?: string; // 'migration' for single container partition
   _partitionKey?: string;
 }
 

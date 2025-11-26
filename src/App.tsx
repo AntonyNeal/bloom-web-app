@@ -24,6 +24,9 @@ const AdminDashboard = lazy(() =>
 const ABTestDashboard = lazy(() =>
   import('./pages/admin/ABTestDashboard').then((m) => ({ default: m.ABTestDashboard }))
 );
+const SmokeTestDashboard = lazy(() =>
+  import('./pages/admin/SmokeTestDashboard').then((m) => ({ default: m.SmokeTestDashboard }))
+);
 const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
 
 // Lazy-loaded flower components - keep original React components for visual fidelity
@@ -686,6 +689,23 @@ function AnimatedRoutes() {
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
                 >
                   <ABTestDashboard />
+                </Suspense>
+                <Toaster />
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Smoke Test Dashboard */}
+        <Route
+          path="/admin/smoke-tests"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
+                  <SmokeTestDashboard />
                 </Suspense>
                 <Toaster />
               </ErrorBoundary>

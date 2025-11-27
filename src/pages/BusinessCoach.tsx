@@ -845,11 +845,16 @@ const AICoachChat: React.FC = () => {
   const handleSend = () => {
     if (!input.trim()) return;
 
+    // Generate IDs outside of state updates to avoid impure function warnings
+    const messageId = crypto.randomUUID();
+    const responseId = crypto.randomUUID();
+    const now = new Date();
+
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: messageId,
       role: 'user',
       content: input,
-      timestamp: new Date(),
+      timestamp: now,
     };
     setMessages([...messages, userMessage]);
     setInput('');
@@ -858,7 +863,7 @@ const AICoachChat: React.FC = () => {
     // Simulate AI response
     setTimeout(() => {
       const aiResponse: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: responseId,
         role: 'assistant',
         content: getAIResponse(input),
         timestamp: new Date(),

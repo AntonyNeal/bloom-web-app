@@ -58,7 +58,8 @@ interface WeeklyStats {
   currentSessions: number;
   maxSessions: number;
   currentRevenue: number;
-  targetRevenue: number;
+  /** @deprecated No longer used - we don't set targets */
+  targetRevenue?: number;
 }
 
 interface UpcomingStats {
@@ -69,7 +70,8 @@ interface UpcomingStats {
 
 interface MonthlyStats {
   currentRevenue: number;
-  targetRevenue: number;
+  /** @deprecated No longer used - we don't set targets */
+  targetRevenue?: number;
   monthName: string;
 }
 
@@ -158,7 +160,6 @@ const sampleWeeklyStats: WeeklyStats = {
   currentSessions: 18,
   maxSessions: 25,
   currentRevenue: 3960,
-  targetRevenue: 5500,
 };
 
 const sampleUpcomingStats: UpcomingStats = {
@@ -169,7 +170,6 @@ const sampleUpcomingStats: UpcomingStats = {
 
 const sampleMonthlyStats: MonthlyStats = {
   currentRevenue: 12450,
-  targetRevenue: 22000,
   monthName: new Date().toLocaleDateString('en-AU', { month: 'long' }),
 };
 
@@ -1110,19 +1110,15 @@ const QuickStatsInline: React.FC<{ weeklyStats: WeeklyStats; upcomingStats: Upco
   
   // Ensure we have valid numbers
   const currentRevenue = Number(monthlyStats.currentRevenue) || 0;
-  const targetRevenue = Number(monthlyStats.targetRevenue) || 1;
   
   // Projected monthly revenue (extrapolate current month based on days elapsed)
   const projectedMonthlyRevenue = dayOfMonth > 0 ? (currentRevenue / dayOfMonth) * daysInMonth : currentRevenue;
   
   // Yearly projection: assume this monthly rate for the full year
-  // (In reality, you'd sum past months + projected remaining, but we'll use avg monthly rate)
   const yearlyProjection = Math.round(projectedMonthlyRevenue * 12);
   
-  // Determine if on track (comparing to monthly target annualized)
-  const yearlyTarget = targetRevenue * 12;
-  const onTrackPercentage = yearlyTarget > 0 ? Math.round((yearlyProjection / yearlyTarget) * 100) : 0;
-  const isOnTrack = onTrackPercentage >= 90;
+  // Calculate monthly average for context
+  const monthlyAverage = Math.round(yearlyProjection / 12);
 
   return (
     <motion.div
@@ -1150,17 +1146,17 @@ const QuickStatsInline: React.FC<{ weeklyStats: WeeklyStats; upcomingStats: Upco
           fontWeight: 500,
           color: colors.charcoal,
         }}>
-          On track for
+          Your projected earnings
         </span>
         <span style={{
           fontSize: '12px',
-          color: isOnTrack ? colors.sage : colors.terracotta,
-          backgroundColor: isOnTrack ? `${colors.sage}15` : `${colors.terracotta}15`,
+          color: colors.sage,
+          backgroundColor: `${colors.sage}15`,
           padding: '3px 10px',
           borderRadius: '12px',
           fontWeight: 600,
         }}>
-          {onTrackPercentage}% of goal
+          Based on current pace
         </span>
       </div>
 
@@ -1188,37 +1184,22 @@ const QuickStatsInline: React.FC<{ weeklyStats: WeeklyStats; upcomingStats: Upco
         </span>
       </div>
 
-      {/* Progress bar to yearly target */}
-      <div style={{ marginBottom: '16px' }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          marginBottom: '6px',
-          fontSize: '12px',
+      {/* Monthly average insight */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        marginBottom: '16px',
+        padding: '12px',
+        backgroundColor: colors.lavenderLight,
+        borderRadius: '10px',
+      }}>
+        <span style={{
+          fontSize: '14px',
           color: colors.charcoalLight,
         }}>
-          <span>Yearly target</span>
-          <span style={{ fontWeight: 500, color: colors.charcoal }}>${yearlyTarget.toLocaleString()}</span>
-        </div>
-        <div style={{
-          height: '8px',
-          backgroundColor: colors.lavenderLight,
-          borderRadius: '4px',
-          overflow: 'hidden',
-        }}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.min(onTrackPercentage, 100)}%` }}
-            transition={{ duration: 1, delay: 0.3 }}
-            style={{
-              height: '100%',
-              background: isOnTrack 
-                ? `linear-gradient(90deg, ${colors.sage}, ${colors.sageLight})`
-                : `linear-gradient(90deg, ${colors.terracotta}, ${colors.amber})`,
-              borderRadius: '4px',
-            }}
-          />
-        </div>
+          That's around <span style={{ fontWeight: 600, color: colors.charcoal }}>${monthlyAverage.toLocaleString()}</span> per month
+        </span>
       </div>
 
       {/* Quick stats row */}

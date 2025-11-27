@@ -203,17 +203,28 @@ const ClockIcon = () => (
 );
 
 // ============================================================================
-// COTTAGE HEADER - A brass nameplate, not a billboard
+// COTTAGE HEADER - Mobile-first responsive header
+// Designed for iOS/Android compatibility and future native app conversion
 // ============================================================================
 const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const today = new Date();
-  const formattedDate = today.toLocaleDateString('en-AU', {
+  
+  // Short format for mobile, full format for desktop
+  const mobileDate = today.toLocaleDateString('en-AU', {
+    day: 'numeric',
+    month: 'short',
+  });
+  
+  const desktopDate = today.toLocaleDateString('en-AU', {
     weekday: 'long',
     day: 'numeric',
     month: 'short',
   });
+
+  // Get first name for mobile display
+  const shortName = user.name.replace('Dr. ', '').split(' ')[0]; // Gets first name without title
 
   return (
     <header
@@ -221,28 +232,44 @@ const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '12px 24px',
+        // Mobile-first padding: smaller on mobile, larger on desktop
+        padding: 'clamp(8px, 2vw, 12px) clamp(12px, 4vw, 24px)',
         backgroundColor: colors.white,
         borderBottom: `1px solid ${colors.lavender}`,
         position: 'sticky',
         top: 0,
         zIndex: 100,
+        // Safe area insets for iOS notch/dynamic island
+        paddingTop: 'max(env(safe-area-inset-top, 0px), clamp(8px, 2vw, 12px))',
+        paddingLeft: 'max(env(safe-area-inset-left, 0px), clamp(12px, 4vw, 24px))',
+        paddingRight: 'max(env(safe-area-inset-right, 0px), clamp(12px, 4vw, 24px))',
+        // Minimum touch target height for mobile (44px iOS, 48px Android)
+        minHeight: '48px',
       }}
     >
-      {/* Left: Branding */}
+      {/* Left: Branding - scales down on mobile */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: 'clamp(4px, 1.5vw, 8px)',
           color: colors.sage,
+          flexShrink: 0,
         }}
       >
-        <LeafIcon />
+        <div style={{ 
+          width: 'clamp(20px, 5vw, 24px)', 
+          height: 'clamp(20px, 5vw, 24px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <LeafIcon />
+        </div>
         <span
           style={{
             fontFamily: "'Crimson Text', Georgia, serif",
-            fontSize: '20px',
+            fontSize: 'clamp(16px, 4vw, 20px)',
             fontWeight: 600,
             letterSpacing: '-0.5px',
           }}
@@ -251,29 +278,47 @@ const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
         </span>
       </div>
 
-      {/* Center: Date */}
+      {/* Center: Date - hidden on very small screens, abbreviated on mobile */}
       <div
+        className="header-date"
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: 'clamp(4px, 1vw, 8px)',
           color: colors.charcoalLight,
-          fontSize: '14px',
+          fontSize: 'clamp(11px, 2.5vw, 14px)',
+          // Hide on very small screens (< 360px)
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
         }}
       >
-        <CalendarIcon />
-        <span>Today: {formattedDate}</span>
+        <div style={{ 
+          width: 'clamp(12px, 3vw, 16px)', 
+          height: 'clamp(12px, 3vw, 16px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <CalendarIcon />
+        </div>
+        {/* Show abbreviated date on mobile, full on desktop */}
+        <span className="date-mobile" style={{ display: 'none' }}>{mobileDate}</span>
+        <span className="date-desktop">Today: {desktopDate}</span>
       </div>
 
-      {/* Right: Admin & User */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      {/* Right: Actions - collapses to icons on mobile */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: 'clamp(8px, 2vw, 16px)',
+        flexShrink: 0,
+      }}>
+        {/* Admin Tools - icon only on mobile */}
         <Link
           to="/admin/dashboard"
-          onClick={(e) => {
+          onClick={() => {
             console.log('🔧 Admin Tools button clicked!');
-            console.log('Target URL:', '/admin/dashboard');
-            console.log('Current location:', window.location.href);
-            console.log('Event:', e);
           }}
           style={{
             display: 'flex',
@@ -281,10 +326,14 @@ const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
             gap: '6px',
             color: colors.charcoalLight,
             textDecoration: 'none',
-            fontSize: '13px',
-            padding: '6px 10px',
+            fontSize: 'clamp(11px, 2.5vw, 13px)',
+            padding: 'clamp(6px, 1.5vw, 8px) clamp(6px, 1.5vw, 10px)',
             borderRadius: '6px',
             transition: 'all 0.2s ease',
+            // Minimum touch target
+            minWidth: '44px',
+            minHeight: '44px',
+            justifyContent: 'center',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = colors.lavenderLight;
@@ -292,33 +341,41 @@ const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'transparent';
           }}
+          aria-label="Admin Tools"
         >
           <WrenchIcon />
-          <span>Admin Tools</span>
+          {/* Text hidden on mobile via CSS */}
+          <span className="admin-text" style={{ display: 'none' }}>Admin Tools</span>
         </Link>
 
         {/* User Dropdown */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
+            onBlur={() => setTimeout(() => setDropdownOpen(false), 200)}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
+              gap: 'clamp(4px, 1vw, 6px)',
+              padding: 'clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px)',
               backgroundColor: 'transparent',
               border: `1px solid ${colors.lavender}`,
               borderRadius: '8px',
               cursor: 'pointer',
-              fontSize: '14px',
+              fontSize: 'clamp(12px, 2.8vw, 14px)',
               color: colors.charcoal,
               transition: 'all 0.2s ease',
+              // Minimum touch target for mobile
+              minHeight: '44px',
+              minWidth: '44px',
+              WebkitTapHighlightColor: 'transparent',
             }}
             aria-haspopup="true"
             aria-expanded={dropdownOpen}
           >
-            <span>{user.name}</span>
+            {/* Show short name on mobile, full name on desktop */}
+            <span className="user-name-mobile" style={{ display: 'none' }}>{shortName}</span>
+            <span className="user-name-desktop">{user.name}</span>
             <ChevronDownIcon />
           </button>
 
@@ -336,18 +393,23 @@ const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
                 minWidth: '160px',
                 overflow: 'hidden',
                 animation: 'dropdownFade 0.15s ease-out',
+                // Ensure dropdown stays on screen on mobile
+                maxWidth: 'calc(100vw - 24px)',
               }}
               role="menu"
             >
               <a
                 href="/profile"
                 style={{
-                  display: 'block',
-                  padding: '10px 16px',
+                  display: 'flex',
+                  padding: '12px 16px', // Larger touch targets
                   color: colors.charcoal,
                   textDecoration: 'none',
                   fontSize: '14px',
                   transition: 'background-color 0.15s ease',
+                  // Minimum touch target height
+                  minHeight: '44px',
+                  alignItems: 'center',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = colors.lavenderLight;
@@ -362,13 +424,15 @@ const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
               <a
                 href="/signout"
                 style={{
-                  display: 'block',
-                  padding: '10px 16px',
+                  display: 'flex',
+                  padding: '12px 16px',
                   color: colors.charcoal,
                   textDecoration: 'none',
                   fontSize: '14px',
                   borderTop: `1px solid ${colors.lavender}`,
                   transition: 'background-color 0.15s ease',
+                  minHeight: '44px',
+                  alignItems: 'center',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = colors.lavenderLight;
@@ -384,6 +448,82 @@ const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
           )}
         </div>
       </div>
+
+      {/* Responsive CSS - injected as style tag */}
+      <style>{`
+        /* Mobile-first breakpoints */
+        
+        /* Extra small screens (< 360px) - hide date entirely */
+        @media (max-width: 359px) {
+          .header-date {
+            display: none !important;
+          }
+        }
+        
+        /* Small screens (360px - 480px) - abbreviated content */
+        @media (min-width: 360px) and (max-width: 480px) {
+          .date-desktop { display: none !important; }
+          .date-mobile { display: inline !important; }
+          .admin-text { display: none !important; }
+          .user-name-desktop { display: none !important; }
+          .user-name-mobile { display: inline !important; }
+        }
+        
+        /* Medium screens (481px - 768px) - show more content */
+        @media (min-width: 481px) and (max-width: 768px) {
+          .date-desktop { display: inline !important; }
+          .date-mobile { display: none !important; }
+          .admin-text { display: none !important; }
+          .user-name-desktop { display: inline !important; }
+          .user-name-mobile { display: none !important; }
+        }
+        
+        /* Large screens (769px+) - full content */
+        @media (min-width: 769px) {
+          .date-desktop { display: inline !important; }
+          .date-mobile { display: none !important; }
+          .admin-text { display: inline !important; }
+          .user-name-desktop { display: inline !important; }
+          .user-name-mobile { display: none !important; }
+        }
+        
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+          /* Increase touch targets on touch devices */
+          .header-date {
+            padding: 8px;
+          }
+        }
+        
+        /* Reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+        
+        /* Dark mode support (for future) */
+        @media (prefers-color-scheme: dark) {
+          /* Header will inherit from global dark mode styles when implemented */
+        }
+        
+        /* High contrast mode */
+        @media (prefers-contrast: high) {
+          header {
+            border-bottom-width: 2px;
+          }
+        }
+        
+        /* Landscape orientation on mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+          header {
+            padding-top: 6px !important;
+            padding-bottom: 6px !important;
+            min-height: 40px !important;
+          }
+        }
+      `}</style>
     </header>
   );
 };
@@ -1385,15 +1525,42 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
         margin: '0 auto',
         padding: '20px 16px',
       }}>
-        {/* Hero: Tree + Revenue - Always at top */}
-        <motion.div
-          initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          style={{ marginBottom: '24px' }}
+        {/* Hero: Tree + Revenue - Clickable to Business Coach */}
+        <Link 
+          to="/business-coach"
+          style={{ textDecoration: 'none', display: 'block' }}
+          aria-label="View Business Coach dashboard"
         >
-          <BlossomTreeSophisticated monthlyStats={monthlyStats} />
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{ 
+              marginBottom: '24px',
+              cursor: 'pointer',
+              borderRadius: '20px',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            }}
+            whileHover={{ 
+              scale: 1.01,
+              boxShadow: '0 8px 24px rgba(122, 141, 122, 0.15)',
+            }}
+            whileTap={{ scale: 0.99 }}
+          >
+            <BlossomTreeSophisticated monthlyStats={monthlyStats} />
+            {/* Subtle hint to click */}
+            <div style={{
+              textAlign: 'center',
+              marginTop: '-8px',
+              paddingBottom: '8px',
+              fontSize: '12px',
+              color: colors.sageLight,
+              opacity: 0.8,
+            }}>
+              Tap to explore your Business Coach →
+            </div>
+          </motion.div>
+        </Link>
 
         {/* Stories Bar - Quick glance at today's clients */}
         <ClientStoriesBar sessions={todaysSessions} />

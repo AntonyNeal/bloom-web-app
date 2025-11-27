@@ -28,6 +28,7 @@ const SmokeTestDashboard = lazy(() =>
   import('./pages/admin/SmokeTestDashboard').then((m) => ({ default: m.SmokeTestDashboard }))
 );
 const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
+const BusinessCoach = lazy(() => import('./pages/BusinessCoach'));
 
 // Lazy-loaded flower components - keep original React components for visual fidelity
 const Tier1Flower = lazy(() =>
@@ -577,7 +578,21 @@ function AnimatedRoutes() {
               <Suspense
                 fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
               >
-                <BloomHomepage />
+                <BloomHomepage practitionerId={import.meta.env.VITE_DEV_PRACTITIONER_ID} />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
+
+        {/* Business Coach - Practice growth dashboard */}
+        <Route
+          path="/business-coach"
+          element={
+            <ErrorBoundary>
+              <Suspense
+                fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+              >
+                <BusinessCoach />
               </Suspense>
             </ErrorBoundary>
           }

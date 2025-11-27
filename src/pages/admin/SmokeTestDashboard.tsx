@@ -181,9 +181,9 @@ export function SmokeTestDashboard() {
   const [testResults, setTestResults] = useState<SmokeTestResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // VITE_API_URL already includes /api at the end
-  const apiBaseUrl = import.meta.env.VITE_API_URL || 
-    (import.meta.env.DEV ? 'http://localhost:7071/api' : 'https://bloom-platform-functions-v2.azurewebsites.net/api');
+  // Use Vite proxy for local dev (/api -> bloom-functions-dev.azurewebsites.net)
+  // In production, VITE_API_URL is set by CI/CD pipeline
+  const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
 
   const runSmokeTests = useCallback(async () => {
     setIsLoading(true);

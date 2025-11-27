@@ -912,8 +912,18 @@ jobs:
 
       - name: Run Azure SQL Migrations
         working-directory: ./db
+        continue-on-error: true  # Non-blocking: DB secrets may not be configured in GitHub
+        env:
+          DB_SERVER: ${{ env.DB_SERVER }}
+          DB_NAME: ${{ env.DB_NAME }}
+          DB_USER: ${{ env.DB_USER }}
+          DB_PASSWORD: ${{ env.DB_PASSWORD }}
         run: |
           echo "🚀 Running database migrations for ${{ needs.determine-environment.outputs.environment }}"
+          if [ -z "$DB_PASSWORD" ]; then
+            echo "⚠️ DB_PASSWORD not set - skipping migrations (configure secrets in GitHub)"
+            exit 0
+          fi
           npm run migrate
           echo "✅ Database migrations completed successfully"
 

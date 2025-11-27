@@ -1,13 +1,9 @@
-import Flywaydb from 'node-flywaydb';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import dotenv from 'dotenv';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const Flywaydb = require('node-flywaydb');
+const path = require('path');
+const dotenv = require('dotenv');
 
 // Load environment variables
-dotenv.config({ path: join(__dirname, '..', '.env') });
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 // Get environment from command line or environment variable
 const dbEnv = process.env.DB_ENV || 'development';
@@ -40,7 +36,7 @@ const flywayConfig = {
     url: `jdbc:sqlserver://${process.env[`DB_${dbEnv === 'development' ? 'DEV' : dbEnv === 'staging' ? 'STAGING' : 'PROD'}_SERVER`]}:1433;database=${process.env[`DB_${dbEnv === 'development' ? 'DEV' : dbEnv === 'staging' ? 'STAGING' : 'PROD'}_DATABASE`]};encrypt=true;trustServerCertificate=false;`,
     user: process.env[`DB_${dbEnv === 'development' ? 'DEV' : dbEnv === 'staging' ? 'STAGING' : 'PROD'}_USER`],
     password: process.env[`DB_${dbEnv === 'development' ? 'DEV' : dbEnv === 'staging' ? 'STAGING' : 'PROD'}_PASSWORD`],
-    locations: `filesystem:${join(__dirname, '..', 'migrations')}`,
+    locations: `filesystem:${path.join(__dirname, '..', 'migrations')}`,
     sqlMigrationPrefix: 'V',
     repeatableSqlMigrationPrefix: 'R',
     sqlMigrationSeparator: '__',
@@ -53,7 +49,7 @@ const flywayConfig = {
     cleanDisabled: dbEnv === 'production', // Prevent accidental clean in production
   },
   downloads: {
-    storageDirectory: join(__dirname, '..', 'flyway-cli'),
+    storageDirectory: path.join(__dirname, '..', 'flyway-cli'),
   },
 };
 

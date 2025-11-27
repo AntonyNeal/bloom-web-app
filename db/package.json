@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Database migration management for Bloom using node-flywaydb",
   "private": true,
-  "type": "module",
   "scripts": {
     "migrate": "node scripts/migrate.js",
     "migrate:dev": "cross-env DB_ENV=development node scripts/migrate.js",

@@ -14,6 +14,20 @@
 
 import { memo, useMemo } from 'react';
 
+// Simple seeded random number generator based on string hash
+// This ensures deterministic "randomness" based on the flower's ID
+function seededRandom(seed: string, index: number): number {
+  let hash = 0;
+  const str = seed + index.toString();
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  // Convert to a number between 0 and 1
+  return (Math.abs(hash) % 1000) / 1000;
+}
+
 export interface BlossomFlowerProps {
   /** X position in SVG coordinates */
   x: number;
@@ -100,10 +114,10 @@ export const BlossomFlower = memo(({
   // Stamen count increases with bloom stage
   const stamenCount = Math.floor(8 + stage * 4); // 8 to 12 stamens
   
-  // Pre-compute stamen lengths to avoid calling Math.random during render
+  // Pre-compute stamen lengths using seeded random for deterministic results
   const stamenLengths = useMemo(() => 
-    Array.from({ length: 12 }, () => centerRadius * (1.2 + Math.random() * 0.4)),
-    [centerRadius]
+    Array.from({ length: 12 }, (_, i) => centerRadius * (1.2 + seededRandom(id, i) * 0.4)),
+    [centerRadius, id]
   );
   
   return (

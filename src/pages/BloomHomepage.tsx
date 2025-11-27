@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { BlossomTreeSophisticated } from '@/components/bloom-tree/BlossomTreeSophisticated';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useDashboard } from '@/hooks/useDashboard';
 
 // ============================================================================
 // DESIGN TOKENS - The palette of a cottage garden
@@ -37,6 +38,8 @@ const shadows = {
 // ============================================================================
 // TYPES - The taxonomy of our garden
 // ============================================================================
+// Using types from @/types/bloom.ts for data schema
+// Local Session type for backward compatibility with existing components
 interface Session {
   id: string;
   time: string;
@@ -46,6 +49,9 @@ interface Session {
   mhcpRemaining: number;
   mhcpTotal: number;
   relationshipMonths: number;
+  isUpNext?: boolean;
+  status?: string;
+  locationType?: string;
 }
 
 interface WeeklyStats {
@@ -73,10 +79,17 @@ interface User {
 }
 
 interface BloomHomepageProps {
+  /** Practitioner ID for fetching data (optional - uses sample data if not provided) */
+  practitionerId?: string;
+  /** Override user data */
   user?: User;
+  /** Override sessions (bypasses API) */
   todaysSessions?: Session[];
+  /** Override weekly stats */
   weeklyStats?: WeeklyStats;
+  /** Override upcoming stats */
   upcomingStats?: UpcomingStats;
+  /** Override monthly stats */
   monthlyStats?: MonthlyStats;
 }
 
@@ -1570,13 +1583,83 @@ const QuickStatsInline: React.FC<{ weeklyStats: WeeklyStats; upcomingStats: Upco
 // BLOOM HOMEPAGE - Social Feed Layout
 // ============================================================================
 const BloomHomepage: React.FC<BloomHomepageProps> = ({
-  user = sampleUser,
-  todaysSessions = sampleSessions,
-  weeklyStats = sampleWeeklyStats,
-  upcomingStats = sampleUpcomingStats,
-  monthlyStats = sampleMonthlyStats,
+  practitionerId,
+  user: userOverride,
+  todaysSessions: sessionsOverride,
+  weeklyStats: weeklyOverride,
+  upcomingStats: upcomingOverride,
+  monthlyStats: monthlyOverride,
 }) => {
   const prefersReducedMotion = useReducedMotion();
+  
+  // Fetch dashboard data from API (or use sample data as fallback)
+  const { dashboard, loading, error, syncStatus } = useDashboard(practitionerId);
+
+  // Transform dashboard data to local types, or use overrides/samples
+  const user: User = userOverride || (dashboard ? {
+    name: dashboard.practitioner.displayName,
+    id: dashboard.practitioner.id,
+  } : sampleUser);
+
+  const todaysSessions: Session[] = sessionsOverride || (dashboard ? 
+    dashboard.todaysSessions.map(s => ({
+      id: s.id,
+      time: s.time,
+      sessionNumber: s.sessionNumber,
+      clientInitials: s.clientInitials,
+      presentingIssues: s.presentingIssues,
+      mhcpRemaining: s.mhcpRemaining,
+      mhcpTotal: s.mhcpTotal,
+      relationshipMonths: s.relationshipMonths,
+      isUpNext: s.isUpNext,
+      status: s.status,
+      locationType: s.locationType,
+    })) : sampleSessions);
+
+  const weeklyStats: WeeklyStats = weeklyOverride || (dashboard ? {
+    currentSessions: dashboard.weeklyStats.currentSessions,
+    maxSessions: dashboard.weeklyStats.maxSessions,
+    currentRevenue: dashboard.weeklyStats.currentRevenue,
+    targetRevenue: dashboard.weeklyStats.targetRevenue,
+  } : sampleWeeklyStats);
+
+  const upcomingStats: UpcomingStats = upcomingOverride || (dashboard ? {
+    tomorrowSessions: dashboard.upcomingStats.tomorrowSessions,
+    remainingThisWeek: dashboard.upcomingStats.remainingThisWeek,
+    mhcpEndingSoon: dashboard.upcomingStats.mhcpEndingSoon,
+  } : sampleUpcomingStats);
+
+  const monthlyStats: MonthlyStats = monthlyOverride || (dashboard ? {
+    currentRevenue: dashboard.monthlyStats.currentRevenue,
+    targetRevenue: dashboard.monthlyStats.targetRevenue,
+    monthName: dashboard.monthlyStats.monthName,
+  } : sampleMonthlyStats);
+
+  // Show loading state
+  if (loading && !dashboard) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: colors.cream,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: '16px',
+      }}>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          style={{ color: colors.sage }}
+        >
+          <LeafIcon />
+        </motion.div>
+        <p style={{ color: colors.charcoalLight, fontSize: '14px' }}>
+          Growing your garden...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div

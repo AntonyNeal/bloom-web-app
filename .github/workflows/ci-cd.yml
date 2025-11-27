@@ -1,20 +1,33 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# LIFE PSYCHOLOGY MONOREPO DEPLOY (DEPRECATED)
-# 
-# NOTE: This workflow has been superseded by ci-cd.yml which consolidates
-# all push-triggered deployments (apps + database migrations) into one file.
+# LIFE PSYCHOLOGY UNIFIED CI/CD WORKFLOW
+# Combined Application Deployment + Database Migrations
 #
-# This file is kept for backwards compatibility and will be removed in a future
-# cleanup. Use ci-cd.yml for all new deployments.
+# APPLICATIONS:
+# 1. Bloom Portal (apps/bloom) + Bloom API (api/)
+# 2. Website (apps/website) + Website API (apps/website/functions)
+# 3. Database Migrations (db/migrations)
 #
-# ═══════════════════════════════════════════════════════════════════════════════
+# ENVIRONMENTS:
+# - Development (develop branch)
+# - Staging (staging branch)
+# - Production (main branch)
+#
+# TRIGGERS:
+# - Auto-deploy on push to main/staging/develop
+# - Smart change detection per app/db
 
-name: Monorepo Deploy (Deprecated)
+name: CI/CD Pipeline
 
 on:
-  # Push triggers removed - now handled by ci-cd.yml
-  # Use workflow_dispatch for manual runs only
-  
+  push:
+    branches:
+      - main      # Production
+      - staging   # Staging
+      - develop   # Development
+  pull_request:
+    branches:
+      - main
+      - staging
+      - develop
   workflow_dispatch:
     inputs:
       environment:
@@ -40,11 +53,22 @@ on:
         required: false
         type: boolean
         default: true
+      run_migrations:
+        description: 'Run Database Migrations'
+        required: false
+        type: boolean
+        default: true
+      dry_run_migrations:
+        description: 'Dry run migrations (preview only)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
   pull-requests: write
   id-token: write
+  issues: write
 
 env:
   NODE_VERSION: '20'
@@ -70,6 +94,7 @@ jobs:
       website-api: ${{ steps.filter.outputs.website-api }}
       shared-packages: ${{ steps.filter.outputs.shared-packages }}
       infrastructure: ${{ steps.filter.outputs.infrastructure }}
+      database: ${{ steps.filter.outputs.database }}
     steps:
       - uses: actions/checkout@v4
 
@@ -103,6 +128,10 @@ jobs:
               - '.github/workflows/**'
               - 'pnpm-workspace.yaml'
               - 'package.json'
+            database:
+              - 'db/migrations/**'
+              - 'api/src/db-version-control/**'
+              - 'scripts/db-version-control/**'
 
       - name: Display Changes
         run: |
@@ -112,6 +141,7 @@ jobs:
           echo "⚡ Website API: ${{ steps.filter.outputs.website-api }}"
           echo "📦 Shared Packages: ${{ steps.filter.outputs.shared-packages }}"
           echo "🏗️ Infrastructure: ${{ steps.filter.outputs.infrastructure }}"
+          echo "🗄️ Database: ${{ steps.filter.outputs.database }}"
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Environment Configuration
@@ -123,6 +153,8 @@ jobs:
     outputs:
       environment: ${{ steps.config.outputs.environment }}
       should-deploy: ${{ steps.config.outputs.should_deploy }}
+      is-staging-validation: ${{ steps.config.outputs.is_staging_validation }}
+      db-environment: ${{ steps.config.outputs.db_environment }}
       # Bloom Portal
       bloom-frontend-app: ${{ steps.config.outputs.bloom_frontend_app }}
       bloom-api-app: ${{ steps.config.outputs.bloom_api_app }}
@@ -167,69 +199,69 @@ jobs:
             esac
           fi
 
+          # Database environment mapping (staging uses dev DBs)
+          IS_STAGING_VALIDATION="false"
+          case "$ENV" in
+            production)
+              DB_ENV="prod"
+              ;;
+            staging)
+              DB_ENV="dev"
+              IS_STAGING_VALIDATION="true"
+              ;;
+            *)
+              DB_ENV="dev"
+              ;;
+          esac
+
           # Set resource names based on environment
           case "$ENV" in
             production)
-              # Bloom Portal - Production
               BLOOM_FRONTEND_APP="lpa-bloom-prod"
               BLOOM_API_APP="bloom-platform-functions-v2"
               BLOOM_API_URL="https://bloom-platform-functions-v2.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD"
               BLOOM_API_SECRET="BLOOM_PROD_API_PUBLISH_PROFILE"
-              
-              # Website - Production (API deployed as managed functions with SWA)
               WEBSITE_FRONTEND_APP="lpa-frontend-prod"
-              WEBSITE_API_APP=""  # Managed functions - no standalone Function App
+              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_PROD"
-              WEBSITE_API_SECRET=""  # Not used for managed functions
-              
+              WEBSITE_API_SECRET=""
               SHOULD_DEPLOY="true"
               ;;
             staging)
-              # Bloom Portal - Staging
               BLOOM_FRONTEND_APP="lpa-bloom-staging"
               BLOOM_API_APP="bloom-functions-staging-new"
               BLOOM_API_URL="https://bloom-functions-staging-new.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING"
               BLOOM_API_SECRET="BLOOM_STAGING_API_PUBLISH_PROFILE"
-              
-              # Website - Staging (API deployed as managed functions with SWA)
               WEBSITE_FRONTEND_APP="lpa-frontend-staging"
-              WEBSITE_API_APP=""  # Managed functions - no standalone Function App
+              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_STAGING"
-              WEBSITE_API_SECRET=""  # Not used for managed functions
-              
+              WEBSITE_API_SECRET=""
               SHOULD_DEPLOY="true"
               ;;
             development)
-              # Bloom Portal - Development
               BLOOM_FRONTEND_APP="lpa-bloom-dev"
               BLOOM_API_APP="bloom-functions-dev"
               BLOOM_API_URL="https://bloom-functions-dev.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_DEV"
               BLOOM_API_SECRET="BLOOM_DEV_API_PUBLISH_PROFILE"
-              
-              # Website - Development (API deployed as managed functions with SWA)
               WEBSITE_FRONTEND_APP="lpa-frontend-dev"
-              WEBSITE_API_APP=""  # Managed functions - no standalone Function App
+              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_DEV"
-              WEBSITE_API_SECRET=""  # Not used for managed functions
-              
+              WEBSITE_API_SECRET=""
               SHOULD_DEPLOY="true"
               ;;
             preview)
-              # Preview - use dev resources
               BLOOM_FRONTEND_APP="lpa-bloom-dev"
               BLOOM_API_APP="bloom-functions-dev"
               BLOOM_API_URL="https://bloom-functions-dev.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET=""
               BLOOM_API_SECRET=""
-              
               WEBSITE_FRONTEND_APP="lpa-frontend-dev"
-              WEBSITE_API_APP=""  # Managed functions
+              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET=""
               WEBSITE_API_SECRET=""
-              
               SHOULD_DEPLOY="false"
               ;;
           esac
@@ -237,6 +269,8 @@ jobs:
           # Output configuration
           echo "environment=$ENV" >> $GITHUB_OUTPUT
           echo "should_deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+          echo "is_staging_validation=$IS_STAGING_VALIDATION" >> $GITHUB_OUTPUT
+          echo "db_environment=$DB_ENV" >> $GITHUB_OUTPUT
           
           # Bloom Portal
           echo "bloom_frontend_app=$BLOOM_FRONTEND_APP" >> $GITHUB_OUTPUT
@@ -256,14 +290,13 @@ jobs:
           echo "✅ ENVIRONMENT CONFIGURATION"
           echo "═══════════════════════════════════════════════════════"
           echo "🌍 Environment:         $ENV"
+          echo "🗄️ DB Environment:      $DB_ENV"
           echo "🚀 Should Deploy:       $SHOULD_DEPLOY"
+          echo "🔄 Staging Validation:  $IS_STAGING_VALIDATION"
           echo ""
           echo "🌸 Bloom Frontend:      $BLOOM_FRONTEND_APP"
           echo "🔌 Bloom API:           $BLOOM_API_APP"
-          echo "🔗 Bloom API URL:       $BLOOM_API_URL"
-          echo ""
           echo "🌐 Website Frontend:    $WEBSITE_FRONTEND_APP"
-          echo "⚡ Website API:         $WEBSITE_API_APP"
           echo "═══════════════════════════════════════════════════════"
 
   # ─────────────────────────────────────────────────────────────────────────────
@@ -275,16 +308,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
       - name: Install Dependencies
         run: npm ci
-
       - name: Run ESLint
         run: npm run lint
 
@@ -293,21 +323,352 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
       - name: Install Dependencies
         run: npm ci
-
       - name: Type Check
         run: npx tsc --noEmit
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# STAGE 2: BUILD APPLICATIONS
+# STAGE 2: DATABASE MIGRATIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Validate Migrations
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  validate-migrations:
+    name: ✅ Validate Migrations
+    runs-on: ubuntu-latest
+    needs: [detect-changes, determine-environment]
+    if: |
+      needs.detect-changes.outputs.database == 'true' ||
+      github.event.inputs.run_migrations == 'true'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION_API }}
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: api
+        run: npm ci
+
+      - name: Build API
+        working-directory: api
+        run: npm run build
+
+      - name: Validate Migration Scripts
+        run: |
+          echo "🔍 Validating migration scripts..."
+          
+          for file in db/migrations/V*.sql; do
+            if [ -f "$file" ]; then
+              echo "   Checking: $file"
+              if grep -qi "DROP DATABASE" "$file"; then
+                echo "❌ Error: DROP DATABASE found in $file"
+                exit 1
+              fi
+              if grep -qi "TRUNCATE.*applications" "$file" && [ "${{ needs.determine-environment.outputs.db-environment }}" == "prod" ]; then
+                echo "⚠️ Warning: TRUNCATE on applications table in production"
+              fi
+            fi
+          done
+          
+          echo "✅ All migration scripts validated"
+
+      - name: Check Migration Naming Convention
+        run: |
+          echo "🔍 Checking migration naming conventions..."
+          
+          for file in db/migrations/V*.sql; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              if ! [[ "$filename" =~ ^V[0-9]+[a-z]?__[a-z0-9_]+\.sql$ ]]; then
+                echo "⚠️ Warning: $filename doesn't follow naming convention V{version}__{description}.sql"
+              fi
+            fi
+          done
+          
+          echo "✅ Naming convention check complete"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Run Migrations
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  run-migrations:
+    name: 🗄️ Run Migrations (${{ needs.determine-environment.outputs.db-environment }})
+    runs-on: ubuntu-latest
+    needs: [detect-changes, determine-environment, validate-migrations, lint, type-check]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.database == 'true' || github.event.inputs.run_migrations == 'true') &&
+      needs.validate-migrations.result == 'success' &&
+      needs.lint.result == 'success' &&
+      needs.type-check.result == 'success' &&
+      needs.determine-environment.outputs.should-deploy == 'true'
+    environment: ${{ needs.determine-environment.outputs.db-environment == 'prod' && 'production' || needs.determine-environment.outputs.environment }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION_API }}
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: api
+        run: npm ci
+
+      - name: Build API
+        working-directory: api
+        run: npm run build
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Connection Strings from Key Vault
+        id: secrets
+        run: |
+          ENV_SUFFIX="${{ needs.determine-environment.outputs.db-environment == 'prod' && 'PROD' || 'DEV' }}"
+          
+          SQL_CONN=$(az keyvault secret show \
+            --name "SQL-${ENV_SUFFIX}-CONNECTION-STRING" \
+            --vault-name "lpa-kv-${{ needs.determine-environment.outputs.db-environment }}" \
+            --query value -o tsv 2>/dev/null || echo "")
+          
+          if [ -n "$SQL_CONN" ]; then
+            echo "SQL_CONNECTION_STRING=$SQL_CONN" >> $GITHUB_ENV
+          fi
+          
+          COSMOS_CONN=$(az keyvault secret show \
+            --name "COSMOS-${ENV_SUFFIX}-CONNECTION-STRING" \
+            --vault-name "lpa-kv-${{ needs.determine-environment.outputs.db-environment }}" \
+            --query value -o tsv 2>/dev/null || echo "")
+          
+          if [ -n "$COSMOS_CONN" ]; then
+            echo "DBVC_COSMOS_CONNECTION_STRING=$COSMOS_CONN" >> $GITHUB_ENV
+          fi
+
+      - name: Run Migrations
+        id: migrate
+        working-directory: api
+        env:
+          SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
+          DBVC_COSMOS_CONNECTION_STRING: ${{ env.DBVC_COSMOS_CONNECTION_STRING || secrets.COSMOS_DB_CONNECTION_STRING }}
+          DBVC_ENVIRONMENT: ${{ needs.determine-environment.outputs.db-environment }}
+          DBVC_DRY_RUN: ${{ github.event.inputs.dry_run_migrations || github.event_name == 'pull_request' }}
+        run: |
+          echo "🚀 Running migrations for ${{ needs.determine-environment.outputs.db-environment }}..."
+          
+          cat > run-dbvc-migrations.js << 'EOF'
+          const { migrationService } = require('./dist/db-version-control/migration-service');
+          
+          async function main() {
+            const environment = process.env.DBVC_ENVIRONMENT || 'dev';
+            const dryRun = process.env.DBVC_DRY_RUN === 'true';
+            
+            console.log(`Environment: ${environment}`);
+            console.log(`Dry Run: ${dryRun}`);
+            
+            try {
+              await migrationService.connect();
+              
+              const status = await migrationService.getMigrationStatus({ environment });
+              console.log('\n📊 Current Status:');
+              for (const db of status.databases) {
+                console.log(`  ${db.databaseName}: ${db.pendingMigrations} pending`);
+              }
+              
+              const databases = status.databases.map(d => d.databaseId);
+              let allSuccess = true;
+              
+              for (const dbId of databases) {
+                console.log(`\n🚀 Running migrations for ${dbId}...`);
+                
+                const result = await migrationService.runMigrations({
+                  databaseId: dbId,
+                  environment: environment,
+                  dryRun: dryRun,
+                  executor: `github-actions/${process.env.GITHUB_RUN_ID || 'local'}`,
+                  executionContext: {
+                    pipelineRunId: process.env.GITHUB_RUN_ID,
+                    commitSha: process.env.GITHUB_SHA,
+                    branch: process.env.GITHUB_REF_NAME,
+                    workflowName: process.env.GITHUB_WORKFLOW
+                  }
+                });
+                
+                if (!result.success) {
+                  allSuccess = false;
+                  console.log(`❌ Migration failed for ${dbId}: ${result.failedMigration}`);
+                } else {
+                  console.log(`✅ ${result.executedMigrations.length} migrations applied`);
+                }
+              }
+              
+              const fs = require('fs');
+              fs.appendFileSync(process.env.GITHUB_OUTPUT || '/dev/null', `success=${allSuccess}\n`);
+              
+              await migrationService.disconnect();
+              process.exit(allSuccess ? 0 : 1);
+            } catch (error) {
+              console.error('❌ Migration error:', error.message);
+              process.exit(1);
+            }
+          }
+          
+          main();
+          EOF
+          
+          node run-dbvc-migrations.js
+        continue-on-error: ${{ github.event.inputs.dry_run_migrations == 'true' || github.event_name == 'pull_request' }}
+
+      - name: Extended Validation (Staging)
+        if: |
+          success() && 
+          needs.determine-environment.outputs.is-staging-validation == 'true' && 
+          github.event.inputs.dry_run_migrations != 'true' &&
+          github.event_name != 'pull_request'
+        working-directory: api
+        env:
+          SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
+          DBVC_COSMOS_CONNECTION_STRING: ${{ env.DBVC_COSMOS_CONNECTION_STRING || secrets.COSMOS_DB_CONNECTION_STRING }}
+          DBVC_ENVIRONMENT: ${{ needs.determine-environment.outputs.db-environment }}
+        run: |
+          echo "🔬 Running extended validation tests (staging branch - second pass)..."
+          echo "📋 This validates migrations are safe to promote to production"
+          
+          cat > extended-validation.js << 'EOF'
+          const { migrationService } = require('./dist/db-version-control/migration-service');
+          
+          async function main() {
+            const environment = process.env.DBVC_ENVIRONMENT || 'dev';
+            let allPassed = true;
+            
+            try {
+              await migrationService.connect();
+              
+              console.log('\n🔬 EXTENDED VALIDATION SUITE');
+              console.log('━'.repeat(50));
+              
+              const status = await migrationService.getMigrationStatus({ environment });
+              
+              for (const db of status.databases) {
+                if (db.pendingMigrations > 0) {
+                  console.log(`❌ ${db.databaseId}: ${db.pendingMigrations} pending migrations`);
+                  allPassed = false;
+                } else {
+                  console.log(`✅ ${db.databaseId}: All migrations applied`);
+                }
+                
+                const integrity = await migrationService.verifyIntegrity({
+                  databaseId: db.databaseId,
+                  environment: environment,
+                  fixDrift: false
+                });
+                
+                if (!integrity.isValid) {
+                  console.log(`❌ ${db.databaseId}: ${integrity.issues.length} integrity issues`);
+                  allPassed = false;
+                }
+              }
+              
+              console.log('\n' + '━'.repeat(50));
+              console.log(allPassed ? '✅ EXTENDED VALIDATION PASSED' : '❌ EXTENDED VALIDATION FAILED');
+              
+              await migrationService.disconnect();
+              process.exit(allPassed ? 0 : 1);
+            } catch (error) {
+              console.error('❌ Extended validation error:', error.message);
+              process.exit(1);
+            }
+          }
+          
+          main();
+          EOF
+          
+          node extended-validation.js
+
+      - name: Migration Summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const success = '${{ steps.migrate.outcome }}' === 'success';
+            const environment = '${{ needs.determine-environment.outputs.db-environment }}';
+            const dryRun = '${{ github.event.inputs.dry_run_migrations }}' === 'true' || '${{ github.event_name }}' === 'pull_request';
+            
+            const summary = `## 🗃️ Database Migration Summary
+            
+            | Property | Value |
+            |----------|-------|
+            | Environment | \`${environment}\` |
+            | Dry Run | ${dryRun ? '✅ Yes' : '❌ No'} |
+            | Status | ${success ? '✅ Success' : '❌ Failed'} |
+            | Commit | \`${context.sha.substring(0, 7)}\` |
+            `;
+            
+            await core.summary.addRaw(summary).write();
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Rollback on Failure (Production only)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  rollback-migrations:
+    name: 🔄 Rollback Migrations (if needed)
+    runs-on: ubuntu-latest
+    needs: [determine-environment, run-migrations]
+    if: |
+      failure() && 
+      needs.determine-environment.outputs.db-environment == 'prod' && 
+      github.event.inputs.dry_run_migrations != 'true' &&
+      github.event_name != 'pull_request'
+    environment: production
+    steps:
+      - name: Rollback Alert
+        run: |
+          echo "⚠️ Production migration failed!"
+          echo "Manual rollback may be required."
+
+      - name: Create Issue for Failed Migration
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Production Migration Failed - ${new Date().toISOString().split('T')[0]}`,
+              body: `## Production Migration Failure
+              
+              A database migration failed in production.
+              
+              **Workflow Run:** [#${context.runNumber}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+              **Commit:** ${context.sha}
+              
+              /cc @${context.actor}
+              `,
+              labels: ['bug', 'production', 'database', 'urgent']
+            });
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 3: BUILD APPLICATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
   # ─────────────────────────────────────────────────────────────────────────────
@@ -345,65 +706,25 @@ jobs:
           MODE: ${{ needs.determine-environment.outputs.environment == 'production' && 'production' || 'development' }}
           VITE_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
         run: |
-          set -x
           echo "🌸 Building Bloom Frontend..."
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
-          echo "🏗️  Build Mode: $MODE"
-          echo "🔗 API URL: $VITE_API_URL"
-          echo "📦 Target: ${{ needs.determine-environment.outputs.bloom-frontend-app }}"
           npm run build:bloom -- --mode $MODE
           echo "✅ Build complete"
 
-      - name: Post-build diagnostics
-        run: |
-          set -x
-          echo "=== Build environment ==="
-          node -v || true
-          npm -v || true
-          echo "PWD=$(pwd)"
-          echo "USER=$(whoami)"
-          echo "Workspace contents (top 50 lines):"
-          ls -la . | head -n 50
-          echo "Frontend dist contents:"
-          if [ -d "./dist" ]; then
-            ls -la ./dist | head -n 100
-            echo "Recursive listing (first 200 files):"
-            find ./dist -type f -print | head -n 200
-            echo "SHA256 checksums (first 200 files):"
-            find ./dist -type f -print0 | head -z -n 200 | xargs -0 sha256sum 2>/dev/null || true
-            echo "Disk usage:"
-            du -sh ./dist || true
-            echo "File count:"
-            find ./dist -type f | wc -l
-          else
-            echo "❌ No ./dist directory found after build!"
-            exit 1
-          fi
-
       - name: Verify Build Output
         run: |
-          echo "🔍 Checking build output..."
           if [ ! -f "dist/index.html" ]; then
-            echo "❌ dist/index.html not found after build!"
-            echo "Directory contents:"
-            ls -R dist/ || true
+            echo "❌ dist/index.html not found!"
             exit 1
           fi
-          echo "✅ Build output verified: dist/index.html exists"
-          ls -lh dist/index.html
+          echo "✅ Build verified"
 
-      - name: Package frontend artifacts
+      - name: Package Artifacts
         run: |
-          set -x
-          echo "📦 Creating packaged artifact with checksums..."
           tar -czf bloom-frontend-dist.tar.gz dist
           sha256sum bloom-frontend-dist.tar.gz > bloom-frontend-dist.tar.gz.sha256
-          echo "Package size:"
-          ls -lh bloom-frontend-dist.tar.gz
-          echo "Checksum:"
-          cat bloom-frontend-dist.tar.gz.sha256
 
-      - name: Upload Bloom Frontend Artifacts
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: bloom-frontend-${{ needs.determine-environment.outputs.environment }}
@@ -450,8 +771,6 @@ jobs:
       - name: Build Website Application
         run: |
           echo "🌐 Building Website Frontend..."
-          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
-          echo "📦 Target: ${{ needs.determine-environment.outputs.website-frontend-app }}"
           npm run build:website
           echo "✅ Build complete"
         env:
@@ -459,15 +778,13 @@ jobs:
 
       - name: Verify Build Output
         run: |
-          echo "🔍 Checking website build output..."
-          ls -lah apps/website/dist/
           if [ ! -f "apps/website/dist/index.html" ]; then
-            echo "❌ apps/website/dist/index.html not found after build!"
+            echo "❌ Build failed!"
             exit 1
           fi
-          echo "✅ Build output verified"
+          echo "✅ Build verified"
 
-      - name: Upload Website Frontend Artifacts
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: website-frontend-${{ needs.determine-environment.outputs.environment }}
@@ -510,36 +827,22 @@ jobs:
         working-directory: ./api
         run: |
           echo "🔌 Building Bloom API..."
-          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
-          echo "📦 Target: ${{ needs.determine-environment.outputs.bloom-api-app }}"
           npm run build
           echo "✅ API build complete"
 
       - name: Package Bloom API
         working-directory: ./api
         run: |
-          echo "📦 Packaging Bloom API..."
           mkdir -p deploy-package
-          
-          # Copy compiled functions
           cp -r dist/* deploy-package/ || true
-          
-          # Copy configuration
           cp host.json deploy-package/ || true
           cp package.json deploy-package/
-          
-          # Fix main entry point (files are at root, not in dist/)
           cd deploy-package
           sed -i 's|"main": "dist/index.js"|"main": "index.js"|' package.json
-          
-          # Install production dependencies
           npm install --production
-          
           echo "✅ Package ready"
-          du -sh .
-          ls -la
 
-      - name: Upload Bloom API Artifacts
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: bloom-api-${{ needs.determine-environment.outputs.environment }}
@@ -582,33 +885,21 @@ jobs:
         working-directory: ./apps/website/functions
         run: |
           echo "⚡ Building Website API..."
-          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
-          echo "📦 Target: ${{ needs.determine-environment.outputs.website-api-app }}"
           npm run build
           echo "✅ API build complete"
 
       - name: Package Website API
         working-directory: ./apps/website/functions
         run: |
-          echo "📦 Packaging Website API..."
           mkdir -p deploy-package
-          
-          # Copy compiled functions
           cp -r dist/* deploy-package/ || true
-          
-          # Copy configuration
           cp host.json deploy-package/ || true
           cp package.json deploy-package/
-          
-          # Install production dependencies
           cd deploy-package
           npm install --production
-          
           echo "✅ Package ready"
-          du -sh .
-          ls -la
 
-      - name: Upload Website API Artifacts
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: website-api-${{ needs.determine-environment.outputs.environment }}
@@ -617,7 +908,7 @@ jobs:
           retention-days: 7
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# STAGE 3: DEPLOY TO AZURE
+# STAGE 4: DEPLOY TO AZURE
 # ═══════════════════════════════════════════════════════════════════════════════
 
   # ─────────────────────────────────────────────────────────────────────────────
@@ -625,95 +916,29 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
 
   deploy-bloom-frontend:
-    name: 🚀 Deploy Bloom Frontend → ${{ needs.determine-environment.outputs.environment }}
+    name: 🚀 Deploy Bloom Frontend
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, build-bloom-frontend]
+    needs: [determine-environment, detect-changes, build-bloom-frontend, run-migrations]
     if: |
       always() &&
-      needs.build-bloom-frontend.result == 'success'
+      needs.build-bloom-frontend.result == 'success' &&
+      (needs.run-migrations.result == 'success' || needs.run-migrations.result == 'skipped')
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Bloom Frontend Artifacts
-        id: download
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
           name: bloom-frontend-${{ needs.determine-environment.outputs.environment }}
           path: artifact-download
 
-      - name: Verify downloaded artifacts
-        id: verify-artifacts
+      - name: Verify and Extract Artifacts
         run: |
-          set -x
-          echo "=== Artifact Download Verification ==="
-          echo "Download path: artifact-download"
-          echo "PWD=$(pwd)"
-          echo "Listing artifact-download:"
-          ls -la artifact-download/ | head -n 100
-          
-          # Verify checksum file exists
-          if [ ! -f "artifact-download/bloom-frontend-dist.tar.gz.sha256" ]; then
-            echo "❌ Checksum file missing!"
-            ls -R artifact-download/ | head -n 200
-            exit 1
-          fi
-          
-          # Verify archive exists
-          if [ ! -f "artifact-download/bloom-frontend-dist.tar.gz" ]; then
-            echo "❌ Archive file missing!"
-            ls -R artifact-download/ | head -n 200
-            exit 1
-          fi
-          
-          # Validate checksum
-          echo "Validating checksum..."
           cd artifact-download
-          sha256sum -c bloom-frontend-dist.tar.gz.sha256 || {
-            echo "❌ Checksum validation failed!"
-            exit 1
-          }
-          echo "✅ Checksum validated"
-          
-          # List archive contents
-          echo "Archive contents (first 200 entries):"
-          tar -tzf bloom-frontend-dist.tar.gz | head -n 200
-          
-          # Extract archive
-          echo "Extracting archive..."
+          sha256sum -c bloom-frontend-dist.tar.gz.sha256
           tar -xzf bloom-frontend-dist.tar.gz
-          cd ..
-          
-          # Verify extracted contents
-          echo "Post-extract listing:"
-          ls -la artifact-download/dist/ | head -n 100 || true
-          echo "File checksums (first 200):"
-          find artifact-download/dist -type f -print0 | head -z -n 200 | xargs -0 sha256sum 2>/dev/null || true
-          
-          # Critical check: index.html must exist
-          if [ ! -f "artifact-download/dist/index.html" ]; then
-            echo "❌ dist/index.html missing after extraction!"
-            echo "Creating debug archive for inspection..."
-            tar -czf debug-workspace.tar.gz . 2>/dev/null || true
-            echo "Debug archive created"
-            exit 1
-          fi
-          
-          echo "✅ Artifacts verified successfully"
-          ls -lh artifact-download/dist/index.html
-          
-          # Copy to expected location for deployment
-          cp -r artifact-download/dist ./dist
-          echo "✅ Artifacts copied to ./dist for deployment"
-
-      - name: Upload debug workspace on failure
-        if: failure() && steps.verify-artifacts.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-workspace-${{ needs.determine-environment.outputs.environment }}-${{ github.run_id }}
-          path: debug-workspace.tar.gz
-          if-no-files-found: ignore
-          retention-days: 7
+          cp -r dist ../dist
 
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
@@ -727,101 +952,40 @@ jobs:
 
       - name: Deployment Summary
         run: |
-          echo ""
-          echo "═══════════════════════════════════════════════════════"
           echo "✅ BLOOM FRONTEND DEPLOYED"
-          echo "═══════════════════════════════════════════════════════"
-          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
-          echo "🌸 Application:  ${{ needs.determine-environment.outputs.bloom-frontend-app }}"
-          echo "🔗 URL:          https://${{ needs.determine-environment.outputs.bloom-frontend-app }}.azurestaticapps.net"
-          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "🔗 URL: https://${{ needs.determine-environment.outputs.bloom-frontend-app }}.azurestaticapps.net"
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Deploy Website Frontend
   # ─────────────────────────────────────────────────────────────────────────────
 
   deploy-website-frontend:
-    name: 🚀 Deploy Website Frontend → ${{ needs.determine-environment.outputs.environment }}
+    name: 🚀 Deploy Website Frontend
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, build-website-frontend, build-website-api]
+    needs: [determine-environment, detect-changes, build-website-frontend, build-website-api, run-migrations]
     if: |
       always() &&
       (needs.build-website-frontend.result == 'success' || needs.build-website-api.result == 'success') &&
-      needs.determine-environment.outputs.should-deploy == 'true'
+      needs.determine-environment.outputs.should-deploy == 'true' &&
+      (needs.run-migrations.result == 'success' || needs.run-migrations.result == 'skipped')
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Website Frontend Artifacts (if built)
-        id: download-frontend
-        uses: actions/download-artifact@v4
+      - name: Download Frontend Artifacts
         if: needs.build-website-frontend.result == 'success'
+        uses: actions/download-artifact@v4
         with:
           name: website-frontend-${{ needs.determine-environment.outputs.environment }}
           path: dist
 
-      - name: Build Website Frontend (if not already built)
-        if: needs.build-website-frontend.result != 'success'
-        run: |
-          echo "🔧 Frontend was not built in this run, building now for API deployment..."
-          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
-          
-      - name: Setup Node.js (for on-the-fly build)
-        if: needs.build-website-frontend.result != 'success'
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install and Build (for on-the-fly build)
-        if: needs.build-website-frontend.result != 'success'
-        working-directory: apps/website
-        run: |
-          npm install
-          npm run build
-          # Move build output to expected location
-          mv dist ../../dist
-        env:
-          MODE: ${{ needs.determine-environment.outputs.environment }}
-
-      - name: Download Website API Artifacts (if built)
-        id: download-api
-        uses: actions/download-artifact@v4
+      - name: Download API Artifacts
         if: needs.build-website-api.result == 'success'
+        uses: actions/download-artifact@v4
         with:
           name: website-api-${{ needs.determine-environment.outputs.environment }}
           path: api-dist
-
-      - name: Verify Artifacts
-        run: |
-          echo "🔍 Verifying Website deployment artifacts..."
-          echo "📂 Working directory:"
-          pwd
-          
-          echo ""
-          echo "📦 Frontend artifacts:"
-          if [ -d "dist" ]; then
-            ls -lah dist/
-            if [ ! -f "dist/index.html" ]; then
-              echo "❌ dist/index.html not found!"
-              echo "📂 Full directory structure:"
-              ls -R dist/
-              exit 1
-            fi
-            echo "✅ Frontend artifacts verified"
-          else
-            echo "❌ dist directory not found!"
-            exit 1
-          fi
-          
-          echo ""
-          echo "📦 API artifacts:"
-          if [ -d "api-dist" ]; then
-            ls -lah api-dist/
-            echo "✅ API artifacts found (will be deployed as managed functions)"
-          else
-            echo "ℹ️  No API artifacts (API deployment skipped)"
-          fi
 
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
@@ -832,133 +996,43 @@ jobs:
           app_location: 'dist'
           api_location: 'api-dist'
           skip_app_build: true
-          skip_api_build: false  # Let Oryx detect Node.js runtime for managed functions
+          skip_api_build: false
         env:
           NODE_VERSION: ${{ env.NODE_VERSION_API }}
 
       - name: Deployment Summary
         run: |
-          echo ""
-          echo "═══════════════════════════════════════════════════════"
           echo "✅ WEBSITE FRONTEND DEPLOYED"
-          echo "═══════════════════════════════════════════════════════"
-          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
-          echo "🌐 Application:  ${{ needs.determine-environment.outputs.website-frontend-app }}"
-          echo "🔗 URL:          https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net"
-          echo "═══════════════════════════════════════════════════════"
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # Run Database Migrations
-  # ─────────────────────────────────────────────────────────────────────────────
-
-  migrate-database:
-    name: 🗄️ Run Database Migrations → ${{ needs.determine-environment.outputs.environment }}
-    runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes]
-    if: needs.determine-environment.outputs.should-deploy == 'true'
-    environment: ${{ needs.determine-environment.outputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install Migration Dependencies
-        working-directory: ./db
-        run: npm install
-
-      - name: Set Database Environment Variables
-        id: db-env
-        run: |
-          ENV="${{ needs.determine-environment.outputs.environment }}"
-          case $ENV in
-            development)
-              echo "DB_NAME=lpa-bloom-db-dev" >> $GITHUB_ENV
-              echo "DB_USER=sqladmin" >> $GITHUB_ENV
-              echo "DB_PASSWORD=${{ secrets.DB_DEV_PASSWORD }}" >> $GITHUB_ENV
-              ;;
-            staging)
-              echo "DB_NAME=lpa-bloom-db-staging" >> $GITHUB_ENV
-              echo "DB_USER=sqladmin" >> $GITHUB_ENV
-              echo "DB_PASSWORD=${{ secrets.DB_STAGING_PASSWORD }}" >> $GITHUB_ENV
-              ;;
-            production)
-              echo "DB_NAME=lpa-bloom-db-prod" >> $GITHUB_ENV
-              echo "DB_USER=sqladmin" >> $GITHUB_ENV
-              echo "DB_PASSWORD=${{ secrets.DB_PROD_PASSWORD }}" >> $GITHUB_ENV
-              ;;
-          esac
-          echo "DB_SERVER=lpa-sql-server.database.windows.net" >> $GITHUB_ENV
-
-      - name: Run Azure SQL Migrations
-        working-directory: ./db
-        continue-on-error: true  # Non-blocking: DB secrets may not be configured in GitHub
-        env:
-          DB_SERVER: ${{ env.DB_SERVER }}
-          DB_NAME: ${{ env.DB_NAME }}
-          DB_USER: ${{ env.DB_USER }}
-          DB_PASSWORD: ${{ env.DB_PASSWORD }}
-        run: |
-          echo "🚀 Running database migrations for ${{ needs.determine-environment.outputs.environment }}"
-          if [ -z "$DB_PASSWORD" ]; then
-            echo "⚠️ DB_PASSWORD not set - skipping migrations (configure secrets in GitHub)"
-            exit 0
-          fi
-          npm run migrate
-          echo "✅ Database migrations completed successfully"
-
-      - name: Migration Summary
-        run: |
-          echo "═══════════════════════════════════════════════════════"
-          echo "✅ DATABASE MIGRATIONS COMPLETED"
-          echo "═══════════════════════════════════════════════════════"
-          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
-          echo "🗄️  Database:     lpa-bloom-db-${{ needs.determine-environment.outputs.environment }}"
-          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "🔗 URL: https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net"
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Deploy Bloom API
   # ─────────────────────────────────────────────────────────────────────────────
 
   deploy-bloom-api:
-    name: 🚀 Deploy Bloom API → ${{ needs.determine-environment.outputs.environment }}
+    name: 🚀 Deploy Bloom API
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, build-bloom-api, migrate-database]
+    needs: [determine-environment, detect-changes, build-bloom-api, run-migrations]
     if: |
       always() &&
       needs.build-bloom-api.result == 'success' &&
-      (needs.migrate-database.result == 'success' || needs.migrate-database.result == 'failure')
+      (needs.run-migrations.result == 'success' || needs.run-migrations.result == 'skipped')
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
-      - name: Download Bloom API Artifacts
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
           name: bloom-api-${{ needs.determine-environment.outputs.environment }}
           path: bloom-api-dist
 
-      - name: Verify Bloom API Artifacts
-        run: |
-          echo "🔍 Verifying Bloom API artifacts..."
-          if [ ! -f "bloom-api-dist/host.json" ]; then
-            echo "⚠️  host.json not found, but continuing..."
-          fi
-          echo "✅ Bloom API artifacts ready"
-          ls -lah bloom-api-dist/
-
-      - name: Check Publish Profile Secret
+      - name: Check Publish Profile
         id: check-secret
         run: |
-          SECRET_NAME="${{ needs.determine-environment.outputs.bloom-api-secret }}"
-          echo "🔍 Checking for publish profile: $SECRET_NAME"
-          
           if [ -z "${{ secrets[needs.determine-environment.outputs.bloom-api-secret] }}" ]; then
             echo "secret-exists=false" >> $GITHUB_OUTPUT
-            echo "❌ Secret not configured"
           else
             echo "secret-exists=true" >> $GITHUB_OUTPUT
-            echo "✅ Secret configured"
           fi
 
       - name: Deploy to Azure Functions
@@ -972,78 +1046,12 @@ jobs:
       - name: Deployment Summary
         if: steps.check-secret.outputs.secret-exists == 'true'
         run: |
-          echo ""
-          echo "═══════════════════════════════════════════════════════"
           echo "✅ BLOOM API DEPLOYED"
-          echo "═══════════════════════════════════════════════════════"
-          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
-          echo "🔌 Function App: ${{ needs.determine-environment.outputs.bloom-api-app }}"
-          echo "🔗 URL:          https://${{ needs.determine-environment.outputs.bloom-api-app }}.azurewebsites.net"
-          echo "═══════════════════════════════════════════════════════"
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # Deploy Website API (DISABLED - Using Managed Functions with Static Web App)
-  # ─────────────────────────────────────────────────────────────────────────────
-
-  deploy-website-api:
-    name: 🚀 Deploy Website API → ${{ needs.determine-environment.outputs.environment }}
-    runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, build-website-api]
-    # DISABLED: API is now deployed as managed functions with the frontend
-    if: false
-    environment: ${{ needs.determine-environment.outputs.environment }}
-    steps:
-      - name: Download Website API Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: website-api-${{ needs.determine-environment.outputs.environment }}
-          path: website-api-dist
-
-      - name: Verify Website API Artifacts
-        run: |
-          echo "🔍 Verifying Website API artifacts..."
-          if [ ! -f "website-api-dist/host.json" ]; then
-            echo "⚠️  host.json not found, but continuing..."
-          fi
-          echo "✅ Website API artifacts ready"
-          ls -lah website-api-dist/
-
-      - name: Check Publish Profile Secret
-        id: check-secret
-        run: |
-          SECRET_NAME="${{ needs.determine-environment.outputs.website-api-secret }}"
-          echo "🔍 Checking for publish profile: $SECRET_NAME"
-          
-          if [ -z "${{ secrets[needs.determine-environment.outputs.website-api-secret] }}" ]; then
-            echo "secret-exists=false" >> $GITHUB_OUTPUT
-            echo "❌ Secret not configured"
-          else
-            echo "secret-exists=true" >> $GITHUB_OUTPUT
-            echo "✅ Secret configured"
-          fi
-
-      - name: Deploy to Azure Functions
-        if: steps.check-secret.outputs.secret-exists == 'true'
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${{ needs.determine-environment.outputs.website-api-app }}
-          package: website-api-dist
-          publish-profile: ${{ secrets[needs.determine-environment.outputs.website-api-secret] }}
-
-      - name: Deployment Summary
-        if: steps.check-secret.outputs.secret-exists == 'true'
-        run: |
-          echo ""
-          echo "═══════════════════════════════════════════════════════"
-          echo "✅ WEBSITE API DEPLOYED"
-          echo "═══════════════════════════════════════════════════════"
-          echo "🌍 Environment:  ${{ needs.determine-environment.outputs.environment }}"
-          echo "⚡ Function App: ${{ needs.determine-environment.outputs.website-api-app }}"
-          echo "🔗 URL:          https://${{ needs.determine-environment.outputs.website-api-app }}.azurewebsites.net"
-          echo "═══════════════════════════════════════════════════════"
+          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "🔗 URL: https://${{ needs.determine-environment.outputs.bloom-api-app }}.azurewebsites.net"
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# STAGE 4: POST-DEPLOYMENT SUMMARY
+# STAGE 5: DEPLOYMENT SUMMARY
 # ═══════════════════════════════════════════════════════════════════════════════
 
   deployment-summary:
@@ -1052,10 +1060,10 @@ jobs:
     needs:
       - determine-environment
       - detect-changes
+      - run-migrations
       - deploy-bloom-frontend
       - deploy-bloom-api
       - deploy-website-frontend
-      - deploy-website-api
     if: always()
     steps:
       - name: Generate Summary
@@ -1077,18 +1085,15 @@ jobs:
           echo "🔌 Bloom API:       ${{ needs.detect-changes.outputs.bloom-api }}"
           echo "🌐 Website Frontend: ${{ needs.detect-changes.outputs.website-frontend }}"
           echo "⚡ Website API:     ${{ needs.detect-changes.outputs.website-api }}"
-          echo "📦 Shared Packages: ${{ needs.detect-changes.outputs.shared-packages }}"
+          echo "🗄️ Database:        ${{ needs.detect-changes.outputs.database }}"
           echo ""
           echo "─────────────────────────────────────────────────────────────────"
           echo "DEPLOYMENT STATUS"
           echo "─────────────────────────────────────────────────────────────────"
+          echo "🗄️ Migrations:      ${{ needs.run-migrations.result }}"
           echo "🌸 Bloom Frontend:  ${{ needs.deploy-bloom-frontend.result }}"
-          echo "   └─ App:          ${{ needs.determine-environment.outputs.bloom-frontend-app }}"
           echo "🔌 Bloom API:       ${{ needs.deploy-bloom-api.result }}"
-          echo "   └─ App:          ${{ needs.determine-environment.outputs.bloom-api-app }}"
-          echo "🌐 Website (Frontend + API): ${{ needs.deploy-website-frontend.result }}"
-          echo "   └─ App:          ${{ needs.determine-environment.outputs.website-frontend-app }}"
-          echo "   └─ Note:         API deployed as managed functions"
+          echo "🌐 Website:         ${{ needs.deploy-website-frontend.result }}"
           echo ""
           echo "─────────────────────────────────────────────────────────────────"
           echo "APPLICATION URLS"
@@ -1096,21 +1101,18 @@ jobs:
           echo "🌸 Bloom Portal:    https://${{ needs.determine-environment.outputs.bloom-frontend-app }}.azurestaticapps.net"
           echo "🔌 Bloom API:       https://${{ needs.determine-environment.outputs.bloom-api-app }}.azurewebsites.net"
           echo "🌐 Website:         https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net"
-          echo "⚡ Website API:     https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net/api"
           echo ""
 
           # Check for failures
+          MIGRATIONS="${{ needs.run-migrations.result }}"
           BLOOM_FE="${{ needs.deploy-bloom-frontend.result }}"
           BLOOM_API="${{ needs.deploy-bloom-api.result }}"
           WEBSITE="${{ needs.deploy-website-frontend.result }}"
           
-          if [[ "$BLOOM_FE" == "failure" ]] || [[ "$BLOOM_API" == "failure" ]] || \
-             [[ "$WEBSITE" == "failure" ]]; then
+          if [[ "$MIGRATIONS" == "failure" ]] || [[ "$BLOOM_FE" == "failure" ]] || \
+             [[ "$BLOOM_API" == "failure" ]] || [[ "$WEBSITE" == "failure" ]]; then
             echo "❌ DEPLOYMENT FAILED - See logs above"
             exit 1
-          elif [[ "$BLOOM_FE" == "skipped" ]] && [[ "$BLOOM_API" == "skipped" ]] && \
-               [[ "$WEBSITE" == "skipped" ]]; then
-            echo "ℹ️  NO CHANGES - Deployment skipped"
           else
             echo "✅ DEPLOYMENT SUCCESSFUL"
           fi

@@ -1,9 +1,12 @@
-name: Database Migrations
+name: Database Migrations (Manual)
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# DATABASE MIGRATIONS CI/CD WORKFLOW
-# Automated Database Version Control Pipeline
+# DATABASE MIGRATIONS STANDALONE WORKFLOW
+# Manual Database Version Control Pipeline
 # ═══════════════════════════════════════════════════════════════════════════════
+#
+# NOTE: Push-triggered migrations are now handled by ci-cd.yml
+# This workflow is for manual/isolated database operations only.
 #
 # DATABASE ARCHITECTURE (4 databases total):
 #   - 2 SQL databases: lpa-bloom-db-dev, lpa-bloom-db-prod
@@ -25,16 +28,8 @@ name: Database Migrations
 # ═══════════════════════════════════════════════════════════════════════════════
 
 on:
-  push:
-    branches:
-      - main
-      - staging
-      - develop
-    paths:
-      - 'db/migrations/**'
-      - 'api/src/db-version-control/**'
-      - 'scripts/db-version-control/**'
-      - '.github/workflows/db-migrations.yml'
+  # Push triggers removed - now handled by ci-cd.yml
+  # Keeping only PR and manual triggers for isolated testing
   
   pull_request:
     branches:

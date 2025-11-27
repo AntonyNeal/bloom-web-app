@@ -102,6 +102,7 @@ jobs:
       infrastructure: ${{ steps.filter.outputs.infrastructure }}
       database: ${{ steps.filter.outputs.database }}
       halaxy-sync: ${{ steps.filter.outputs.halaxy-sync }}
+      halaxy-worker: ${{ steps.filter.outputs.halaxy-worker }}
     steps:
       - uses: actions/checkout@v4
 
@@ -135,6 +136,7 @@ jobs:
               - '.github/workflows/**'
               - 'pnpm-workspace.yaml'
               - 'package.json'
+              - 'infra/**'
             database:
               - 'db/migrations/**'
               - 'api/src/db-version-control/**'
@@ -142,6 +144,8 @@ jobs:
             halaxy-sync:
               - 'api/src/services/halaxy/**'
               - 'api/src/functions/halaxy-*.ts'
+            halaxy-worker:
+              - 'services/halaxy-sync-worker/**'
 
       - name: Display Changes
         run: |
@@ -943,6 +947,94 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Build Halaxy Sync Worker (Container Apps)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  build-halaxy-worker:
+    name: 🐳 Build Halaxy Sync Worker
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, lint, type-check]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.halaxy-worker == 'true' ||
+       needs.detect-changes.outputs.infrastructure == 'true' ||
+       github.event.inputs.deploy_halaxy_sync == 'true') &&
+      needs.determine-environment.outputs.should-deploy == 'true' &&
+      needs.lint.result == 'success' &&
+      needs.type-check.result == 'success'
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Worker Dependencies
+        working-directory: ./services/halaxy-sync-worker
+        run: npm install
+
+      - name: Build Worker
+        working-directory: ./services/halaxy-sync-worker
+        run: |
+          echo "🐳 Building Halaxy Sync Worker..."
+          npm run build
+          echo "✅ Build complete"
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get ACR Login Server
+        id: acr
+        run: |
+          ACR_NAME=$(az acr list --resource-group rg-lpa-${{ needs.determine-environment.outputs.environment }} --query "[0].name" -o tsv 2>/dev/null || echo "")
+          if [ -z "$ACR_NAME" ]; then
+            echo "ACR not found - will be created during infra deployment"
+            echo "acr-exists=false" >> $GITHUB_OUTPUT
+          else
+            ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
+            echo "acr-exists=true" >> $GITHUB_OUTPUT
+            echo "login-server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
+            echo "name=$ACR_NAME" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Login to ACR
+        if: steps.acr.outputs.acr-exists == 'true'
+        run: |
+          az acr login --name ${{ steps.acr.outputs.name }}
+
+      - name: Docker Meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.acr.outputs.login-server }}/halaxy-sync-worker
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and Push Docker Image
+        if: steps.acr.outputs.acr-exists == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/halaxy-sync-worker
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Build Summary
+        run: |
+          echo "✅ HALAXY SYNC WORKER BUILD COMPLETE"
+          echo "🐳 Image: ${{ steps.meta.outputs.tags }}"
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 4: DEPLOY TO AZURE
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1086,6 +1178,90 @@ jobs:
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
           echo "🔗 URL: https://${{ needs.determine-environment.outputs.bloom-api-app }}.azurewebsites.net"
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Deploy Halaxy Sync Worker (Container Apps)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  deploy-halaxy-worker:
+    name: 🐳 Deploy Halaxy Sync Worker
+    runs-on: ubuntu-latest
+    needs: [determine-environment, detect-changes, build-halaxy-worker, run-migrations]
+    if: |
+      always() &&
+      needs.build-halaxy-worker.result == 'success' &&
+      (needs.run-migrations.result == 'success' || needs.run-migrations.result == 'skipped')
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Infrastructure (if needed)
+        id: infra
+        run: |
+          RG_NAME="rg-lpa-${{ needs.determine-environment.outputs.environment }}"
+          
+          # Check if Container Apps environment exists
+          CAE_EXISTS=$(az containerapp env list --resource-group $RG_NAME --query "[?name=='lpa-cae-${{ needs.determine-environment.outputs.environment }}'].name" -o tsv 2>/dev/null || echo "")
+          
+          if [ -z "$CAE_EXISTS" ]; then
+            echo "🏗️ Deploying Container Apps infrastructure..."
+            az deployment group create \
+              --resource-group $RG_NAME \
+              --template-file infra/halaxy-sync-worker.bicep \
+              --parameters environment=${{ needs.determine-environment.outputs.environment }} \
+              --parameters imageTag=${{ github.sha }}
+            echo "deployed=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Infrastructure already exists"
+            echo "deployed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Container App
+        run: |
+          ENV=${{ needs.determine-environment.outputs.environment }}
+          APP_NAME="lpa-halaxy-sync-${ENV}"
+          RG_NAME="rg-lpa-${ENV}"
+          
+          # Get ACR info
+          ACR_NAME=$(az acr list --resource-group $RG_NAME --query "[0].name" -o tsv)
+          ACR_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
+          
+          # Update container app with new image
+          az containerapp update \
+            --name $APP_NAME \
+            --resource-group $RG_NAME \
+            --image "${ACR_SERVER}/halaxy-sync-worker:${{ github.sha }}" \
+            || echo "Container app may not exist yet - will be created by Bicep"
+
+      - name: Verify Deployment
+        run: |
+          ENV=${{ needs.determine-environment.outputs.environment }}
+          APP_NAME="lpa-halaxy-sync-${ENV}"
+          RG_NAME="rg-lpa-${ENV}"
+          
+          # Wait for container to be ready
+          for i in {1..30}; do
+            STATUS=$(az containerapp show --name $APP_NAME --resource-group $RG_NAME --query "properties.runningStatus" -o tsv 2>/dev/null || echo "NotFound")
+            if [ "$STATUS" == "Running" ]; then
+              echo "✅ Container is running"
+              break
+            fi
+            echo "Waiting for container to start... ($i/30)"
+            sleep 10
+          done
+
+      - name: Deployment Summary
+        run: |
+          echo "✅ HALAXY SYNC WORKER DEPLOYED"
+          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "🐳 Container App: lpa-halaxy-sync-${{ needs.determine-environment.outputs.environment }}"
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 5: DEPLOYMENT SUMMARY
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1100,6 +1276,7 @@ jobs:
       - deploy-bloom-frontend
       - deploy-bloom-api
       - deploy-website-frontend
+      - deploy-halaxy-worker
     if: always()
     steps:
       - name: Generate Summary
@@ -1119,7 +1296,7 @@ jobs:
           echo "─────────────────────────────────────────────────────────────────"
           echo "🌸 Bloom Frontend:  ${{ needs.detect-changes.outputs.bloom-frontend }}"
           echo "🔌 Bloom API:       ${{ needs.detect-changes.outputs.bloom-api }}"
-          echo "🔄 Halaxy Sync:     ${{ needs.detect-changes.outputs.halaxy-sync }}"
+          echo "🔄 Halaxy Worker:   ${{ needs.detect-changes.outputs.halaxy-worker }}"
           echo "🌐 Website Frontend: ${{ needs.detect-changes.outputs.website-frontend }}"
           echo "⚡ Website API:     ${{ needs.detect-changes.outputs.website-api }}"
           echo "🗄️ Database:        ${{ needs.detect-changes.outputs.database }}"
@@ -1130,7 +1307,7 @@ jobs:
           echo "🗄️ Migrations:      ${{ needs.run-migrations.result }}"
           echo "🌸 Bloom Frontend:  ${{ needs.deploy-bloom-frontend.result }}"
           echo "🔌 Bloom API:       ${{ needs.deploy-bloom-api.result }}"
-          echo "🔄 Halaxy Sync:     (included in Bloom API)"
+          echo "🔄 Halaxy Worker:   ${{ needs.deploy-halaxy-worker.result }}"
           echo "🌐 Website:         ${{ needs.deploy-website-frontend.result }}"
           echo ""
           echo "─────────────────────────────────────────────────────────────────"

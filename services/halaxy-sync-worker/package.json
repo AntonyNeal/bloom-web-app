@@ -1,0 +1,30 @@
+{
+  "name": "halaxy-sync-worker",
+  "version": "1.0.0",
+  "description": "Halaxy DB Realtime Sync Worker - Azure Container Apps",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "watch": "tsc -w",
+    "docker:build": "docker build -t halaxy-sync-worker .",
+    "docker:run": "docker run --env-file .env halaxy-sync-worker"
+  },
+  "dependencies": {
+    "mssql": "^12.1.1",
+    "@azure/cosmos": "^4.7.0",
+    "node-cron": "^3.0.3",
+    "applicationinsights": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/mssql": "^9.1.0",
+    "typescript": "^5.3.0",
+    "ts-node": "^10.9.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

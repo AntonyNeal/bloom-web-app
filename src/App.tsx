@@ -454,6 +454,7 @@ function LandingPage() {
             top: isMobile ? '16px' : '24px',
             right: isMobile ? '16px' : '32px',
             zIndex: 20,
+            pointerEvents: 'auto', // Ensure button is clickable
           }}
         >
           <BloomLoginButton isMobile={isMobile} />

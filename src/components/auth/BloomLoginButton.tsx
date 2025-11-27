@@ -63,6 +63,7 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
         position: 'relative',
         width: `${buttonSize}px`,
         height: `${buttonSize}px`,
+        pointerEvents: 'auto', // Ensure clicks can reach this container
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -80,6 +81,9 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
       {/* Perfect Circle Bloom Button - Extremely Subtle Glass Effect */}
       <motion.button
         onClick={handleClick}
+        onPointerDown={() => console.log('[BloomLoginButton] Pointer down detected!')}
+        aria-label="Sign in with Azure AD"
+        type="button"
         style={{
           position: 'relative',
           width: `${buttonSize}px`,
@@ -97,6 +101,7 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
           transition: 'all 0.4s ease',
           zIndex: 10,
           overflow: 'hidden',
+          pointerEvents: 'auto', // Ensure button receives clicks
         }}
         whileHover={{
           background: 'rgba(255, 255, 255, 0.02)', // Slight visibility on hover

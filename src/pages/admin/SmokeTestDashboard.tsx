@@ -181,8 +181,9 @@ export function SmokeTestDashboard() {
   const [testResults, setTestResults] = useState<SmokeTestResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // VITE_API_URL already includes /api at the end
   const apiBaseUrl = import.meta.env.VITE_API_URL || 
-    (import.meta.env.DEV ? 'http://localhost:7071' : 'https://bloom-platform-functions-v2.azurewebsites.net');
+    (import.meta.env.DEV ? 'http://localhost:7071/api' : 'https://bloom-platform-functions-v2.azurewebsites.net/api');
 
   const runSmokeTests = useCallback(async () => {
     setIsLoading(true);
@@ -190,7 +191,7 @@ export function SmokeTestDashboard() {
     setTestResults(null);
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/smoke-test`);
+      const response = await fetch(`${apiBaseUrl}/smoke-test`);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);

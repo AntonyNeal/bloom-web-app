@@ -38,11 +38,11 @@ const AuthCallback = () => {
           );
           // Wait a moment for the auth state to update
           setTimeout(() => {
-            navigate('/admin/dashboard');
+            navigate('/bloom-home');
           }, 500);
         } else if (isAuthenticated) {
-          console.log('[AuthCallback] Already authenticated, navigating to dashboard');
-          navigate('/admin/dashboard');
+          console.log('[AuthCallback] Already authenticated, navigating to bloom home');
+          navigate('/bloom-home');
         } else {
           console.log('[AuthCallback] No authentication response, redirecting to home');
           navigate('/');

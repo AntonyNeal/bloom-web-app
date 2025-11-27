@@ -16,9 +16,9 @@ const BloomLoginPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If already authenticated, redirect to dashboard
+    // If already authenticated, redirect to bloom home
     if (isAuthenticated) {
-      navigate('/admin/dashboard');
+      navigate('/bloom-home');
     }
   }, [isAuthenticated, navigate]);
 

@@ -50,8 +50,8 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
         console.error('[BloomLoginButton] Login failed:', error);
       }
     } else {
-      console.log('[BloomLoginButton] Already authenticated, navigating to dashboard');
-      navigate('/admin/dashboard');
+      console.log('[BloomLoginButton] Already authenticated, navigating to bloom home');
+      navigate('/bloom-home');
     }
   };
 

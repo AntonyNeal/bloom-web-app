@@ -1224,7 +1224,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
   const prefersReducedMotion = useReducedMotion();
   
   // Fetch dashboard data from API (or use sample data as fallback)
-  const { dashboard, loading, error: _error, syncStatus: _syncStatus } = useDashboard(practitionerId);
+  const { dashboard, loading } = useDashboard(practitionerId);
 
   // Transform dashboard data to local types, or use overrides/samples
   const user: User = userOverride || (dashboard ? {

@@ -48,6 +48,8 @@ interface UseDashboardResult {
   refetch: () => Promise<void>;
   /** Last successful fetch timestamp */
   lastFetched: Date | null;
+  /** Sync status with Halaxy */
+  syncStatus: SyncStatus | null;
 }
 
 // ============================================================================
@@ -290,6 +292,7 @@ export function useDashboard(
     error,
     refetch: fetchDashboard,
     lastFetched,
+    syncStatus: dashboard?.syncStatus || null,
   };
 }
 

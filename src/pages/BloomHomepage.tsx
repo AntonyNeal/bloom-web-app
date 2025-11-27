@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { BlossomTreeSophisticated } from '@/components/bloom-tree/BlossomTreeSophisticated';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useDashboard } from '@/hooks/useDashboard';
+import type { WeeklyStats, UpcomingStats, MonthlyStats } from '@/types/bloom';
 
 // ============================================================================
 // DESIGN TOKENS - The palette of a cottage garden
@@ -54,26 +55,7 @@ interface Session {
   locationType?: string;
 }
 
-interface WeeklyStats {
-  currentSessions: number;
-  maxSessions: number;
-  currentRevenue: number;
-  /** @deprecated No longer used - we don't set targets */
-  targetRevenue?: number;
-}
-
-interface UpcomingStats {
-  tomorrowSessions: number;
-  remainingThisWeek: number;
-  mhcpEndingSoon: number;
-}
-
-interface MonthlyStats {
-  currentRevenue: number;
-  /** @deprecated No longer used - we don't set targets */
-  targetRevenue?: number;
-  monthName: string;
-}
+// WeeklyStats, UpcomingStats, MonthlyStats imported from @/types/bloom
 
 interface User {
   name: string;

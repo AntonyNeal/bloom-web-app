@@ -179,9 +179,10 @@ export interface WeeklyStats {
   weekEndDate: string;               // ISO 8601 (Sunday)
   currentSessions: number;           // Completed this week
   scheduledSessions: number;         // Total scheduled
-  maxSessions: number;               // Practitioner's weekly target
+  maxSessions: number;               // Practitioner's preferred weekly max
   currentRevenue: number;            // Earned this week
-  targetRevenue: number;             // Weekly revenue target
+  /** @deprecated No targets - we inform and encourage, not measure against KPIs */
+  targetRevenue?: number;
   completionRate: number;            // % of scheduled that completed
   noShowCount: number;
   cancellationCount: number;
@@ -204,15 +205,16 @@ export interface UpcomingStats {
  */
 export interface MonthlyStats {
   monthName: string;                 // e.g., "November"
-  monthYear: string;                 // e.g., "2025-11"
+  monthYear?: string;                // e.g., "2025-11"
   currentRevenue: number;
-  targetRevenue: number;
-  projectedRevenue: number;          // Based on scheduled sessions
-  yearlyProjection: number;          // Extrapolated annual earnings
-  sessionsCompleted: number;
-  sessionsScheduled: number;
-  averageSessionValue: number;
-  revenueByBillingType: {
+  /** @deprecated No targets - we inform and encourage, not measure against KPIs */
+  targetRevenue?: number;
+  projectedRevenue?: number;         // Based on scheduled sessions
+  yearlyProjection?: number;         // Extrapolated annual earnings
+  sessionsCompleted?: number;
+  sessionsScheduled?: number;
+  averageSessionValue?: number;
+  revenueByBillingType?: {
     medicare: number;
     private: number;
     dva: number;

@@ -4,7 +4,8 @@
 # APPLICATIONS:
 # 1. Bloom Portal (apps/bloom) + Bloom API (api/)
 # 2. Website (apps/website) + Website API (apps/website/functions)
-# 3. Database Migrations (db/migrations)
+# 3. Halaxy DB Realtime Sync Service (api/src/services/halaxy/)
+# 4. Database Migrations (db/migrations)
 #
 # ENVIRONMENTS:
 # - Development (develop branch)
@@ -58,6 +59,11 @@ on:
         required: false
         type: boolean
         default: true
+      deploy_halaxy_sync:
+        description: 'Deploy Halaxy Sync Service'
+        required: false
+        type: boolean
+        default: true
       dry_run_migrations:
         description: 'Dry run migrations (preview only)'
         required: false
@@ -95,6 +101,7 @@ jobs:
       shared-packages: ${{ steps.filter.outputs.shared-packages }}
       infrastructure: ${{ steps.filter.outputs.infrastructure }}
       database: ${{ steps.filter.outputs.database }}
+      halaxy-sync: ${{ steps.filter.outputs.halaxy-sync }}
     steps:
       - uses: actions/checkout@v4
 
@@ -132,6 +139,9 @@ jobs:
               - 'db/migrations/**'
               - 'api/src/db-version-control/**'
               - 'scripts/db-version-control/**'
+            halaxy-sync:
+              - 'api/src/services/halaxy/**'
+              - 'api/src/functions/halaxy-*.ts'
 
       - name: Display Changes
         run: |
@@ -142,6 +152,7 @@ jobs:
           echo "📦 Shared Packages: ${{ steps.filter.outputs.shared-packages }}"
           echo "🏗️ Infrastructure: ${{ steps.filter.outputs.infrastructure }}"
           echo "🗄️ Database: ${{ steps.filter.outputs.database }}"
+          echo "🔄 Halaxy Sync: ${{ steps.filter.outputs.halaxy-sync }}"
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Environment Configuration
@@ -797,15 +808,17 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
 
   build-bloom-api:
-    name: 🔌 Build Bloom API
+    name: 🔌 Build Bloom API (incl. Halaxy Sync)
     runs-on: ubuntu-latest
     needs: [determine-environment, detect-changes, lint, type-check]
     if: |
       always() &&
       (needs.detect-changes.outputs.bloom-api == 'true' ||
+       needs.detect-changes.outputs.halaxy-sync == 'true' ||
        needs.detect-changes.outputs.shared-packages == 'true' ||
        needs.detect-changes.outputs.infrastructure == 'true' ||
-       github.event.inputs.deploy_apis == 'true') &&
+       github.event.inputs.deploy_apis == 'true' ||
+       github.event.inputs.deploy_halaxy_sync == 'true') &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success'
@@ -829,6 +842,29 @@ jobs:
           echo "🔌 Building Bloom API..."
           npm run build
           echo "✅ API build complete"
+
+      - name: Verify Halaxy Sync Service
+        working-directory: ./api
+        run: |
+          echo "🔄 Verifying Halaxy Sync Service compilation..."
+          if [ -f "dist/services/halaxy/sync-service.js" ]; then
+            echo "✅ Halaxy Sync Service compiled successfully"
+          else
+            echo "❌ Halaxy Sync Service not found in build output!"
+            exit 1
+          fi
+          
+          # Verify all Halaxy service files
+          for file in client index transformers token-manager types; do
+            if [ -f "dist/services/halaxy/${file}.js" ]; then
+              echo "  ✓ halaxy/${file}.js"
+            else
+              echo "  ✗ halaxy/${file}.js MISSING"
+              exit 1
+            fi
+          done
+          
+          echo "✅ All Halaxy Sync Service modules verified"
 
       - name: Package Bloom API
         working-directory: ./api
@@ -1083,6 +1119,7 @@ jobs:
           echo "─────────────────────────────────────────────────────────────────"
           echo "🌸 Bloom Frontend:  ${{ needs.detect-changes.outputs.bloom-frontend }}"
           echo "🔌 Bloom API:       ${{ needs.detect-changes.outputs.bloom-api }}"
+          echo "🔄 Halaxy Sync:     ${{ needs.detect-changes.outputs.halaxy-sync }}"
           echo "🌐 Website Frontend: ${{ needs.detect-changes.outputs.website-frontend }}"
           echo "⚡ Website API:     ${{ needs.detect-changes.outputs.website-api }}"
           echo "🗄️ Database:        ${{ needs.detect-changes.outputs.database }}"
@@ -1093,6 +1130,7 @@ jobs:
           echo "🗄️ Migrations:      ${{ needs.run-migrations.result }}"
           echo "🌸 Bloom Frontend:  ${{ needs.deploy-bloom-frontend.result }}"
           echo "🔌 Bloom API:       ${{ needs.deploy-bloom-api.result }}"
+          echo "🔄 Halaxy Sync:     (included in Bloom API)"
           echo "🌐 Website:         ${{ needs.deploy-website-frontend.result }}"
           echo ""
           echo "─────────────────────────────────────────────────────────────────"

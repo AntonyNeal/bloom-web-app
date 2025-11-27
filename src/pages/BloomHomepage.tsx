@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { BlossomTreeSophisticated } from '@/components/bloom-tree/BlossomTreeSophisticated';
+import { motion, useReducedMotion } from 'framer-motion';
 
 // ============================================================================
 // DESIGN TOKENS - The palette of a cottage garden
@@ -18,12 +19,19 @@ const colors = {
   lavenderLight: '#F3F0F7',
   white: '#FFFFFF',
   warmWhite: '#FFFEF9',
+  // Social feed additions
+  blue: '#5B9BD5',
+  blueLight: '#E8F1F9',
+  amber: '#E8B77D',
+  amberLight: '#FEF7ED',
 };
 
 const shadows = {
   subtle: '0 1px 3px rgba(122, 141, 122, 0.08)',
   lifted: '0 4px 12px rgba(122, 141, 122, 0.12)',
   card: '0 2px 8px rgba(122, 141, 122, 0.06)',
+  feed: '0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06)',
+  feedHover: '0 2px 8px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05)',
 };
 
 // ============================================================================
@@ -709,10 +717,123 @@ const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
 };
 
 // ============================================================================
-// SESSION CARD - Like a botanical specimen label
+// ICONS - Feed-style icons
 // ============================================================================
-const SessionCard: React.FC<{ session: Session }> = ({ session }) => {
+const HeartIcon = ({ filled = false }: { filled?: boolean }) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill={filled ? colors.terracotta : 'none'} stroke={filled ? colors.terracotta : 'currentColor'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+  </svg>
+);
+
+const NoteIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+);
+
+const CheckCircleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+    <polyline points="22 4 12 14.01 9 11.01" />
+  </svg>
+);
+
+const BellIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+  </svg>
+);
+
+const ArrowRightIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+);
+
+const SparkleIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0l2.5 7.5L22 10l-7.5 2.5L12 20l-2.5-7.5L2 10l7.5-2.5L12 0z" />
+  </svg>
+);
+
+// ============================================================================
+// CLIENT STORY BUBBLE - Like Instagram stories
+// ============================================================================
+const ClientStoryBubble: React.FC<{ session: Session; isNext?: boolean }> = ({ session, isNext }) => {
+  const isNewClient = session.relationshipMonths === 0;
+  const isMhcpLow = session.mhcpRemaining <= 2;
+  
+  return (
+    <motion.div
+      whileHover={{ scale: 1.05, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '6px',
+        cursor: 'pointer',
+        minWidth: '72px',
+      }}
+    >
+      <div
+        style={{
+          width: '56px',
+          height: '56px',
+          borderRadius: '50%',
+          padding: '3px',
+          background: isNext 
+            ? `linear-gradient(135deg, ${colors.sage}, ${colors.terracotta})` 
+            : isMhcpLow 
+              ? `linear-gradient(135deg, ${colors.terracotta}, ${colors.amber})`
+              : colors.lavender,
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            backgroundColor: isNewClient ? colors.terracottaLight : colors.lavenderLight,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: "'Crimson Text', Georgia, serif",
+            fontSize: '18px',
+            fontWeight: 600,
+            color: colors.charcoal,
+            border: `2px solid ${colors.white}`,
+          }}
+        >
+          {session.clientInitials}
+        </div>
+      </div>
+      <span style={{
+        fontSize: '11px',
+        fontWeight: isNext ? 600 : 400,
+        color: isNext ? colors.charcoal : colors.charcoalLight,
+        maxWidth: '64px',
+        textAlign: 'center',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}>
+        {session.time}
+      </span>
+    </motion.div>
+  );
+};
+
+// ============================================================================
+// SESSION FEED CARD - Social media post style
+// ============================================================================
+const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: number }> = ({ session, isUpNext, index }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   const mhcpPercentage = (session.mhcpRemaining / session.mhcpTotal) * 100;
   const isNewClient = session.relationshipMonths === 0;
@@ -728,161 +849,311 @@ const SessionCard: React.FC<{ session: Session }> = ({ session }) => {
     return `${years}y ${remainingMonths}m`;
   };
 
+  // Calculate time until session
+  const getTimeUntil = () => {
+    const now = new Date();
+    const [time, period] = session.time.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    let sessionHour = hours;
+    if (period === 'PM' && hours !== 12) sessionHour += 12;
+    if (period === 'AM' && hours === 12) sessionHour = 0;
+    
+    const sessionTime = new Date(now);
+    sessionTime.setHours(sessionHour, minutes || 0, 0, 0);
+    
+    const diff = sessionTime.getTime() - now.getTime();
+    if (diff < 0) return 'In session';
+    const diffMins = Math.floor(diff / 60000);
+    if (diffMins < 60) return `in ${diffMins}m`;
+    const diffHours = Math.floor(diffMins / 60);
+    return `in ${diffHours}h ${diffMins % 60}m`;
+  };
+
   return (
-    <article
+    <motion.article
+      initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.08 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
         backgroundColor: colors.white,
-        border: `1px solid ${colors.lavender}`,
-        borderRadius: '8px',
-        padding: '16px 20px',
-        boxShadow: isHovered ? shadows.lifted : shadows.card,
-        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-        transition: 'all 0.2s ease',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        boxShadow: isHovered ? shadows.feedHover : shadows.feed,
+        transform: isHovered && !prefersReducedMotion ? 'translateY(-2px)' : 'translateY(0)',
+        transition: 'all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         cursor: 'pointer',
+        border: isUpNext ? `2px solid ${colors.sage}` : `1px solid transparent`,
       }}
     >
-      {/* Top row: Time and session number */}
-      <div
-        style={{
+      {/* Up Next Banner */}
+      {isUpNext && (
+        <div style={{
+          background: `linear-gradient(90deg, ${colors.sage}, ${colors.sageLight})`,
+          color: colors.white,
+          padding: '8px 20px',
+          fontSize: '12px',
+          fontWeight: 600,
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '12px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <ClockIcon />
-          <span
-            style={{
-              fontSize: '15px',
-              fontWeight: 600,
-              color: colors.charcoal,
-            }}
-          >
-            {session.time}
-          </span>
+          gap: '6px',
+          letterSpacing: '0.5px',
+          textTransform: 'uppercase',
+        }}>
+          <SparkleIcon />
+          Up Next · {getTimeUntil()}
         </div>
-        <span
-          style={{
-            fontSize: '12px',
-            color: colors.charcoalLight,
-            backgroundColor: colors.lavenderLight,
-            padding: '3px 8px',
-            borderRadius: '4px',
-          }}
-        >
-          Session {session.sessionNumber}
-        </span>
-      </div>
+      )}
 
-      {/* Client initials - the focal point */}
-      <div
-        style={{
+      <div style={{ padding: '20px 24px' }}>
+        {/* Header: Avatar + Client Info + Time */}
+        <div style={{
           display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          marginBottom: '12px',
-        }}
-      >
-        <div
-          style={{
-            width: '44px',
-            height: '44px',
+          alignItems: 'flex-start',
+          gap: '14px',
+          marginBottom: '16px',
+        }}>
+          {/* Avatar */}
+          <div style={{
+            width: '52px',
+            height: '52px',
             borderRadius: '50%',
-            backgroundColor: isNewClient ? colors.terracottaLight : colors.lavenderLight,
+            background: isNewClient 
+              ? `linear-gradient(135deg, ${colors.terracotta}, ${colors.amber})`
+              : `linear-gradient(135deg, ${colors.sage}, ${colors.sageLight})`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontFamily: "'Crimson Text', Georgia, serif",
-            fontSize: '18px',
+            fontSize: '20px',
             fontWeight: 600,
-            color: isNewClient ? colors.sageDark : colors.sage,
-          }}
-        >
-          {session.clientInitials}
-        </div>
-        <div>
-          <div
-            style={{
-              fontSize: '13px',
-              color: colors.charcoalLight,
-              marginBottom: '2px',
-            }}
-          >
-            {formatRelationship(session.relationshipMonths)}
+            color: colors.white,
+            flexShrink: 0,
+            boxShadow: `0 2px 8px ${isNewClient ? colors.terracotta : colors.sage}30`,
+          }}>
+            {session.clientInitials}
           </div>
-          <div
+
+          {/* Client Details */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '4px',
+            }}>
+              <span style={{
+                fontFamily: "'Crimson Text', Georgia, serif",
+                fontSize: '18px',
+                fontWeight: 600,
+                color: colors.charcoal,
+              }}>
+                Session {session.sessionNumber}
+              </span>
+              <span style={{
+                fontSize: '12px',
+                color: colors.charcoalLight,
+              }}>
+                · {formatRelationship(session.relationshipMonths)}
+              </span>
+            </div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: colors.charcoalLight,
+              fontSize: '14px',
+            }}>
+              <ClockIcon />
+              <span style={{ fontWeight: 500, color: colors.charcoal }}>{session.time}</span>
+              {!isUpNext && <span style={{ fontSize: '13px' }}>· {getTimeUntil()}</span>}
+            </div>
+          </div>
+
+          {/* New Client Badge */}
+          {isNewClient && (
+            <motion.span
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                color: colors.terracotta,
+                backgroundColor: colors.amberLight,
+                padding: '4px 10px',
+                borderRadius: '20px',
+                letterSpacing: '0.3px',
+              }}
+            >
+              ✨ New
+            </motion.span>
+          )}
+        </div>
+
+        {/* Presenting Issues - Like tweet content */}
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '8px',
+          marginBottom: '16px',
+          paddingLeft: '66px',
+        }}>
+          {session.presentingIssues.map((issue, idx) => (
+            <span
+              key={idx}
+              style={{
+                fontSize: '14px',
+                color: colors.sage,
+                backgroundColor: `${colors.sage}12`,
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontWeight: 500,
+              }}
+            >
+              {issue}
+            </span>
+          ))}
+        </div>
+
+        {/* MHCP Progress - Like engagement metrics */}
+        <div style={{
+          paddingLeft: '66px',
+          marginBottom: '16px',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '8px',
+          }}>
+            <span style={{ fontSize: '13px', color: colors.charcoalLight }}>
+              Medicare Mental Health Plan
+            </span>
+            <span style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              color: isMhcpLow ? colors.terracotta : colors.sage,
+            }}>
+              {session.mhcpRemaining}/{session.mhcpTotal} sessions left
+            </span>
+          </div>
+          <div style={{
+            height: '6px',
+            backgroundColor: colors.lavenderLight,
+            borderRadius: '3px',
+            overflow: 'hidden',
+          }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${mhcpPercentage}%` }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              style={{
+                height: '100%',
+                background: isMhcpLow
+                  ? `linear-gradient(90deg, ${colors.terracotta}, ${colors.amber})`
+                  : `linear-gradient(90deg, ${colors.sage}, ${colors.sageLight})`,
+                borderRadius: '3px',
+              }}
+            />
+          </div>
+          {isMhcpLow && (
+            <motion.p
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                fontSize: '12px',
+                color: colors.terracotta,
+                marginTop: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <BellIcon />
+              Consider discussing GP referral
+            </motion.p>
+          )}
+        </div>
+
+        {/* Action Bar - Like social media engagement */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          paddingTop: '12px',
+          borderTop: `1px solid ${colors.lavenderLight}`,
+          paddingLeft: '66px',
+        }}>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={(e) => { e.stopPropagation(); setIsLiked(!isLiked); }}
             style={{
               display: 'flex',
-              flexWrap: 'wrap',
+              alignItems: 'center',
               gap: '6px',
-            }}
-          >
-            {session.presentingIssues.map((issue, idx) => (
-              <span
-                key={idx}
-                style={{
-                  fontSize: '12px',
-                  color: colors.sage,
-                  backgroundColor: `${colors.sage}15`,
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                }}
-              >
-                {issue}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* MHCP Progress */}
-      <div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '6px',
-          }}
-        >
-          <span style={{ fontSize: '12px', color: colors.charcoalLight }}>
-            MHCP Sessions
-          </span>
-          <span
-            style={{
-              fontSize: '12px',
+              padding: '8px 16px',
+              backgroundColor: isLiked ? `${colors.terracotta}15` : 'transparent',
+              border: 'none',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              color: isLiked ? colors.terracotta : colors.charcoalLight,
+              fontSize: '13px',
               fontWeight: 500,
-              color: isMhcpLow ? colors.terracotta : colors.sage,
+              transition: 'all 0.2s ease',
             }}
           >
-            {session.mhcpRemaining} of {session.mhcpTotal} remaining
-          </span>
-        </div>
-        <div
-          style={{
-            height: '4px',
-            backgroundColor: colors.lavenderLight,
-            borderRadius: '2px',
-            overflow: 'hidden',
-          }}
-        >
-          <div
+            <HeartIcon filled={isLiked} />
+            <span>Prep done</span>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05, backgroundColor: colors.blueLight }}
+            whileTap={{ scale: 0.95 }}
             style={{
-              height: '100%',
-              width: `${mhcpPercentage}%`,
-              background: isMhcpLow
-                ? `linear-gradient(90deg, ${colors.terracotta}, ${colors.terracottaLight})`
-                : `linear-gradient(90deg, ${colors.sage}, ${colors.sageLight})`,
-              borderRadius: '2px',
-              transition: 'width 0.5s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              color: colors.charcoalLight,
+              fontSize: '13px',
+              fontWeight: 500,
+              transition: 'all 0.2s ease',
             }}
-          />
+          >
+            <NoteIcon />
+            <span>Notes</span>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05, backgroundColor: colors.lavenderLight }}
+            whileTap={{ scale: 0.95 }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              color: colors.charcoalLight,
+              fontSize: '13px',
+              fontWeight: 500,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <CheckCircleIcon />
+            <span>Complete</span>
+          </motion.button>
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 };
 
@@ -957,276 +1228,346 @@ const EmptyState: React.FC = () => (
 );
 
 // ============================================================================
-// TODAY'S SESSIONS - The main garden bed
+// TODAY'S SESSIONS - Social Feed Style
 // ============================================================================
-const TodaysSessions: React.FC<{ sessions: Session[] }> = ({ sessions }) => (
-  <section style={{ flex: 1 }}>
-    <h2
-      style={{
-        fontFamily: "'Crimson Text', Georgia, serif",
-        fontSize: '22px',
-        fontWeight: 500,
-        color: colors.charcoal,
-        marginBottom: '20px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-      }}
-    >
-      Today's Sessions
-      {sessions.length > 0 && (
-        <span
-          style={{
-            fontSize: '14px',
-            fontFamily: "'Inter', -apple-system, sans-serif",
-            fontWeight: 400,
-            color: colors.charcoalLight,
-            backgroundColor: colors.lavenderLight,
-            padding: '2px 10px',
-            borderRadius: '12px',
-          }}
-        >
-          {sessions.length}
-        </span>
-      )}
-    </h2>
+const SessionFeed: React.FC<{ sessions: Session[] }> = ({ sessions }) => {
+  // Sort sessions by time and identify the next one
+  const sortedSessions = useMemo(() => {
+    return [...sessions].sort((a, b) => {
+      const parseTime = (timeStr: string) => {
+        const [time, period] = timeStr.split(' ');
+        const [hours, minutes] = time.split(':').map(Number);
+        let hour = hours;
+        if (period === 'PM' && hours !== 12) hour += 12;
+        if (period === 'AM' && hours === 12) hour = 0;
+        return hour * 60 + (minutes || 0);
+      };
+      return parseTime(a.time) - parseTime(b.time);
+    });
+  }, [sessions]);
 
-    {sessions.length === 0 ? (
-      <EmptyState />
-    ) : (
-      <div
-        style={{
-          display: 'grid',
-          gap: '16px',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-        }}
-      >
-        {sessions.map((session) => (
-          <SessionCard key={session.id} session={session} />
-        ))}
-      </div>
-    )}
-  </section>
-);
+  // Find the next upcoming session
+  const nextSessionId = useMemo(() => {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    for (const session of sortedSessions) {
+      const [time, period] = session.time.split(' ');
+      const [hours, minutes] = time.split(':').map(Number);
+      let hour = hours;
+      if (period === 'PM' && hours !== 12) hour += 12;
+      if (period === 'AM' && hours === 12) hour = 0;
+      const sessionMinutes = hour * 60 + (minutes || 0);
+      
+      if (sessionMinutes > currentMinutes) {
+        return session.id;
+      }
+    }
+    return sortedSessions[0]?.id;
+  }, [sortedSessions]);
 
-// ============================================================================
-// STAT CARD - Individual metric widgets
-// ============================================================================
-interface StatCardProps {
-  title: string;
-  children: React.ReactNode;
-}
-
-const StatCard: React.FC<StatCardProps> = ({ title, children }) => {
-  const [isHovered, setIsHovered] = useState(false);
+  if (sessions.length === 0) {
+    return <EmptyState />;
+  }
 
   return (
-    <div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{
-        backgroundColor: colors.white,
-        border: `1px solid ${colors.lavender}`,
-        borderRadius: '8px',
-        padding: '16px 20px',
-        boxShadow: isHovered ? shadows.lifted : shadows.card,
-        transform: isHovered ? 'translateY(-1px)' : 'translateY(0)',
-        transition: 'all 0.2s ease',
-      }}
-    >
-      <h3
-        style={{
-          fontFamily: "'Crimson Text', Georgia, serif",
-          fontSize: '16px',
-          fontWeight: 500,
-          color: colors.charcoal,
-          marginBottom: '16px',
-          paddingBottom: '8px',
-          borderBottom: `1px solid ${colors.lavenderLight}`,
-        }}
-      >
-        {title}
-      </h3>
-      {children}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {sortedSessions.map((session, index) => (
+        <SessionFeedCard 
+          key={session.id} 
+          session={session} 
+          isUpNext={session.id === nextSessionId}
+          index={index}
+        />
+      ))}
     </div>
   );
 };
 
 // ============================================================================
-// QUICK STATS - The sidebar metrics
+// CLIENT STORIES BAR - Like Instagram Stories
 // ============================================================================
-interface QuickStatsProps {
-  weeklyStats: WeeklyStats;
-  upcomingStats: UpcomingStats;
-}
+const ClientStoriesBar: React.FC<{ sessions: Session[] }> = ({ sessions }) => {
+  if (sessions.length === 0) return null;
 
-const QuickStats: React.FC<QuickStatsProps> = ({ weeklyStats, upcomingStats }) => {
-  const sessionPercentage = (weeklyStats.currentSessions / weeklyStats.maxSessions) * 100;
-  const revenuePercentage = (weeklyStats.currentRevenue / weeklyStats.targetRevenue) * 100;
+  // Find next session for highlighting
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  
+  const sortedSessions = [...sessions].sort((a, b) => {
+    const parseTime = (timeStr: string) => {
+      const [time, period] = timeStr.split(' ');
+      const [hours, minutes] = time.split(':').map(Number);
+      let hour = hours;
+      if (period === 'PM' && hours !== 12) hour += 12;
+      if (period === 'AM' && hours === 12) hour = 0;
+      return hour * 60 + (minutes || 0);
+    };
+    return parseTime(a.time) - parseTime(b.time);
+  });
+
+  let nextIndex = 0;
+  for (let i = 0; i < sortedSessions.length; i++) {
+    const [time, period] = sortedSessions[i].time.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    let hour = hours;
+    if (period === 'PM' && hours !== 12) hour += 12;
+    if (period === 'AM' && hours === 12) hour = 0;
+    const sessionMinutes = hour * 60 + (minutes || 0);
+    
+    if (sessionMinutes > currentMinutes) {
+      nextIndex = i;
+      break;
+    }
+  }
 
   return (
-    <aside
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
       style={{
-        width: '280px',
-        flexShrink: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
+        backgroundColor: colors.white,
+        borderRadius: '16px',
+        padding: '16px 20px',
+        marginBottom: '20px',
+        boxShadow: shadows.feed,
       }}
     >
-      {/* This Week Card */}
-      <StatCard title="This Week">
-        {/* Sessions Progress */}
-        <div style={{ marginBottom: '16px' }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginBottom: '6px',
-            }}
-          >
-            <span style={{ fontSize: '13px', color: colors.charcoalLight }}>
-              Sessions
-            </span>
-            <span style={{ fontSize: '13px', fontWeight: 500, color: colors.charcoal }}>
-              {weeklyStats.currentSessions} / {weeklyStats.maxSessions}
-            </span>
-          </div>
-          <div
-            style={{
-              height: '6px',
-              backgroundColor: colors.lavenderLight,
-              borderRadius: '3px',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                height: '100%',
-                width: `${sessionPercentage}%`,
-                background: `linear-gradient(90deg, ${colors.sage}, ${colors.sageLight})`,
-                borderRadius: '3px',
-                transition: 'width 0.5s ease',
-              }}
-            />
-          </div>
-        </div>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        marginBottom: '14px',
+      }}>
+        <CalendarIcon />
+        <span style={{
+          fontFamily: "'Crimson Text', Georgia, serif",
+          fontSize: '16px',
+          fontWeight: 500,
+          color: colors.charcoal,
+        }}>
+          Today's Schedule
+        </span>
+        <span style={{
+          fontSize: '13px',
+          color: colors.charcoalLight,
+          marginLeft: 'auto',
+        }}>
+          {sessions.length} {sessions.length === 1 ? 'session' : 'sessions'}
+        </span>
+      </div>
 
-        {/* Revenue Progress */}
-        <div>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginBottom: '6px',
-            }}
-          >
-            <span style={{ fontSize: '13px', color: colors.charcoalLight }}>
-              Revenue
-            </span>
-            <span style={{ fontSize: '13px', fontWeight: 500, color: colors.charcoal }}>
-              ${weeklyStats.currentRevenue.toLocaleString()} / ${weeklyStats.targetRevenue.toLocaleString()}
-            </span>
-          </div>
-          <div
-            style={{
-              height: '6px',
-              backgroundColor: colors.lavenderLight,
-              borderRadius: '3px',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                height: '100%',
-                width: `${Math.min(revenuePercentage, 100)}%`,
-                background: `linear-gradient(90deg, ${colors.terracotta}, ${colors.terracottaLight})`,
-                borderRadius: '3px',
-                transition: 'width 0.5s ease',
-              }}
-            />
-          </div>
-        </div>
-      </StatCard>
-
-      {/* Upcoming Card */}
-      <StatCard title="Upcoming">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <span style={{ fontSize: '13px', color: colors.charcoalLight }}>
-              Tomorrow
-            </span>
-            <span
-              style={{
-                fontSize: '14px',
-                fontWeight: 500,
-                color: colors.charcoal,
-              }}
-            >
-              {upcomingStats.tomorrowSessions} sessions
-            </span>
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <span style={{ fontSize: '13px', color: colors.charcoalLight }}>
-              Rest of week
-            </span>
-            <span
-              style={{
-                fontSize: '14px',
-                fontWeight: 500,
-                color: colors.charcoal,
-              }}
-            >
-              {upcomingStats.remainingThisWeek} sessions
-            </span>
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingTop: '8px',
-              borderTop: `1px solid ${colors.lavenderLight}`,
-            }}
-          >
-            <span style={{ fontSize: '13px', color: colors.charcoalLight }}>
-              MHCP ending soon
-            </span>
-            <span
-              style={{
-                fontSize: '14px',
-                fontWeight: 600,
-                color: upcomingStats.mhcpEndingSoon > 0 ? colors.terracotta : colors.charcoal,
-                backgroundColor: upcomingStats.mhcpEndingSoon > 0 ? `${colors.terracotta}15` : 'transparent',
-                padding: upcomingStats.mhcpEndingSoon > 0 ? '2px 8px' : '0',
-                borderRadius: '4px',
-              }}
-            >
-              {upcomingStats.mhcpEndingSoon} clients
-            </span>
-          </div>
-        </div>
-      </StatCard>
-    </aside>
+      <div style={{
+        display: 'flex',
+        gap: '12px',
+        overflowX: 'auto',
+        paddingBottom: '4px',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}>
+        {sortedSessions.map((session, index) => (
+          <ClientStoryBubble 
+            key={session.id} 
+            session={session}
+            isNext={index === nextIndex}
+          />
+        ))}
+      </div>
+    </motion.div>
   );
 };
 
 // ============================================================================
-// BLOOM HOMEPAGE - The complete garden view
+// COMPACT STAT CARD - For the sidebar/inline stats
+// ============================================================================
+const CompactStatPill: React.FC<{ label: string; value: string; subtext?: string; highlight?: boolean; large?: boolean }> = ({ label, value, subtext, highlight, large }) => (
+  <div style={{
+    display: 'flex',
+    flexDirection: large ? 'column' : 'row',
+    alignItems: large ? 'flex-start' : 'center',
+    justifyContent: large ? 'flex-start' : 'space-between',
+    padding: large ? '14px 18px' : '10px 14px',
+    backgroundColor: highlight ? `${colors.terracotta}10` : large ? colors.white : colors.lavenderLight,
+    borderRadius: large ? '14px' : '10px',
+    flex: large ? '1 1 100%' : 1,
+    minWidth: large ? '100%' : '140px',
+    border: large ? `1px solid ${colors.lavender}` : 'none',
+    gap: large ? '4px' : 0,
+  }}>
+    <span style={{ fontSize: '13px', color: colors.charcoalLight }}>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+      <span style={{
+        fontSize: large ? '28px' : '14px',
+        fontWeight: 600,
+        fontFamily: large ? "'Crimson Text', Georgia, serif" : 'inherit',
+        color: highlight ? colors.terracotta : colors.charcoal,
+        letterSpacing: large ? '-0.5px' : 'normal',
+      }}>
+        {value}
+      </span>
+      {subtext && (
+        <span style={{
+          fontSize: '13px',
+          color: colors.sageLight,
+          fontWeight: 500,
+        }}>
+          {subtext}
+        </span>
+      )}
+    </div>
+  </div>
+);
+
+// ============================================================================
+// QUICK STATS INLINE - Yearly projection card
+// ============================================================================
+const QuickStatsInline: React.FC<{ weeklyStats: WeeklyStats; upcomingStats: UpcomingStats; monthlyStats: MonthlyStats }> = ({ weeklyStats, upcomingStats, monthlyStats }) => {
+  // Calculate yearly projection based on current monthly pace
+  const currentMonth = new Date().getMonth(); // 0-11
+  const dayOfMonth = new Date().getDate();
+  const daysInMonth = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate();
+  
+  // Ensure we have valid numbers
+  const currentRevenue = Number(monthlyStats.currentRevenue) || 0;
+  const targetRevenue = Number(monthlyStats.targetRevenue) || 1;
+  
+  // Projected monthly revenue (extrapolate current month based on days elapsed)
+  const projectedMonthlyRevenue = dayOfMonth > 0 ? (currentRevenue / dayOfMonth) * daysInMonth : currentRevenue;
+  
+  // Yearly projection: assume this monthly rate for the full year
+  // (In reality, you'd sum past months + projected remaining, but we'll use avg monthly rate)
+  const yearlyProjection = Math.round(projectedMonthlyRevenue * 12);
+  
+  // Determine if on track (comparing to monthly target annualized)
+  const yearlyTarget = targetRevenue * 12;
+  const onTrackPercentage = yearlyTarget > 0 ? Math.round((yearlyProjection / yearlyTarget) * 100) : 0;
+  const isOnTrack = onTrackPercentage >= 90;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+      style={{
+        backgroundColor: colors.white,
+        borderRadius: '16px',
+        padding: '20px',
+        marginTop: '20px',
+        boxShadow: shadows.feed,
+      }}
+    >
+      {/* Yearly Projection Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        marginBottom: '16px',
+      }}>
+        <span style={{
+          fontFamily: "'Crimson Text', Georgia, serif",
+          fontSize: '16px',
+          fontWeight: 500,
+          color: colors.charcoal,
+        }}>
+          On track for
+        </span>
+        <span style={{
+          fontSize: '12px',
+          color: isOnTrack ? colors.sage : colors.terracotta,
+          backgroundColor: isOnTrack ? `${colors.sage}15` : `${colors.terracotta}15`,
+          padding: '3px 10px',
+          borderRadius: '12px',
+          fontWeight: 600,
+        }}>
+          {onTrackPercentage}% of goal
+        </span>
+      </div>
+
+      {/* Big yearly number */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: '8px',
+        marginBottom: '16px',
+      }}>
+        <span style={{
+          fontFamily: "'Crimson Text', Georgia, serif",
+          fontSize: '36px',
+          fontWeight: 600,
+          color: colors.charcoal,
+          letterSpacing: '-1px',
+        }}>
+          ${yearlyProjection.toLocaleString()}
+        </span>
+        <span style={{
+          fontSize: '14px',
+          color: colors.charcoalLight,
+        }}>
+          this year
+        </span>
+      </div>
+
+      {/* Progress bar to yearly target */}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginBottom: '6px',
+          fontSize: '12px',
+          color: colors.charcoalLight,
+        }}>
+          <span>Yearly target</span>
+          <span style={{ fontWeight: 500, color: colors.charcoal }}>${yearlyTarget.toLocaleString()}</span>
+        </div>
+        <div style={{
+          height: '8px',
+          backgroundColor: colors.lavenderLight,
+          borderRadius: '4px',
+          overflow: 'hidden',
+        }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.min(onTrackPercentage, 100)}%` }}
+            transition={{ duration: 1, delay: 0.3 }}
+            style={{
+              height: '100%',
+              background: isOnTrack 
+                ? `linear-gradient(90deg, ${colors.sage}, ${colors.sageLight})`
+                : `linear-gradient(90deg, ${colors.terracotta}, ${colors.amber})`,
+              borderRadius: '4px',
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Quick stats row */}
+      <div style={{
+        display: 'flex',
+        gap: '10px',
+        flexWrap: 'wrap',
+        paddingTop: '12px',
+        borderTop: `1px solid ${colors.lavenderLight}`,
+      }}>
+        <CompactStatPill 
+          label="This week" 
+          value={`${weeklyStats.currentSessions}/${weeklyStats.maxSessions}`} 
+        />
+        <CompactStatPill 
+          label="Tomorrow" 
+          value={`${upcomingStats.tomorrowSessions} sessions`} 
+        />
+        <CompactStatPill 
+          label="MHCP Alert" 
+          value={`${upcomingStats.mhcpEndingSoon} clients`}
+          highlight={upcomingStats.mhcpEndingSoon > 0}
+        />
+      </div>
+    </motion.div>
+  );
+};
+
+// ============================================================================
+// BLOOM HOMEPAGE - Social Feed Layout
 // ============================================================================
 const BloomHomepage: React.FC<BloomHomepageProps> = ({
   user = sampleUser,
@@ -1235,6 +1576,8 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
   upcomingStats = sampleUpcomingStats,
   monthlyStats = sampleMonthlyStats,
 }) => {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <div
       style={{
@@ -1303,24 +1646,16 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
             padding: 0;
           }
 
-          /* Responsive adjustments */
-          @media (max-width: 900px) {
-            .bloom-main-layout {
-              flex-direction: column !important;
-            }
-            .bloom-sidebar {
-              width: 100% !important;
-              flex-direction: row !important;
-              flex-wrap: wrap !important;
-            }
-            .bloom-sidebar > div {
-              flex: 1 1 280px !important;
-            }
+          /* Hide scrollbar for stories */
+          .stories-scroll::-webkit-scrollbar {
+            display: none;
           }
 
-          @media (max-width: 600px) {
-            .bloom-header-center {
-              display: none !important;
+          /* Feed column max-width for readability */
+          @media (min-width: 768px) {
+            .feed-column {
+              max-width: 600px;
+              margin: 0 auto;
             }
           }
         `}
@@ -1328,27 +1663,77 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
 
       <CottageHeader user={user} />
 
-      <main
-        className="bloom-main-layout"
-        style={{
-          display: 'flex',
-          gap: '24px',
-          padding: '24px',
-          maxWidth: '1400px',
-          margin: '0 auto',
-        }}
-      >
-        {/* Left column: Tree + Sessions */}
-        <div style={{ flex: 1 }}>
+      {/* Main Feed Layout - Single column like social media */}
+      <main style={{
+        maxWidth: '900px',
+        margin: '0 auto',
+        padding: '20px 16px',
+      }}>
+        {/* Hero: Tree + Revenue - Always at top */}
+        <motion.div
+          initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          style={{ marginBottom: '24px' }}
+        >
           <BlossomTreeSophisticated monthlyStats={monthlyStats} />
-          <TodaysSessions sessions={todaysSessions} />
+        </motion.div>
+
+        {/* Stories Bar - Quick glance at today's clients */}
+        <ClientStoriesBar sessions={todaysSessions} />
+
+        {/* Feed Section Header */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          marginBottom: '16px',
+          paddingLeft: '4px',
+        }}>
+          <h2 style={{
+            fontFamily: "'Crimson Text', Georgia, serif",
+            fontSize: '24px',
+            fontWeight: 500,
+            color: colors.charcoal,
+            margin: 0,
+          }}>
+            Your Day
+          </h2>
+          <div style={{
+            flex: 1,
+            height: '1px',
+            background: `linear-gradient(90deg, ${colors.lavender}, transparent)`,
+          }} />
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              backgroundColor: colors.white,
+              border: `1px solid ${colors.lavender}`,
+              borderRadius: '20px',
+              cursor: 'pointer',
+              color: colors.charcoalLight,
+              fontSize: '13px',
+              fontWeight: 500,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <span>View week</span>
+            <ArrowRightIcon />
+          </motion.button>
         </div>
-        
-        {/* Right sidebar */}
-        <QuickStats
-          weeklyStats={weeklyStats}
-          upcomingStats={upcomingStats}
-        />
+
+        {/* Session Feed - The main content */}
+        <div className="feed-column">
+          <SessionFeed sessions={todaysSessions} />
+        </div>
+
+        {/* Quick Stats - At bottom like engagement summary */}
+        <QuickStatsInline weeklyStats={weeklyStats} upcomingStats={upcomingStats} monthlyStats={monthlyStats} />
       </main>
     </div>
   );

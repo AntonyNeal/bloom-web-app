@@ -19,12 +19,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { BlossomFlower } from './BlossomFlower';
 import { TreeBranch } from './TreeBranch';
-
-interface MonthlyStats {
-  currentRevenue: number;
-  targetRevenue: number;
-  monthName: string;
-}
+import type { MonthlyStats } from '@/types/bloom';
 
 interface BlossomTreeProps {
   monthlyStats: MonthlyStats;
@@ -64,7 +59,9 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
   }, []);
   
   // Calculate growth metrics
-  const growthPercentage = Math.min((monthlyStats.currentRevenue / monthlyStats.targetRevenue) * 100, 100);
+  // Use targetRevenue if provided, otherwise estimate based on current revenue (assume 80% of way there)
+  const effectiveTarget = monthlyStats.targetRevenue || Math.max(monthlyStats.currentRevenue * 1.25, 1);
+  const growthPercentage = Math.min((monthlyStats.currentRevenue / effectiveTarget) * 100, 100);
   const growthFactor = growthPercentage / 100; // 0 to 1
   
   // Determine season from month

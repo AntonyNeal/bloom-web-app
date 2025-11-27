@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { FileText, ArrowLeft, LogOut, BarChart3, FlaskConical, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { motion, useReducedMotion, Variants } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 
 // ============================================================================
 // DESIGN TOKENS - Matching the cottage garden aesthetic

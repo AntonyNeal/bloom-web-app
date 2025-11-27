@@ -139,15 +139,24 @@ const sampleSessions: Session[] = [
 ];
 
 const sampleWeeklyStats: WeeklyStats = {
+  weekStartDate: new Date(Date.now() - new Date().getDay() * 86400000).toISOString(),
+  weekEndDate: new Date(Date.now() + (6 - new Date().getDay()) * 86400000).toISOString(),
   currentSessions: 18,
+  scheduledSessions: 22,
   maxSessions: 25,
   currentRevenue: 3960,
+  completionRate: 0.82,
+  noShowCount: 1,
+  cancellationCount: 2,
 };
 
 const sampleUpcomingStats: UpcomingStats = {
   tomorrowSessions: 4,
   remainingThisWeek: 7,
+  nextWeekSessions: 20,
   mhcpEndingSoon: 3,
+  clientsNeedingFollowUp: 2,
+  unbookedRegulars: 1,
 };
 
 const sampleMonthlyStats: MonthlyStats = {
@@ -1247,24 +1256,17 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
       locationType: s.locationType,
     })) : sampleSessions);
 
-  const weeklyStats: WeeklyStats = weeklyOverride || (dashboard ? {
-    currentSessions: dashboard.weeklyStats.currentSessions,
-    maxSessions: dashboard.weeklyStats.maxSessions,
-    currentRevenue: dashboard.weeklyStats.currentRevenue,
-    targetRevenue: dashboard.weeklyStats.targetRevenue,
-  } : sampleWeeklyStats);
+  const weeklyStats: WeeklyStats = weeklyOverride || (dashboard 
+    ? dashboard.weeklyStats 
+    : sampleWeeklyStats);
 
-  const upcomingStats: UpcomingStats = upcomingOverride || (dashboard ? {
-    tomorrowSessions: dashboard.upcomingStats.tomorrowSessions,
-    remainingThisWeek: dashboard.upcomingStats.remainingThisWeek,
-    mhcpEndingSoon: dashboard.upcomingStats.mhcpEndingSoon,
-  } : sampleUpcomingStats);
+  const upcomingStats: UpcomingStats = upcomingOverride || (dashboard 
+    ? dashboard.upcomingStats 
+    : sampleUpcomingStats);
 
-  const monthlyStats: MonthlyStats = monthlyOverride || (dashboard ? {
-    currentRevenue: dashboard.monthlyStats.currentRevenue,
-    targetRevenue: dashboard.monthlyStats.targetRevenue,
-    monthName: dashboard.monthlyStats.monthName,
-  } : sampleMonthlyStats);
+  const monthlyStats: MonthlyStats = monthlyOverride || (dashboard 
+    ? dashboard.monthlyStats 
+    : sampleMonthlyStats);
 
   // Show loading state
   if (loading && !dashboard) {

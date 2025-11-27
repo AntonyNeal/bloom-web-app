@@ -585,7 +585,7 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
                 color: colors.sage,
               }}
             >
-              ${monthlyStats.targetRevenue.toLocaleString()}
+              ${(monthlyStats.targetRevenue ?? effectiveTarget).toLocaleString()}
             </div>
           </div>
         </div>

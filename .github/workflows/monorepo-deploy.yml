@@ -887,27 +887,35 @@ jobs:
         working-directory: ./db
         run: npm install
 
-      - name: Run Flyway Migrations
-        working-directory: ./db
-        continue-on-error: true  # TODO: Fix node-flywaydb compatibility issue
-        env:
-          DB_ENV: ${{ needs.determine-environment.outputs.environment }}
-          DB_DEV_SERVER: lpa-sql-server.database.windows.net
-          DB_DEV_DATABASE: lpa-bloom-db-dev
-          DB_DEV_USER: sqladmin
-          DB_DEV_PASSWORD: ${{ secrets.DB_DEV_PASSWORD }}
-          DB_STAGING_SERVER: lpa-sql-server.database.windows.net
-          DB_STAGING_DATABASE: lpa-bloom-db-staging
-          DB_STAGING_USER: sqladmin
-          DB_STAGING_PASSWORD: ${{ secrets.DB_STAGING_PASSWORD }}
-          DB_PROD_SERVER: lpa-sql-server.database.windows.net
-          DB_PROD_DATABASE: lpa-bloom-db-prod
-          DB_PROD_USER: sqladmin
-          DB_PROD_PASSWORD: ${{ secrets.DB_PROD_PASSWORD }}
+      - name: Set Database Environment Variables
+        id: db-env
         run: |
-          echo "🚀 Running database migrations for $DB_ENV"
-          npm run migrate || echo "⚠️ Migration failed - continuing with deployment"
-          echo "✅ Database migration step completed"
+          ENV="${{ needs.determine-environment.outputs.environment }}"
+          case $ENV in
+            development)
+              echo "DB_NAME=lpa-bloom-db-dev" >> $GITHUB_ENV
+              echo "DB_USER=sqladmin" >> $GITHUB_ENV
+              echo "DB_PASSWORD=${{ secrets.DB_DEV_PASSWORD }}" >> $GITHUB_ENV
+              ;;
+            staging)
+              echo "DB_NAME=lpa-bloom-db-staging" >> $GITHUB_ENV
+              echo "DB_USER=sqladmin" >> $GITHUB_ENV
+              echo "DB_PASSWORD=${{ secrets.DB_STAGING_PASSWORD }}" >> $GITHUB_ENV
+              ;;
+            production)
+              echo "DB_NAME=lpa-bloom-db-prod" >> $GITHUB_ENV
+              echo "DB_USER=sqladmin" >> $GITHUB_ENV
+              echo "DB_PASSWORD=${{ secrets.DB_PROD_PASSWORD }}" >> $GITHUB_ENV
+              ;;
+          esac
+          echo "DB_SERVER=lpa-sql-server.database.windows.net" >> $GITHUB_ENV
+
+      - name: Run Azure SQL Migrations
+        working-directory: ./db
+        run: |
+          echo "🚀 Running database migrations for ${{ needs.determine-environment.outputs.environment }}"
+          npm run migrate
+          echo "✅ Database migrations completed successfully"
 
       - name: Migration Summary
         run: |

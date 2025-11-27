@@ -12,7 +12,7 @@
  * - Rotation and tilt (natural positioning)
  */
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 
 export interface BlossomFlowerProps {
   /** X position in SVG coordinates */
@@ -99,6 +99,12 @@ export const BlossomFlower = memo(({
   
   // Stamen count increases with bloom stage
   const stamenCount = Math.floor(8 + stage * 4); // 8 to 12 stamens
+  
+  // Pre-compute stamen lengths to avoid calling Math.random during render
+  const stamenLengths = useMemo(() => 
+    Array.from({ length: 12 }, () => centerRadius * (1.2 + Math.random() * 0.4)),
+    [centerRadius]
+  );
   
   return (
     <g
@@ -205,7 +211,7 @@ export const BlossomFlower = memo(({
       {/* Stamens - radiating from center */}
       {Array.from({ length: stamenCount }).map((_, i) => {
         const angle = (i * (360 / stamenCount)) * (Math.PI / 180);
-        const stamenLength = centerRadius * (1.2 + Math.random() * 0.4);
+        const stamenLength = stamenLengths[i] || centerRadius * 1.4;
         const x1 = Math.cos(angle) * (centerRadius * 0.3);
         const y1 = Math.sin(angle) * (centerRadius * 0.3) + tiltYOffset;
         const x2 = Math.cos(angle) * stamenLength;

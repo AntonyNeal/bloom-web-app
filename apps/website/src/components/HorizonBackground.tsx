@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 /**
  * HorizonBackground Component
@@ -21,11 +21,34 @@ interface HorizonBackgroundProps {
   className?: string;
 }
 
+const pseudoRandom = (seed: number) => {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+};
+
 const HorizonBackground: React.FC<HorizonBackgroundProps> = ({
   earthHeight = '25%',
   animated = true,
   className = '',
 }) => {
+  const particleConfigs = useMemo(() => {
+    const count = 8;
+    return Array.from({ length: count }, (_, i) => {
+      const width = 3 + pseudoRandom(i + 1) * 4;
+      const height = 3 + pseudoRandom(i + 11) * 4;
+      const topOffset = 20 + pseudoRandom(i + 21) * 40;
+      const animationDuration = 15 + i * 2;
+      return {
+        width,
+        height,
+        left: 10 + i * 12,
+        top: topOffset,
+        animation: animationDuration,
+        delay: i * -2,
+      };
+    });
+  }, []);
+
   return (
     <div
       className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}
@@ -159,17 +182,17 @@ const HorizonBackground: React.FC<HorizonBackgroundProps> = ({
       {/* Animated floating particles - dandelion seeds / pollen */}
       {animated && (
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(8)].map((_, i) => (
+          {particleConfigs.map((config, i) => (
             <div
               key={i}
               className="absolute rounded-full bg-white/60"
               style={{
-                width: `${3 + Math.random() * 4}px`,
-                height: `${3 + Math.random() * 4}px`,
-                left: `${10 + i * 12}%`,
-                top: `${20 + Math.random() * 40}%`,
-                animation: `float-particle ${15 + i * 2}s ease-in-out infinite`,
-                animationDelay: `${i * -2}s`,
+                width: `${config.width}px`,
+                height: `${config.height}px`,
+                left: `${config.left}%`,
+                top: `${config.top}%`,
+                animation: `float-particle ${config.animation}s ease-in-out infinite`,
+                animationDelay: `${config.delay}s`,
                 boxShadow: '0 0 4px rgba(255,255,255,0.5)',
               }}
             />

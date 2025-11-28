@@ -99,18 +99,12 @@ export function trackDependency(
 export async function flush(): Promise<void> {
   if (!client) return;
 
-  return new Promise((resolve) => {
-    client!.flush({
-      callback: (error?: string) => {
-        if (error) {
-          console.error('[Telemetry] Flush error:', error);
-        } else {
-          console.log('[Telemetry] Flushed telemetry');
-        }
-        resolve();
-      },
-    });
-  });
+  try {
+    await client.flush();
+    console.log('[Telemetry] Flushed telemetry');
+  } catch (error) {
+    console.error('[Telemetry] Flush error:', error);
+  }
 }
 
 export default {

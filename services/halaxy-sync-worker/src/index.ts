@@ -152,7 +152,7 @@ async function runFullSync(): Promise<void> {
     let totalErrors = 0;
     let appointmentsSynced = 0;
     let patientsSynced = 0;
-    let practitionersSynced = practitioners.length;
+    const practitionersSynced = practitioners.length;
 
     for (const practitioner of practitioners) {
       if (isShuttingDown) {

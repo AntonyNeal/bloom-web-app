@@ -968,6 +968,17 @@ jobs:
       image-tag: ${{ steps.meta.outputs.tags }}
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Check Azure Credentials
+        id: check-creds
+        run: |
+          if [ -n "${{ secrets.AZURE_CLIENT_ID }}" ] && [ -n "${{ secrets.AZURE_TENANT_ID }}" ] && [ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+            echo "has-azure-creds=true" >> $GITHUB_OUTPUT
+            echo "✅ Azure credentials are configured"
+          else
+            echo "has-azure-creds=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Azure credentials not configured - skipping ACR push"
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -986,6 +997,7 @@ jobs:
           echo "✅ Build complete"
 
       - name: Azure Login
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -993,6 +1005,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Get ACR Login Server
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
         id: acr
         run: |
           ACR_NAME=$(az acr list --resource-group rg-lpa-${{ needs.determine-environment.outputs.environment }} --query "[0].name" -o tsv 2>/dev/null || echo "")
@@ -1007,11 +1020,12 @@ jobs:
           fi
 
       - name: Login to ACR
-        if: steps.acr.outputs.acr-exists == 'true'
+        if: steps.check-creds.outputs.has-azure-creds == 'true' && steps.acr.outputs.acr-exists == 'true'
         run: |
           az acr login --name ${{ steps.acr.outputs.name }}
 
       - name: Docker Meta
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -1022,7 +1036,7 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build and Push Docker Image
-        if: steps.acr.outputs.acr-exists == 'true'
+        if: steps.check-creds.outputs.has-azure-creds == 'true' && steps.acr.outputs.acr-exists == 'true'
         uses: docker/build-push-action@v5
         with:
           context: ./services/halaxy-sync-worker
@@ -1032,8 +1046,17 @@ jobs:
 
       - name: Build Summary
         run: |
-          echo "✅ HALAXY SYNC WORKER BUILD COMPLETE"
-          echo "🐳 Image: ${{ steps.meta.outputs.tags }}"
+          if [ "${{ steps.check-creds.outputs.has-azure-creds }}" == "true" ]; then
+            echo "✅ HALAXY SYNC WORKER BUILD COMPLETE"
+            echo "🐳 Image: ${{ steps.meta.outputs.tags }}"
+          else
+            echo "✅ HALAXY SYNC WORKER BUILD COMPLETE (TypeScript only)"
+            echo "⚠️ Docker image not pushed - Azure credentials not configured"
+            echo "📝 To enable Docker push, add these secrets to your repository:"
+            echo "   - AZURE_CLIENT_ID"
+            echo "   - AZURE_TENANT_ID"
+            echo "   - AZURE_SUBSCRIPTION_ID"
+          fi
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 4: DEPLOY TO AZURE

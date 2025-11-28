@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from '@/config/api';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Tier1Flower, Tier2Flower, Tier3Flower } from '@/components/flowers';
 import type { QualificationData } from '@/components/common/QualificationCheck';
+import { BloomJourneyInfographic } from '@/components/join-us/BloomJourneyInfographic';
 
 // Lazy load the massive QualificationCheck component
 const QualificationCheck = lazy(() =>
@@ -61,7 +62,7 @@ interface FormData {
   };
 }
 
-// Marketing Content Component - Bloom-aligned copy
+// Marketing Content Component - Uses the interactive journey infographic
 function MarketingContent({
   isMobile,
   onApplyClick,
@@ -108,7 +109,6 @@ function MarketingContent({
             initial={{ opacity: 0 }}
             animate={{
               opacity: blob.opacity,
-              // Disable infinite animations on desktop for better performance
               scale: isMobile || prefersReducedMotion ? 1 : [1, 1.01, 1],
             }}
             transition={{
@@ -137,46 +137,37 @@ function MarketingContent({
       </div>
 
       {/* Main Content */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: isMobile ? '40px 20px' : '80px 40px',
-        }}
-      >
+      <div style={{ position: 'relative', zIndex: 1 }}>
         {/* Hero Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          style={{ textAlign: 'center', marginBottom: isMobile ? '60px' : '100px' }}
+          style={{
+            textAlign: 'center',
+            padding: isMobile ? '60px 20px 40px' : '100px 40px 60px',
+            maxWidth: '900px',
+            margin: '0 auto',
+          }}
         >
-          <motion.div
+          <motion.h1
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             style={{
-              display: 'inline-block',
+              fontSize: isMobile ? '40px' : '56px',
+              fontWeight: 600,
+              background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softTerracotta} 100%)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.2,
               marginBottom: '20px',
             }}
           >
-            <h1
-              style={{
-                fontSize: isMobile ? '40px' : '56px',
-                fontWeight: 600,
-                background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softTerracotta} 100%)`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                letterSpacing: '-0.02em',
-                lineHeight: 1.2,
-              }}
-            >
-              Practice Your Way
-            </h1>
-          </motion.div>
+            Practice Your Way
+          </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -190,484 +181,25 @@ function MarketingContent({
             }}
           >
             <strong>No need to quit your current job.</strong> Bloom can supplement your income or
-            become your full-time career—your choice. Work completely on your schedule: weekends,
-            evenings, early mornings, or business hours.
+            become your full-time career—your choice. Work completely on your schedule.
             <br />
             <strong>Bloom fits into your life, not the other way around.</strong>
           </motion.p>
         </motion.section>
 
-        {/* Value Props - 3 Cards */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          viewport={{ once: true }}
-          style={{ marginBottom: isMobile ? '80px' : '120px' }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-              gap: '24px',
-            }}
-          >
-            {[
-              {
-                title: 'You keep 80%',
-                icon: '💰',
-                accentColor: bloomStyles.colors.eucalyptusSage,
-                description:
-                  'Most practices take 40-50%. We take 20%.\nYou do the work. You get paid fairly.',
-              },
-              {
-                title: 'We use Halaxy',
-                icon: '🔧',
-                accentColor: bloomStyles.colors.softTerracotta,
-                description:
-                  'Practice management through Halaxy.\nBooking, billing, notes—all in one place.',
-              },
-              {
-                title: 'Build your own practice',
-                icon: '🌿',
-                accentColor: bloomStyles.colors.honeyAmber,
-                description:
-                  'Your schedule. Your clients. Your specialties.\nSee one client a week or thirty—you decide.\nSupplement your current income or go full-time.\nPick up appointments anytime: early mornings, weekends, evenings.\nCompletely flexible. You make it yours.',
-              },
-            ].map((card, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ y: -6, boxShadow: '0 12px 32px rgba(107, 142, 127, 0.15)' }}
-                style={{
-                  padding: isMobile ? '32px 24px' : '40px 32px',
-                  background: 'rgba(255, 255, 255, 0.8)',
-                  // Reduce backdrop blur on desktop for better performance
-                  backdropFilter: isMobile ? 'blur(10px)' : 'blur(5px)',
-                  borderRadius: '16px',
-                  border: `2px solid ${card.accentColor}30`,
-                  boxShadow: '0 4px 12px rgba(107, 142, 127, 0.08)',
-                  transition: 'all 0.3s ease',
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}
-              >
-                {/* Decorative corner accent */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    width: '80px',
-                    height: '80px',
-                    background: `radial-gradient(circle at top right, ${card.accentColor}15, transparent 70%)`,
-                    pointerEvents: 'none',
-                  }}
-                />
-
-                <div style={{ fontSize: '36px', marginBottom: '16px', lineHeight: 1 }}>
-                  {card.icon}
-                </div>
-
-                <h3
-                  style={{
-                    fontSize: '22px',
-                    fontWeight: 600,
-                    color: card.accentColor,
-                    marginBottom: '12px',
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {card.title}
-                </h3>
-                <p
-                  style={{
-                    fontSize: '15px',
-                    lineHeight: 1.8,
-                    color: '#4A4A4A',
-                    whiteSpace: 'pre-line',
-                  }}
-                >
-                  {card.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* What's Included Section */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          viewport={{ once: true }}
-          style={{ marginBottom: isMobile ? '80px' : '120px' }}
-        >
-          <h2
-            style={{
-              fontSize: isMobile ? '32px' : '40px',
-              fontWeight: 600,
-              color: '#3A3A3A',
-              textAlign: 'center',
-              marginBottom: isMobile ? '40px' : '60px',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            What's Included
-          </h2>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-              gap: isMobile ? '24px' : '32px',
-              maxWidth: '1000px',
-              margin: '0 auto',
-            }}
-          >
-            {[
-              {
-                heading: 'The Money',
-                flowerType: 'tier1', // Cherry blossom
-                accentColor: bloomStyles.colors.eucalyptusSage,
-                items: ['80% of what you bill goes to you', '$250 session = $200 to you'],
-              },
-              {
-                heading: 'The Platform',
-                flowerType: 'tier2', // Rose
-                accentColor: bloomStyles.colors.softFern,
-                items: [
-                  'Halaxy for practice management',
-                  'Video sessions, booking, billing',
-                  'Clinical notes and reminders',
-                ],
-              },
-              {
-                heading: 'Bloom',
-                flowerType: 'tier3', // Daisy
-                accentColor: bloomStyles.colors.softTerracotta,
-                items: [
-                  'Track your professional development',
-                  'Access supervision and training',
-                  'Medicare renewal reminders and insurance processing',
-                ],
-              },
-              {
-                heading: 'The Marketing',
-                flowerType: 'tier1', // Cherry blossom
-                accentColor: bloomStyles.colors.honeyAmber,
-                items: ['We bring you clients', 'Professional website presence'],
-              },
-              {
-                heading: 'The Freedom',
-                flowerType: 'tier2', // Rose
-                accentColor: bloomStyles.colors.clayTerracotta,
-                items: [
-                  'Work from anywhere in Australia',
-                  'Set your own hours and rates',
-                  'No quotas or billing targets',
-                  'No lock-in contracts',
-                ],
-              },
-            ].map((section, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ y: -4, boxShadow: '0 12px 32px rgba(107, 142, 127, 0.14)' }}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.75)',
-                  padding: isMobile ? '28px 24px' : '36px 32px',
-                  borderRadius: '20px',
-                  border: `1.5px solid ${section.accentColor}25`,
-                  boxShadow: '0 4px 16px rgba(107, 142, 127, 0.08)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative',
-                  overflow: 'visible', // Let flowers grow out of the box
-                  // Center the last card (Freedom) in the grid
-                  ...(i === 4 &&
-                    !isMobile && {
-                      gridColumn: '1 / -1',
-                      maxWidth: '480px',
-                      margin: '0 auto',
-                      width: '100%',
-                    }),
-                }}
-              >
-                {/* Subtle accent strip */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '3px',
-                    background: `linear-gradient(90deg, ${section.accentColor}, transparent)`,
-                    opacity: 0.4,
-                  }}
-                />
-
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '14px',
-                    marginBottom: '24px',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      position: 'relative',
-                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                    }}
-                  >
-                    {section.flowerType === 'tier1' && (
-                      <Tier1Flower
-                        isChecked={true}
-                        isMobile={isMobile}
-                        shouldReduceMotion={false}
-                      />
-                    )}
-                    {section.flowerType === 'tier2' && (
-                      <Tier2Flower
-                        isChecked={true}
-                        isMobile={isMobile}
-                        shouldReduceMotion={false}
-                      />
-                    )}
-                    {section.flowerType === 'tier3' && (
-                      <Tier3Flower
-                        isChecked={true}
-                        isMobile={isMobile}
-                        shouldReduceMotion={false}
-                      />
-                    )}
-                  </div>
-                  <h3
-                    style={{
-                      fontSize: '22px',
-                      fontWeight: 700,
-                      color: section.accentColor,
-                      margin: 0,
-                      letterSpacing: '-0.02em',
-                    }}
-                  >
-                    {section.heading}
-                  </h3>
-                </div>
-                <ul
-                  style={{
-                    listStyle: 'none',
-                    padding: 0,
-                    margin: 0,
-                  }}
-                >
-                  {section.items.map((item, j) => (
-                    <li
-                      key={j}
-                      style={{
-                        fontSize: '15px',
-                        lineHeight: 1.7,
-                        color: '#4A4A4A',
-                        paddingLeft: '24px',
-                        position: 'relative',
-                        marginBottom: j < section.items.length - 1 ? '12px' : 0,
-                      }}
-                    >
-                      <span
-                        style={{
-                          position: 'absolute',
-                          left: 0,
-                          color: section.accentColor,
-                          fontSize: '18px',
-                          fontWeight: 'bold',
-                          lineHeight: 1,
-                        }}
-                      >
-                        ·
-                      </span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* The Approach Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            style={{
-              marginTop: isMobile ? '48px' : '80px',
-              padding: isMobile ? '40px 28px' : '56px 48px',
-              background: `linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 247, 242, 0.9) 100%)`,
-              borderRadius: '24px',
-              textAlign: 'center',
-              maxWidth: '700px',
-              margin: `${isMobile ? '48px' : '80px'} auto 0`,
-              border: `2px solid ${bloomStyles.colors.eucalyptusSage}20`,
-              boxShadow: '0 8px 32px rgba(107, 142, 127, 0.12)',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Decorative elements */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '-50px',
-                right: '-50px',
-                width: '150px',
-                height: '150px',
-                borderRadius: '50%',
-                background: `radial-gradient(circle, ${bloomStyles.colors.softTerracotta}15, transparent 70%)`,
-                pointerEvents: 'none',
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '-40px',
-                left: '-40px',
-                width: '120px',
-                height: '120px',
-                borderRadius: '50%',
-                background: `radial-gradient(circle, ${bloomStyles.colors.eucalyptusSage}12, transparent 70%)`,
-                pointerEvents: 'none',
-              }}
-            />
-
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <h3
-                style={{
-                  fontSize: isMobile ? '26px' : '32px',
-                  fontWeight: 700,
-                  background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softTerracotta} 100%)`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  marginBottom: '24px',
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                How We Work
-              </h3>
-              <div
-                style={{
-                  fontSize: isMobile ? '17px' : '19px',
-                  lineHeight: 1.9,
-                  color: '#3A3A3A',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                }}
-              >
-                <p style={{ margin: 0, fontWeight: 500 }}>
-                  Fair compensation. Halaxy for operations. Marketing support.
-                </p>
-                <p style={{ margin: 0, fontWeight: 500 }}>Community-driven direction.</p>
-                <p
-                  style={{
-                    margin: '16px 0 0 0',
-                    color: bloomStyles.colors.eucalyptusSage,
-                    fontSize: isMobile ? '18px' : '20px',
-                    fontWeight: 600,
-                    fontStyle: 'italic',
-                  }}
-                >
-                  Let's build a sustainable practice and make good money doing it.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </motion.section>
-
-        {/* Qualification Section */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          viewport={{ once: true }}
-          style={{
-            marginBottom: isMobile ? '80px' : '120px',
-            textAlign: 'center',
-          }}
-        >
-          <motion.h2
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            style={{
-              fontSize: isMobile ? '32px' : '40px',
-              fontWeight: 700,
-              color: bloomStyles.colors.eucalyptusSage,
-              marginBottom: '16px',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Who We're Looking For
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            style={{
-              fontSize: '18px',
-              color: '#4A4A4A',
-              marginBottom: '40px',
-            }}
-          >
-            To apply, you need at least one of these:
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            style={{
-              maxWidth: '650px',
-              margin: '0 auto',
-              background: 'rgba(255, 255, 255, 0.8)',
-              padding: isMobile ? '36px 28px' : '48px',
-              borderRadius: '20px',
-              border: `1.5px solid ${bloomStyles.colors.eucalyptusSage}25`,
-              boxShadow: '0 6px 24px rgba(107, 142, 127, 0.1)',
-            }}
-          >
-            {[
-              'Registered Clinical Psychologist (AHPRA)',
-              '8+ years Registered Psychologist (AHPRA)',
-              'PhD in Psychology with AHPRA registration',
-            ].map((req, i) => (
-              <p
-                key={i}
-                style={{
-                  fontSize: '18px',
-                  lineHeight: 1.8,
-                  color: '#3A3A3A',
-                  marginBottom: i < 2 ? '16px' : 0,
-                }}
-              >
-                {req}
-              </p>
-            ))}
-          </motion.div>
-        </motion.section>
+        {/* Interactive Journey Infographic */}
+        <BloomJourneyInfographic isMobile={isMobile} onApplyClick={onApplyClick} />
 
         {/* Founder Section */}
         <motion.section
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           viewport={{ once: true }}
-          style={{ marginBottom: isMobile ? '80px' : '120px' }}
+          style={{
+            maxWidth: '850px',
+            margin: '0 auto',
+            padding: isMobile ? '40px 20px 80px' : '60px 40px 120px',
+          }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
@@ -675,11 +207,8 @@ function MarketingContent({
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
             style={{
-              maxWidth: '850px',
-              margin: '0 auto',
               padding: isMobile ? '44px 28px' : '64px 56px',
               background: `linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 247, 242, 0.85) 100%)`,
-              // Reduce backdrop blur on desktop for better performance
               backdropFilter: isMobile ? 'blur(10px)' : 'blur(5px)',
               borderRadius: '24px',
               border: `2px solid ${bloomStyles.colors.eucalyptusSage}20`,
@@ -759,64 +288,6 @@ function MarketingContent({
               </p>
             </div>
           </motion.div>
-        </motion.section>
-
-        {/* CTA Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={{ textAlign: 'center', paddingBottom: isMobile ? '60px' : '100px' }}
-        >
-          <h2
-            style={{
-              fontSize: isMobile ? '32px' : '40px',
-              fontWeight: 700,
-              background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softTerracotta} 100%)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              marginBottom: '20px',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Interested?
-          </h2>
-          <p
-            style={{
-              fontSize: isMobile ? '17px' : '19px',
-              color: '#4A4A4A',
-              marginBottom: '48px',
-              maxWidth: '600px',
-              margin: '0 auto 48px',
-              lineHeight: 1.7,
-            }}
-          >
-            If this approach makes sense to you,
-            <br />
-            let's see if you qualify.
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.05, boxShadow: '0 8px 28px rgba(107, 142, 127, 0.35)' }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onApplyClick}
-            style={{
-              padding: isMobile ? '18px 44px' : '20px 56px',
-              fontSize: isMobile ? '17px' : '19px',
-              fontWeight: 700,
-              color: '#FEFDFB',
-              background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softFern} 100%)`,
-              border: 'none',
-              borderRadius: '16px',
-              cursor: 'pointer',
-              boxShadow: '0 6px 20px rgba(107, 142, 127, 0.3)',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            Begin Application
-          </motion.button>
         </motion.section>
       </div>
     </div>

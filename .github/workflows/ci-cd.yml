@@ -1217,7 +1217,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check Azure Credentials
+        id: check-creds
+        run: |
+          if [ -n "${{ secrets.AZURE_CLIENT_ID }}" ] && [ -n "${{ secrets.AZURE_TENANT_ID }}" ] && [ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+            echo "has-azure-creds=true" >> $GITHUB_OUTPUT
+            echo "✅ Azure credentials are configured"
+          else
+            echo "has-azure-creds=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Azure credentials not configured - skipping deployment"
+            echo "📝 To enable deployment, add these secrets to your repository:"
+            echo "   - AZURE_CLIENT_ID"
+            echo "   - AZURE_TENANT_ID"
+            echo "   - AZURE_SUBSCRIPTION_ID"
+          fi
+
       - name: Azure Login
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -1225,6 +1241,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy Infrastructure (if needed)
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
         id: infra
         run: |
           RG_NAME="rg-lpa-${{ needs.determine-environment.outputs.environment }}"
@@ -1246,6 +1263,7 @@ jobs:
           fi
 
       - name: Update Container App
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
         run: |
           ENV=${{ needs.determine-environment.outputs.environment }}
           APP_NAME="lpa-halaxy-sync-${ENV}"
@@ -1263,6 +1281,7 @@ jobs:
             || echo "Container app may not exist yet - will be created by Bicep"
 
       - name: Verify Deployment
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
         run: |
           ENV=${{ needs.determine-environment.outputs.environment }}
           APP_NAME="lpa-halaxy-sync-${ENV}"
@@ -1281,9 +1300,17 @@ jobs:
 
       - name: Deployment Summary
         run: |
-          echo "✅ HALAXY SYNC WORKER DEPLOYED"
-          echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
-          echo "🐳 Container App: lpa-halaxy-sync-${{ needs.determine-environment.outputs.environment }}"
+          if [ "${{ steps.check-creds.outputs.has-azure-creds }}" == "true" ]; then
+            echo "✅ HALAXY SYNC WORKER DEPLOYED"
+            echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+            echo "🐳 Container App: lpa-halaxy-sync-${{ needs.determine-environment.outputs.environment }}"
+          else
+            echo "⚠️ DEPLOYMENT SKIPPED - Azure credentials not configured"
+            echo "📝 Build was successful, but deployment requires:"
+            echo "   - AZURE_CLIENT_ID"
+            echo "   - AZURE_TENANT_ID"
+            echo "   - AZURE_SUBSCRIPTION_ID"
+          fi
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 5: DEPLOYMENT SUMMARY

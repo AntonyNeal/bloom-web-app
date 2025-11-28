@@ -56,7 +56,7 @@ export class HalaxyClient {
       throw new Error(`Token refresh failed: ${response.status} - ${error}`);
     }
 
-    const data: TokenResponse = await response.json();
+    const data = await response.json() as TokenResponse;
     this.accessToken = data.access_token;
     this.tokenExpiry = new Date(Date.now() + data.expires_in * 1000);
     

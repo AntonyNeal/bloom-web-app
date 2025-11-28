@@ -101,8 +101,12 @@ export async function flush(): Promise<void> {
 
   return new Promise((resolve) => {
     client!.flush({
-      callback: () => {
-        console.log('[Telemetry] Flushed telemetry');
+      callback: (error?: string) => {
+        if (error) {
+          console.error('[Telemetry] Flush error:', error);
+        } else {
+          console.log('[Telemetry] Flushed telemetry');
+        }
         resolve();
       },
     });

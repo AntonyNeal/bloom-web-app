@@ -10,7 +10,7 @@
  * - halaxy-realtime: Real-time webhook notifications from Halaxy
  */
 
-import { ServiceBusClient, ServiceBusReceiver, ServiceBusMessage, ProcessErrorArgs } from '@azure/service-bus';
+import { ServiceBusClient, ServiceBusReceiver, ServiceBusReceivedMessage, ProcessErrorArgs } from '@azure/service-bus';
 import { config } from '../config';
 
 export interface SyncMessage {
@@ -73,7 +73,7 @@ class AzureServiceBusConsumer implements ServiceBusConsumer {
       
       // Subscribe to sync queue
       this.syncReceiver.subscribe({
-        processMessage: async (message: ServiceBusMessage) => {
+        processMessage: async (message: ServiceBusReceivedMessage) => {
           await this.processMessage(message, 'sync');
         },
         processError: async (args: ProcessErrorArgs) => {
@@ -83,7 +83,7 @@ class AzureServiceBusConsumer implements ServiceBusConsumer {
       
       // Subscribe to realtime queue with higher priority
       this.realtimeReceiver.subscribe({
-        processMessage: async (message: ServiceBusMessage) => {
+        processMessage: async (message: ServiceBusReceivedMessage) => {
           await this.processMessage(message, 'realtime');
         },
         processError: async (args: ProcessErrorArgs) => {
@@ -100,7 +100,7 @@ class AzureServiceBusConsumer implements ServiceBusConsumer {
     }
   }
   
-  private async processMessage(message: ServiceBusMessage, queueType: 'sync' | 'realtime'): Promise<void> {
+  private async processMessage(message: ServiceBusReceivedMessage, queueType: 'sync' | 'realtime'): Promise<void> {
     const startTime = Date.now();
     const correlationId = message.correlationId || message.messageId || 'unknown';
     

@@ -17,6 +17,8 @@ export interface SyncResult {
   recordsDeleted: number;
   errors: SyncError[];
   durationMs: number;
+  appointmentsSynced?: number;
+  patientsSynced?: number;
 }
 
 export interface SyncError {

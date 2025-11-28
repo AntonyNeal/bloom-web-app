@@ -30,6 +30,7 @@ declare global {
 
 import { getEnvVar, getEnvBool } from './utils/env';
 import { injectGoogleAdsTag } from './utils/googleAds';
+import { conversionManager } from './tracking';
 // Lazy load all pages for better performance
 const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./pages/About'));
@@ -152,6 +153,13 @@ function App() {
     };
 
     initAnalyticsWhenIdle();
+
+    // Initialize conversion tracking system (captures GCLID/UTM immediately)
+    try {
+      conversionManager.initialize();
+    } catch (error) {
+      log.error('Conversion tracking initialization failed', 'App', error);
+    }
 
     // Initialize intent scorer immediately (lightweight)
     (async () => {

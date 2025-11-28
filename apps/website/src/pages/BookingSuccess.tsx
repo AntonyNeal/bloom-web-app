@@ -5,6 +5,7 @@ import {
   fireAllConversionEvents,
   ConversionResult,
 } from '../utils/conversionTracking';
+import { trackBookingComplete, conversionManager } from '../tracking';
 
 /**
  * Booking Success Page
@@ -37,6 +38,20 @@ const BookingSuccess = () => {
         const results = await fireAllConversionEvents();
         setTrackingResults(results);
         console.log('[BookingSuccess] ✅ All tracking complete:', results);
+
+        // Also fire new unified tracking system for booking completion
+        // This provides normalized funnel tracking alongside legacy conversions
+        trackBookingComplete({
+          bookingId: `halaxy-redirect-${Date.now()}`,
+          serviceType: 'initial_consultation',
+          practitionerName: 'Unknown', // Halaxy redirect doesn't pass this
+          appointmentDate: 'Unknown',
+          value: 220, // Standard consultation fee
+        });
+        conversionManager.fireGoogleAdsConversion('booking_completed', 220);
+        console.log(
+          '[BookingSuccess] ✅ Unified tracking system conversion fired'
+        );
       } catch (error) {
         console.error('[BookingSuccess] ❌ Error during tracking:', error);
       } finally {

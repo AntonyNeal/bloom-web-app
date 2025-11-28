@@ -1,7 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { halaxyClient, HalaxyClient } from '../utils/halaxyClient';
 import { TimeSlotCalendar } from './TimeSlotCalendar';
 import { StripePayment } from './StripePayment';
+import {
+  trackBookingStart,
+  trackDetailsComplete,
+  trackDatetimeSelected,
+  trackPaymentInitiated,
+  trackBookingConfirmed,
+  trackBookingComplete,
+  trackBookingAbandonment,
+} from '../tracking';
 
 interface BookingFormProps {
   onSuccess?: (appointmentId: string) => void;
@@ -30,6 +39,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   >('details');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const hasTrackedStart = useRef(false);
 
   // Form data
   const [firstName, setFirstName] = useState('');
@@ -71,7 +81,22 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     } catch (error) {
       console.error('[BookingForm] Error loading cached details:', error);
     }
+
+    // Track booking flow start
+    if (!hasTrackedStart.current) {
+      trackBookingStart({ entry_point: 'booking_modal' });
+      hasTrackedStart.current = true;
+    }
   }, []);
+
+  // Track abandonment on unmount if not completed
+  useEffect(() => {
+    return () => {
+      if (step !== 'success' && hasTrackedStart.current) {
+        trackBookingAbandonment({ abandon_step: step });
+      }
+    };
+  }, [step]);
 
   // Save user details to localStorage whenever they change
   useEffect(() => {
@@ -262,6 +287,16 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
   const handleDetailsNext = () => {
     if (validateDetailsStep()) {
+      // Track details completion
+      trackDetailsComplete({
+        firstName,
+        lastName,
+        email,
+        phone,
+        appointmentType,
+        is_returning_user: !!localStorage.getItem('lpa_user_details'),
+      });
+      
       setStep('datetime');
       // Scroll modal to top when changing steps
       window.dispatchEvent(new CustomEvent('bookingStepChanged'));
@@ -270,6 +305,20 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
   const handleDateTimeNext = () => {
     if (validateDateTimeStep()) {
+      // Track datetime selection
+      trackDatetimeSelected({
+        selectedDate: appointmentDate,
+        selectedTime: appointmentTime,
+      });
+      
+      // Track payment initiation
+      const bookingValue = appointmentType === 'couples-session' ? 300 : 
+                          appointmentType === 'ndis-psychology-session' ? 232.99 : 250;
+      trackPaymentInitiated({
+        payment_method: 'card',
+        booking_value: bookingValue,
+      });
+      
       setStep('payment');
       // Scroll modal to top when changing steps
       window.dispatchEvent(new CustomEvent('bookingStepChanged'));
@@ -329,6 +378,17 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       if (result.success && result.appointmentId) {
         setAppointmentId(result.appointmentId);
+        
+        // Track booking completion (PRIMARY CONVERSION)
+        const bookingValue = appointmentType === 'couples-session' ? 300 : 
+                            appointmentType === 'ndis-psychology-session' ? 232.99 : 250;
+        trackBookingComplete({
+          bookingId: result.appointmentId,
+          booking_value: bookingValue,
+          transaction_id: `lpa_${result.appointmentId}_${Date.now()}`,
+          is_first_booking: isFirstSession,
+        });
+        
         setStep('success');
         onSuccess?.(result.appointmentId);
       } else {
@@ -1066,6 +1126,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             customerName={`${firstName} ${lastName}`}
             onSuccess={(paymentIntentId) => {
               console.log('[BookingForm] Payment successful:', paymentIntentId);
+              
+              // Track payment completion and booking confirmation
+              trackBookingConfirmed({
+                booking_value: appointmentType === 'couples-session' ? 300 : 
+                               appointmentType === 'ndis-psychology-session' ? 232.99 : 250,
+                appointment_type: appointmentType,
+              });
+              
               setStep('confirm');
               window.dispatchEvent(new CustomEvent('bookingStepChanged'));
             }}

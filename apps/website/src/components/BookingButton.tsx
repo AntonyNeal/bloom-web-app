@@ -1,4 +1,5 @@
 import React from 'react';
+import { conversionManager } from '../tracking';
 
 // Extend window interface for halaxyBookingTracker
 declare global {
@@ -54,6 +55,9 @@ export const BookingButton: React.FC<BookingButtonProps> = ({
   };
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    // Track booking intent in unified tracking system
+    conversionManager.trackBookingIntent('booking_button');
+
     // Call custom onClick if provided
     if (onClick) {
       onClick(event);
@@ -96,6 +100,9 @@ export const BookingLink: React.FC<BookingLinkProps> = ({
   onClick,
 }) => {
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    // Track booking intent in unified tracking system
+    conversionManager.trackBookingIntent('booking_link');
+
     // Call custom onClick if provided
     if (onClick) {
       onClick(event);

@@ -28,6 +28,19 @@ export interface WorkerConfig {
   
   // Telemetry
   appInsightsConnectionString: string;
+  
+  // Redis Cache
+  redisConnectionString: string;
+  redisCacheTtlSeconds: number;
+  
+  // SignalR
+  signalRConnectionString: string;
+  signalRHubName: string;
+  
+  // Service Bus
+  serviceBusConnectionString: string;
+  serviceBusSyncQueueName: string;
+  serviceBusRealtimeQueueName: string;
 }
 
 function getEnvOrDefault(key: string, defaultValue: string): string {
@@ -60,6 +73,19 @@ export const config: WorkerConfig = {
   
   // Telemetry
   appInsightsConnectionString: process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '',
+  
+  // Redis Cache
+  redisConnectionString: process.env.REDIS_CONNECTION_STRING || '',
+  redisCacheTtlSeconds: parseInt(getEnvOrDefault('REDIS_CACHE_TTL_SECONDS', '300'), 10), // 5 minutes
+  
+  // SignalR
+  signalRConnectionString: process.env.SIGNALR_CONNECTION_STRING || '',
+  signalRHubName: getEnvOrDefault('SIGNALR_HUB_NAME', 'bloom'),
+  
+  // Service Bus
+  serviceBusConnectionString: process.env.SERVICEBUS_CONNECTION_STRING || '',
+  serviceBusSyncQueueName: getEnvOrDefault('SERVICEBUS_SYNC_QUEUE', 'halaxy-sync'),
+  serviceBusRealtimeQueueName: getEnvOrDefault('SERVICEBUS_REALTIME_QUEUE', 'halaxy-realtime'),
 };
 
 export function validateConfig(): void {
@@ -79,6 +105,25 @@ export function validateConfig(): void {
   
   if (!config.halaxyRefreshToken) {
     errors.push('HALAXY_REFRESH_TOKEN is required');
+  }
+  
+  // Real-time services (warn if missing but don't fail - graceful degradation)
+  const warnings: string[] = [];
+  
+  if (!config.redisConnectionString) {
+    warnings.push('REDIS_CONNECTION_STRING not set - caching disabled');
+  }
+  
+  if (!config.signalRConnectionString) {
+    warnings.push('SIGNALR_CONNECTION_STRING not set - real-time push disabled');
+  }
+  
+  if (!config.serviceBusConnectionString) {
+    warnings.push('SERVICEBUS_CONNECTION_STRING not set - queue-based sync disabled');
+  }
+  
+  if (warnings.length > 0) {
+    console.warn(`Configuration warnings:\n  - ${warnings.join('\n  - ')}`);
   }
   
   if (errors.length > 0) {

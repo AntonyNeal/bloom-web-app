@@ -6,6 +6,9 @@
  * 
  * Features:
  * - Scheduled full sync every 15 minutes
+ * - Real-time updates via SignalR
+ * - Redis cache invalidation for instant UI updates
+ * - Service Bus queue processing for ordered sync
  * - No timeout limitations (unlike Azure Functions)
  * - Graceful shutdown handling
  * - Health check endpoint
@@ -18,6 +21,9 @@ import { HalaxySyncService } from './services/sync-service';
 import { DatabaseService } from './services/database';
 import { setupTelemetry, trackEvent, trackMetric, trackException, flush } from './telemetry';
 import { config, validateConfig } from './config';
+import { getCacheService, closeCacheService, CacheKeys, CacheService } from './services/redis-cache';
+import { getBroadcastService, closeBroadcastService, BroadcastEvents, BroadcastService, SyncCompletedPayload, SyncFailedPayload } from './services/signalr-broadcast';
+import { getServiceBusConsumer, closeServiceBusConsumer, ServiceBusConsumer, SyncMessage } from './services/service-bus-consumer';
 
 // ============================================================================
 // Global State
@@ -29,6 +35,11 @@ let lastSyncTime: Date | null = null;
 let lastSyncStatus: 'success' | 'failure' | 'never' = 'never';
 let syncCount = 0;
 let errorCount = 0;
+
+// Services (initialized in main)
+let cacheService: CacheService | null = null;
+let broadcastService: BroadcastService | null = null;
+let serviceBusConsumer: ServiceBusConsumer | null = null;
 
 // ============================================================================
 // Health Check Server
@@ -47,6 +58,11 @@ function startHealthServer(): http.Server {
         errorCount,
         isSyncing,
         environment: config.environment,
+        services: {
+          redis: cacheService?.isConnected() || false,
+          signalR: broadcastService?.isConnected() || false,
+          serviceBus: serviceBusConsumer?.isConnected() || false,
+        },
       };
 
       res.writeHead(isShuttingDown ? 503 : 200, { 'Content-Type': 'application/json' });
@@ -108,11 +124,21 @@ async function runFullSync(): Promise<void> {
 
   isSyncing = true;
   const startTime = Date.now();
+  const syncId = crypto.randomUUID();
 
   console.log('[Worker] ═══════════════════════════════════════════════════════════');
   console.log('[Worker] Starting scheduled full sync');
+  console.log(`[Worker] Sync ID: ${syncId}`);
   console.log(`[Worker] Time: ${new Date().toISOString()}`);
   console.log('[Worker] ═══════════════════════════════════════════════════════════');
+
+  // Broadcast sync started
+  if (broadcastService) {
+    await broadcastService.broadcast(BroadcastEvents.SYNC_STARTED, {
+      syncId,
+      timestamp: new Date().toISOString(),
+    });
+  }
 
   try {
     const db = DatabaseService.getInstance();
@@ -124,6 +150,9 @@ async function runFullSync(): Promise<void> {
 
     let totalRecords = 0;
     let totalErrors = 0;
+    let appointmentsSynced = 0;
+    let patientsSynced = 0;
+    let practitionersSynced = practitioners.length;
 
     for (const practitioner of practitioners) {
       if (isShuttingDown) {
@@ -138,6 +167,8 @@ async function runFullSync(): Promise<void> {
         
         totalRecords += result.recordsUpdated + result.recordsCreated;
         totalErrors += result.errors.length;
+        appointmentsSynced += result.appointmentsSynced || 0;
+        patientsSynced += result.patientsSynced || 0;
 
         console.log(`[Worker]   ✓ Synced: ${result.recordsUpdated} updated, ${result.recordsCreated} created`);
         
@@ -165,6 +196,41 @@ async function runFullSync(): Promise<void> {
       errorCount++;
     }
 
+    // Invalidate Redis cache - force clients to fetch fresh data
+    if (cacheService && cacheService.isConnected()) {
+      console.log('[Worker] Invalidating Redis cache...');
+      await Promise.all([
+        cacheService.invalidatePattern(`${CacheKeys.DASHBOARD_METRICS}*`),
+        cacheService.invalidatePattern(`${CacheKeys.APPOINTMENTS}*`),
+        cacheService.invalidatePattern(`${CacheKeys.PATIENTS}*`),
+        cacheService.invalidatePattern(`${CacheKeys.PRACTITIONERS}*`),
+      ]);
+      // Update sync state in cache
+      await cacheService.set(CacheKeys.SYNC_LAST_RUN, {
+        syncId,
+        timestamp: new Date().toISOString(),
+        duration,
+        recordsProcessed: totalRecords,
+        status: lastSyncStatus,
+      });
+      console.log('[Worker] ✓ Cache invalidated');
+    }
+
+    // Broadcast sync completed - clients will refresh their data
+    if (broadcastService) {
+      const payload: SyncCompletedPayload = {
+        syncId,
+        timestamp: new Date().toISOString(),
+        appointmentsSynced,
+        patientsSynced,
+        practitionersSynced,
+        durationMs: duration,
+      };
+      await broadcastService.broadcast(BroadcastEvents.SYNC_COMPLETED, payload);
+      await broadcastService.broadcast(BroadcastEvents.DASHBOARD_REFRESH, { syncId });
+      console.log('[Worker] ✓ Real-time update broadcast');
+    }
+
     console.log('[Worker] ───────────────────────────────────────────────────────────');
     console.log(`[Worker] Sync completed in ${duration}ms`);
     console.log(`[Worker] Total records processed: ${totalRecords}`);
@@ -186,6 +252,17 @@ async function runFullSync(): Promise<void> {
     lastSyncStatus = 'failure';
     console.error('[Worker] ✗ Full sync failed:', error);
     trackException(error as Error, { operation: 'full_sync' });
+    
+    // Broadcast sync failure
+    if (broadcastService) {
+      const payload: SyncFailedPayload = {
+        syncId,
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : 'Unknown error',
+        willRetry: true,
+      };
+      await broadcastService.broadcast(BroadcastEvents.SYNC_FAILED, payload);
+    }
   } finally {
     isSyncing = false;
   }
@@ -204,6 +281,12 @@ function setupGracefulShutdown(healthServer: http.Server, cronJob: cron.Schedule
     cronJob.stop();
     console.log('[Worker] Cron job stopped');
 
+    // Stop Service Bus consumer
+    if (serviceBusConsumer) {
+      await closeServiceBusConsumer();
+      console.log('[Worker] Service Bus consumer stopped');
+    }
+
     // Wait for current sync to complete (with timeout)
     const maxWaitTime = 60000; // 60 seconds
     const startWait = Date.now();
@@ -219,6 +302,18 @@ function setupGracefulShutdown(healthServer: http.Server, cronJob: cron.Schedule
 
     // Flush telemetry
     await flush();
+
+    // Close SignalR connection
+    if (broadcastService) {
+      await closeBroadcastService();
+      console.log('[Worker] SignalR connection closed');
+    }
+
+    // Close Redis connection
+    if (cacheService) {
+      await closeCacheService();
+      console.log('[Worker] Redis connection closed');
+    }
 
     // Close health server
     healthServer.close(() => {
@@ -272,6 +367,55 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Initialize Redis cache service (graceful degradation if unavailable)
+  try {
+    cacheService = await getCacheService();
+    if (cacheService.isConnected()) {
+      console.log('[Worker] ✓ Redis cache connected');
+    } else {
+      console.log('[Worker] ⚠ Redis cache not available - caching disabled');
+    }
+  } catch (error) {
+    console.warn('[Worker] ⚠ Redis cache initialization failed:', error);
+  }
+
+  // Initialize SignalR broadcast service (graceful degradation if unavailable)
+  try {
+    broadcastService = await getBroadcastService();
+    if (broadcastService.isConnected()) {
+      console.log('[Worker] ✓ SignalR broadcast connected');
+    } else {
+      console.log('[Worker] ⚠ SignalR not available - real-time push disabled');
+    }
+  } catch (error) {
+    console.warn('[Worker] ⚠ SignalR initialization failed:', error);
+  }
+
+  // Initialize Service Bus consumer (graceful degradation if unavailable)
+  try {
+    serviceBusConsumer = await getServiceBusConsumer();
+    if (serviceBusConsumer.isConnected()) {
+      console.log('[Worker] ✓ Service Bus consumer connected');
+    } else {
+      // Start processing queue messages
+      await serviceBusConsumer.startProcessing(async (message: SyncMessage) => {
+        console.log(`[Worker] Received queue message: ${message.type} (${message.correlationId})`);
+        
+        if (message.type === 'full-sync') {
+          await runFullSync();
+        } else if (message.type === 'webhook' && message.payload) {
+          // Handle webhook-triggered incremental sync
+          console.log(`[Worker] Webhook: ${message.payload.action} ${message.payload.entityType} ${message.payload.entityId}`);
+          // TODO: Implement incremental sync for specific entities
+          await runFullSync(); // For now, run full sync
+        }
+      });
+      console.log('[Worker] ⚠ Service Bus not available - queue processing disabled');
+    }
+  } catch (error) {
+    console.warn('[Worker] ⚠ Service Bus initialization failed:', error);
+  }
+
   // Start health check server
   const healthServer = startHealthServer();
   console.log('[Worker] ✓ Health server started');
@@ -304,6 +448,9 @@ async function main(): Promise<void> {
   trackEvent('halaxy_worker_started', {
     environment: config.environment,
     schedule: config.syncSchedule,
+    redisConnected: cacheService?.isConnected() || false,
+    signalRConnected: broadcastService?.isConnected() || false,
+    serviceBusConnected: serviceBusConsumer?.isConnected() || false,
   });
 }
 

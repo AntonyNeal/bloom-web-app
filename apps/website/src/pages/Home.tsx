@@ -5,6 +5,7 @@ import DebugPanel from '../components/DebugPanel';
 import SEO from '../components/SEO';
 import SmartHeader from '../components/SmartHeader';
 import ServicesSection from '../components/sections/ServicesSection';
+import HorizonBackground from '../components/HorizonBackground';
 import { getEnvBool, getEnvVar, isAzureStaticWebApps } from '../utils/env';
 
 declare global {
@@ -133,7 +134,10 @@ const Home = () => {
           content="Professional psychologist in Newcastle providing anxiety therapy, depression counselling, couples therapy, and NDIS psychology services. Secure telehealth sessions across the Greater Hunter region."
         />
       </Helmet>
-      <div className="min-h-screen">
+      <div className="min-h-screen relative">
+        {/* Horizon background - earth and sky for the tree to grow from */}
+        <HorizonBackground earthHeight="20%" animated={true} />
+
         {showBanner && (
           <div
             style={{

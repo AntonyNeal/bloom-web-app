@@ -47,7 +47,9 @@ export interface ApplicationDocument {
   UploadedAt: string;
 }
 
-const BASE_URL = import.meta.env.VITE_AZURE_FUNCTIONS_URL;
+// Use VITE_AZURE_FUNCTIONS_URL for root URL (e.g., https://bloom-functions-dev.azurewebsites.net)
+// Endpoints already include /api prefix, so no need for VITE_API_URL here
+const BASE_URL = import.meta.env.VITE_AZURE_FUNCTIONS_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || '';
 
 async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${BASE_URL}${endpoint}`;

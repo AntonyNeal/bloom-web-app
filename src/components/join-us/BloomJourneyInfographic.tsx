@@ -55,17 +55,18 @@ const journeyStages: JourneyStage[] = [
       {
         title: 'Who We\'re Looking For',
         items: [
-          'Clinical Psychologists (AHPRA)',
-          '8+ years Registered Psychologist',
-          'PhD in Psychology with registration',
+          'Experienced, well-qualified clinicians',
+          'Honest practitioners who value integrity',
+          'Comfortable with simple online tools',
+          'Community-minded—culture matters here',
         ],
       },
       {
-        title: 'Application Process',
+        title: 'Qualifications',
         items: [
-          'Quick 3-question qualification check',
-          'Share your background & interests',
-          'Upload CV and AHPRA certificate',
+          'Clinical Psychologists (AHPRA registered)',
+          'Registered Psychologist with 8+ years experience',
+          'PhD in Psychology with registration',
         ],
       },
     ],
@@ -91,10 +92,10 @@ const journeyStages: JourneyStage[] = [
       {
         title: 'Bloom Integration',
         items: [
+          'Bring your existing clients with you',
           'Professional profile on our site',
           '@life-psychology.com.au email',
-          'Added to our practitioner network',
-          'Training on Bloom systems',
+          'Fast, personal tech support when you need it',
         ],
       },
     ],
@@ -102,28 +103,28 @@ const journeyStages: JourneyStage[] = [
   {
     id: 'practice',
     title: 'See Clients',
-    subtitle: 'Your schedule, your way',
+    subtitle: 'Telehealth through Bloom',
     icon: '🌸',
     color: bloomColors.softTerracotta,
     flowerType: 'tier3',
     timeframe: 'Ongoing',
     details: [
       {
-        title: 'Daily Operations',
+        title: 'Telehealth Practice',
         items: [
-          'View appointments in Bloom',
-          'Run telehealth sessions',
-          'Clinical notes & documentation',
-          'Automated billing & invoicing',
+          'All sessions through Bloom are via telehealth',
+          'Keep seeing face-to-face clients elsewhere',
+          'Bloom fits around your existing practice',
+          'Work from home or anywhere with internet',
         ],
       },
       {
         title: 'Bloom Dashboard',
         items: [
-          'Real-time session overview',
-          'Client relationship tracking',
-          'Medicare plan monitoring',
-          'Earnings & session stats',
+          'Smart notes & session prep tools',
+          'Secure video consultations',
+          'Insights & connections to reach your goals',
+          'Built for community collaboration',
         ],
       },
     ],
@@ -142,16 +143,16 @@ const journeyStages: JourneyStage[] = [
         items: [
           '$250 session = $200 to you',
           'No billing targets or quotas',
-          'Monthly invoicing made easy',
-          'Super and tax handled simply',
+          'Paid monthly to your account',
+          'No tax or super withholding',
         ],
       },
       {
         title: 'Transparent Fees',
         items: [
-          '20% covers platform & marketing',
+          'Simple 80/20 split - you keep 80%',
           'No hidden costs or lock-ins',
-          'Leave anytime - your clients stay yours',
+          'No long-term contracts required',
         ],
       },
     ],
@@ -166,11 +167,11 @@ const journeyStages: JourneyStage[] = [
     timeframe: 'Ongoing',
     details: [
       {
-        title: 'Automated Online Marketing',
+        title: 'We Bring You New Clients',
         items: [
           'Google Ads campaigns managed for you',
-          'SEO-optimized practitioner profiles',
-          'Clients find you through our platform',
+          'Search-optimized practitioner profiles',
+          'New clients matched to your availability',
           'See exactly where your clients come from',
         ],
       },
@@ -188,7 +189,7 @@ const journeyStages: JourneyStage[] = [
   {
     id: 'financial',
     title: 'Set Your Rate',
-    subtitle: 'You choose what you charge',
+    subtitle: 'Plan your financial year',
     icon: '📊',
     color: bloomColors.softTerracotta,
     flowerType: 'tier1',
@@ -204,12 +205,12 @@ const journeyStages: JourneyStage[] = [
         ],
       },
       {
-        title: 'Flexible Rate Changes',
+        title: 'Annual Goal Setting',
         items: [
-          'Select a higher or lower rate anytime',
-          'New rate applies from next calendar year',
-          'Automatic transition when MHCPs renew',
-          'Plan your income with confidence',
+          'Set your financial goals each year',
+          'No upper limit on your earnings',
+          'Bloom provides advice to help you get there',
+          'Support and guidance throughout the year',
         ],
       },
     ],
@@ -229,7 +230,7 @@ const journeyStages: JourneyStage[] = [
           'Supervision access',
           'Peer consultation groups',
           'Training workshops',
-          'CPD tracking & reminders',
+          'Professional development tracking',
         ],
       },
       {
@@ -237,8 +238,44 @@ const journeyStages: JourneyStage[] = [
         items: [
           'Connected practitioner network',
           'Shape Bloom\'s direction',
-          'Refer colleagues (earn rewards)',
-          'Support when you need it',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'security',
+    title: 'Security & Privacy',
+    subtitle: 'Your trust is our priority',
+    icon: '🔒',
+    color: bloomColors.eucalyptusSage,
+    flowerType: 'tier2',
+    timeframe: 'Always',
+    details: [
+      {
+        title: 'Regulatory Compliance',
+        items: [
+          'Fully compliant with federal and state telehealth legislation',
+          'Meets all medical record storage requirements',
+          'Adheres to guidelines from all relevant peak bodies',
+          'Regular compliance audits and updates',
+        ],
+      },
+      {
+        title: 'Data Protection',
+        items: [
+          'Microsoft Azure enterprise-grade security',
+          'Bank-level encryption for all data',
+          'Australian data sovereignty - your data stays here',
+          'Industry-leading security best practices',
+        ],
+      },
+      {
+        title: 'Our Commitment',
+        items: [
+          'We take clinician and client privacy seriously',
+          'Innovative technology with uncompromising security',
+          'Transparent about how we protect your information',
+          'Dedicated to maintaining the highest standards',
         ],
       },
     ],
@@ -248,7 +285,7 @@ const journeyStages: JourneyStage[] = [
 // Feature highlights for the center
 const featureHighlights = [
   { icon: '📱', label: 'Telehealth', description: 'See clients from anywhere' },
-  { icon: '📊', label: 'Dashboard', description: 'Real-time practice insights' },
+  { icon: '📊', label: 'Dashboard', description: 'Your practice at a glance' },
   { icon: '📣', label: 'Marketing', description: 'We fill your calendar' },
   { icon: '💰', label: 'Your Rate', description: '$250-$340 per session' },
   { icon: '⏰', label: 'Flexible Hours', description: 'Mornings, evenings, weekends' },
@@ -633,8 +670,8 @@ export function BloomJourneyInfographic({ isMobile, onApplyClick }: Props) {
           {
             icon: '💰',
             value: '80%',
-            label: 'You Keep',
-            sublabel: 'of what you bill',
+            label: 'Yours',
+            sublabel: 'simple fee structure',
             color: bloomColors.eucalyptusSage,
           },
           {

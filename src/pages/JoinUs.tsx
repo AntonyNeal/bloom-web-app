@@ -150,6 +150,23 @@ function MarketingContent({
             margin: '0 auto',
           }}
         >
+          {/* Organisation identifier */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            style={{
+              fontSize: isMobile ? '14px' : '16px',
+              fontWeight: 600,
+              color: bloomStyles.colors.softTerracotta,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              marginBottom: '12px',
+            }}
+          >
+            Life Psychology Australia
+          </motion.p>
+
           <motion.h1
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -163,27 +180,44 @@ function MarketingContent({
               backgroundClip: 'text',
               letterSpacing: '-0.02em',
               lineHeight: 1.2,
-              marginBottom: '20px',
+              marginBottom: '16px',
             }}
           >
             Practice Your Way
           </motion.h1>
+          
+          {/* Prominent Tagline */}
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            style={{
+              fontSize: isMobile ? '24px' : '32px',
+              fontWeight: 700,
+              color: bloomStyles.colors.eucalyptusSage,
+              letterSpacing: '-0.01em',
+              lineHeight: 1.3,
+              marginBottom: '24px',
+            }}
+          >
+            Bloom fits into your life, not the other way around.
+          </motion.p>
+
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
             style={{
-              fontSize: isMobile ? '18px' : '22px',
-              lineHeight: 1.6,
+              fontSize: isMobile ? '17px' : '20px',
+              lineHeight: 1.7,
               color: '#4A4A4A',
-              maxWidth: '700px',
+              maxWidth: '680px',
               margin: '0 auto',
             }}
           >
-            <strong>No need to quit your current job.</strong> Bloom can supplement your income or
-            become your full-time career—your choice. Work completely on your schedule.
-            <br />
-            <strong>Bloom fits into your life, not the other way around.</strong>
+            Life Psychology Australia partners with experienced, qualified clinicians—and 
+            Bloom is the platform that supports you. Whether you're building a full practice, 
+            fitting sessions around family, or staying active in retirement—you belong here.
           </motion.p>
         </motion.section>
 

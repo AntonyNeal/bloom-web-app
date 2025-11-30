@@ -157,6 +157,64 @@ const journeyStages: JourneyStage[] = [
     ],
   },
   {
+    id: 'marketing',
+    title: 'Marketing',
+    subtitle: 'We fill your calendar',
+    icon: '📣',
+    color: bloomColors.softFern,
+    flowerType: 'tier3',
+    timeframe: 'Ongoing',
+    details: [
+      {
+        title: 'Automated Online Marketing',
+        items: [
+          'Google Ads campaigns managed for you',
+          'SEO-optimized practitioner profiles',
+          'Clients find you through our platform',
+          'See exactly where your clients come from',
+        ],
+      },
+      {
+        title: 'Build Your Brand',
+        items: [
+          'Social media tools & templates',
+          'Maintain your own professional presence',
+          'Client acquisition insights & analytics',
+          'Referral tracking dashboard',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'financial',
+    title: 'Set Your Rate',
+    subtitle: 'You choose what you charge',
+    icon: '📊',
+    color: bloomColors.softTerracotta,
+    flowerType: 'tier1',
+    timeframe: 'Yearly',
+    details: [
+      {
+        title: 'Session Rates',
+        items: [
+          '$250 per session (you keep $200)',
+          '$280 per session (you keep $224)',
+          '$310 per session (you keep $248)',
+          '$340 per session (you keep $272)',
+        ],
+      },
+      {
+        title: 'Flexible Rate Changes',
+        items: [
+          'Select a higher or lower rate anytime',
+          'New rate applies from next calendar year',
+          'Automatic transition when MHCPs renew',
+          'Plan your income with confidence',
+        ],
+      },
+    ],
+  },
+  {
     id: 'grow',
     title: 'Develop',
     subtitle: 'Professional growth support',
@@ -191,10 +249,10 @@ const journeyStages: JourneyStage[] = [
 const featureHighlights = [
   { icon: '📱', label: 'Telehealth', description: 'See clients from anywhere' },
   { icon: '📊', label: 'Dashboard', description: 'Real-time practice insights' },
-  { icon: '🔄', label: 'Auto-Sync', description: 'Seamless data management' },
-  { icon: '🏠', label: 'Work from Home', description: 'Full remote capability' },
+  { icon: '📣', label: 'Marketing', description: 'We fill your calendar' },
+  { icon: '💰', label: 'Your Rate', description: '$250-$340 per session' },
   { icon: '⏰', label: 'Flexible Hours', description: 'Mornings, evenings, weekends' },
-  { icon: '🎯', label: 'Marketing', description: 'We bring you clients' },
+  { icon: '📈', label: 'Client Insights', description: 'See where clients find you' },
 ];
 
 interface Props {

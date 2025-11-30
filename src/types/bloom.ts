@@ -2,25 +2,25 @@
  * Bloom Practitioner Dashboard Types
  * 
  * These types define the schema for practitioner dashboard data.
- * Data is synced from Halaxy via the HalaxySyncService and stored in Bloom DB.
+ * Bloom is LPA's modern practice management platform - the source of truth.
  * 
- * Source of truth: Halaxy (PMS - Practice Management System)
- * Local cache: Bloom SQL Database
- * Sync frequency: Real-time via webhooks + periodic full sync
+ * Source of truth: Bloom Platform (LPA's Practice Management System)
+ * Storage: Bloom SQL Database
+ * Integration: Real-time sync with external systems as needed
  */
 
 // ============================================================================
-// CORE ENTITIES - Synced from Halaxy
+// CORE ENTITIES - Bloom Platform
 // ============================================================================
 
 /**
  * Practitioner - A psychologist using Bloom
- * Maps to Halaxy Practitioner/PractitionerRole resource (FHIR-R4)
+ * Core entity in the Bloom platform (FHIR-R4 compatible)
  */
 export interface Practitioner {
   id: string;                        // Bloom internal ID
-  halaxyPractitionerId: string;      // Halaxy Practitioner ID
-  halaxyPractitionerRoleId: string;  // Halaxy PractitionerRole ID
+  externalPractitionerId: string;    // External system Practitioner ID (legacy: halaxyPractitionerId)
+  externalPractitionerRoleId: string; // External system PractitionerRole ID (legacy: halaxyPractitionerRoleId)
   firstName: string;
   lastName: string;
   displayName: string;               // e.g., "Dr. Sarah Chen"
@@ -38,11 +38,11 @@ export interface Practitioner {
 
 /**
  * Client - A patient of the practitioner
- * Maps to Halaxy Patient resource (FHIR-R4)
+ * Core entity in the Bloom platform (FHIR-R4 compatible)
  */
 export interface Client {
   id: string;                        // Bloom internal ID
-  halaxyPatientId: string;           // Halaxy Patient ID
+  externalPatientId: string;         // External system Patient ID (legacy: halaxyPatientId)
   practitionerId: string;            // FK to Practitioner
   firstName: string;
   lastName: string;
@@ -52,7 +52,7 @@ export interface Client {
   dateOfBirth?: string;              // ISO 8601 date
   gender?: 'male' | 'female' | 'other' | 'unknown';
   
-  // Clinical context (synced from Halaxy notes/conditions)
+  // Clinical context
   presentingIssues: string[];        // e.g., ["Anxiety", "Depression"]
   treatmentPlan?: string;
   
@@ -86,11 +86,11 @@ export interface MHCPStatus {
 
 /**
  * Session/Appointment - A scheduled or completed session
- * Maps to Halaxy Appointment resource (FHIR-R4)
+ * Core entity in the Bloom platform (FHIR-R4 compatible)
  */
 export interface Session {
   id: string;                        // Bloom internal ID
-  halaxyAppointmentId: string;       // Halaxy Appointment ID
+  externalAppointmentId: string;     // External system Appointment ID (legacy: halaxyAppointmentId)
   practitionerId: string;            // FK to Practitioner
   clientId: string;                  // FK to Client
   
@@ -237,7 +237,7 @@ export interface PractitionerDashboard {
 }
 
 // ============================================================================
-// SYNC STATUS - Track Halaxy integration health
+// SYNC STATUS - Track external system integration health
 // ============================================================================
 
 export interface SyncStatus {
@@ -245,7 +245,7 @@ export interface SyncStatus {
   lastSuccessfulSync: string;        // ISO 8601
   lastSyncAttempt: string;           // ISO 8601
   syncErrors: SyncError[];
-  pendingChanges: number;            // Changes waiting to push to Halaxy
+  pendingChanges: number;            // Changes waiting to sync
 }
 
 export interface SyncError {
@@ -305,18 +305,30 @@ export interface GetClientResponse {
 }
 
 // ============================================================================
-// HALAXY WEBHOOK PAYLOADS
+// EXTERNAL SYSTEM WEBHOOK PAYLOADS
 // ============================================================================
 
+/** @deprecated Use ExternalWebhookPayload - kept for backwards compatibility */
 export interface HalaxyWebhookPayload {
-  event: HalaxyWebhookEvent;
+  event: ExternalWebhookEvent;
   resource: string;                  // FHIR resource type
-  id: string;                        // Halaxy resource ID
+  id: string;                        // External resource ID
   timestamp: string;                 // ISO 8601
   data: unknown;                     // Raw FHIR resource
 }
 
-export type HalaxyWebhookEvent = 
+export interface ExternalWebhookPayload {
+  event: ExternalWebhookEvent;
+  resource: string;                  // FHIR resource type
+  id: string;                        // External resource ID
+  timestamp: string;                 // ISO 8601
+  data: unknown;                     // Raw FHIR resource
+}
+
+/** @deprecated Use ExternalWebhookEvent - kept for backwards compatibility */
+export type HalaxyWebhookEvent = ExternalWebhookEvent;
+
+export type ExternalWebhookEvent = 
   | 'appointment.created'
   | 'appointment.updated'
   | 'appointment.cancelled'

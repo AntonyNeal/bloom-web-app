@@ -280,7 +280,7 @@ function MarketingContent({
                   fontWeight: 500,
                 }}
               >
-                That's the premise. Fair pay. Halaxy for operations. Marketing support.
+                That's the premise. Fair pay. Modern systems. Marketing support.
               </p>
               <p style={{ fontSize: isMobile ? '16px' : '17px' }}>
                 This practice is built on respect—for your expertise, your time, and the community's

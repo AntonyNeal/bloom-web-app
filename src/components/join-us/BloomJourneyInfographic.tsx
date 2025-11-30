@@ -80,9 +80,9 @@ const journeyStages: JourneyStage[] = [
     timeframe: '1-2 weeks',
     details: [
       {
-        title: 'Halaxy Setup',
+        title: 'Practice Setup',
         items: [
-          'Your own Halaxy practice account',
+          'Your own Bloom practice portal',
           'Telehealth video capability',
           'Calendar & availability system',
           'Billing & Medicare integration',
@@ -111,7 +111,7 @@ const journeyStages: JourneyStage[] = [
       {
         title: 'Daily Operations',
         items: [
-          'View appointments in Halaxy',
+          'View appointments in Bloom',
           'Run telehealth sessions',
           'Clinical notes & documentation',
           'Automated billing & invoicing',
@@ -191,7 +191,7 @@ const journeyStages: JourneyStage[] = [
 const featureHighlights = [
   { icon: '📱', label: 'Telehealth', description: 'See clients from anywhere' },
   { icon: '📊', label: 'Dashboard', description: 'Real-time practice insights' },
-  { icon: '🔄', label: 'Halaxy Sync', description: 'Automatic data updates' },
+  { icon: '🔄', label: 'Auto-Sync', description: 'Seamless data management' },
   { icon: '🏠', label: 'Work from Home', description: 'Full remote capability' },
   { icon: '⏰', label: 'Flexible Hours', description: 'Mornings, evenings, weekends' },
   { icon: '🎯', label: 'Marketing', description: 'We bring you clients' },

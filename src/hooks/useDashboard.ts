@@ -48,7 +48,7 @@ interface UseDashboardResult {
   refetch: () => Promise<void>;
   /** Last successful fetch timestamp */
   lastFetched: Date | null;
-  /** Sync status with Halaxy */
+  /** Sync status with external systems */
   syncStatus: SyncStatus | null;
 }
 
@@ -58,8 +58,8 @@ interface UseDashboardResult {
 
 const samplePractitioner: Practitioner = {
   id: 'sample-practitioner',
-  halaxyPractitionerId: 'HAL-001',
-  halaxyPractitionerRoleId: 'HAL-PR-001',
+  externalPractitionerId: 'EXT-001',
+  externalPractitionerRoleId: 'EXT-PR-001',
   firstName: 'Sarah',
   lastName: 'Chen',
   displayName: 'Dr. Sarah Chen',

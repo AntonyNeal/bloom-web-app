@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCw, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { RefreshCw, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 
 interface TestResult {
   testName: string;
@@ -177,28 +178,19 @@ export function ABTestDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-sage-600">Loading...</div>
-      </div>
+      <AuthenticatedLayout title="A/B Testing" backTo="/admin">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-sage-600">Loading...</div>
+        </div>
+      </AuthenticatedLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white p-6">
+    <AuthenticatedLayout title="A/B Testing" backTo="/admin">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-4 mb-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/admin/dashboard')}
-              className="text-sage-600 hover:text-sage-700"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Admin
-            </Button>
-          </div>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold text-sage-900">A/B Testing Dashboard</h1>
@@ -479,6 +471,6 @@ export function ABTestDashboard() {
           </div>
         )}
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 }

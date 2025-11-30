@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { API_ENDPOINTS } from '@/config/api';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Tier1Flower, Tier2Flower, Tier3Flower } from '@/components/flowers';
 import type { QualificationData } from '@/components/common/QualificationCheck';
 import { BloomJourneyInfographic } from '@/components/join-us/BloomJourneyInfographic';
@@ -355,6 +355,12 @@ export function JoinUs() {
 
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    suggestion?: string;
+  }>({ isOpen: false, title: '', message: '' });
 
   // Calculate form completion percentage for progress indicator
   const completionPercentage = useMemo(() => {
@@ -436,8 +442,32 @@ export function JoinUs() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Submission failed');
+        const errorData = await response.json();
+        const errorMessage = errorData.error || 'Submission failed';
+        
+        // Check for duplicate email error
+        if (errorMessage.includes('UNIQUE KEY') && errorMessage.includes('email')) {
+          setErrorModal({
+            isOpen: true,
+            title: "We've already received your application",
+            message: `It looks like you've already submitted an application using this email address (${formData.email}).`,
+            suggestion: "If you need to update your application or have any questions, please reach out to us directly at hello@life-psychology.com.au and we'll be happy to help.",
+          });
+          return;
+        }
+        
+        // Check for other database errors
+        if (errorMessage.includes('database') || errorMessage.includes('SQL') || errorMessage.includes('constraint')) {
+          setErrorModal({
+            isOpen: true,
+            title: 'Something went wrong on our end',
+            message: "We're experiencing a technical issue and couldn't process your application right now.",
+            suggestion: "Please try again in a few minutes. If the problem persists, email us at hello@life-psychology.com.au with your details and we'll process your application manually.",
+          });
+          return;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       setSubmitted(true);
@@ -445,13 +475,24 @@ export function JoinUs() {
         title: 'Application submitted!',
         description: "We'll review your application and be in touch soon.",
       });
-    } catch {
-      toast({
-        title: "We're having a small hiccup",
-        description:
-          "Your application didn't quite make it through. Please check your connection and try again—we'd love to hear from you! 🌿",
-        variant: 'destructive',
-      });
+    } catch (err) {
+      // Network or unexpected errors - show toast for minor issues
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      
+      if (message.includes('fetch') || message.includes('network') || message.includes('Failed to fetch')) {
+        toast({
+          title: 'Connection issue',
+          description: "Please check your internet connection and try again. Your information hasn't been lost.",
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: "We're having a small hiccup",
+          description:
+            "Your application didn't quite make it through. Please try again—we'd love to hear from you! 🌿",
+          variant: 'destructive',
+        });
+      }
     } finally {
       setUploading(false);
     }
@@ -603,6 +644,132 @@ export function JoinUs() {
     <div
       style={{ position: 'relative', minHeight: '100vh', background: bloomStyles.colors.warmCream }}
     >
+      {/* Error Modal for Critical Errors */}
+      <AnimatePresence>
+        {errorModal.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '24px',
+              background: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(4px)',
+            }}
+            onClick={() => setErrorModal({ isOpen: false, title: '', message: '' })}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', bounce: 0.3 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: 'white',
+                borderRadius: '24px',
+                padding: isMobile ? '32px 24px' : '48px 40px',
+                maxWidth: '520px',
+                width: '100%',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                textAlign: 'center',
+              }}
+            >
+              {/* Icon */}
+              <div
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: `${bloomStyles.colors.softTerracotta}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 24px',
+                  fontSize: '40px',
+                }}
+              >
+                🌱
+              </div>
+
+              {/* Title */}
+              <h2
+                style={{
+                  fontSize: isMobile ? '22px' : '26px',
+                  fontWeight: 700,
+                  color: bloomStyles.colors.eucalyptusSage,
+                  marginBottom: '16px',
+                  lineHeight: 1.3,
+                }}
+              >
+                {errorModal.title}
+              </h2>
+
+              {/* Message */}
+              <p
+                style={{
+                  fontSize: isMobile ? '16px' : '17px',
+                  color: '#4A4A4A',
+                  lineHeight: 1.7,
+                  marginBottom: errorModal.suggestion ? '20px' : '32px',
+                }}
+              >
+                {errorModal.message}
+              </p>
+
+              {/* Suggestion */}
+              {errorModal.suggestion && (
+                <p
+                  style={{
+                    fontSize: isMobile ? '15px' : '16px',
+                    color: '#666',
+                    lineHeight: 1.7,
+                    marginBottom: '32px',
+                    padding: '16px',
+                    background: `${bloomStyles.colors.eucalyptusSage}08`,
+                    borderRadius: '12px',
+                    borderLeft: `4px solid ${bloomStyles.colors.eucalyptusSage}`,
+                  }}
+                >
+                  {errorModal.suggestion}
+                </p>
+              )}
+
+              {/* Close Button */}
+              <button
+                onClick={() => setErrorModal({ isOpen: false, title: '', message: '' })}
+                style={{
+                  padding: '14px 40px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: bloomStyles.colors.eucalyptusSage,
+                  color: 'white',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(107, 142, 127, 0.3)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                Got it
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Ambient Background Layer - same as qualification check */}
       <div
         style={{

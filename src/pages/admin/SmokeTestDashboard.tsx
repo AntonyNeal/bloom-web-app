@@ -1,8 +1,6 @@
 import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
-  ArrowLeft, 
   Play, 
   CheckCircle2, 
   XCircle, 
@@ -16,6 +14,7 @@ import {
   ChevronRight,
   RefreshCw
 } from 'lucide-react';
+import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 
 // ============================================================================
 // TYPES
@@ -176,7 +175,6 @@ function TestSection({
 // ============================================================================
 
 export function SmokeTestDashboard() {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [testResults, setTestResults] = useState<SmokeTestResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -207,24 +205,10 @@ export function SmokeTestDashboard() {
   }, [apiBaseUrl]);
 
   return (
-    <div className="min-h-screen bg-cream-100">
-      {/* Ambient background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-sage-100 to-transparent rounded-full blur-3xl opacity-40" />
-        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-gradient-to-tr from-lavender-100 to-transparent rounded-full blur-3xl opacity-30" />
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AuthenticatedLayout title="Smoke Tests" backTo="/admin">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={() => navigate('/admin/dashboard')}
-            className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-medium transition-all mb-6 group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            Back to Dashboard
-          </button>
-
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Smoke Tests</h1>
@@ -380,7 +364,7 @@ export function SmokeTestDashboard() {
           </div>
         )}
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 }
 

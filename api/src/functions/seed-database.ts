@@ -138,7 +138,6 @@ async function seedDrSarahChen(pool: sql.ConnectionPool): Promise<SeedResult> {
 
   // Today's date for sessions
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
 
   // Session data helper
   const createSession = async (

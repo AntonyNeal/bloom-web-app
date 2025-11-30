@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { BlossomTreeSophisticated } from '@/components/bloom-tree/BlossomTreeSophisticated';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useDashboard } from '@/hooks/useDashboard';
+import { BloomHeader } from '@/components/layout/BloomHeader';
 import type { WeeklyStats, UpcomingStats, MonthlyStats } from '@/types/bloom';
 
 // ============================================================================
@@ -80,11 +81,6 @@ interface BloomHomepageProps {
 // ============================================================================
 // SAMPLE DATA - Seeds for demonstration
 // ============================================================================
-const sampleUser: User = {
-  name: 'Dr. Sarah Chen',
-  id: 'user-1',
-};
-
 const sampleSessions: Session[] = [
   {
     id: '1',
@@ -174,18 +170,6 @@ const LeafIcon = () => (
   </svg>
 );
 
-const WrenchIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-  </svg>
-);
-
-const ChevronDownIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m6 9 6 6 6-6" />
-  </svg>
-);
-
 const CalendarIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
@@ -201,332 +185,6 @@ const ClockIcon = () => (
     <polyline points="12 6 12 12 16 14" />
   </svg>
 );
-
-// ============================================================================
-// COTTAGE HEADER - Mobile-first responsive header
-// Designed for iOS/Android compatibility and future native app conversion
-// ============================================================================
-const CottageHeader: React.FC<{ user: User }> = ({ user }) => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  const today = new Date();
-  
-  // Short format for mobile, full format for desktop
-  const mobileDate = today.toLocaleDateString('en-AU', {
-    day: 'numeric',
-    month: 'short',
-  });
-  
-  const desktopDate = today.toLocaleDateString('en-AU', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'short',
-  });
-
-  // Get first name for mobile display
-  const shortName = user.name.replace('Dr. ', '').split(' ')[0]; // Gets first name without title
-
-  return (
-    <header
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        // Mobile-first padding: smaller on mobile, larger on desktop
-        padding: 'clamp(8px, 2vw, 12px) clamp(12px, 4vw, 24px)',
-        backgroundColor: colors.white,
-        borderBottom: `1px solid ${colors.lavender}`,
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        // Safe area insets for iOS notch/dynamic island
-        paddingTop: 'max(env(safe-area-inset-top, 0px), clamp(8px, 2vw, 12px))',
-        paddingLeft: 'max(env(safe-area-inset-left, 0px), clamp(12px, 4vw, 24px))',
-        paddingRight: 'max(env(safe-area-inset-right, 0px), clamp(12px, 4vw, 24px))',
-        // Minimum touch target height for mobile (44px iOS, 48px Android)
-        minHeight: '48px',
-      }}
-    >
-      {/* Left: Branding - scales down on mobile */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'clamp(4px, 1.5vw, 8px)',
-          color: colors.sage,
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ 
-          width: 'clamp(20px, 5vw, 24px)', 
-          height: 'clamp(20px, 5vw, 24px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <LeafIcon />
-        </div>
-        <span
-          style={{
-            fontFamily: "'Crimson Text', Georgia, serif",
-            fontSize: 'clamp(16px, 4vw, 20px)',
-            fontWeight: 600,
-            letterSpacing: '-0.5px',
-          }}
-        >
-          Bloom
-        </span>
-      </div>
-
-      {/* Center: Date - hidden on very small screens, abbreviated on mobile */}
-      <div
-        className="header-date"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'clamp(4px, 1vw, 8px)',
-          color: colors.charcoalLight,
-          fontSize: 'clamp(11px, 2.5vw, 14px)',
-          // Hide on very small screens (< 360px)
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-        }}
-      >
-        <div style={{ 
-          width: 'clamp(12px, 3vw, 16px)', 
-          height: 'clamp(12px, 3vw, 16px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <CalendarIcon />
-        </div>
-        {/* Show abbreviated date on mobile, full on desktop */}
-        <span className="date-mobile" style={{ display: 'none' }}>{mobileDate}</span>
-        <span className="date-desktop">Today: {desktopDate}</span>
-      </div>
-
-      {/* Right: Actions - collapses to icons on mobile */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: 'clamp(8px, 2vw, 16px)',
-        flexShrink: 0,
-      }}>
-        {/* Admin Tools - icon only on mobile */}
-        <Link
-          to="/admin/dashboard"
-          onClick={() => {
-            console.log('🔧 Admin Tools button clicked!');
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            color: colors.charcoalLight,
-            textDecoration: 'none',
-            fontSize: 'clamp(11px, 2.5vw, 13px)',
-            padding: 'clamp(6px, 1.5vw, 8px) clamp(6px, 1.5vw, 10px)',
-            borderRadius: '6px',
-            transition: 'all 0.2s ease',
-            // Minimum touch target
-            minWidth: '44px',
-            minHeight: '44px',
-            justifyContent: 'center',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = colors.lavenderLight;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-          }}
-          aria-label="Admin Tools"
-        >
-          <WrenchIcon />
-          {/* Text hidden on mobile via CSS */}
-          <span className="admin-text" style={{ display: 'none' }}>Admin Tools</span>
-        </Link>
-
-        {/* User Dropdown */}
-        <div style={{ position: 'relative' }}>
-          <button
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            onBlur={() => setTimeout(() => setDropdownOpen(false), 200)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'clamp(4px, 1vw, 6px)',
-              padding: 'clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px)',
-              backgroundColor: 'transparent',
-              border: `1px solid ${colors.lavender}`,
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: 'clamp(12px, 2.8vw, 14px)',
-              color: colors.charcoal,
-              transition: 'all 0.2s ease',
-              // Minimum touch target for mobile
-              minHeight: '44px',
-              minWidth: '44px',
-              WebkitTapHighlightColor: 'transparent',
-            }}
-            aria-haspopup="true"
-            aria-expanded={dropdownOpen}
-          >
-            {/* Show short name on mobile, full name on desktop */}
-            <span className="user-name-mobile" style={{ display: 'none' }}>{shortName}</span>
-            <span className="user-name-desktop">{user.name}</span>
-            <ChevronDownIcon />
-          </button>
-
-          {dropdownOpen && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '4px',
-                backgroundColor: colors.white,
-                border: `1px solid ${colors.lavender}`,
-                borderRadius: '8px',
-                boxShadow: shadows.lifted,
-                minWidth: '160px',
-                overflow: 'hidden',
-                animation: 'dropdownFade 0.15s ease-out',
-                // Ensure dropdown stays on screen on mobile
-                maxWidth: 'calc(100vw - 24px)',
-              }}
-              role="menu"
-            >
-              <a
-                href="/profile"
-                style={{
-                  display: 'flex',
-                  padding: '12px 16px', // Larger touch targets
-                  color: colors.charcoal,
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  transition: 'background-color 0.15s ease',
-                  // Minimum touch target height
-                  minHeight: '44px',
-                  alignItems: 'center',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.lavenderLight;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-                role="menuitem"
-              >
-                My Profile
-              </a>
-              <a
-                href="/signout"
-                style={{
-                  display: 'flex',
-                  padding: '12px 16px',
-                  color: colors.charcoal,
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  borderTop: `1px solid ${colors.lavender}`,
-                  transition: 'background-color 0.15s ease',
-                  minHeight: '44px',
-                  alignItems: 'center',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.lavenderLight;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-                role="menuitem"
-              >
-                Sign Out
-              </a>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Responsive CSS - injected as style tag */}
-      <style>{`
-        /* Mobile-first breakpoints */
-        
-        /* Extra small screens (< 360px) - hide date entirely */
-        @media (max-width: 359px) {
-          .header-date {
-            display: none !important;
-          }
-        }
-        
-        /* Small screens (360px - 480px) - abbreviated content */
-        @media (min-width: 360px) and (max-width: 480px) {
-          .date-desktop { display: none !important; }
-          .date-mobile { display: inline !important; }
-          .admin-text { display: none !important; }
-          .user-name-desktop { display: none !important; }
-          .user-name-mobile { display: inline !important; }
-        }
-        
-        /* Medium screens (481px - 768px) - show more content */
-        @media (min-width: 481px) and (max-width: 768px) {
-          .date-desktop { display: inline !important; }
-          .date-mobile { display: none !important; }
-          .admin-text { display: none !important; }
-          .user-name-desktop { display: inline !important; }
-          .user-name-mobile { display: none !important; }
-        }
-        
-        /* Large screens (769px+) - full content */
-        @media (min-width: 769px) {
-          .date-desktop { display: inline !important; }
-          .date-mobile { display: none !important; }
-          .admin-text { display: inline !important; }
-          .user-name-desktop { display: inline !important; }
-          .user-name-mobile { display: none !important; }
-        }
-        
-        /* Touch device optimizations */
-        @media (hover: none) and (pointer: coarse) {
-          /* Increase touch targets on touch devices */
-          .header-date {
-            padding: 8px;
-          }
-        }
-        
-        /* Reduced motion preference */
-        @media (prefers-reduced-motion: reduce) {
-          * {
-            animation-duration: 0.01ms !important;
-            transition-duration: 0.01ms !important;
-          }
-        }
-        
-        /* Dark mode support (for future) */
-        @media (prefers-color-scheme: dark) {
-          /* Header will inherit from global dark mode styles when implemented */
-        }
-        
-        /* High contrast mode */
-        @media (prefers-contrast: high) {
-          header {
-            border-bottom-width: 2px;
-          }
-        }
-        
-        /* Landscape orientation on mobile */
-        @media (max-height: 500px) and (orientation: landscape) {
-          header {
-            padding-top: 6px !important;
-            padding-bottom: 6px !important;
-            min-height: 40px !important;
-          }
-        }
-      `}</style>
-    </header>
-  );
-};
 
 // ============================================================================
 // ICONS - Feed-style icons
@@ -1364,7 +1022,6 @@ const QuickStatsInline: React.FC<{ weeklyStats: WeeklyStats; upcomingStats: Upco
 // ============================================================================
 const BloomHomepage: React.FC<BloomHomepageProps> = ({
   practitionerId,
-  user: userOverride,
   todaysSessions: sessionsOverride,
   weeklyStats: weeklyOverride,
   upcomingStats: upcomingOverride,
@@ -1376,11 +1033,6 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
   const { dashboard, loading } = useDashboard(practitionerId);
 
   // Transform dashboard data to local types, or use overrides/samples
-  const user: User = userOverride || (dashboard ? {
-    name: dashboard.practitioner.displayName,
-    id: dashboard.practitioner.id,
-  } : sampleUser);
-
   const todaysSessions: Session[] = sessionsOverride || (dashboard ? 
     dashboard.todaysSessions.map(s => ({
       id: s.id,
@@ -1517,7 +1169,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
         `}
       </style>
 
-      <CottageHeader user={user} />
+      <BloomHeader />
 
       {/* Main Feed Layout - Single column like social media */}
       <main style={{

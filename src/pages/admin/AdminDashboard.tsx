@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { FileText, ArrowLeft, LogOut, BarChart3, FlaskConical, ChevronRight } from 'lucide-react';
+import { FileText, BarChart3, FlaskConical, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
+import { BloomHeader } from '@/components/layout/BloomHeader';
 
 // ============================================================================
 // DESIGN TOKENS - Matching the cottage garden aesthetic
@@ -84,7 +85,7 @@ const SparkleIcon = ({ className = '' }: { className?: string }) => (
 // MAIN COMPONENT
 // ============================================================================
 export function AdminDashboard() {
-  const { logout, user } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
@@ -160,6 +161,11 @@ export function AdminDashboard() {
       style={{ backgroundColor: colors.cream }}
     >
       {/* ============================================================
+          SHARED HEADER - Consistent across all authenticated pages
+          ============================================================ */}
+      <BloomHeader showHomeLink={true} />
+
+      {/* ============================================================
           AMBIENT BACKGROUND - Soft botanical atmosphere
           ============================================================ */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
@@ -233,31 +239,12 @@ export function AdminDashboard() {
           MAIN CONTENT
           ============================================================ */}
       <motion.div
-        className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+        className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
         style={{ zIndex: 1 }}
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Back Navigation */}
-        <motion.button
-          variants={itemVariants}
-          onClick={() => navigate('/')}
-          className="group inline-flex items-center gap-2 mb-8 px-0 py-2 text-base font-medium transition-all duration-200"
-          style={{
-            color: colors.sage,
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: "'Inter', system-ui, sans-serif",
-          }}
-          whileHover={{ x: -4 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-          <span>Back to Home</span>
-        </motion.button>
-
         {/* ============================================================
             HEADER CARD - Welcoming the admin
             ============================================================ */}
@@ -287,92 +274,68 @@ export function AdminDashboard() {
             }}
           />
 
-          <div className="flex items-center justify-between relative">
-            <div className="flex items-center gap-5">
-              {/* Avatar/Icon with botanical flair */}
-              <div
+          <div className="flex items-center gap-5 relative">
+            {/* Avatar/Icon with botanical flair */}
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '16px',
+                background: `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageDark} 100%)`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: `0 4px 16px ${colors.sage}40`,
+                position: 'relative',
+              }}
+            >
+              <LeafIcon style={{ width: 32, height: 32, color: colors.white }} />
+              {/* Sparkle accent */}
+              <motion.div
+                animate={
+                  prefersReducedMotion
+                    ? {}
+                    : {
+                        scale: [1, 1.2, 1],
+                        opacity: [0.8, 1, 0.8],
+                      }
+                }
+                transition={{ duration: 2, repeat: Infinity }}
                 style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '16px',
-                  background: `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageDark} 100%)`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: `0 4px 16px ${colors.sage}40`,
-                  position: 'relative',
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  color: colors.terracotta,
                 }}
               >
-                <LeafIcon style={{ width: 32, height: 32, color: colors.white }} />
-                {/* Sparkle accent */}
-                <motion.div
-                  animate={
-                    prefersReducedMotion
-                      ? {}
-                      : {
-                          scale: [1, 1.2, 1],
-                          opacity: [0.8, 1, 0.8],
-                        }
-                  }
-                  transition={{ duration: 2, repeat: Infinity }}
-                  style={{
-                    position: 'absolute',
-                    top: '-4px',
-                    right: '-4px',
-                    color: colors.terracotta,
-                  }}
-                >
-                  <SparkleIcon />
-                </motion.div>
-              </div>
-
-              <div>
-                <h1
-                  style={{
-                    fontFamily: "'Crimson Text', Georgia, serif",
-                    fontSize: '32px',
-                    fontWeight: 600,
-                    color: colors.charcoal,
-                    margin: 0,
-                    letterSpacing: '-0.5px',
-                  }}
-                >
-                  Admin Dashboard
-                </h1>
-                <p
-                  style={{
-                    fontFamily: "'Inter', system-ui, sans-serif",
-                    fontSize: '15px',
-                    color: colors.charcoalLight,
-                    margin: '4px 0 0 0',
-                  }}
-                >
-                  Welcome back, {user?.name || user?.username || 'Administrator'}
-                </p>
-              </div>
+                <SparkleIcon />
+              </motion.div>
             </div>
 
-            {/* Sign Out Button */}
-            <motion.button
-              onClick={logout}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-xl transition-all duration-200"
-              style={{
-                color: colors.charcoalLight,
-                backgroundColor: colors.lavenderLight,
-                border: `1px solid ${colors.lavender}`,
-                cursor: 'pointer',
-                fontFamily: "'Inter', system-ui, sans-serif",
-              }}
-              whileHover={{
-                backgroundColor: colors.lavender,
-                scale: 1.02,
-              }}
-              whileTap={{ scale: 0.98 }}
-              title="Sign out"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </motion.button>
+            <div>
+              <h1
+                style={{
+                  fontFamily: "'Crimson Text', Georgia, serif",
+                  fontSize: '32px',
+                  fontWeight: 600,
+                  color: colors.charcoal,
+                  margin: 0,
+                  letterSpacing: '-0.5px',
+                }}
+              >
+                Admin Dashboard
+              </h1>
+              <p
+                style={{
+                  fontFamily: "'Inter', system-ui, sans-serif",
+                  fontSize: '15px',
+                  color: colors.charcoalLight,
+                  margin: '4px 0 0 0',
+                }}
+              >
+                Welcome back, {user?.name || user?.username || 'Administrator'}
+              </p>
+            </div>
           </div>
         </motion.div>
 

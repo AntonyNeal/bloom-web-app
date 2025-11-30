@@ -2,188 +2,278 @@
 
 ## Overview
 
-This directory contains CI/CD workflows for the Life Psychology monorepo.
+This directory contains the CI/CD workflows for the Life Psychology Bloom monorepo.
+All workflows use a single source of truth approach - one workflow handles all CI/CD based on which branch is pushed and which folders have changes.
 
 ## Workflows
 
-### 🚀 `monorepo-deploy.yml` - Main Deployment Pipeline
+| File | Purpose | Trigger |
+|------|---------|---------|
+| `ci-cd.yml` | **Primary unified workflow** - All apps, APIs, and DB migrations | Push to main/staging/develop, PRs, Manual |
+| `db-migrations.yml` | Isolated database operations (manual/PR only) | PR to main/staging/develop, Manual |
+| `manual-full-deploy.yml` | Force deploy all apps (no change detection) | Manual only |
 
-**Purpose**: Deploy all applications and APIs across environments
+---
 
-**Deployments**:
-1. **Bloom Portal** (`apps/bloom`) → Azure Static Web Apps
-2. **Bloom API** (`apps/bloom/api`) → Azure Functions
-3. **Website** (`apps/website`) → Azure Static Web Apps
-4. **Website API** (`apps/website/functions`) → Azure Functions
+## 🚀 `ci-cd.yml` - Primary CI/CD Pipeline
 
-**Triggers**:
-- Auto-deploy on push to `main`, `staging`, `develop`
-- Pull requests to above branches
-- Manual via workflow_dispatch
+**The single source of truth for all automated deployments.**
 
-**Environments**:
-- `main` → **Production**
-- `staging` → **Staging**
-- `develop` → **Development**
+### What It Does
+
+1. **Detects changes** in each project folder
+2. **Runs quality checks** (lint, type-check)
+3. **Runs database migrations** (if db/migrations changed)
+4. **Builds** only affected applications
+5. **Deploys** to the appropriate environment
+
+### Triggers
+
+| Branch | Environment | Database |
+|--------|-------------|----------|
+| `main` | Production | prod |
+| `staging` | Staging | dev (second validation pass) |
+| `develop` | Development | dev |
+| PRs | Preview (no deploy) | dev (dry run) |
+
+### Change Detection
+
+The workflow intelligently deploys only what changed:
+
+| Path | Deploys |
+|------|---------|
+| `src/**`, `apps/bloom/**` | Bloom Frontend |
+| `api/**` | Bloom API (incl. Halaxy Sync) |
+| `apps/website/src/**` | Website Frontend |
+| `apps/website/functions/**` | Website API |
+| `db/migrations/**`, `api/src/db-version-control/**` | Database Migrations |
+| `services/halaxy-sync-worker/**` | Halaxy Sync Worker (Container Apps) |
+| `packages/**` | All dependent apps |
+| `.github/workflows/**` | All apps |
+
+### Manual Override
+
+Run manually with full control:
+
+1. Go to **Actions** → **CI/CD Pipeline**
+2. Click **Run workflow**
+3. Select:
+   - Environment (development/staging/production)
+   - Deploy Bloom Portal (yes/no)
+   - Deploy Website (yes/no)
+   - Deploy APIs (yes/no)
+   - Run Migrations (yes/no)
+   - Deploy Halaxy Sync (yes/no)
+   - Dry Run Migrations (preview only)
+
+---
+
+## 🗄️ `db-migrations.yml` - Database Migrations (Manual)
+
+**For isolated database operations only.** Push-triggered migrations are handled by `ci-cd.yml`.
+
+### Use Cases
+
+- Test migrations in isolation via PR
+- Run migrations without deploying apps
+- Force-run migrations manually
+
+### Environments
+
+| Input | Target DB |
+|-------|-----------|
+| `dev` | lpa-bloom-db-dev |
+| `prod` | lpa-bloom-db-prod |
+
+> **Note**: Staging branch runs against dev DBs with extended validation (second pass before prod).
+
+---
+
+## 🔧 `manual-full-deploy.yml` - Force Deploy All
+
+**Deploys ALL applications regardless of changes.**
+
+### Use Cases
+
+- Test deployment pipeline
+- Force deploy after infrastructure changes
+- Recover from failed deployments
+- Sync all apps to a specific environment
+
+---
+
+## Azure Resources
+
+### Static Web Apps (Frontend)
+
+| Environment | Bloom Portal | Website |
+|-------------|--------------|---------|
+| Development | `lpa-bloom-dev` | `lpa-frontend-dev` |
+| Staging | `lpa-bloom-staging` | `lpa-frontend-staging` |
+| Production | `lpa-bloom-prod` | `lpa-frontend-prod` |
+
+### Function Apps (Backend API)
+
+| Environment | Bloom API |
+|-------------|-----------|
+| Development | `bloom-functions-dev` |
+| Staging | `bloom-functions-staging-new` |
+| Production | `bloom-platform-functions-v2` |
+
+> **Website API**: Deployed as managed functions with Static Web Apps (no standalone Function App)
+
+---
 
 ## Required Secrets
 
-Configure these in **Settings → Secrets and variables → Actions**:
+Configure in **Settings → Secrets and variables → Actions**:
 
-### Bloom Portal Secrets
+### Azure Identity (for Azure Login)
 
-| Secret Name | Environment | Purpose |
-|------------|-------------|---------|
-| `AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD` | Production | Bloom frontend deploy token |
-| `BLOOM_PROD_API_PUBLISH_PROFILE` | Production | Bloom API publish profile |
-| `AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING` | Staging | Bloom frontend deploy token |
-| `BLOOM_STAGING_API_PUBLISH_PROFILE` | Staging | Bloom API publish profile |
-| `AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_DEV` | Development | Bloom frontend deploy token |
-| `BLOOM_DEV_API_PUBLISH_PROFILE` | Development | Bloom API publish profile |
+| Secret | Purpose |
+|--------|---------|
+| `AZURE_CLIENT_ID` | Service Principal App ID |
+| `AZURE_TENANT_ID` | Azure AD Tenant ID |
+| `AZURE_SUBSCRIPTION_ID` | Azure Subscription ID |
 
-### Website Secrets
+### Bloom Portal
 
-| Secret Name | Environment | Purpose |
-|------------|-------------|---------|
-| `AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_PROD` | Production | Website frontend deploy token |
-| `WEBSITE_PROD_API_PUBLISH_PROFILE` | Production | Website API publish profile |
-| `AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_STAGING` | Staging | Website frontend deploy token |
-| `WEBSITE_STAGING_API_PUBLISH_PROFILE` | Staging | Website API publish profile |
-| `AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_DEV` | Development | Website frontend deploy token |
-| `WEBSITE_DEV_API_PUBLISH_PROFILE` | Development | Website API publish profile |
+| Secret | Environment | Purpose |
+|--------|-------------|---------|
+| `AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_DEV` | Dev | Frontend deploy token |
+| `AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING` | Staging | Frontend deploy token |
+| `AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD` | Prod | Frontend deploy token |
+| `BLOOM_DEV_API_PUBLISH_PROFILE` | Dev | API publish profile |
+| `BLOOM_STAGING_API_PUBLISH_PROFILE` | Staging | API publish profile |
+| `BLOOM_PROD_API_PUBLISH_PROFILE` | Prod | API publish profile |
+
+### Website
+
+| Secret | Environment | Purpose |
+|--------|-------------|---------|
+| `AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_DEV` | Dev | Frontend deploy token |
+| `AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_STAGING` | Staging | Frontend deploy token |
+| `AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_PROD` | Prod | Frontend deploy token |
+
+### Database
+
+| Secret | Purpose |
+|--------|---------|
+| `SQL_CONNECTION_STRING` | Fallback SQL connection |
+| `COSMOS_DB_CONNECTION_STRING` | Fallback Cosmos connection |
+
+> **Primary**: Secrets are retrieved from Azure Key Vault during workflow runs.
+
+---
 
 ## How to Get Secrets
 
-### Azure Static Web Apps Deployment Token
-
-1. Go to Azure Portal → Your Static Web App
-2. Navigate to **Settings → API tokens**
-3. Copy the deployment token
-4. Add to GitHub Secrets
-
-### Azure Functions Publish Profile
+### Static Web Apps Deployment Token
 
 ```bash
-# For each Function App
+# Azure Portal
+Portal → Static Web App → Settings → API tokens → Copy
+```
+
+### Function App Publish Profile
+
+```bash
 az functionapp deployment list-publishing-profiles \
   --name <function-app-name> \
-  --resource-group <resource-group> \
+  --resource-group rg-lpa-unified \
   --xml
 ```
 
-Copy the entire XML output and add to GitHub Secrets.
+### Azure Service Principal
 
-## Smart Change Detection
+```bash
+# Create Service Principal for GitHub Actions
+az ad sp create-for-rbac \
+  --name "github-actions-bloom" \
+  --role contributor \
+  --scopes /subscriptions/<subscription-id>/resourceGroups/rg-lpa-unified \
+  --sdk-auth
+```
 
-The workflow intelligently detects changes and only deploys affected applications:
-
-- **Bloom Frontend**: Triggers on changes to `apps/bloom/src/**`
-- **Bloom API**: Triggers on changes to `apps/bloom/api/**`
-- **Website Frontend**: Triggers on changes to `apps/website/src/**`
-- **Website API**: Triggers on changes to `apps/website/functions/**`
-- **Shared Packages**: Triggers rebuild of all apps that depend on shared code
-
-## Manual Deployment
-
-Trigger manual deployment via GitHub UI:
-
-1. Go to **Actions** tab
-2. Select **Monorepo Deploy** workflow
-3. Click **Run workflow**
-4. Choose:
-   - Environment (development/staging/production)
-   - Which apps to deploy (checkboxes)
-
-## Environment Variables
-
-Environment-specific variables are set in Azure:
-
-### Bloom Portal
-- **Development**: `lpa-bloom-dev` (Static Web App)
-- **Staging**: `lpa-bloom-staging` (Static Web App)
-- **Production**: `lpa-bloom-prod` (Static Web App)
-
-### Bloom API
-- **Development**: `bloom-functions-dev` (Function App)
-- **Staging**: `bloom-functions-staging-new` (Function App)
-- **Production**: `bloom-platform-functions-v2` (Function App)
-
-### Website
-- **Development**: `lpa-frontend-dev` (Static Web App)
-- **Staging**: `lpa-frontend-staging` (Static Web App)
-- **Production**: `lpa-frontend-prod` (Static Web App)
-
-### Website API
-- **All Environments**: Deployed as **managed functions** with Azure Static Web Apps
-- No standalone Function Apps - API code is bundled with frontend deployment
-- API endpoint: `https://<swa-hostname>/api/*`
+---
 
 ## Deployment Flow
 
 ```
-┌─────────────────┐
-│  Code Change    │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Detect Changes  │◄───── Smart path filtering
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Quality Checks  │◄───── Lint + Type Check
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Build (Parallel)│
-│ • Bloom Frontend│
-│ • Bloom API     │
-│ • Website       │
-│ • Website API   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│Deploy (Parallel)│
-│ • Azure SWA     │
-│ • Azure Func    │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   Summary       │
-└─────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     Code Push / PR                          │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│  🔎 Detect Changes                                          │
+│  • bloom-frontend, bloom-api, website, db, halaxy-worker    │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│  🔍 Lint        │ │  🔍 Type Check  │ │  🌍 Environment │
+└────────┬────────┘ └────────┬────────┘ └────────┬────────┘
+         └───────────────────┴───────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│  🗄️ Database Migrations (if db/ changed)                    │
+│  • Validate scripts → Run migrations → Capture snapshot     │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│  🌸 Build Bloom │ │  🌐 Build Web   │ │  🔌 Build APIs  │
+│     Frontend    │ │     Frontend    │ │                 │
+└────────┬────────┘ └────────┬────────┘ └────────┬────────┘
+         │                   │                   │
+         ▼                   ▼                   ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│  🚀 Deploy      │ │  🚀 Deploy      │ │  🚀 Deploy      │
+│     Bloom SWA   │ │     Website SWA │ │     Functions   │
+└────────┬────────┘ └────────┬────────┘ └────────┬────────┘
+         └───────────────────┴───────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│  📊 Deployment Summary                                      │
+│  • URLs, status, changes detected                           │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Legacy Workflows
-
-- `bloom-cicd.yml` - Original Bloom-only workflow (deprecated)
-
-Consider archiving or removing once the new monorepo workflow is confirmed working.
+---
 
 ## Troubleshooting
 
-### Deployment fails with "Secret not found"
+### "Secret not found" error
 - Verify secret name matches exactly (case-sensitive)
-- Check secret is configured in correct environment
+- Check secret is configured for the correct environment
 
-### Build fails with "pnpm not found"
-- Workflow should auto-install pnpm via `pnpm/action-setup@v3`
-- Check pnpm version is compatible
+### Build fails
+- Check Node version (20 for frontend, 18 for API)
+- Verify package-lock.json is committed
 
-### API deployment skipped
-- Check if publish profile secret is configured
-- Deployment will skip gracefully if secret missing
+### Deployment skipped
+- Check change detection paths
+- Verify deployment secrets are configured
 
-### No changes detected
-- Verify path filters in `detect-changes` job
-- Check if changes are in tracked paths
+### Database migration fails
+- Check Key Vault access
+- Verify SQL/Cosmos connection strings
+- Review migration script syntax
+
+### No changes detected but need to deploy
+- Use `manual-full-deploy.yml` to force deploy
+- Or use `workflow_dispatch` with manual overrides
+
+---
 
 ## Support
 
-For issues or questions:
 1. Check workflow run logs in **Actions** tab
-2. Review this README
-3. Contact DevOps team
+2. Review error messages in failed steps
+3. Verify secrets are configured
+4. Check Azure resource status in Portal

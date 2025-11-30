@@ -1,6 +1,6 @@
 # Bloom Web Application
 
-[![CI/CD](https://github.com/AntonyNeal/bloom-web-app/actions/workflows/bloom-cicd.yml/badge.svg)](https://github.com/AntonyNeal/bloom-web-app/actions/workflows/bloom-cicd.yml)
+[![CI/CD](https://github.com/AntonyNeal/bloom-web-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/AntonyNeal/bloom-web-app/actions/workflows/ci-cd.yml)
 
 Bloom is Life Psychology Australia's practitioner onboarding platform, enabling psychologists and mental health practitioners to apply to join the Bloom network.
 
@@ -179,6 +179,23 @@ This project has extensive documentation. Use this index to find what you need.
 
 ## 📋 Features
 
+### Application Routes
+
+| Route | Description | Auth Required |
+|-------|-------------|---------------|
+| `/` | Landing page with garden animation | No |
+| `/join-us` | Practitioner application form | No |
+| `/login` | Azure AD authentication redirect | No |
+| `/auth/callback` | OAuth callback handler | No |
+| `/bloom-home` | Practice dashboard | Yes |
+| `/business-coach` | Practice growth analytics | Yes |
+| `/admin` | Admin dashboard | Yes |
+| `/admin/applications` | Application management | Yes |
+| `/admin/applications/:id` | Application detail view | Yes |
+| `/admin/ab-tests` | A/B testing dashboard | Yes |
+| `/admin/smoke-tests` | Smoke test dashboard | Yes |
+| `/design-test` | Design system preview | No |
+
 ### Application Management System
 
 - **Application Form** (`/join-us`) - Practitioners can submit applications with:
@@ -187,17 +204,23 @@ This project has extensive documentation. Use this index to find what you need.
   - File uploads (CV, certificates, profile photo)
   - Experience details and cover letter
 
-- **Admin Portal** (`/admin`) - Review and manage applications:
-  - Dashboard with application statistics
-  - List view with filtering and sorting
-  - Detail view for individual applications
+- **Admin Portal** (`/admin/*`) - Review and manage applications:
+  - Dashboard with application statistics (`/admin`)
+  - List view with filtering and sorting (`/admin/applications`)
+  - Detail view for individual applications (`/admin/applications/:id`)
   - Status management (submitted, under review, approved, rejected)
   - Document access and download
+
+- **Practitioner Dashboard** (`/bloom-home`) - Authenticated practitioners:
+  - Practice overview with blossom tree visualization
+  - Business metrics and growth tracking (`/business-coach`)
 
 - **A/B Testing Dashboard** (`/admin/ab-tests`) - Analytics and experimentation:
   - Real-time variant performance tracking
   - Statistical significance calculations
   - CSV export for offline analysis
+
+- **Smoke Test Dashboard** (`/admin/smoke-tests`) - System health monitoring
 
 ### Design System
 
@@ -234,12 +257,23 @@ This project has extensive documentation. Use this index to find what you need.
 
 ```
 bloom-web-app/
-├── api/                          # Azure Functions backend
-│   ├── applications/            # Application CRUD endpoints
-│   └── upload/                  # File upload endpoint
+├── api/                          # Azure Functions backend (v4 programming model)
+│   ├── src/
+│   │   └── functions/           # Function endpoints
+│   │       ├── applications.ts  # Application CRUD
+│   │       ├── upload.ts        # File upload to Blob Storage
+│   │       ├── ab-test.ts       # A/B test management
+│   │       ├── track-ab-test.ts # A/B tracking events
+│   │       ├── smoke-test.ts    # Health checks
+│   │       ├── health.ts        # API health endpoint
+│   │       ├── practitioner-dashboard.ts
+│   │       ├── halaxy-sync-timer.ts
+│   │       ├── halaxy-webhook.ts
+│   │       └── dbvc.ts          # DB version control
+│   └── migrations/              # Database migrations
 ├── apps/
 │   └── website/
-│       └── functions/           # Additional Azure Functions
+│       └── functions/           # Website-specific Functions
 ├── db/
 │   └── migrations/
 │       └── versioned/           # Flyway SQL migrations
@@ -250,11 +284,22 @@ bloom-web-app/
 ├── src/
 │   ├── pages/
 │   │   ├── JoinUs.tsx          # Application form
+│   │   ├── BloomHomepage.tsx   # Practitioner dashboard
+│   │   ├── BusinessCoach.tsx   # Business analytics
 │   │   └── admin/              # Admin portal
+│   │       ├── AdminDashboard.tsx
+│   │       ├── ApplicationManagement.tsx
+│   │       ├── ApplicationDetail.tsx
+│   │       ├── ABTestDashboard.tsx
+│   │       └── SmokeTestDashboard.tsx
 │   ├── components/             # Reusable components
 │   ├── features/               # Feature modules
 │   └── design-system/          # Design tokens
 ├── .github/workflows/           # CI/CD pipelines
+│   ├── ci-cd.yml               # Main unified workflow
+│   ├── db-migrations.yml       # Database migration workflow
+│   ├── manual-full-deploy.yml  # Manual deployment trigger
+│   └── monorepo-deploy.yml     # Monorepo deployment
 ├── schema.sql                   # Database schema
 └── staticwebapp.config.json     # SWA configuration
 ```

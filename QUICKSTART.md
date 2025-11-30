@@ -14,13 +14,13 @@ Before starting, verify you have:
 
 ### Frontend Dependencies
 ```powershell
-cd "c:\Life Psychology Australia\repos\bloom-web-app"
+cd "c:\Repos\bloom-web-app"
 npm install
 ```
 
 ### Backend Dependencies
 ```powershell
-cd "c:\Life Psychology Australia\repos\bloom-web-app\api"
+cd "c:\Repos\bloom-web-app\api"
 npm install
 cd ..
 ```
@@ -50,7 +50,7 @@ az sql db query `
 # Get storage connection string
 $connectionString = az storage account show-connection-string `
   --name lpaapplicationstorage `
-  --resource-group lpa-resources `
+  --resource-group rg-lpa-unified `
   --query connectionString `
   --output tsv
 
@@ -98,7 +98,7 @@ $myIp = (Invoke-WebRequest -Uri "https://api.ipify.org").Content
 # Add firewall rule
 az sql server firewall-rule create `
   --server lpa-sql-server `
-  --resource-group lpa-resources `
+  --resource-group rg-lpa-unified `
   --name "DevelopmentMachine" `
   --start-ip-address $myIp `
   --end-ip-address $myIp
@@ -108,7 +108,7 @@ az sql server firewall-rule create `
 
 ### Terminal 1: Backend API
 ```powershell
-cd "c:\Life Psychology Australia\repos\bloom-web-app\api"
+cd "c:\Repos\bloom-web-app\api"
 func start
 ```
 
@@ -117,11 +117,14 @@ Expected output:
 Functions:
   applications: [GET,POST,PUT] http://localhost:7071/api/applications/{id?}
   upload: [POST] http://localhost:7071/api/upload
+  ab-test: [GET,POST] http://localhost:7071/api/ab-test
+  health: [GET] http://localhost:7071/api/health
+  ... (additional functions)
 ```
 
 ### Terminal 2: Frontend Dev Server
 ```powershell
-cd "c:\Life Psychology Australia\repos\bloom-web-app"
+cd "c:\Repos\bloom-web-app"
 npm run dev
 ```
 
@@ -135,7 +138,7 @@ VITE v5.x.x ready in xxx ms
 
 ### Test 1: Application Form
 
-1. Open browser: `http://localhost:5173/#/join-us`
+1. Open browser: `http://localhost:5173/join-us`
 2. Fill in test data:
    - First Name: `Test`
    - Last Name: `Psychologist`
@@ -153,7 +156,7 @@ VITE v5.x.x ready in xxx ms
 
 ### Test 2: Admin Portal
 
-1. Open browser: `http://localhost:5173/#/admin`
+1. Open browser: `http://localhost:5173/admin` (requires Azure AD login)
 2. ✅ You should see the test application in the list
 3. Click on the application
 4. ✅ Full details should appear on the right
@@ -217,7 +220,7 @@ You should see 2-3 blobs (cv, certificate, and optionally photo).
 $myIp = (Invoke-WebRequest -Uri "https://api.ipify.org").Content
 az sql server firewall-rule create `
   --server lpa-sql-server `
-  --resource-group lpa-resources `
+  --resource-group rg-lpa-unified `
   --name "DevIP-$(Get-Date -Format 'yyyyMMdd')" `
   --start-ip-address $myIp `
   --end-ip-address $myIp
@@ -255,19 +258,22 @@ func start
 ```powershell
 # See DEPLOYMENT.md for full instructions
 
-# Quick deploy backend
+# Quick deploy backend (use environment-specific function app)
 cd api
-func azure functionapp publish lpa-bloom-functions
+# Dev: func azure functionapp publish bloom-functions-dev
+# Staging: func azure functionapp publish bloom-functions-staging-new
+# Prod: func azure functionapp publish bloom-platform-functions-v2
 
 # Quick deploy frontend (via GitHub)
 git add .
 git commit -m "feat: Proto-Bloom application management"
-git push origin staging
+git push origin develop  # or staging/main
 ```
 
 **Production URLs:**
-- Application Form: `https://life-psychology.com.au/#/join-us`
-- Admin Portal: `https://life-psychology.com.au/#/admin`
+- Application Form: `https://bloom.life-psychology.com.au/join-us`
+- Admin Portal: `https://bloom.life-psychology.com.au/admin`
+- Practitioner Dashboard: `https://bloom.life-psychology.com.au/bloom-home`
 
 ---
 

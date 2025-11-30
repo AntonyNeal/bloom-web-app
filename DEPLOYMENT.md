@@ -47,7 +47,7 @@ az account show
 
 ```powershell
 # Navigate to your project
-cd "c:\Life Psychology Australia\repos\bloom-web-app"
+cd "c:\Repos\bloom-web-app"
 
 # Run the schema script
 az sql db query `
@@ -79,7 +79,7 @@ az sql db query `
 ```powershell
 # Set variables
 $storageAccount = "lpaapplicationstorage"
-$resourceGroup = "lpa-resources"
+$resourceGroup = "rg-lpa-unified"
 $containerName = "applications"
 
 # Get connection string
@@ -120,7 +120,7 @@ Write-Host $connectionString
 
 ```powershell
 # Navigate to api folder
-cd "c:\Life Psychology Australia\repos\bloom-web-app\api"
+cd "c:\Repos\bloom-web-app\api"
 
 # Install dependencies
 npm install
@@ -176,7 +176,8 @@ curl http://localhost:7071/api/applications
 
 ```powershell
 # Create Function App (if not already created)
-$functionAppName = "lpa-bloom-functions"
+# Actual environment-specific names: bloom-functions-dev, bloom-functions-staging-new, bloom-platform-functions-v2 (prod)
+$functionAppName = "bloom-functions-dev"
 
 # Check if it exists
 az functionapp show --name $functionAppName --resource-group $resourceGroup
@@ -241,7 +242,7 @@ Create `src/config/api.ts`:
 ```typescript
 export const API_BASE_URL = 
   import.meta.env.MODE === 'production'
-    ? 'https://lpa-bloom-functions.azurewebsites.net/api'
+    ? 'https://bloom-platform-functions-v2.azurewebsites.net/api'  // or environment-specific URL
     : 'http://localhost:7071/api';
 ```
 
@@ -260,7 +261,7 @@ fetch(`${API_BASE_URL}/applications`)
 
 ```powershell
 # Navigate to project root
-cd "c:\Life Psychology Australia\repos\bloom-web-app"
+cd "c:\Repos\bloom-web-app"
 
 # Install dependencies (if not already done)
 npm install
@@ -272,22 +273,25 @@ npm run build
 ### Step 3: Deploy to Azure Static Web Apps
 
 ```powershell
-# If you don't have a Static Web App yet:
-$staticWebAppName = "lpa-bloom-web"
+# Actual Static Web Apps: lpa-bloom-dev, lpa-bloom-staging, lpa-bloom-prod
+$staticWebAppName = "lpa-bloom-dev"  # or lpa-bloom-staging, lpa-bloom-prod
 
 az staticwebapp create `
   --name $staticWebAppName `
   --resource-group $resourceGroup `
   --location australiaeast `
   --source "https://github.com/AntonyNeal/bloom-web-app" `
-  --branch staging `
+  --branch develop `  # develop -> dev, staging -> staging, main -> prod
   --app-location "/" `
   --output-location "dist"
 ```
 
 **Or use GitHub Actions (Recommended):**
 
-Your existing `.github/workflows/azure-static-web-apps-*.yml` should automatically deploy when you push to the staging branch.
+Your existing `.github/workflows/ci-cd.yml` automatically deploys based on branch:
+- `develop` branch → lpa-bloom-dev
+- `staging` branch → lpa-bloom-staging  
+- `main` branch → lpa-bloom-prod
 
 ### Step 4: Configure Custom Domain (if needed)
 
@@ -348,7 +352,7 @@ Already configured in Part 3, Step 5.
 
 ### Test Application Submission
 
-1. Navigate to: `https://life-psychology.com.au/#/join-us` (or `http://localhost:5173/#/join-us` for local)
+1. Navigate to: `https://life-psychology.com.au/join-us` (or `http://localhost:5173/join-us` for local)
 2. Fill out the form with test data:
    - First Name: Test
    - Last Name: User
@@ -363,7 +367,8 @@ Already configured in Part 3, Step 5.
 
 ### Test Admin Portal
 
-1. Navigate to: `https://life-psychology.com.au/#/admin`
+1. Navigate to: `https://life-psychology.com.au/admin`
+2. **Note:** Admin routes are protected by Azure AD B2C authentication
 2. Verify the test application appears in the list
 3. Click on the application to view details
 4. Test status changes:
@@ -557,7 +562,7 @@ az sql db export `
 ✅ Admin can change application status  
 ✅ Status updates persist to database  
 ✅ Documents downloadable from Blob Storage  
-✅ No authentication (deferred to Phase 2)  
+✅ Azure AD B2C authentication implemented  
 ✅ GitHub Actions deploying automatically  
 
 ---
@@ -566,35 +571,43 @@ az sql db export `
 
 **Not in scope for Proto-Bloom MVP:**
 - Email notifications
-- Authentication/Authorization
 - AHPRA verification API integration
 - Multi-step form wizard
 - Analytics dashboard
 - Automated testing
 
+**Already Implemented:**
+✅ Azure AD B2C for admin authentication (using MSAL + ProtectedRoute)
+
 **Future enhancements:**
-1. Add Azure AD B2C for admin authentication
-2. Implement SendGrid for email notifications
-3. Add Logic Apps for AHPRA verification workflow
-4. Create Power BI dashboard for application metrics
+1. Implement SendGrid for email notifications
+2. Add Logic Apps for AHPRA verification workflow
+3. Create Power BI dashboard for application metrics
 
 ---
 
 ## Quick Reference
 
 ### Resource Names
-- **Resource Group:** `lpa-resources`
+- **Resource Group:** `rg-lpa-unified`
 - **SQL Server:** `lpa-sql-server.database.windows.net`
 - **Database:** `lpa-bloom-db`
 - **Storage Account:** `lpaapplicationstorage`
-- **Function App:** `lpa-bloom-functions`
-- **Static Web App:** `lpa-bloom-web`
+- **Function Apps:**
+  - Dev: `bloom-functions-dev`
+  - Staging: `bloom-functions-staging-new`
+  - Prod: `bloom-platform-functions-v2`
+- **Static Web Apps:**
+  - Dev: `lpa-bloom-dev`
+  - Staging: `lpa-bloom-staging`
+  - Prod: `lpa-bloom-prod`
 
 ### URLs
 - **Website:** https://life-psychology.com.au
-- **Application Form:** https://life-psychology.com.au/#/join-us
-- **Admin Portal:** https://life-psychology.com.au/#/admin
-- **API Base:** https://lpa-bloom-functions.azurewebsites.net/api
+- **Application Form:** https://life-psychology.com.au/join-us
+- **Admin Portal:** https://life-psychology.com.au/admin (protected)
+- **API Base (Prod):** https://bloom-platform-functions-v2.azurewebsites.net/api
+- **API Base (Dev):** https://bloom-functions-dev.azurewebsites.net/api
 
 ### Local Development
 ```powershell

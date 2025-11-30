@@ -1,8 +1,11 @@
 # Bloom Application Management System
 
+> **Last Updated**: November 2025
+> **Status**: Production with Azure AD Authentication
+
 ## Overview
 
-The Bloom Application Management System is the MVP onboarding solution for Life Psychology Australia's Bloom platform. It enables psychologists to submit applications online and provides an admin portal for reviewing and managing these applications.
+The Bloom Application Management System is the onboarding solution for Life Psychology Australia's Bloom platform. It enables psychologists to submit applications online and provides an authenticated admin portal for reviewing and managing these applications.
 
 ## Features
 
@@ -15,42 +18,77 @@ The Bloom Application Management System is the MVP onboarding solution for Life 
 - **Validation**: Required field checking, file type validation
 - **Success Feedback**: Toast notifications and success screen
 
-### ✅ Admin Review Portal (`/admin`)
+### ✅ Admin Review Portal (`/admin/*`) - Protected by Azure AD
 
-- **Application List**: View all submitted applications with status badges
-- **Status Dashboard**: Quick overview of application counts by status
-- **Detail View**: Click any application to see full details
+- **Dashboard** (`/admin`): Quick overview of application counts by status
+- **Application List** (`/admin/applications`): View all submitted applications with status badges
+- **Detail View** (`/admin/applications/:id`): Click any application to see full details
 - **Status Management**: Mark as Reviewing, Approve, or Reject
 - **Document Access**: Direct links to uploaded files in Azure Blob Storage
 - **Real-time Updates**: Status changes persist immediately to database
 
-### ✅ Backend API (Azure Functions)
+### ✅ A/B Testing Dashboard (`/admin/ab-tests`) - Protected
 
+- Real-time variant performance tracking
+- Statistical significance calculations
+- CSV export for offline analysis
+
+### ✅ Smoke Test Dashboard (`/admin/smoke-tests`) - Protected
+
+- System health monitoring
+- API endpoint status checks
+
+### ✅ Practitioner Dashboard (`/bloom-home`) - Protected
+
+- Practice overview with blossom tree visualization
+- Business metrics and growth tracking (`/business-coach`)
+
+### ✅ Backend API (Azure Functions v4)
+
+**Core Endpoints:**
 - **GET /api/applications**: List all applications
 - **GET /api/applications/{id}**: Get single application details
 - **POST /api/applications**: Submit new application
 - **PUT /api/applications/{id}**: Update application status
 - **POST /api/upload**: Upload files to Azure Blob Storage
 
+**Analytics & Monitoring:**
+- **GET /api/ab-test**: A/B test configuration
+- **POST /api/track-ab-test**: Track A/B test events
+- **GET /api/smoke-test**: System health check
+- **GET /api/health**: API health endpoint
+
+**Integrations:**
+- **POST /api/halaxy-webhook**: Halaxy practice management webhook
+- **/api/practitioner-dashboard**: Dashboard data for authenticated practitioners
+
 ## Tech Stack
 
 - **Frontend**: React 18 + TypeScript, Vite, shadcn/ui components
-- **Backend**: Azure Functions (Node.js/TypeScript)
+- **Backend**: Azure Functions v4 (Node.js/TypeScript)
 - **Database**: Azure SQL Database
 - **Storage**: Azure Blob Storage
+- **Auth**: Azure AD B2C (MSAL)
 - **Design System**: shadcn/ui (sage green/terracotta color scheme)
 
 ## Project Structure
 
 ```
 bloom-web-app/
-├── api/                          # Azure Functions backend
-│   ├── applications/             # Application CRUD endpoints
-│   │   ├── function.json
-│   │   └── index.ts
-│   ├── upload/                   # File upload endpoint
-│   │   ├── function.json
-│   │   └── index.ts
+├── api/                          # Azure Functions backend (v4 programming model)
+│   ├── src/
+│   │   └── functions/           # Function endpoints
+│   │       ├── applications.ts  # Application CRUD
+│   │       ├── upload.ts        # File upload to Blob Storage
+│   │       ├── ab-test.ts       # A/B test management
+│   │       ├── track-ab-test.ts # A/B tracking events
+│   │       ├── smoke-test.ts    # Health checks
+│   │       ├── health.ts        # API health endpoint
+│   │       ├── practitioner-dashboard.ts
+│   │       ├── halaxy-sync-timer.ts
+│   │       ├── halaxy-webhook.ts
+│   │       └── dbvc.ts          # DB version control
+│   ├── migrations/              # Database migrations
 │   ├── package.json
 │   ├── tsconfig.json
 │   ├── host.json
@@ -58,19 +96,21 @@ bloom-web-app/
 ├── src/
 │   ├── pages/
 │   │   ├── JoinUs.tsx           # Application form page
+│   │   ├── BloomHomepage.tsx    # Practitioner dashboard
+│   │   ├── BusinessCoach.tsx    # Business analytics
 │   │   └── admin/
-│   │       └── ApplicationManagement.tsx  # Admin portal
-│   ├── components/ui/           # shadcn/ui components
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   ├── input.tsx
-│   │   ├── label.tsx
-│   │   ├── textarea.tsx
-│   │   ├── badge.tsx
-│   │   ├── toast.tsx
-│   │   └── toaster.tsx
+│   │       ├── AdminDashboard.tsx
+│   │       ├── ApplicationManagement.tsx
+│   │       ├── ApplicationDetail.tsx
+│   │       ├── ABTestDashboard.tsx
+│   │       └── SmokeTestDashboard.tsx
+│   ├── components/
+│   │   ├── ui/                  # shadcn/ui components
+│   │   ├── auth/                # Authentication components
+│   │   └── common/              # Shared components (ProtectedRoute, etc.)
 │   ├── hooks/
-│   │   └── use-toast.ts
+│   │   ├── use-toast.ts
+│   │   └── useAuth.ts           # Authentication hook
 │   ├── config/
 │   │   └── api.ts               # API endpoint configuration
 │   └── App.tsx                  # Main app with routing
@@ -178,8 +218,9 @@ CREATE TABLE applications (
 
 8. **Access the app**
    - Frontend: http://localhost:5173
-   - Application Form: http://localhost:5173/#/join-us
-   - Admin Portal: http://localhost:5173/#/admin
+   - Application Form: http://localhost:5173/join-us
+   - Admin Portal: http://localhost:5173/admin (requires Azure AD login)
+   - Practitioner Dashboard: http://localhost:5173/bloom-home (requires Azure AD login)
    - API: http://localhost:7071/api
 
 ## Deployment
@@ -189,14 +230,16 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for comprehensive deployment instructions.
 **Quick Deploy:**
 
 ```powershell
-# Deploy backend
+# Deploy backend (use environment-specific function app name)
 cd api
-func azure functionapp publish lpa-bloom-functions
+# Dev: func azure functionapp publish bloom-functions-dev
+# Staging: func azure functionapp publish bloom-functions-staging-new
+# Prod: func azure functionapp publish bloom-platform-functions-v2
 
-# Deploy frontend (via GitHub Actions)
+# Deploy frontend (via GitHub Actions - push to appropriate branch)
 git add .
 git commit -m "feat: application management system"
-git push origin staging
+git push origin develop  # or staging/main for respective environments
 ```
 
 ## Usage
@@ -277,20 +320,23 @@ Response: { url, fileName, size }
 
 ## Security Notes
 
-⚠️ **MVP Limitations** (deferred to Phase 2):
+✅ **Implemented Security Features:**
 
-- No authentication on admin portal (manual access only)
-- No email verification for applicants
-- Basic CORS configuration
-- No rate limiting
+- Azure AD B2C authentication for admin/practitioner portals
+- ProtectedRoute component with useAuth hook
+- MSAL (Microsoft Authentication Library) integration
+- Private blob storage (no public access)
+- SQL injection protection (parameterized queries)
+- File type validation
+- CORS configured per environment
+- Input validation with Zod
 
-**Recommended for Production:**
+⚠️ **Pending Improvements** (deferred):
 
-- Add Azure AD B2C authentication
-- Implement email verification flow
-- Add rate limiting to prevent abuse
-- Set up more restrictive CORS policies
-- Enable Application Insights monitoring
+- Rate limiting on API endpoints
+- Email verification for applicants
+- More restrictive CORS policies
+- Application Insights monitoring enhancements
 
 ## File Upload Limits
 
@@ -316,8 +362,9 @@ AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;...
 
 Configured in `src/config/api.ts`:
 
-- Development: `http://localhost:7071/api`
-- Production: `https://lpa-bloom-functions.azurewebsites.net/api`
+- Development: `http://localhost:7071/api` (local) or `https://bloom-functions-dev.azurewebsites.net/api`
+- Staging: `https://bloom-functions-staging-new.azurewebsites.net/api`
+- Production: `https://bloom-platform-functions-v2.azurewebsites.net/api`
 
 ## Monitoring
 
@@ -342,9 +389,10 @@ az storage blob list \
 ### Function Logs
 
 ```powershell
+# Use environment-specific function app name
 az functionapp log tail \
-  --name lpa-bloom-functions \
-  --resource-group lpa-resources
+  --name bloom-platform-functions-v2 \
+  --resource-group rg-lpa-unified
 ```
 
 ## Troubleshooting

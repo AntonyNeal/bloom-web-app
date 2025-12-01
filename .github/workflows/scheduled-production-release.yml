@@ -1,0 +1,176 @@
+# SCHEDULED PRODUCTION DEPLOYMENT WORKFLOW
+# Creates a production PR from staging → main on schedule
+# Requires manual approval before merge
+#
+# SCHEDULE: Day 14 Saturday - creates PR for review
+# The actual deployment happens when the PR is approved and merged
+
+name: Scheduled Production Release
+
+on:
+  # Saturday at 12am AEST (Friday 1pm UTC) - creates PR for Saturday 1am deployment
+  # This gives time for final review before the 1am deployment window
+  schedule:
+    - cron: '0 13 * * 5'  # Every Friday at 1pm UTC (Saturday 12am AEST)
+  
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      create_pr_only:
+        description: 'Only create PR (do not enable auto-merge)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-production-release:
+    name: 🏭 Create Production Release PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for existing PR
+        id: check-existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING_PR=$(gh pr list --base main --head staging --state open --json number --jq '.[0].number // empty')
+          
+          if [ -n "$EXISTING_PR" ]; then
+            echo "existing_pr=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "has_existing=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_existing=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if staging has changes
+        id: check-changes
+        run: |
+          git fetch origin main staging
+          
+          COMMIT_COUNT=$(git rev-list --count origin/main..origin/staging)
+          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ "$COMMIT_COUNT" -eq 0 ]; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "::notice::No changes in staging to release"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Found $COMMIT_COUNT commits to release"
+          fi
+
+      - name: Get release information
+        id: release-info
+        if: steps.check-existing.outputs.has_existing == 'false' && steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          # Generate version based on date
+          VERSION="v$(date +%Y.%m.%d)"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Get commit messages
+          COMMITS=$(git log origin/main..origin/staging --pretty=format:"- %s (%h)" | head -50)
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Count by type (rough categorization)
+          FEATURES=$(git log origin/main..origin/staging --pretty=format:"%s" | grep -iE "^(feat|add|new)" | wc -l)
+          FIXES=$(git log origin/main..origin/staging --pretty=format:"%s" | grep -iE "^(fix|bug|patch)" | wc -l)
+          OTHER=$(git log origin/main..origin/staging --pretty=format:"%s" | grep -ivE "^(feat|add|new|fix|bug|patch)" | wc -l)
+          
+          echo "features=$FEATURES" >> $GITHUB_OUTPUT
+          echo "fixes=$FIXES" >> $GITHUB_OUTPUT
+          echo "other=$OTHER" >> $GITHUB_OUTPUT
+
+      - name: Create Production PR
+        if: steps.check-existing.outputs.has_existing == 'false' && steps.check-changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_DATE=$(date +"%A, %B %d, %Y")
+          
+          gh pr create \
+            --base main \
+            --head staging \
+            --title "🏭 Production Release ${{ steps.release-info.outputs.version }}" \
+            --body "## 🏭 Production Release ${{ steps.release-info.outputs.version }}
+          
+          **Scheduled Release Date:** $RELEASE_DATE at 1:00 AM AEST
+          
+          ---
+          
+          ### 📊 Release Summary
+          
+          | Category | Count |
+          |----------|-------|
+          | ✨ Features | ${{ steps.release-info.outputs.features }} |
+          | 🐛 Bug Fixes | ${{ steps.release-info.outputs.fixes }} |
+          | 📝 Other | ${{ steps.release-info.outputs.other }} |
+          | **Total** | **${{ steps.check-changes.outputs.commit_count }}** |
+          
+          ---
+          
+          ### 📋 Changes
+          
+          ${{ steps.release-info.outputs.commits }}
+          
+          ---
+          
+          ### ✅ Pre-Release Checklist
+          
+          - [ ] UAT testing completed on staging environment
+          - [ ] All critical/blocking bugs resolved
+          - [ ] Performance benchmarks acceptable
+          - [ ] Database migrations reviewed (if any)
+          - [ ] Rollback procedure documented
+          - [ ] On-call team notified
+          
+          ---
+          
+          ### 🚨 Approval Required
+          
+          This PR requires **manual approval** before merging.
+          
+          Once approved and merged:
+          1. Production deployment will begin automatically
+          2. Post-deployment cascade will sync main → staging → develop
+          3. Azure monitoring alerts will notify of deployment status
+          
+          ---
+          
+          *This PR was automatically created by the Release Orchestration system.*"
+
+      - name: Notify existing PR
+        if: steps.check-existing.outputs.has_existing == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "::notice::Production PR #${{ steps.check-existing.outputs.existing_pr }} already exists"
+          
+          # Add a reminder comment
+          gh pr comment ${{ steps.check-existing.outputs.existing_pr }} --body "🔔 **Reminder:** Production release is scheduled for Saturday 1am AEST.
+          
+          Please review and approve this PR before the deployment window."
+
+      - name: Summary
+        run: |
+          echo "## 🏭 Production Release Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check-existing.outputs.has_existing }}" == "true" ]; then
+            echo "✅ Production PR already exists: #${{ steps.check-existing.outputs.existing_pr }}" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.check-changes.outputs.has_changes }}" == "false" ]; then
+            echo "ℹ️ No changes to release - staging is in sync with main" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Production PR created for release ${{ steps.release-info.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Commits:** ${{ steps.check-changes.outputs.commit_count }}" >> $GITHUB_STEP_SUMMARY
+          fi

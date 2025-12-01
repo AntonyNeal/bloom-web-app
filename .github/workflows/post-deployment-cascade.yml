@@ -1,0 +1,179 @@
+# POST-DEPLOYMENT CASCADE WORKFLOW
+# Automatically merges main into staging and develop after production deployment
+#
+# TRIGGER: Runs after successful deployment to main branch
+# ACTIONS:
+# 1. Merge main → staging (fast-forward if possible)
+# 2. Merge main → develop (fast-forward if possible)
+#
+# This ensures all branches stay in sync after a production release
+
+name: Post-Deployment Cascade
+
+on:
+  # Trigger when CI/CD completes on main branch
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+    branches:
+      - main
+
+  # Manual trigger for recovery/testing
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (show what would happen without merging)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  MAIN_BRANCH: main
+  STAGING_BRANCH: staging
+  DEVELOP_BRANCH: develop
+
+jobs:
+  cascade-merge:
+    name: 🔄 Cascade Merge main → staging → develop
+    runs-on: ubuntu-latest
+    # Only run if the triggering workflow succeeded (or manual dispatch)
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main → staging
+        id: merge-staging
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: |
+          echo "🔄 Merging main → staging..."
+          
+          git fetch origin ${{ env.MAIN_BRANCH }}
+          git fetch origin ${{ env.STAGING_BRANCH }}
+          
+          # Check if staging is behind main
+          BEHIND_COUNT=$(git rev-list --count origin/${{ env.STAGING_BRANCH }}..origin/${{ env.MAIN_BRANCH }})
+          
+          if [ "$BEHIND_COUNT" -eq 0 ]; then
+            echo "✅ staging is already up to date with main"
+            echo "status=up-to-date" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "staging is $BEHIND_COUNT commits behind main"
+          
+          if [ "$DRY_RUN" == "true" ]; then
+            echo "🔍 DRY RUN: Would merge $BEHIND_COUNT commits from main to staging"
+            echo "status=dry-run" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Checkout staging and merge main
+          git checkout ${{ env.STAGING_BRANCH }}
+          git merge origin/${{ env.MAIN_BRANCH }} --no-edit -m "🔄 Post-deployment cascade: merge main into staging"
+          
+          # Push changes
+          git push origin ${{ env.STAGING_BRANCH }}
+          
+          echo "✅ Successfully merged main → staging"
+          echo "status=merged" >> $GITHUB_OUTPUT
+          echo "commits=$BEHIND_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Merge main → develop
+        id: merge-develop
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: |
+          echo "🔄 Merging main → develop..."
+          
+          git fetch origin ${{ env.MAIN_BRANCH }}
+          git fetch origin ${{ env.DEVELOP_BRANCH }}
+          
+          # Check if develop is behind main
+          BEHIND_COUNT=$(git rev-list --count origin/${{ env.DEVELOP_BRANCH }}..origin/${{ env.MAIN_BRANCH }})
+          
+          if [ "$BEHIND_COUNT" -eq 0 ]; then
+            echo "✅ develop is already up to date with main"
+            echo "status=up-to-date" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "develop is $BEHIND_COUNT commits behind main"
+          
+          if [ "$DRY_RUN" == "true" ]; then
+            echo "🔍 DRY RUN: Would merge $BEHIND_COUNT commits from main to develop"
+            echo "status=dry-run" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Checkout develop and merge main
+          git checkout ${{ env.DEVELOP_BRANCH }}
+          git merge origin/${{ env.MAIN_BRANCH }} --no-edit -m "🔄 Post-deployment cascade: merge main into develop"
+          
+          # Push changes
+          git push origin ${{ env.DEVELOP_BRANCH }}
+          
+          echo "✅ Successfully merged main → develop"
+          echo "status=merged" >> $GITHUB_OUTPUT
+          echo "commits=$BEHIND_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Summary
+        run: |
+          echo "## 🔄 Post-Deployment Cascade Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| main → staging | ${{ steps.merge-staging.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| main → develop | ${{ steps.merge-develop.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.merge-staging.outputs.commits }}" != "" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Merged ${{ steps.merge-staging.outputs.commits }} commits to staging" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ steps.merge-develop.outputs.commits }}" != "" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Merged ${{ steps.merge-develop.outputs.commits }} commits to develop" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Notify on failure
+  notify-failure:
+    name: 📢 Notify on Failure
+    runs-on: ubuntu-latest
+    needs: cascade-merge
+    if: failure()
+    steps:
+      - name: Create issue on failure
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --repo ${{ github.repository }} \
+            --title "🚨 Post-Deployment Cascade Failed" \
+            --body "The post-deployment cascade workflow failed to merge main into staging and/or develop.
+          
+          **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          
+          **Action Required:**
+          1. Check the workflow logs for details
+          2. Manually resolve any merge conflicts
+          3. Re-run the cascade workflow or merge manually
+          
+          This may indicate merge conflicts that need to be resolved before the next development cycle can begin."

@@ -1,0 +1,412 @@
+# RELEASE ORCHESTRATION WORKFLOW
+# Manages the 2-week development cycle for Life Psychology
+#
+# CYCLE OVERVIEW:
+# Day 1 (Saturday 1am AEST): Production deployment from staging → main
+# Day 1-2 (Sat-Sun): Stability monitoring, hotfixes via staging PR if needed
+# Day 2 (Sunday): PR opened from develop → staging for next release
+# Day 3 (Monday): New feature development begins in develop
+# Day 9 (Sunday 10pm AEST): Auto-merge develop → staging PR
+# Day 9-14: UAT on staging, fixes directly in staging branch
+# Day 14 (Saturday 1am AEST): Next production deployment
+#
+# BRANCH RULES:
+# - main: Only via approved PR from staging
+# - staging: Via PR from develop (squash) OR direct commits during UAT
+# - develop: Feature development branch
+#
+# POST-DEPLOYMENT CASCADE:
+# main deployed → merge main → staging → merge main → develop
+
+name: Release Orchestration
+
+on:
+  # Scheduled triggers (Sydney/AEST timezone = UTC+11, accounting for AEDT)
+  schedule:
+    # Day 9: Auto-merge develop→staging PR at 10pm Sunday AEST (11am UTC Sunday)
+    - cron: '0 11 * * 0'  # Every Sunday at 11:00 UTC (10pm AEST/AEDT)
+    
+  # Manual triggers for release operations
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Release action to perform'
+        required: true
+        type: choice
+        options:
+          - create-staging-pr
+          - auto-merge-staging-pr
+          - create-production-pr
+          - cascade-main-to-branches
+          - check-cycle-status
+      force:
+        description: 'Force action even if conditions not met'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+env:
+  DEVELOP_BRANCH: develop
+  STAGING_BRANCH: staging
+  MAIN_BRANCH: main
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SCHEDULED: Auto-merge develop → staging PR (Day 9, Sunday 10pm AEST)
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  scheduled-auto-merge:
+    name: 🔄 Scheduled Auto-Merge (Day 9)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find open develop → staging PR
+        id: find-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Find open PR from develop to staging
+          PR_NUMBER=$(gh pr list --base staging --head develop --state open --json number --jq '.[0].number // empty')
+          
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No open PR from develop to staging found"
+            echo "pr_found=false" >> $GITHUB_OUTPUT
+          else
+            echo "Found PR #$PR_NUMBER"
+            echo "pr_found=true" >> $GITHUB_OUTPUT
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check PR is mergeable
+        id: check-mergeable
+        if: steps.find-pr.outputs.pr_found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ steps.find-pr.outputs.pr_number }}
+          
+          # Get PR status
+          PR_DATA=$(gh pr view $PR_NUMBER --json mergeable,mergeStateStatus,statusCheckRollup)
+          MERGEABLE=$(echo "$PR_DATA" | jq -r '.mergeable')
+          MERGE_STATE=$(echo "$PR_DATA" | jq -r '.mergeStateStatus')
+          
+          echo "Mergeable: $MERGEABLE"
+          echo "Merge State: $MERGE_STATE"
+          
+          if [ "$MERGEABLE" == "MERGEABLE" ] && [ "$MERGE_STATE" == "CLEAN" ]; then
+            echo "can_merge=true" >> $GITHUB_OUTPUT
+          else
+            echo "can_merge=false" >> $GITHUB_OUTPUT
+            echo "::warning::PR #$PR_NUMBER is not ready to merge (mergeable: $MERGEABLE, state: $MERGE_STATE)"
+          fi
+
+      - name: Auto-merge PR with squash
+        if: steps.find-pr.outputs.pr_found == 'true' && steps.check-mergeable.outputs.can_merge == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ steps.find-pr.outputs.pr_number }}
+          
+          echo "🔄 Auto-merging PR #$PR_NUMBER with squash commit..."
+          gh pr merge $PR_NUMBER --squash --auto --delete-branch=false
+          
+          echo "✅ PR #$PR_NUMBER has been merged to staging"
+
+      - name: Post notification comment
+        if: steps.find-pr.outputs.pr_found == 'true' && steps.check-mergeable.outputs.can_merge == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ steps.find-pr.outputs.pr_number }}
+          
+          gh pr comment $PR_NUMBER --body "🤖 **Release Orchestration**
+          
+          This PR was automatically merged as part of the Day 9 scheduled release cycle.
+          
+          **Next Steps:**
+          - UAT testing will begin on staging
+          - Any fixes should be made directly in the staging branch
+          - Production deployment is scheduled for Day 14 (Saturday 1am AEST)"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # MANUAL: Create PR from develop → staging
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  create-staging-pr:
+    name: 📝 Create Staging PR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'create-staging-pr'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for existing PR
+        id: check-existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING_PR=$(gh pr list --base staging --head develop --state open --json number --jq '.[0].number // empty')
+          
+          if [ -n "$EXISTING_PR" ]; then
+            echo "existing_pr=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "has_existing=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_existing=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get commit summary
+        id: commits
+        if: steps.check-existing.outputs.has_existing == 'false'
+        run: |
+          # Get commits in develop that aren't in staging
+          COMMIT_COUNT=$(git rev-list --count staging..develop)
+          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+          
+          # Get commit messages for PR body
+          COMMITS=$(git log staging..develop --pretty=format:"- %s" | head -20)
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create PR
+        if: steps.check-existing.outputs.has_existing == 'false' && steps.commits.outputs.commit_count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Calculate cycle dates
+          TODAY=$(date +%Y-%m-%d)
+          MERGE_DATE=$(date -d "next Sunday" +%Y-%m-%d)
+          RELEASE_DATE=$(date -d "next Saturday + 1 week" +%Y-%m-%d)
+          
+          gh pr create \
+            --base staging \
+            --head develop \
+            --title "🚀 Release: develop → staging (Cycle starting $TODAY)" \
+            --body "## Release PR: develop → staging
+          
+          **Created:** $TODAY
+          **Auto-merge scheduled:** Sunday 10pm AEST
+          **Target production release:** Saturday 1am AEST
+          
+          ---
+          
+          ### Changes (${{ steps.commits.outputs.commit_count }} commits)
+          
+          ${{ steps.commits.outputs.commits }}
+          
+          ---
+          
+          ### Release Cycle Timeline
+          - ✅ **Day 2 (Today):** PR created
+          - ⏳ **Day 9 (Sunday 10pm):** Auto-merge to staging
+          - ⏳ **Day 9-14:** UAT testing on staging
+          - ⏳ **Day 14 (Saturday 1am):** Production deployment
+          
+          ---
+          
+          ⚠️ **Note:** This PR will be squash-merged automatically on Day 9 unless merged earlier."
+
+      - name: Report existing PR
+        if: steps.check-existing.outputs.has_existing == 'true'
+        run: |
+          echo "::notice::PR #${{ steps.check-existing.outputs.existing_pr }} already exists for develop → staging"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # MANUAL: Create PR from staging → main (requires approval)
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  create-production-pr:
+    name: 🏭 Create Production PR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'create-production-pr'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for existing PR
+        id: check-existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING_PR=$(gh pr list --base main --head staging --state open --json number --jq '.[0].number // empty')
+          
+          if [ -n "$EXISTING_PR" ]; then
+            echo "existing_pr=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "has_existing=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_existing=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get release summary
+        id: release-info
+        if: steps.check-existing.outputs.has_existing == 'false'
+        run: |
+          # Get commits in staging that aren't in main
+          COMMIT_COUNT=$(git rev-list --count main..staging)
+          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+          
+          # Get commit messages
+          COMMITS=$(git log main..staging --pretty=format:"- %s" | head -30)
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Generate version tag
+          CURRENT_DATE=$(date +%Y.%m.%d)
+          echo "version=v$CURRENT_DATE" >> $GITHUB_OUTPUT
+
+      - name: Create Production PR
+        if: steps.check-existing.outputs.has_existing == 'false' && steps.release-info.outputs.commit_count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head staging \
+            --title "🏭 Production Release ${{ steps.release-info.outputs.version }}" \
+            --body "## Production Release: staging → main
+          
+          **Version:** ${{ steps.release-info.outputs.version }}
+          **Changes:** ${{ steps.release-info.outputs.commit_count }} commits
+          
+          ---
+          
+          ### Release Contents
+          
+          ${{ steps.release-info.outputs.commits }}
+          
+          ---
+          
+          ### Pre-Deployment Checklist
+          
+          - [ ] UAT testing completed on staging
+          - [ ] All critical bugs fixed
+          - [ ] Performance verified
+          - [ ] Monitoring alerts configured
+          - [ ] Rollback plan reviewed
+          
+          ---
+          
+          ⚠️ **This PR requires manual approval before merging.**
+          
+          🕐 **Scheduled deployment:** Saturday 1am AEST
+          
+          After merging, the post-deployment cascade will automatically:
+          1. Merge main → staging
+          2. Merge main → develop"
+
+      - name: Report existing PR
+        if: steps.check-existing.outputs.has_existing == 'true'
+        run: |
+          echo "::notice::PR #${{ steps.check-existing.outputs.existing_pr }} already exists for staging → main"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # MANUAL: Force auto-merge of develop → staging PR
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  force-auto-merge:
+    name: 🔄 Force Auto-Merge
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'auto-merge-staging-pr'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find and merge PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORCE: ${{ github.event.inputs.force }}
+        run: |
+          PR_NUMBER=$(gh pr list --base staging --head develop --state open --json number --jq '.[0].number // empty')
+          
+          if [ -z "$PR_NUMBER" ]; then
+            echo "::error::No open PR from develop to staging found"
+            exit 1
+          fi
+          
+          echo "Found PR #$PR_NUMBER"
+          
+          # Check if we should force merge
+          if [ "$FORCE" == "true" ]; then
+            echo "Force merging PR #$PR_NUMBER..."
+            gh pr merge $PR_NUMBER --squash --admin
+          else
+            # Normal merge (respects branch protection)
+            gh pr merge $PR_NUMBER --squash --auto
+          fi
+          
+          echo "✅ PR #$PR_NUMBER merged to staging"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # MANUAL: Check release cycle status
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  check-cycle-status:
+    name: 📊 Check Cycle Status
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'check-cycle-status'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate status report
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "## 📊 Release Cycle Status"
+          echo ""
+          
+          # Check branch differences
+          DEV_AHEAD=$(git rev-list --count staging..develop)
+          STAGING_AHEAD=$(git rev-list --count main..staging)
+          
+          echo "### Branch Status"
+          echo "- **develop** is $DEV_AHEAD commits ahead of staging"
+          echo "- **staging** is $STAGING_AHEAD commits ahead of main"
+          echo ""
+          
+          # Check for open PRs
+          echo "### Open PRs"
+          
+          DEV_TO_STAGING=$(gh pr list --base staging --head develop --state open --json number,title --jq '.[] | "- PR #\(.number): \(.title)"')
+          if [ -n "$DEV_TO_STAGING" ]; then
+            echo "**develop → staging:**"
+            echo "$DEV_TO_STAGING"
+          else
+            echo "- No open PR from develop → staging"
+          fi
+          
+          STAGING_TO_MAIN=$(gh pr list --base main --head staging --state open --json number,title --jq '.[] | "- PR #\(.number): \(.title)"')
+          if [ -n "$STAGING_TO_MAIN" ]; then
+            echo "**staging → main:**"
+            echo "$STAGING_TO_MAIN"
+          else
+            echo "- No open PR from staging → main"
+          fi
+          
+          echo ""
+          echo "### Recent Deployments"
+          gh run list --workflow=ci-cd.yml --limit=5 --json conclusion,createdAt,headBranch --jq '.[] | "- \(.headBranch): \(.conclusion) at \(.createdAt)"'

@@ -1008,7 +1008,7 @@ jobs:
         if: steps.check-creds.outputs.has-azure-creds == 'true'
         id: acr
         run: |
-          ACR_NAME=$(az acr list --resource-group rg-lpa-${{ needs.determine-environment.outputs.environment }} --query "[0].name" -o tsv 2>/dev/null || echo "")
+          ACR_NAME=$(az acr list --resource-group rg-lpa-unified --query "[0].name" -o tsv 2>/dev/null || echo "")
           if [ -z "$ACR_NAME" ]; then
             echo "ACR not found - will be created during infra deployment"
             echo "acr-exists=false" >> $GITHUB_OUTPUT
@@ -1244,7 +1244,7 @@ jobs:
         if: steps.check-creds.outputs.has-azure-creds == 'true'
         id: infra
         run: |
-          RG_NAME="rg-lpa-${{ needs.determine-environment.outputs.environment }}"
+          RG_NAME="rg-lpa-unified"
           
           # Check if Container Apps environment exists
           CAE_EXISTS=$(az containerapp env list --resource-group $RG_NAME --query "[?name=='lpa-cae-${{ needs.determine-environment.outputs.environment }}'].name" -o tsv 2>/dev/null || echo "")
@@ -1267,7 +1267,7 @@ jobs:
         run: |
           ENV=${{ needs.determine-environment.outputs.environment }}
           APP_NAME="lpa-halaxy-sync-${ENV}"
-          RG_NAME="rg-lpa-${ENV}"
+          RG_NAME="rg-lpa-unified"
           
           # Get ACR info
           ACR_NAME=$(az acr list --resource-group $RG_NAME --query "[0].name" -o tsv)
@@ -1285,7 +1285,7 @@ jobs:
         run: |
           ENV=${{ needs.determine-environment.outputs.environment }}
           APP_NAME="lpa-halaxy-sync-${ENV}"
-          RG_NAME="rg-lpa-${ENV}"
+          RG_NAME="rg-lpa-unified"
           
           # Wait for container to be ready
           for i in {1..30}; do

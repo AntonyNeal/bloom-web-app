@@ -474,9 +474,7 @@ export const trackCustomEvent = (
   parameters: Record<string, unknown> = {}
 ) => tracker.trackCustomEvent(eventName, parameters);
 
-// Legacy compatibility exports
-export const fireServicePageConversion = trackServicePage;
-export const fireAboutPageConversion = trackAboutPage;
-export const firePricingPageConversion = trackPricingPage;
+// Legacy compatibility exports - use trackingEvents.ts exports directly
+// Do NOT re-export these as they create circular references
 export const trackPageEngagement = (data: { page_type: string }) =>
   tracker.trackPageView(data.page_type);

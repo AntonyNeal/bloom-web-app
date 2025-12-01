@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getEnvBool } from '../utils/env';
 import { BookingModal } from './BookingModal';
+import { trackBookNowClick } from '../tracking';
 
 // Extend Window interface for our custom properties
 declare global {

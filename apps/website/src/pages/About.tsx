@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { BookingModal } from '../components/BookingModal';
 import { useBooking } from '../hooks/useBooking';
 import { tracker } from '../utils/UnifiedTracker';
+import { trackBookNowClick } from '../tracking';
 
 const About = () => {
   const { isBookingModalOpen, openBookingModal, closeBookingModal } =

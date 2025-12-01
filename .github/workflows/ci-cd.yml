@@ -1245,9 +1245,17 @@ jobs:
         id: infra
         run: |
           RG_NAME="rg-lpa-unified"
+          FULL_ENV="${{ needs.determine-environment.outputs.environment }}"
+          
+          # Map full environment name to short name for resource naming
+          case "$FULL_ENV" in
+            production) ENV_SHORT="prod" ;;
+            staging) ENV_SHORT="staging" ;;
+            *) ENV_SHORT="dev" ;;
+          esac
           
           # Check if Container Apps environment exists
-          CAE_EXISTS=$(az containerapp env list --resource-group $RG_NAME --query "[?name=='lpa-cae-${{ needs.determine-environment.outputs.environment }}'].name" -o tsv 2>/dev/null || echo "")
+          CAE_EXISTS=$(az containerapp env list --resource-group $RG_NAME --query "[?name=='lpa-cae-${ENV_SHORT}'].name" -o tsv 2>/dev/null || echo "")
           
           if [ -z "$CAE_EXISTS" ]; then
             echo "🏗️ Deploying Container Apps infrastructure..."
@@ -1265,8 +1273,16 @@ jobs:
       - name: Update Container App
         if: steps.check-creds.outputs.has-azure-creds == 'true'
         run: |
-          ENV=${{ needs.determine-environment.outputs.environment }}
-          APP_NAME="lpa-halaxy-sync-${ENV}"
+          FULL_ENV="${{ needs.determine-environment.outputs.environment }}"
+          
+          # Map full environment name to short name for resource naming
+          case "$FULL_ENV" in
+            production) ENV_SHORT="prod" ;;
+            staging) ENV_SHORT="staging" ;;
+            *) ENV_SHORT="dev" ;;
+          esac
+          
+          APP_NAME="lpa-halaxy-sync-${ENV_SHORT}"
           RG_NAME="rg-lpa-unified"
           
           # Get ACR info
@@ -1283,8 +1299,16 @@ jobs:
       - name: Verify Deployment
         if: steps.check-creds.outputs.has-azure-creds == 'true'
         run: |
-          ENV=${{ needs.determine-environment.outputs.environment }}
-          APP_NAME="lpa-halaxy-sync-${ENV}"
+          FULL_ENV="${{ needs.determine-environment.outputs.environment }}"
+          
+          # Map full environment name to short name for resource naming
+          case "$FULL_ENV" in
+            production) ENV_SHORT="prod" ;;
+            staging) ENV_SHORT="staging" ;;
+            *) ENV_SHORT="dev" ;;
+          esac
+          
+          APP_NAME="lpa-halaxy-sync-${ENV_SHORT}"
           RG_NAME="rg-lpa-unified"
           
           # Wait for container to be ready

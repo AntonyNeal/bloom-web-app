@@ -8,9 +8,9 @@
 // - Azure Key Vault references for secrets
 // =============================================================================
 
-@description('Environment name (dev, staging, prod)')
-@allowed(['dev', 'staging', 'prod'])
-param environment string = 'dev'
+@description('Environment name (development, staging, production)')
+@allowed(['development', 'staging', 'production'])
+param environment string = 'development'
 
 @description('Location for all resources')
 param location string = resourceGroup().location
@@ -26,13 +26,22 @@ var prefix = 'lpa'
 var workloadName = 'halaxy-sync'
 var uniqueSuffix = uniqueString(resourceGroup().id)
 
+// Map full environment names to short names for resource naming
+var envShortName = environment == 'production' ? 'prod' : environment == 'staging' ? 'staging' : 'dev'
+
+// Database environment: dev and staging both use dev DB, production uses prod DB
+var dbEnv = environment == 'production' ? 'prod' : 'dev'
+
+// SQL Server FQDN - stored in Key Vault, referenced via secrets
+// The connection string in Key Vault contains the full server address
+
 var envSettings = {
-  dev: {
+  development: {
     containerCpu: '0.25'
     containerMemory: '0.5Gi'
     minReplicas: 0
     maxReplicas: 1
-    sqlServer: 'lpa-sql-dev.database.windows.net'
+    sqlDatabase: 'lpa-bloom-db-dev'
     keyVaultName: 'lpa-kv-dev'
   }
   staging: {
@@ -40,15 +49,15 @@ var envSettings = {
     containerMemory: '0.5Gi'
     minReplicas: 0
     maxReplicas: 1
-    sqlServer: 'lpa-sql-dev.database.windows.net'
+    sqlDatabase: 'lpa-bloom-db-dev'
     keyVaultName: 'lpa-kv-dev'
   }
-  prod: {
+  production: {
     containerCpu: '0.5'
     containerMemory: '1Gi'
     minReplicas: 1
     maxReplicas: 2
-    sqlServer: 'lpa-sql-prod.database.windows.net'
+    sqlDatabase: 'lpa-bloom-db-prod'
     keyVaultName: 'lpa-kv-prod'
   }
 }
@@ -64,7 +73,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
 }
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
-  name: '${prefix}-logs-${environment}'
+  name: '${prefix}-logs-${envShortName}'
 }
 
 // =============================================================================
@@ -91,7 +100,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' =
 // =============================================================================
 
 resource containerAppsEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
-  name: '${prefix}-cae-${environment}'
+  name: '${prefix}-cae-${envShortName}'
   location: location
   properties: {
     appLogsConfiguration: {
@@ -101,7 +110,7 @@ resource containerAppsEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
         sharedKey: logAnalytics.listKeys().primarySharedKey
       }
     }
-    zoneRedundant: environment == 'prod'
+    zoneRedundant: environment == 'production'
   }
   tags: {
     environment: environment
@@ -114,7 +123,7 @@ resource containerAppsEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
 // =============================================================================
 
 resource halaxySyncWorker 'Microsoft.App/containerApps@2023-05-01' = {
-  name: '${prefix}-${workloadName}-${environment}'
+  name: '${prefix}-${workloadName}-${envShortName}'
   location: location
   identity: {
     type: 'SystemAssigned'
@@ -126,12 +135,12 @@ resource halaxySyncWorker 'Microsoft.App/containerApps@2023-05-01' = {
       secrets: [
         {
           name: 'sql-connection-string'
-          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/SQL-${toUpper(environment)}-CONNECTION-STRING'
+          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/SQL-${toUpper(dbEnv)}-CONNECTION-STRING'
           identity: 'System'
         }
         {
           name: 'cosmos-connection-string'
-          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/COSMOS-${toUpper(environment)}-CONNECTION-STRING'
+          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/COSMOS-${toUpper(dbEnv)}-CONNECTION-STRING'
           identity: 'System'
         }
         {

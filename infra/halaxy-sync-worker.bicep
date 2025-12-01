@@ -212,6 +212,10 @@ resource halaxySyncWorker 'Microsoft.App/containerApps@2023-05-01' = {
       activeRevisionsMode: 'Single'
       secrets: [
         {
+          name: 'acr-password'
+          value: containerRegistry.listCredentials().passwords[0].value
+        }
+        {
           name: 'sql-connection-string'
           keyVaultUrl: '${keyVault.properties.vaultUri}secrets/SQL-${toUpper(dbEnv)}-CONNECTION-STRING'
           identity: 'System'

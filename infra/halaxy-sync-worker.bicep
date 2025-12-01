@@ -2,10 +2,11 @@
 // Halaxy Sync Worker - Azure Container Apps Infrastructure
 // 
 // Deploys:
+// - Log Analytics Workspace
+// - Azure Key Vault
 // - Azure Container Registry (ACR)
 // - Azure Container Apps Environment
 // - Azure Container App (Sync Worker)
-// - Azure Key Vault references for secrets
 // =============================================================================
 
 @description('Environment name (development, staging, production)')
@@ -32,9 +33,6 @@ var envShortName = environment == 'production' ? 'prod' : environment == 'stagin
 // Database environment: dev and staging both use dev DB, production uses prod DB
 var dbEnv = environment == 'production' ? 'prod' : 'dev'
 
-// SQL Server FQDN - stored in Key Vault, referenced via secrets
-// The connection string in Key Vault contains the full server address
-
 var envSettings = {
   development: {
     containerCpu: '0.25'
@@ -42,7 +40,6 @@ var envSettings = {
     minReplicas: 0
     maxReplicas: 1
     sqlDatabase: 'lpa-bloom-db-dev'
-    keyVaultName: 'lpa-kv-dev'
   }
   staging: {
     containerCpu: '0.25'
@@ -50,7 +47,6 @@ var envSettings = {
     minReplicas: 0
     maxReplicas: 1
     sqlDatabase: 'lpa-bloom-db-dev'
-    keyVaultName: 'lpa-kv-dev'
   }
   production: {
     containerCpu: '0.5'
@@ -58,22 +54,104 @@ var envSettings = {
     minReplicas: 1
     maxReplicas: 2
     sqlDatabase: 'lpa-bloom-db-prod'
-    keyVaultName: 'lpa-kv-prod'
   }
 }
 
 var settings = envSettings[environment]
 
 // =============================================================================
-// Existing Resources
+// Log Analytics Workspace
 // =============================================================================
 
-resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
-  name: settings.keyVaultName
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
+  name: '${prefix}-logs-${envShortName}'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
+    retentionInDays: 30
+  }
+  tags: {
+    environment: environment
+    workload: workloadName
+  }
 }
 
-resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
-  name: '${prefix}-logs-${envShortName}'
+// =============================================================================
+// Key Vault
+// =============================================================================
+
+resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
+  name: '${prefix}-kv-${envShortName}-${uniqueSuffix}'
+  location: location
+  properties: {
+    sku: {
+      family: 'A'
+      name: 'standard'
+    }
+    tenantId: subscription().tenantId
+    enableRbacAuthorization: false
+    enableSoftDelete: true
+    softDeleteRetentionInDays: 7
+    accessPolicies: []
+  }
+  tags: {
+    environment: environment
+    workload: workloadName
+  }
+}
+
+// =============================================================================
+// Key Vault Secrets (placeholder values - to be updated manually or via CI/CD)
+// =============================================================================
+
+resource sqlConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'SQL-${toUpper(dbEnv)}-CONNECTION-STRING'
+  properties: {
+    value: 'Server=lpa-sql-server${az.environment().suffixes.sqlServerHostname};Database=${settings.sqlDatabase};'
+  }
+}
+
+resource cosmosConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'COSMOS-${toUpper(dbEnv)}-CONNECTION-STRING'
+  properties: {
+    value: 'placeholder-update-after-deployment'
+  }
+}
+
+resource halaxyClientIdSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'HALAXY-CLIENT-ID'
+  properties: {
+    value: 'placeholder-update-after-deployment'
+  }
+}
+
+resource halaxyClientSecretSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'HALAXY-CLIENT-SECRET'
+  properties: {
+    value: 'placeholder-update-after-deployment'
+  }
+}
+
+resource halaxyRefreshTokenSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'HALAXY-REFRESH-TOKEN'
+  properties: {
+    value: 'placeholder-update-after-deployment'
+  }
+}
+
+resource appInsightsConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'APPINSIGHTS-CONNECTION-STRING'
+  properties: {
+    value: 'placeholder-update-after-deployment'
+  }
 }
 
 // =============================================================================

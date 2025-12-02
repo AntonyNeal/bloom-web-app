@@ -213,7 +213,7 @@ const Services = () => {
 
           {/* What to Expect - Visual Section */}
           <div className="mb-16 max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="bg-gradient-to-br from-white to-slate-50 rounded-2xl border border-gray-100 overflow-hidden">
               <div className="grid md:grid-cols-2 gap-0">
                 {/* Image */}
                 <div className="order-2 md:order-1">

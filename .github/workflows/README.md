@@ -11,6 +11,144 @@ The repository uses a **unified CI/CD pipeline** (`unified-cicd.yml`) that intel
 3. **Dependency Caching**: Caches dependencies and build artifacts for faster builds
 4. **Environment-Based Deployment**: Automatically deploys to staging/production based on branch
 
+### Workflow Files
+
+| File | Purpose | Trigger |
+|------|---------|---------|
+| `unified-cicd.yml` | **Primary unified workflow** - All apps, APIs, and DB migrations | Push to main/staging/develop, PRs, Manual |
+| `release-orchestration.yml` | **Release cycle management** - PR creation, auto-merge | Scheduled (Sunday 10pm AEST), Manual |
+| `post-deployment-cascade.yml` | **Branch sync after production deploy** | After unified-cicd on main, Manual |
+| `scheduled-production-release.yml` | **Production PR creation** | Scheduled (Saturday 12am AEST), Manual |
+| `security.yml` | Security scanning | Push, PRs |
+| `visual-regression.yml` | Visual regression tests | Manual |
+| `rollback-production.yml` | Emergency production rollback | Manual |
+
+---
+
+## 🔄 Release Orchestration System
+
+The Life Psychology release cycle uses a 2-week cadence with automated workflows to manage the flow of code from development through staging to production.
+
+### Branch Protection Rules (Configure in GitHub Settings)
+
+| Branch | Protection | Merge Requirements |
+|--------|------------|-------------------|
+| `main` | Protected | PR from `staging` only, requires approval |
+| `staging` | Semi-protected | PR from `develop` (squash) OR direct commits during UAT |
+| `develop` | Feature branch | Standard development workflow |
+
+### 2-Week Release Cycle
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         2-WEEK RELEASE CYCLE                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  WEEK 1                                                                     │
+│  ───────                                                                    │
+│  Day 1 (Sat 1am)  → Production deployment from staging                     │
+│                   → Post-deployment cascade: main → staging → develop       │
+│  Day 1-2 (Weekend) → Stability monitoring, hotfix patches if needed        │
+│  Day 2 (Sun)       → Open PR: develop → staging                            │
+│  Day 3 (Mon)       → Begin new feature development in develop              │
+│                                                                             │
+│  WEEK 2                                                                     │
+│  ───────                                                                    │
+│  Day 9 (Sun 10pm)  → Auto-merge develop → staging (squash)                 │
+│  Day 9-14          → UAT testing on staging by Zoe                         │
+│                   → Bug fixes made directly in staging branch              │
+│  Day 13 (Fri)      → Production PR created: staging → main                 │
+│  Day 14 (Sat 1am)  → Production deployment (requires approval)             │
+│                   → Cycle repeats...                                       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Workflow File Details
+
+#### `release-orchestration.yml`
+
+Manages the PR lifecycle for the release cycle:
+
+| Action | Description | Trigger |
+|--------|-------------|---------|
+| `create-staging-pr` | Creates PR from develop → staging | Manual |
+| `auto-merge-staging-pr` | Force merge develop → staging PR | Manual |
+| `create-production-pr` | Creates PR from staging → main | Manual |
+| `cascade-main-to-branches` | Merge main to staging and develop | Manual |
+| `check-cycle-status` | Show current release cycle status | Manual |
+| *Scheduled* | Auto-merge develop → staging | Sunday 10pm AEST |
+
+#### `post-deployment-cascade.yml`
+
+Automatically syncs branches after production deployment:
+
+```
+main deployed → merge main → staging → merge main → develop
+```
+
+- **Trigger**: Runs after successful unified-cicd on `main` branch
+- **Purpose**: Ensures all branches start fresh after each production release
+
+#### `scheduled-production-release.yml`
+
+Creates the production release PR on schedule:
+
+- **Trigger**: Friday 1pm UTC (Saturday 12am AEST)
+- **Creates**: PR from `staging` → `main` with release notes
+- **Requires**: Manual approval before merge
+
+### Manual Workflow Triggers
+
+**Create Release PR (develop → staging):**
+1. Go to **Actions** → **Release Orchestration**
+2. Click **Run workflow**
+3. Select action: `create-staging-pr`
+
+**Force Auto-Merge Staging PR:**
+1. Go to **Actions** → **Release Orchestration**
+2. Click **Run workflow**
+3. Select action: `auto-merge-staging-pr`
+4. Check `force` if needed to bypass checks
+
+**Create Production PR (staging → main):**
+1. Go to **Actions** → **Release Orchestration**
+2. Click **Run workflow**
+3. Select action: `create-production-pr`
+
+**Trigger Post-Deployment Cascade:**
+1. Go to **Actions** → **Post-Deployment Cascade**
+2. Click **Run workflow**
+3. Optionally enable `dry_run` to preview changes
+
+### Setting Up Branch Protection Rules
+
+In GitHub **Settings → Branches → Add rule**:
+
+**For `main` branch:**
+```
+Branch name pattern: main
+☑ Require a pull request before merging
+  ☑ Require approvals: 1
+  ☑ Dismiss stale pull request approvals when new commits are pushed
+☑ Require status checks to pass before merging
+☑ Require branches to be up to date before merging
+☑ Do not allow bypassing the above settings
+```
+
+**For `staging` branch:**
+```
+Branch name pattern: staging
+☑ Require a pull request before merging
+  ☐ Require approvals (unchecked - allows direct commits during UAT)
+☑ Require status checks to pass before merging
+☐ Do not allow bypassing (unchecked - allows direct commits)
+```
+
+Note: `staging` allows direct commits for UAT bug fixes while still requiring PRs from other branches to be squash-merged.
+
+---
+
 ### Change Detection Filters
 
 | Filter | Paths Monitored | Triggers |

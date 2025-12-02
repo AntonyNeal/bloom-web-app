@@ -1,31 +1,81 @@
 /**
  * Auth Callback Page
  * Handles the redirect after Azure AD authentication
+ * Safely handles case when MSAL provider isn't available
  */
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMsal } from '@azure/msal-react';
+import { isAuthEnabled } from '../config/authConfig';
 
-export const AuthCallback = () => {
+/**
+ * Check if auth is properly configured (must match AuthProvider logic)
+ */
+const isAuthConfigured = (() => {
+  try {
+    const clientId = import.meta.env.VITE_B2C_CLIENT_ID || '';
+    const authority = import.meta.env.VITE_B2C_AUTHORITY || '';
+    
+    const hasValidClientId = clientId.length > 30 && !clientId.includes('your-client-id');
+    const hasValidAuthority = authority.startsWith('https://') && authority.includes('microsoft');
+    const isEnabled = isAuthEnabled();
+    
+    return hasValidClientId && hasValidAuthority && isEnabled;
+  } catch {
+    return false;
+  }
+})();
+
+/**
+ * Fallback component when auth is not configured
+ */
+const AuthCallbackFallback = () => {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    console.log('[AuthCallback] MSAL not configured, redirecting home');
+    navigate('/');
+  }, [navigate]);
+  
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        padding: '2rem',
+        background: '#FAF7F2',
+      }}
+    >
+      <div style={{ fontSize: '18px', color: '#6B8E7F', fontWeight: 500 }}>
+        Redirecting...
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Component that uses MSAL hooks - only rendered when auth is configured
+ */
+const AuthCallbackWithMsal = () => {
+  // Dynamic import to avoid loading MSAL when not needed
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { useMsal } = require('@azure/msal-react');
   const navigate = useNavigate();
   const { instance } = useMsal();
 
   useEffect(() => {
     const handleRedirect = async () => {
       try {
-        // Handle the redirect promise
         const response = await instance.handleRedirectPromise();
         
         if (response) {
-          // Set the active account
           instance.setActiveAccount(response.account);
           console.log('Authentication successful:', response.account);
-          
-          // Navigate to the bloom portal
           navigate('/bloom');
         } else {
-          // No response means the user cancelled or there was an error
           navigate('/');
         }
       } catch (error) {
@@ -77,3 +127,8 @@ export const AuthCallback = () => {
     </div>
   );
 };
+
+/**
+ * Main export - chooses the right component based on auth configuration
+ */
+export const AuthCallback = isAuthConfigured ? AuthCallbackWithMsal : AuthCallbackFallback;

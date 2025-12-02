@@ -1,8 +1,33 @@
+/**
+ * Auth Callback Page (Bloom Portal)
+ * Handles the redirect after Azure AD authentication
+ * Safely handles case when MSAL provider isn't available
+ */
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { Tier2Flower } from '@/components/flowers/Tier2Flower';
+import { isAuthEnabled } from '../../config/authConfig';
+
+/**
+ * Check if auth is properly configured (must match AuthProvider logic)
+ * Evaluated once at module load time
+ */
+const AUTH_CONFIGURED = (() => {
+  try {
+    const clientId = import.meta.env.VITE_B2C_CLIENT_ID || '';
+    const authority = import.meta.env.VITE_B2C_AUTHORITY || '';
+    
+    const hasValidClientId = clientId.length > 30 && !clientId.includes('your-client-id');
+    const hasValidAuthority = authority.startsWith('https://') && authority.includes('microsoft');
+    const isEnabled = isAuthEnabled();
+    
+    return hasValidClientId && hasValidAuthority && isEnabled;
+  } catch {
+    return false;
+  }
+})();
 
 // Bloom colors
 const bloomStyles = {
@@ -14,7 +39,43 @@ const bloomStyles = {
   },
 };
 
-const AuthCallback = () => {
+/**
+ * Fallback component when auth is not configured
+ */
+const AuthCallbackFallback = () => {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    console.log('[AuthCallback] MSAL not configured, redirecting home');
+    navigate('/');
+  }, [navigate]);
+  
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: bloomStyles.colors.warmCream,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+      }}
+    >
+      <div style={{ fontSize: '18px', color: bloomStyles.colors.eucalyptusSage, fontWeight: 500 }}>
+        Redirecting...
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Component that uses MSAL hooks - only rendered when auth is configured
+ */
+const AuthCallbackWithMsal = () => {
+  // Dynamic import to avoid loading MSAL when not needed
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { useMsal, useIsAuthenticated } = require('@azure/msal-react');
+  
   const navigate = useNavigate();
   const { instance } = useMsal();
   const isAuthenticated = useIsAuthenticated();
@@ -183,5 +244,10 @@ const AuthCallback = () => {
     </div>
   );
 };
+
+/**
+ * Main export - chooses the right component based on auth configuration
+ */
+const AuthCallback = AUTH_CONFIGURED ? AuthCallbackWithMsal : AuthCallbackFallback;
 
 export default AuthCallback;

@@ -30,6 +30,11 @@ var uniqueSuffix = uniqueString(resourceGroup().id)
 // Map full environment names to short names for resource naming
 var envShortName = environment == 'production' ? 'prod' : environment == 'staging' ? 'staging' : 'dev'
 
+// Short environment name for Key Vault (must be <= 24 chars total)
+// Format: lpa-kv-{env}-{6-char-suffix} = max 17 chars for env+suffix
+var kvEnvShort = environment == 'production' ? 'prd' : environment == 'staging' ? 'stg' : 'dev'
+var kvUniqueSuffix = substring(uniqueSuffix, 0, 6)
+
 // Database environment: dev and staging both use dev DB, production uses prod DB
 var dbEnv = environment == 'production' ? 'prod' : 'dev'
 
@@ -80,10 +85,12 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
 
 // =============================================================================
 // Key Vault
+// Key Vault names must be 3-24 characters, alphanumeric and hyphens only
+// Format: lpa-kv-{env}-{suffix} where env is 3 chars and suffix is 6 chars = 16 chars max
 // =============================================================================
 
 resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
-  name: '${prefix}-kv-${envShortName}-${uniqueSuffix}'
+  name: '${prefix}-kv-${kvEnvShort}-${kvUniqueSuffix}'
   location: location
   properties: {
     sku: {

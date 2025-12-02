@@ -286,6 +286,10 @@ jobs:
           cd apps/website/functions
           npm install
           npm run build
+          # Copy necessary files to dist for deployment
+          cp package.json dist/
+          cp host.json dist/
+          cp -r node_modules dist/
 
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
@@ -294,9 +298,9 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "apps/website/dist"
-          api_location: "apps/website/functions"
+          api_location: "apps/website/functions/dist"
           skip_app_build: true
-          api_build_command: "echo 'API pre-built'"
+          skip_api_build: true
 
   # Build and deploy Bloom App
   build-deploy-bloom:

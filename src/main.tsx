@@ -1,6 +1,18 @@
-// Force rebuild - 2025-11-24
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+// Force rebuild - 2025-12-03 - Debug React duplicate issue
+import React, { StrictMode } from 'react'
+import ReactDOM, { createRoot } from 'react-dom/client'
+
+// DEBUG: Check for duplicate React instances
+console.log('[DEBUG] React version:', React.version);
+console.log('[DEBUG] React object:', React);
+console.log('[DEBUG] ReactDOM:', ReactDOM);
+console.log('[DEBUG] React.useState exists:', typeof React.useState);
+console.log('[DEBUG] React.useRef exists:', typeof React.useRef);
+
+// Check if React is properly set up
+if (!React.useState) {
+  console.error('[CRITICAL] React.useState is undefined! React may not be loaded correctly.');
+}
 
 // Performance debugging for Lighthouse FCP issues
 const perfStart = performance.now();

@@ -24,25 +24,39 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    // Force all packages to use the same React instance
+    dedupe: ['react', 'react-dom'],
+  },
+  // Force Vite to pre-bundle these together
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
+    // Force a single shared instance
+    esbuildOptions: {
+      // Ensure react is resolved consistently
+      plugins: [],
+    },
   },
   build: {
     // Enable manual chunk splitting for optimal caching
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunks (rarely change = better long-term caching)
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': [
-            '@radix-ui/react-label',
-            '@radix-ui/react-select',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-toast',
-          ],
-          'form-vendor': ['react-hook-form', 'zod'],
-
-          // Framer Motion - removed from manual chunks to enable automatic code-splitting
-          // Will only load on pages that actually import it (JoinUs, QualificationCheck)
-          // NOT loaded on landing page = 112 kB saved from critical path
+        manualChunks(id) {
+          // Keep react and react-dom together in the same chunk
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+            return 'react-vendor';
+          }
+          // React Router in its own chunk (depends on react-vendor)
+          if (id.includes('node_modules/react-router')) {
+            return 'router-vendor';
+          }
+          // UI components
+          if (id.includes('node_modules/@radix-ui')) {
+            return 'ui-vendor';
+          }
+          // Form handling
+          if (id.includes('node_modules/react-hook-form') || id.includes('node_modules/zod')) {
+            return 'form-vendor';
+          }
         },
       },
     },

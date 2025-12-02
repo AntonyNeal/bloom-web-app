@@ -1,5 +1,10 @@
-import { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+
+// DEBUG: Check React instance in App.tsx
+console.log('[DEBUG App.tsx] React version:', React.version);
+console.log('[DEBUG App.tsx] React.useRef exists:', typeof React.useRef);
+
 import { Toaster } from './components/ui/toaster';
 import { GardenGateButton } from './components/common/GardenGateButton';
 import { ProtectedRoute } from './components/common/ProtectedRoute';

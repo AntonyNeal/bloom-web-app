@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -330,6 +331,7 @@ function MarketingContent({
 
 export function JoinUs() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const shouldReduceMotion = useReducedMotion();
 
@@ -417,6 +419,25 @@ export function JoinUs() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required files before submission
+    if (!files.cv) {
+      toast({
+        title: 'Missing Resume',
+        description: 'Please upload your CV/Resume before submitting.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!files.certificate) {
+      toast({
+        title: 'Missing AHPRA Certificate',
+        description: 'Please upload your AHPRA Certificate before submitting.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setUploading(true);
 
     try {
@@ -567,19 +588,7 @@ export function JoinUs() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => {
-            setSubmitted(false);
-            setHasPassedQualificationCheck(false);
-            setFormData({
-              first_name: '',
-              last_name: '',
-              email: '',
-              phone: '',
-              ahpra_registration: '',
-              specializations: [],
-              experience_years: 0,
-              cover_letter: '',
-            });
-            setFiles({ cv: null, certificate: null, photo: null });
+            navigate('/');
           }}
           style={{
             padding: '12px 32px',
@@ -1404,7 +1413,6 @@ export function JoinUs() {
                     <input
                       id="cv"
                       type="file"
-                      required
                       accept=".pdf,.doc,.docx"
                       onChange={handleFileChange('cv')}
                       style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
@@ -1464,7 +1472,6 @@ export function JoinUs() {
                     <input
                       id="certificate"
                       type="file"
-                      required
                       accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleFileChange('certificate')}
                       style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}

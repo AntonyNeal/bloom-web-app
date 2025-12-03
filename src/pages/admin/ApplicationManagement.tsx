@@ -83,7 +83,7 @@ export function Admin() {
         return;
       }
       
-      // Fetch a signed URL from the API
+      // Fetch a signed URL from the API since storage has public access disabled
       const response = await fetch(
         `${API_BASE_URL}/get-document-url?url=${encodeURIComponent(url)}`
       );

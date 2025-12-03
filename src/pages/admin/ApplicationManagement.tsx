@@ -15,7 +15,7 @@ import EmptyState from "@/components/common/EmptyState";
 import NetworkErrorState from "@/components/common/NetworkErrorState";
 import ServerErrorState from "@/components/common/ServerErrorState";
 import { AuthenticatedLayout } from "@/components/layout/AuthenticatedLayout";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 interface Application {
   id: number;
@@ -42,6 +42,7 @@ export function Admin() {
   const [error, setError] = useState<ErrorType>(null);
   const [errorCode, setErrorCode] = useState<number | undefined>(undefined);
   const [lastAttempt, setLastAttempt] = useState<Date | undefined>(undefined);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchApplications();
@@ -96,7 +97,11 @@ export function Admin() {
       window.open(data.url, '_blank');
     } catch (err) {
       console.error('Error opening document:', err);
-      toast.error(`Unable to open ${docType}. The document may no longer exist.`);
+      toast({
+        title: "Document Error",
+        description: `Unable to open ${docType}. The document may no longer exist.`,
+        variant: "destructive",
+      });
     }
   };
 

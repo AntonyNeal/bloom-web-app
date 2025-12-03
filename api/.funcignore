@@ -1,12 +1,20 @@
+# Explicitly include dist (override .gitignore)
+!dist/
+!dist/**
+
+# Exclude these
 .git/
 .vscode/
 *.ts
-*.map
 src/
-node_modules/
 tsconfig.json
 .gitignore
 .funcignore
 local.settings.json
 .env
 .env.local
+*.md
+*.zip
+deploy-package/
+fnt-logs/
+migrations/

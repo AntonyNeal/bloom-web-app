@@ -1,7 +1,8 @@
 /**
  * Halaxy Availability Function
  *
- * Fetches available appointment slots from Halaxy's FHIR API.
+ * Fetches available appointment slots from the Azure SQL database.
+ * Queries the availability_slots table for free slots.
  * Returns FHIR Bundle with Slot resources for the booking calendar.
  */
 import {
@@ -10,17 +11,10 @@ import {
   HttpResponseInit,
   InvocationContext,
 } from '@azure/functions';
+import * as sql from 'mssql';
 
-// Token cache
-let cachedToken: string | null = null;
-let tokenExpiryTime: Date | null = null;
-const TOKEN_EXPIRY_BUFFER_MS = 60 * 1000;
-
-interface HalaxyTokenResponse {
-  access_token: string;
-  token_type: string;
-  expires_in: number;
-}
+// Connection pool singleton
+let pool: sql.ConnectionPool | null = null;
 
 interface FHIRSlot {
   resourceType: 'Slot';
@@ -39,188 +33,107 @@ interface FHIRBundle {
   }>;
 }
 
-/**
- * Get Halaxy access token using OAuth 2.0 client credentials flow
- */
-async function getAccessToken(context: InvocationContext): Promise<string> {
-  // Return cached token if still valid
-  if (cachedToken && tokenExpiryTime && new Date() < tokenExpiryTime) {
-    return cachedToken;
-  }
-
-  const clientId = process.env.HALAXY_CLIENT_ID;
-  const clientSecret = process.env.HALAXY_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error('Missing HALAXY_CLIENT_ID or HALAXY_CLIENT_SECRET');
-  }
-
-  context.log('Fetching new Halaxy access token...');
-
-  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString(
-    'base64'
-  );
-
-  const response = await fetch('https://au-api.halaxy.com/oauth2/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${basicAuth}`,
-      Accept: 'application/json',
-      'User-Agent': 'Life-Psychology-AUS/1.0',
-    },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-    }).toString(),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to obtain Halaxy token: ${response.status} ${errorText}`
-    );
-  }
-
-  const tokenResponse: HalaxyTokenResponse = await response.json();
-
-  // Cache the token
-  cachedToken = tokenResponse.access_token;
-  tokenExpiryTime = new Date(
-    Date.now() + tokenResponse.expires_in * 1000 - TOKEN_EXPIRY_BUFFER_MS
-  );
-
-  context.log(`Token obtained, expires at ${tokenExpiryTime.toISOString()}`);
-
-  return cachedToken;
+interface AvailabilitySlot {
+  id: string;
+  halaxy_slot_id: string;
+  slot_start: Date;
+  slot_end: Date;
+  status: string;
+  practitioner_id?: string;
+  duration_minutes: number;
+  location_type?: string;
 }
 
 /**
- * Fetch available slots from Halaxy FHIR API
+ * Get database connection pool
  */
-async function fetchAvailability(
-  params: {
-    start: string;
-    end: string;
-    duration: string;
-    practitioner?: string;
-    organization?: string;
-    show?: string;
-  },
+async function getDbConnection(
   context: InvocationContext
-): Promise<FHIRBundle> {
-  const token = await getAccessToken(context);
+): Promise<sql.ConnectionPool> {
+  if (pool && pool.connected) {
+    return pool;
+  }
 
-  const baseUrl =
-    process.env.HALAXY_FHIR_URL || 'https://au-api.halaxy.com/fhir';
-  const practitionerId =
-    params.practitioner || process.env.HALAXY_PRACTITIONER_ID;
-  const organizationId =
-    params.organization || process.env.HALAXY_ORGANIZATION_ID;
+  const connectionString = process.env.SQL_CONNECTION_STRING;
+  if (!connectionString) {
+    throw new Error('SQL_CONNECTION_STRING environment variable is not configured');
+  }
 
-  // Build query parameters for Slot search
-  const queryParams = new URLSearchParams();
-  queryParams.append('start', `ge${params.start}`);
-  queryParams.append('end', `le${params.end}`);
-  queryParams.append('status', 'free');
+  context.log('Connecting to database...');
+  pool = await sql.connect(connectionString);
+
+  pool.on('error', (err) => {
+    context.error('Database pool error:', err);
+    pool = null;
+  });
+
+  return pool;
+}
+
+/**
+ * Fetch available slots from the database
+ */
+async function fetchAvailableSlots(
+  startDate: Date,
+  endDate: Date,
+  practitionerId: string | undefined,
+  durationMinutes: number,
+  context: InvocationContext
+): Promise<FHIRSlot[]> {
+  const dbPool = await getDbConnection(context);
+
+  // Query for available slots from the availability_slots table
+  // Slots must be free, bookable, in the future, and match the requested duration
+  let query = `
+    SELECT 
+      a.id,
+      a.halaxy_slot_id,
+      a.slot_start,
+      a.slot_end,
+      a.status,
+      a.practitioner_id,
+      a.duration_minutes,
+      a.location_type
+    FROM availability_slots a
+    WHERE a.slot_start >= @startDate
+      AND a.slot_end <= @endDate
+      AND a.status = 'free'
+      AND a.is_bookable = 1
+      AND a.slot_start > GETUTCDATE()
+      AND a.duration_minutes >= @duration
+  `;
+
+  const request = dbPool
+    .request()
+    .input('startDate', sql.DateTime2, startDate)
+    .input('endDate', sql.DateTime2, endDate)
+    .input('duration', sql.Int, durationMinutes)
+    .input('practitionerId', sql.UniqueIdentifier, practitionerId || null);
 
   if (practitionerId) {
-    queryParams.append('schedule.actor', `Practitioner/${practitionerId}`);
-  }
-  if (organizationId) {
-    queryParams.append('schedule.actor', `Organization/${organizationId}`);
+    query += ` AND a.practitioner_id = @practitionerId`;
   }
 
-  const url = `${baseUrl}/Slot?${queryParams.toString()}`;
-  context.log(`Fetching availability from: ${url}`);
+  query += ` ORDER BY a.slot_start`;
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/fhir+json',
-      'User-Agent': 'Life-Psychology-AUS/1.0',
-    },
+  context.log('Querying available slots', {
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    practitionerId,
+    durationMinutes,
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    context.error(`Halaxy API error: ${response.status} ${errorText}`);
+  const result = await request.query<AvailabilitySlot>(query);
+  context.log(`Found ${result.recordset.length} available slots`);
 
-    // If unauthorized, invalidate token and retry once
-    if (response.status === 401) {
-      cachedToken = null;
-      tokenExpiryTime = null;
-      context.log('Token expired, retrying with fresh token...');
-      return fetchAvailability(params, context);
-    }
-
-    throw new Error(`Halaxy API error: ${response.status}`);
-  }
-
-  const data: FHIRBundle = await response.json();
-
-  // Filter slots by duration if specified
-  if (params.duration && data.entry) {
-    const durationMs = parseInt(params.duration) * 60 * 1000;
-    data.entry = data.entry.filter((entry) => {
-      const slotStart = new Date(entry.resource.start).getTime();
-      const slotEnd = new Date(entry.resource.end).getTime();
-      return slotEnd - slotStart >= durationMs;
-    });
-    data.total = data.entry.length;
-  }
-
-  return data;
-}
-
-/**
- * Generate mock availability for development/fallback
- */
-function generateMockAvailability(
-  start: string,
-  end: string,
-  duration: number
-): FHIRBundle {
-  const slots: FHIRSlot[] = [];
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  // Generate slots for each weekday
-  const currentDate = new Date(startDate);
-  while (currentDate <= endDate) {
-    const dayOfWeek = currentDate.getDay();
-
-    // Skip weekends
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      // Generate slots from 9am to 5pm
-      for (let hour = 9; hour < 17; hour++) {
-        // Random 70% availability
-        if (Math.random() < 0.7) {
-          const slotStart = new Date(currentDate);
-          slotStart.setHours(hour, 0, 0, 0);
-
-          const slotEnd = new Date(slotStart);
-          slotEnd.setMinutes(slotEnd.getMinutes() + duration);
-
-          slots.push({
-            resourceType: 'Slot',
-            start: slotStart.toISOString(),
-            end: slotEnd.toISOString(),
-            status: 'free',
-          });
-        }
-      }
-    }
-
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  return {
-    resourceType: 'Bundle',
-    type: 'searchset',
-    total: slots.length,
-    entry: slots.map((slot) => ({ resource: slot })),
-  };
+  // Transform to FHIR Slot resources
+  return result.recordset.map((slot) => ({
+    resourceType: 'Slot' as const,
+    id: slot.id,
+    start: new Date(slot.slot_start).toISOString(),
+    end: new Date(slot.slot_end).toISOString(),
+    status: 'free' as const,
+  }));
 }
 
 async function getHalaxyAvailability(
@@ -242,10 +155,8 @@ async function getHalaxyAvailability(
     // Get query parameters
     const start = req.query.get('start');
     const end = req.query.get('end');
-    const duration = req.query.get('duration') || '60';
+    const duration = parseInt(req.query.get('duration') || '60');
     const practitioner = req.query.get('practitioner') || undefined;
-    const organization = req.query.get('organization') || undefined;
-    const show = req.query.get('show') || undefined;
 
     // Validate required parameters
     if (!start || !end) {
@@ -258,33 +169,31 @@ async function getHalaxyAvailability(
       };
     }
 
-    context.log('Fetching Halaxy availability', {
-      start,
-      end,
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    context.log('Fetching availability from database', {
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
       duration,
       practitioner,
-      organization,
     });
 
-    let availability: FHIRBundle;
+    // Fetch available slots from database
+    const slots = await fetchAvailableSlots(
+      startDate,
+      endDate,
+      practitioner,
+      duration,
+      context
+    );
 
-    // Check if Halaxy credentials are configured
-    const hasCredentials =
-      process.env.HALAXY_CLIENT_ID && process.env.HALAXY_CLIENT_SECRET;
-
-    if (hasCredentials) {
-      // Fetch real availability from Halaxy
-      availability = await fetchAvailability(
-        { start, end, duration, practitioner, organization, show },
-        context
-      );
-    } else {
-      // Use mock data for development
-      context.warn(
-        'Halaxy credentials not configured, using mock availability'
-      );
-      availability = generateMockAvailability(start, end, parseInt(duration));
-    }
+    const availability: FHIRBundle = {
+      resourceType: 'Bundle',
+      type: 'searchset',
+      total: slots.length,
+      entry: slots.map((slot) => ({ resource: slot })),
+    };
 
     context.log(`Returning ${availability.total} available slots`);
 

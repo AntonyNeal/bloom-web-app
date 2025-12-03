@@ -186,11 +186,157 @@ export class HalaxyClient {
       'date:lt': endDate.toISOString().split('T')[0],
     });
   }
+
+  // ============================================================================
+  // Slot Endpoints (for availability)
+  // ============================================================================
+
+  /**
+   * Get a specific slot by ID
+   */
+  async getSlot(slotId: string): Promise<FHIRSlot> {
+    return this.request<FHIRSlot>(`/Slot/${slotId}`);
+  }
+
+  /**
+   * Get available slots for a practitioner within a date range
+   * 
+   * @param practitionerId - Halaxy practitioner ID
+   * @param startDate - Start of date range
+   * @param endDate - End of date range
+   * @param status - Filter by slot status (default: 'free')
+   */
+  async getSlotsByPractitioner(
+    practitionerId: string,
+    startDate: Date,
+    endDate: Date,
+    status: FHIRSlotStatus = 'free'
+  ): Promise<FHIRSlot[]> {
+    return this.getAllPages<FHIRSlot>('/Slot', {
+      'schedule.actor': `Practitioner/${practitionerId}`,
+      'start': `ge${startDate.toISOString()}`,
+      'start:lt': endDate.toISOString(),
+      status: status,
+    });
+  }
+
+  /**
+   * Search for available slots using the $find operation
+   * This is the preferred method for finding bookable slots
+   * 
+   * @param practitionerId - Halaxy practitioner ID
+   * @param startDate - Start of date range
+   * @param endDate - End of date range
+   * @param duration - Desired appointment duration in minutes
+   */
+  async findAvailableSlots(
+    practitionerId: string,
+    startDate: Date,
+    endDate: Date,
+    duration: number = 60
+  ): Promise<FHIRSlot[]> {
+    const params = new URLSearchParams({
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      duration: duration.toString(),
+      practitioner: `Practitioner/${practitionerId}`,
+      status: 'free',
+    });
+
+    try {
+      const bundle = await this.request<FHIRBundle<FHIRSlot>>(
+        `/Slot/$find?${params.toString()}`
+      );
+
+      if (bundle.entry) {
+        return bundle.entry.map(e => e.resource);
+      }
+
+      return [];
+    } catch (error) {
+      // Fallback to standard Slot search if $find is not supported
+      console.warn('[HalaxyClient] $find operation failed, falling back to standard search');
+      return this.getSlotsByPractitioner(practitionerId, startDate, endDate, 'free');
+    }
+  }
+
+  /**
+   * Get all available slots across all practitioners
+   * 
+   * @param startDate - Start of date range
+   * @param endDate - End of date range
+   */
+  async getAllAvailableSlots(
+    startDate: Date,
+    endDate: Date
+  ): Promise<FHIRSlot[]> {
+    return this.getAllPages<FHIRSlot>('/Slot', {
+      'start': `ge${startDate.toISOString()}`,
+      'start:lt': endDate.toISOString(),
+      status: 'free',
+    });
+  }
 }
 
 // ============================================================================
 // FHIR Types
 // ============================================================================
+
+// Slot status values per FHIR R4 specification
+export type FHIRSlotStatus = 'busy' | 'free' | 'busy-unavailable' | 'busy-tentative' | 'entered-in-error';
+
+export interface FHIRSlot {
+  resourceType: 'Slot';
+  id: string;
+  status: FHIRSlotStatus;
+  start: string; // ISO 8601 datetime
+  end: string;   // ISO 8601 datetime
+  schedule?: {
+    reference?: string; // e.g., "Schedule/123"
+    display?: string;
+  };
+  serviceCategory?: Array<{
+    coding?: Array<{
+      system?: string;
+      code?: string;
+      display?: string;
+    }>;
+    text?: string;
+  }>;
+  serviceType?: Array<{
+    coding?: Array<{
+      system?: string;
+      code?: string;
+      display?: string;
+    }>;
+    text?: string;
+  }>;
+  specialty?: Array<{
+    coding?: Array<{
+      system?: string;
+      code?: string;
+      display?: string;
+    }>;
+    text?: string;
+  }>;
+  appointmentType?: {
+    coding?: Array<{
+      system?: string;
+      code?: string;
+      display?: string;
+    }>;
+    text?: string;
+  };
+  comment?: string;
+  // Extension for practitioner reference (Halaxy-specific)
+  extension?: Array<{
+    url: string;
+    valueReference?: {
+      reference?: string;
+      display?: string;
+    };
+  }>;
+}
 
 interface FHIRBundle<T> {
   resourceType: 'Bundle';

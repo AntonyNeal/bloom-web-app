@@ -10,6 +10,7 @@ import './functions/dbvc';
 import './functions/smoke-test';
 import './functions/practitioner-dashboard';
 import './functions/seed-database';
+import './functions/store-booking-session';
 
 export * from './functions/health';
 export * from './functions/applications';
@@ -20,3 +21,4 @@ export * from './functions/track-ab-test';
 export * from './functions/smoke-test';
 export * from './functions/practitioner-dashboard';
 export * from './functions/seed-database';
+export * from './functions/store-booking-session';

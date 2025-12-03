@@ -7,7 +7,7 @@
 
 import * as sql from 'mssql';
 import { DatabaseService } from './database';
-import { HalaxyClient } from './halaxy-client';
+import { HalaxyClient, FHIRSlot, FHIRSlotStatus } from './halaxy-client';
 import { trackDependency } from '../telemetry';
 
 export interface SyncResult {
@@ -19,6 +19,7 @@ export interface SyncResult {
   durationMs: number;
   appointmentsSynced?: number;
   patientsSynced?: number;
+  slotsSynced?: number;
 }
 
 export interface SyncError {
@@ -153,7 +154,48 @@ export class HalaxySyncService {
         }
       }
 
-      // 4. Log sync completion
+      // 4. Sync availability slots
+      console.log('[SyncService] Step 4: Syncing availability slots');
+      const slotStartDate = new Date();
+      const slotEndDate = new Date();
+      slotEndDate.setDate(slotEndDate.getDate() + 90); // Sync slots for next 90 days
+
+      let slotsSynced = 0;
+      try {
+        const slots = await this.client.findAvailableSlots(
+          halaxyPractitionerId,
+          slotStartDate,
+          slotEndDate,
+          60 // Default 60 min duration
+        );
+        console.log(`[SyncService]   Found ${slots.length} availability slots`);
+
+        // Clean up old slots before syncing new ones
+        await this.cleanupOldSlots(pool, practitioner.id);
+
+        for (const slot of slots) {
+          try {
+            await this.syncSlot(pool, slot, practitioner.id);
+            slotsSynced++;
+            recordsUpdated++;
+          } catch (error) {
+            errors.push({
+              entityType: 'slot',
+              entityId: slot.id,
+              message: error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
+        }
+      } catch (error) {
+        console.error('[SyncService] Failed to sync availability slots:', error);
+        errors.push({
+          entityType: 'slots',
+          entityId: halaxyPractitionerId,
+          message: error instanceof Error ? error.message : 'Unknown error syncing slots',
+        });
+      }
+
+      // 5. Log sync completion
       const durationMs = Date.now() - startTime;
       
       await this.db.logSync({
@@ -174,6 +216,7 @@ export class HalaxySyncService {
         recordsDeleted,
         errors,
         durationMs,
+        slotsSynced,
       };
 
     } catch (error) {
@@ -191,6 +234,7 @@ export class HalaxySyncService {
           message: error instanceof Error ? error.message : 'Unknown error',
         }],
         durationMs,
+        slotsSynced: 0,
       };
     }
   }
@@ -352,6 +396,133 @@ export class HalaxySyncService {
       trackDependency('SQL', 'syncSession', 'MERGE sessions', Date.now() - startTime, false);
       throw error;
     }
+  }
+
+  // ============================================================================
+  // Availability Slot Sync
+  // ============================================================================
+
+  /**
+   * Clean up old/past availability slots to prevent table bloat
+   */
+  private async cleanupOldSlots(
+    pool: sql.ConnectionPool,
+    practitionerId: string
+  ): Promise<void> {
+    const startTime = Date.now();
+
+    try {
+      await pool.request()
+        .input('practitionerId', sql.UniqueIdentifier, practitionerId)
+        .query(`
+          DELETE FROM availability_slots
+          WHERE practitioner_id = @practitionerId
+            AND slot_start < GETUTCDATE()
+        `);
+
+      trackDependency('SQL', 'cleanupOldSlots', 'DELETE availability_slots', Date.now() - startTime, true);
+    } catch (error) {
+      trackDependency('SQL', 'cleanupOldSlots', 'DELETE availability_slots', Date.now() - startTime, false);
+      // Non-critical error, log and continue
+      console.warn('[SyncService] Failed to cleanup old slots:', error);
+    }
+  }
+
+  /**
+   * Sync a single availability slot from Halaxy
+   */
+  private async syncSlot(
+    pool: sql.ConnectionPool,
+    slot: FHIRSlot,
+    practitionerId: string
+  ): Promise<void> {
+    const startTime = Date.now();
+
+    try {
+      const slotStart = new Date(slot.start);
+      const slotEnd = new Date(slot.end);
+      const durationMinutes = Math.round((slotEnd.getTime() - slotStart.getTime()) / (1000 * 60));
+      
+      // Extract schedule ID from reference if available
+      const scheduleId = slot.schedule?.reference?.replace('Schedule/', '') || null;
+      
+      // Extract service category if available
+      const serviceCategory = slot.serviceCategory?.[0]?.text || 
+                             slot.serviceCategory?.[0]?.coding?.[0]?.display || 
+                             null;
+      
+      // Determine location type from service type or extensions
+      const locationType = this.extractLocationType(slot);
+
+      await pool.request()
+        .input('halaxySlotId', sql.NVarChar, slot.id)
+        .input('practitionerId', sql.UniqueIdentifier, practitionerId)
+        .input('slotStart', sql.DateTime2, slotStart)
+        .input('slotEnd', sql.DateTime2, slotEnd)
+        .input('durationMinutes', sql.Int, durationMinutes)
+        .input('status', sql.NVarChar, slot.status)
+        .input('scheduleId', sql.NVarChar, scheduleId)
+        .input('locationType', sql.NVarChar, locationType)
+        .input('serviceCategory', sql.NVarChar, serviceCategory)
+        .input('isBookable', sql.Bit, slot.status === 'free' ? 1 : 0)
+        .query(`
+          MERGE INTO availability_slots AS target
+          USING (SELECT @halaxySlotId AS halaxy_slot_id) AS source
+          ON target.halaxy_slot_id = source.halaxy_slot_id
+          WHEN MATCHED THEN
+            UPDATE SET
+              practitioner_id = @practitionerId,
+              slot_start = @slotStart,
+              slot_end = @slotEnd,
+              duration_minutes = @durationMinutes,
+              status = @status,
+              halaxy_schedule_id = @scheduleId,
+              location_type = @locationType,
+              service_category = @serviceCategory,
+              is_bookable = @isBookable,
+              updated_at = GETUTCDATE(),
+              last_synced_at = GETUTCDATE()
+          WHEN NOT MATCHED THEN
+            INSERT (
+              halaxy_slot_id, practitioner_id, slot_start, slot_end, 
+              duration_minutes, status, halaxy_schedule_id, location_type, 
+              service_category, is_bookable, created_at, updated_at, last_synced_at
+            )
+            VALUES (
+              @halaxySlotId, @practitionerId, @slotStart, @slotEnd,
+              @durationMinutes, @status, @scheduleId, @locationType,
+              @serviceCategory, @isBookable, GETUTCDATE(), GETUTCDATE(), GETUTCDATE()
+            );
+        `);
+
+      trackDependency('SQL', 'syncSlot', 'MERGE availability_slots', Date.now() - startTime, true);
+
+    } catch (error) {
+      trackDependency('SQL', 'syncSlot', 'MERGE availability_slots', Date.now() - startTime, false);
+      throw error;
+    }
+  }
+
+  /**
+   * Extract location type from FHIR Slot resource
+   */
+  private extractLocationType(slot: FHIRSlot): string | null {
+    // Check service type for telehealth indicators
+    const serviceType = slot.serviceType?.[0];
+    if (serviceType) {
+      const code = serviceType.coding?.[0]?.code?.toLowerCase() || '';
+      const display = serviceType.coding?.[0]?.display?.toLowerCase() || '';
+      const text = serviceType.text?.toLowerCase() || '';
+      
+      if (code.includes('telehealth') || display.includes('telehealth') || 
+          text.includes('telehealth') || text.includes('video') || 
+          text.includes('online')) {
+        return 'telehealth';
+      }
+    }
+    
+    // Default to in-person if no telehealth indicators
+    return 'in-person';
   }
 
   // ============================================================================

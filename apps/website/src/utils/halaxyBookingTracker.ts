@@ -264,16 +264,24 @@ export class HalaxyBookingTracker {
         log.warn('Failed to capture GCLID/intent', 'HalaxyTracker', error);
       }
 
-      // Only run Azure integration in production environment (requires store-booking-session function)
-      const environment = import.meta.env.VITE_ENVIRONMENT || 'development';
-      if (environment === 'production' && this.AZURE_ENDPOINT && !this.AZURE_ENDPOINT.endsWith('/api/store-booking-session')) {
+      // Run Azure integration if endpoint is properly configured
+      // This allows tracking validation on staging when endpoint is set up
+      const hasValidEndpoint = this.AZURE_ENDPOINT && 
+        this.AZURE_ENDPOINT.includes('azurewebsites.net') &&
+        !this.AZURE_ENDPOINT.endsWith('/api/store-booking-session'); // Avoid empty base URL
+      
+      if (hasValidEndpoint) {
+        log.debug('Running Azure integration', 'HalaxyTracker', {
+          endpoint: this.AZURE_ENDPOINT
+        });
         await this.handleAzureIntegration(targetUrlObj);
       } else {
         log.debug(
-          `Skipping Azure integration (environment: ${environment})`,
-          'HalaxyTracker'
+          'Skipping Azure integration (no valid endpoint configured)',
+          'HalaxyTracker',
+          { endpoint: this.AZURE_ENDPOINT }
         );
-        // In development/staging, just redirect normally
+        // No endpoint configured, just redirect normally
         setTimeout(() => {
           window.location.href = targetUrlObj.toString();
         }, 100);

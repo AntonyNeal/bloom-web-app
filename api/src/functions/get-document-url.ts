@@ -1,6 +1,10 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { BlobServiceClient, generateBlobSASQueryParameters, BlobSASPermissions, StorageSharedKeyCredential } from "@azure/storage-blob";
 
+/**
+ * Generates a signed URL (SAS token) for accessing blob storage documents.
+ * This is required because the storage account has public access disabled.
+ */
 async function getDocumentUrlHandler(
   req: HttpRequest,
   context: InvocationContext

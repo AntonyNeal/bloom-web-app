@@ -41,6 +41,63 @@ async function runMigrations() {
       )
     `);
     
+    // Check if we need to seed existing migrations
+    // If schema_versions is empty but applications table exists, seed the already-applied versions
+    const countResult = await pool.request().query('SELECT COUNT(*) as count FROM schema_versions');
+    const versionCount = countResult.recordset[0].count;
+    
+    if (versionCount === 0) {
+      console.log('📋 Checking for existing database objects to seed version history...\n');
+      
+      // Check which tables already exist and seed accordingly
+      const tablesResult = await pool.request().query(`
+        SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES 
+        WHERE TABLE_TYPE = 'BASE TABLE'
+      `);
+      const existingTables = new Set(tablesResult.recordset.map(r => r.TABLE_NAME.toLowerCase()));
+      
+      const seedVersions = [];
+      
+      // V1 creates applications table
+      if (existingTables.has('applications')) {
+        seedVersions.push({ version: 'V1', description: 'initial schema' });
+      }
+      
+      // V2 creates ab_test_events table  
+      if (existingTables.has('ab_test_events')) {
+        seedVersions.push({ version: 'V2', description: 'add ab testing' });
+      }
+      
+      // V3 creates session_tracking or modifies ab_test_events
+      if (existingTables.has('session_tracking') || existingTables.has('ab_test_events')) {
+        seedVersions.push({ version: 'V3', description: 'add session tracking' });
+      }
+      
+      // V4/V4b creates practitioners table
+      if (existingTables.has('practitioners')) {
+        seedVersions.push({ version: 'V4', description: 'practitioner dashboard schema' });
+        seedVersions.push({ version: 'V4b', description: 'practitioner dashboard schema fixed' });
+      }
+      
+      // Don't seed V100 - that's the version control schema which isn't needed
+      
+      if (seedVersions.length > 0) {
+        console.log(`📝 Seeding ${seedVersions.length} already-applied migrations:\n`);
+        for (const { version, description } of seedVersions) {
+          await pool.request()
+            .input('version', sql.NVarChar, version)
+            .input('description', sql.NVarChar, description)
+            .input('applied_by', sql.NVarChar, 'seed-existing')
+            .query(`
+              INSERT INTO schema_versions (version, description, applied_by)
+              VALUES (@version, @description, @applied_by)
+            `);
+          console.log(`   ✅ Seeded ${version}: ${description}`);
+        }
+        console.log('');
+      }
+    }
+    
     // Get already applied migrations
     const appliedResult = await pool.request().query('SELECT version FROM schema_versions');
     const appliedVersions = new Set(appliedResult.recordset.map(r => r.version));
@@ -55,11 +112,19 @@ async function runMigrations() {
     }
     
     const migrationFiles = fs.readdirSync(migrationsDir)
-      .filter(f => /^V\d+__.*\.sql$/.test(f))
+      .filter(f => /^V\d+[a-z]?__.*\.sql$/.test(f))  // Support V4b format
+      .filter(f => !f.includes('version_control'))    // Skip V100 version control schema
       .sort((a, b) => {
-        const numA = parseInt(a.match(/^V(\d+)/)[1]);
-        const numB = parseInt(b.match(/^V(\d+)/)[1]);
-        return numA - numB;
+        // Extract version number and optional letter (e.g., "4b" from "V4b__...")
+        const matchA = a.match(/^V(\d+)([a-z])?/);
+        const matchB = b.match(/^V(\d+)([a-z])?/);
+        const numA = parseInt(matchA[1]);
+        const numB = parseInt(matchB[1]);
+        if (numA !== numB) return numA - numB;
+        // Same number, sort by letter (a before b, etc.)
+        const letterA = matchA[2] || '';
+        const letterB = matchB[2] || '';
+        return letterA.localeCompare(letterB);
       });
     
     console.log(`📁 Found ${migrationFiles.length} migration files\n`);
@@ -69,8 +134,9 @@ async function runMigrations() {
     let failed = 0;
     
     for (const file of migrationFiles) {
-      // Extract version (e.g., "V5" from "V5__availability_slots.sql")
-      const version = file.match(/^(V\d+)/)[1];
+      // Extract version (e.g., "V5" from "V5__availability_slots.sql" or "V4b" from "V4b__...")
+      const versionMatch = file.match(/^(V\d+[a-z]?)/);
+      const version = versionMatch[1];
       
       if (appliedVersions.has(version)) {
         console.log(`⏭️  ${file} - already applied`);
@@ -99,7 +165,7 @@ async function runMigrations() {
         }
         
         // Record the migration
-        const description = file.replace(/^V\d+__/, '').replace(/\.sql$/, '').replace(/_/g, ' ');
+        const description = file.replace(/^V\d+[a-z]?__/, '').replace(/\.sql$/, '').replace(/_/g, ' ');
         await pool.request()
           .input('version', sql.NVarChar, version)
           .input('description', sql.NVarChar, description)

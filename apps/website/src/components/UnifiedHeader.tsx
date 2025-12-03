@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { useBookingService } from '../hooks/useBookingService';
 import { BookingModal } from './BookingModal';
 import { log } from '../utils/logger';
@@ -90,21 +89,7 @@ const UnifiedHeader = () => {
 
   return (
     <>
-      <Helmet>
-        <link
-          rel="preload"
-          as="image"
-          href="/assets/hero-zoe-main.webp"
-          type="image/webp"
-          fetchpriority="high"
-        />
-        <link
-          rel="preload"
-          as="image"
-          href="/assets/hero-zoe-main.jpg"
-          type="image/jpeg"
-        />
-      </Helmet>
+      {/* Hero image preload is handled in index.html for earlier discovery */}
       {/* Floating dev toggle icon (⚙️) */}
       <div
         style={floatingIconStyle}

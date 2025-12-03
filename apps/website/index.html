@@ -14,7 +14,21 @@
     <link rel="apple-touch-icon" href="/favicon.svg" />
 
     <!-- Performance Optimizations: Resource Preloading -->
-    <!-- Hero image preload moved to UnifiedHeader component for conditional loading -->
+    <!-- Hero image preload for LCP improvement - high priority -->
+    <link
+      rel="preload"
+      href="/assets/hero-zoe-main.webp"
+      as="image"
+      type="image/webp"
+      fetchpriority="high"
+    />
+    <!-- Fallback for browsers without WebP support -->
+    <link
+      rel="preload"
+      href="/assets/hero-zoe-main.jpg"
+      as="image"
+      type="image/jpeg"
+    />
     <!-- Preload critical fonts with async loading and swap display -->
     <link
       rel="preload"
@@ -161,27 +175,41 @@
         console.log('[GA4] Initialized with ID:', measurementId);
 
         // Defer GTM loading until after First Contentful Paint to improve LCP
+        // Increased delay for better LCP performance
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', function () {
-            setTimeout(function () {
-              const measurementId = getGa4MeasurementId();
-              const script = document.createElement('script');
+            // Use requestIdleCallback for better performance, fallback to setTimeout
+            var loadGTM = function() {
+              var measurementId = getGa4MeasurementId();
+              var script = document.createElement('script');
               script.async = true;
               script.src =
                 'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
               document.head.appendChild(script);
-            }, 100); // Small delay after DOM ready
+            };
+            
+            if ('requestIdleCallback' in window) {
+              requestIdleCallback(loadGTM, { timeout: 2000 });
+            } else {
+              setTimeout(loadGTM, 1500); // Increased delay after DOM ready
+            }
           });
         } else {
           // Fallback if DOM is already loaded
-          setTimeout(function () {
-            const measurementId = getGa4MeasurementId();
-            const script = document.createElement('script');
+          var loadGTMFallback = function() {
+            var measurementId = getGa4MeasurementId();
+            var script = document.createElement('script');
             script.async = true;
             script.src =
               'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
             document.head.appendChild(script);
-          }, 100);
+          };
+          
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(loadGTMFallback, { timeout: 2000 });
+          } else {
+            setTimeout(loadGTMFallback, 1500);
+          }
         }
 
         window.dataLayer = window.dataLayer || [];
@@ -1036,8 +1064,9 @@
 
     <!-- Microsoft Clarity Analytics - Delayed initialization to reduce performance impact -->
     <script type="text/javascript">
-      // Delay Clarity initialization by 3 seconds to improve LCP and reduce blocking
-      setTimeout(function () {
+      // Delay Clarity initialization by 5 seconds to improve LCP and reduce blocking
+      // Using requestIdleCallback for optimal scheduling
+      function loadClarity() {
         (function (c, l, a, r, i, t, y) {
           c[a] =
             c[a] ||
@@ -1050,7 +1079,13 @@
           y = l.getElementsByTagName(r)[0];
           y.parentNode.insertBefore(t, y);
         })(window, document, 'clarity', 'script', 'th00xffrrg');
-      }, 3000);
+      }
+      
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadClarity, { timeout: 5000 });
+      } else {
+        setTimeout(loadClarity, 5000);
+      }
     </script>
   </head>
   <body>

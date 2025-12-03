@@ -40,6 +40,7 @@ import {
 import {
   getSqlConfig,
   getCosmosConfig,
+  isCosmosConfigured,
   generateMigrationId,
   generateSnapshotId,
   calculateChecksum,
@@ -57,6 +58,7 @@ export class MigrationService {
   private cosmosClient: CosmosClient | null = null;
   private cosmosDb: Database | null = null;
   private cosmosContainer: Container | null = null;
+  private cosmosEnabled: boolean = false;
 
   // ──────────────────────────────────────────────────────────────────────────
   // Connection Management
@@ -66,18 +68,27 @@ export class MigrationService {
    * Initialize database connections
    */
   async connect(): Promise<void> {
-    // SQL Connection
+    // SQL Connection (always required)
     if (!this.sqlPool) {
       const config = getSqlConfig();
       this.sqlPool = await sql.connect(config as string | sql.config);
     }
 
-    // Cosmos DB Connection
-    if (!this.cosmosClient) {
-      const { connectionString, database, container } = getCosmosConfig();
-      this.cosmosClient = new CosmosClient(connectionString);
-      this.cosmosDb = this.cosmosClient.database(database);
-      this.cosmosContainer = this.cosmosDb.container(container);
+    // Cosmos DB Connection (optional - for logging/backup)
+    if (!this.cosmosClient && isCosmosConfigured()) {
+      const cosmosConfig = getCosmosConfig();
+      if (cosmosConfig) {
+        try {
+          this.cosmosClient = new CosmosClient(cosmosConfig.connectionString);
+          this.cosmosDb = this.cosmosClient.database(cosmosConfig.database);
+          this.cosmosContainer = this.cosmosDb.container(cosmosConfig.container);
+          this.cosmosEnabled = true;
+          console.log('✅ Connected to Cosmos DB for migration logging');
+        } catch (error) {
+          console.warn('⚠️  Cosmos DB connection failed, running in SQL-only mode:', (error as Error).message);
+          this.cosmosEnabled = false;
+        }
+      }
     }
   }
 
@@ -96,10 +107,11 @@ export class MigrationService {
 
   /**
    * Get Cosmos container (single container for all entity types)
+   * Returns null if Cosmos is not enabled (SQL-only mode)
    */
-  private getContainer(): Container {
-    if (!this.cosmosContainer) {
-      throw new Error('Cosmos DB not connected. Call connect() first.');
+  private getContainer(): Container | null {
+    if (!this.cosmosEnabled || !this.cosmosContainer) {
+      return null;
     }
     return this.cosmosContainer;
   }
@@ -143,26 +155,29 @@ export class MigrationService {
           VALUES (@migration_id, @database_id, @description, @up_script, @down_script, @checksum, @author, @is_reversible, @depends_on, @tags)
         `);
 
-      // Also store in Cosmos for backup/sync
-      const migrationDoc: MigrationDocument = {
-        id: `${input.databaseId}_${migrationId}`,
-        migrationId,
-        databaseId: input.databaseId,
-        description,
-        upScript,
-        downScript,
-        checksum,
-        author: input.author,
-        createdAt: new Date().toISOString(),
-        isReversible: !!downScript,
-        dependsOn: input.dependsOn || null,
-        tags: input.tags || null,
-        appliedEnvironments: {},
-        entityType: ENTITY_TYPES.MIGRATION,
-        _partitionKey: ENTITY_TYPES.MIGRATION,
-      };
+      // Also store in Cosmos for backup/sync (if Cosmos is enabled)
+      const container = this.getContainer();
+      if (container) {
+        const migrationDoc: MigrationDocument = {
+          id: `${input.databaseId}_${migrationId}`,
+          migrationId,
+          databaseId: input.databaseId,
+          description,
+          upScript,
+          downScript,
+          checksum,
+          author: input.author,
+          createdAt: new Date().toISOString(),
+          isReversible: !!downScript,
+          dependsOn: input.dependsOn || null,
+          tags: input.tags || null,
+          appliedEnvironments: {},
+          entityType: ENTITY_TYPES.MIGRATION,
+          _partitionKey: ENTITY_TYPES.MIGRATION,
+        };
 
-      await this.getContainer().items.create(migrationDoc);
+        await container.items.create(migrationDoc);
+      }
 
       return {
         success: true,
@@ -612,23 +627,27 @@ export class MigrationService {
     const schemaDefinition = await this.captureSqlSchema();
     const schemaHash = await calculateChecksum(JSON.stringify(schemaDefinition));
 
-    // Store in Cosmos DB
-    const snapshotDoc: SchemaSnapshot = {
-      id: snapshotId,
-      databaseId: input.databaseId,
-      snapshotId,
-      capturedAt,
-      schemaDefinition,
-      triggeringMigrationId: input.triggeringMigrationId || '',
-      environment: input.environment,
-      captureType: input.captureType || 'auto',
-      capturedBy: input.capturedBy,
-      entityType: ENTITY_TYPES.SCHEMA_SNAPSHOT,
-      _partitionKey: ENTITY_TYPES.SCHEMA_SNAPSHOT,
-    };
+    // Store in Cosmos DB (if enabled)
+    let cosmosDocumentId: string | undefined;
+    const container = this.getContainer();
+    if (container) {
+      const snapshotDoc: SchemaSnapshot = {
+        id: snapshotId,
+        databaseId: input.databaseId,
+        snapshotId,
+        capturedAt,
+        schemaDefinition,
+        triggeringMigrationId: input.triggeringMigrationId || '',
+        environment: input.environment,
+        captureType: input.captureType || 'auto',
+        capturedBy: input.capturedBy,
+        entityType: ENTITY_TYPES.SCHEMA_SNAPSHOT,
+        _partitionKey: ENTITY_TYPES.SCHEMA_SNAPSHOT,
+      };
 
-    const { resource } = await this.getContainer()
-      .items.create(snapshotDoc);
+      const { resource } = await container.items.create(snapshotDoc);
+      cosmosDocumentId = resource?.id;
+    }
 
     // Also record in SQL for quick lookup
     await this.sqlPool!.request()
@@ -638,7 +657,7 @@ export class MigrationService {
       .input('triggering_migration_id', sql.NVarChar(100), input.triggeringMigrationId || null)
       .input('capture_type', sql.NVarChar(20), input.captureType || 'auto')
       .input('schema_hash', sql.NVarChar(64), schemaHash)
-      .input('cosmos_document_id', sql.NVarChar(100), resource?.id)
+      .input('cosmos_document_id', sql.NVarChar(100), cosmosDocumentId || null)
       .input('table_count', sql.Int, schemaDefinition.tables.length)
       .input('view_count', sql.Int, schemaDefinition.views.length)
       .input('index_count', sql.Int, schemaDefinition.indexes.length)
@@ -655,7 +674,7 @@ export class MigrationService {
       snapshotId,
       schemaHash,
       tableCount: schemaDefinition.tables.length,
-      cosmosDocumentId: resource?.id || snapshotId,
+      cosmosDocumentId: cosmosDocumentId || snapshotId,
     };
   }
 
@@ -1068,6 +1087,13 @@ export class MigrationService {
   }
 
   private async logChangeEvent(event: Omit<ChangeEvent, 'id' | 'timestamp'>): Promise<void> {
+    const container = this.getContainer();
+    if (!container) {
+      // SQL-only mode - skip Cosmos logging
+      console.log(`📝 Migration event: ${event.eventType} for ${event.migrationId}`);
+      return;
+    }
+    
     const doc: ChangeEvent = {
       id: `${event.databaseId}_${event.migrationId}_${Date.now()}`,
       ...event,
@@ -1076,7 +1102,7 @@ export class MigrationService {
       _partitionKey: ENTITY_TYPES.CHANGE_EVENT,
     };
 
-    await this.getContainer().items.create(doc);
+    await container.items.create(doc);
   }
 }
 

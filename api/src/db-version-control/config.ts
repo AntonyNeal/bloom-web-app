@@ -100,13 +100,30 @@ export function getSqlConfig(): string | object {
 }
 
 /**
- * Get Cosmos DB connection string for version control database
+ * Check if Cosmos DB is available and properly configured
  */
-export function getCosmosConfig(): { connectionString: string; database: string; container: string } {
+export function isCosmosConfigured(): boolean {
   const connectionString = process.env.DBVC_COSMOS_CONNECTION_STRING || process.env.COSMOS_DB_CONNECTION_STRING;
   
-  if (!connectionString) {
-    throw new Error('DBVC_COSMOS_CONNECTION_STRING or COSMOS_DB_CONNECTION_STRING not configured');
+  // Check if connection string exists and is not a placeholder
+  if (!connectionString) return false;
+  if (connectionString.includes('placeholder')) return false;
+  if (!connectionString.includes('AccountEndpoint=')) return false;
+  
+  return true;
+}
+
+/**
+ * Get Cosmos DB connection string for version control database
+ * Returns null if Cosmos is not configured (SQL-only mode)
+ */
+export function getCosmosConfig(): { connectionString: string; database: string; container: string } | null {
+  const connectionString = process.env.DBVC_COSMOS_CONNECTION_STRING || process.env.COSMOS_DB_CONNECTION_STRING;
+  
+  // Allow SQL-only mode if Cosmos is not configured or is a placeholder
+  if (!connectionString || connectionString.includes('placeholder') || !connectionString.includes('AccountEndpoint=')) {
+    console.log('⚠️  Cosmos DB not configured - running in SQL-only mode');
+    return null;
   }
   
   const environment = getCurrentEnvironment();

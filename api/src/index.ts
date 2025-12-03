@@ -3,6 +3,7 @@
 import './functions/health';
 import './functions/applications';
 import './functions/upload';
+import './functions/get-document-url';
 import './functions/ab-test';
 import './functions/track-ab-test';
 import './functions/dbvc';
@@ -13,6 +14,7 @@ import './functions/seed-database';
 export * from './functions/health';
 export * from './functions/applications';
 export * from './functions/upload';
+export * from './functions/get-document-url';
 export * from './functions/ab-test';
 export * from './functions/track-ab-test';
 export * from './functions/smoke-test';

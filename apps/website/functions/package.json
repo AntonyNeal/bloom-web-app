@@ -19,11 +19,13 @@
     "@azure/functions": "^4.8.0",
     "@azure/storage-blob": "^12.17.0",
     "applicationinsights": "^3.12.0",
+    "mssql": "^11.0.1",
     "stripe": "^17.4.0"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.14",
+    "@types/mssql": "^9.1.5",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",

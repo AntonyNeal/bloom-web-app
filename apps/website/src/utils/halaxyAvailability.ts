@@ -1,4 +1,3 @@
-import { apiService } from '../services/ApiService';
 import { log } from './logger';
 
 /**
@@ -22,10 +21,12 @@ export interface AvailabilityParams {
 
 interface HalaxyFHIRBundle {
   resourceType: string;
+  total?: number;
   entry?: Array<{
     resource: {
       start: string;
       end: string;
+      status?: string;
     };
   }>;
 }
@@ -42,8 +43,8 @@ export async function fetchAvailableSlots(
     ];
 
     if (!functionUrl) {
-      log.error(
-        'VITE_HALAXY_AVAILABILITY_FUNCTION_URL not configured',
+      log.warn(
+        'VITE_HALAXY_AVAILABILITY_FUNCTION_URL not configured - using fallback',
         'HalaxyAvailability'
       );
       return [];
@@ -64,26 +65,35 @@ export async function fetchAvailableSlots(
       queryParams.append('organization', params.organizationId);
     }
 
+    // Build the URL - functionUrl may be relative (/api/...) or absolute
     const endpoint = `${functionUrl}?${queryParams.toString()}`;
-    const result = await apiService.get<HalaxyFHIRBundle>(endpoint, {
+
+    log.debug('Fetching availability', 'HalaxyAvailability', { endpoint });
+
+    const response = await fetch(endpoint, {
+      method: 'GET',
       headers: {
+        Accept: 'application/fhir+json',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         Pragma: 'no-cache',
       },
-      timeout: 10000, // 10 second timeout for availability check
     });
 
-    if (!result.success || !result.data) {
+    if (!response.ok) {
       log.error('Failed to fetch availability', 'HalaxyAvailability', {
-        error: result.error,
+        status: response.status,
+        statusText: response.statusText,
       });
       return [];
     }
 
-    const data = result.data;
+    const data: HalaxyFHIRBundle = await response.json();
 
     // Parse Halaxy response (FHIR Bundle with Slot resources)
     if (data.resourceType === 'Bundle' && data.entry) {
+      log.debug('Received availability slots', 'HalaxyAvailability', {
+        total: data.total || data.entry.length,
+      });
       return data.entry.map((entry) => ({
         start: entry.resource.start,
         end: entry.resource.end,

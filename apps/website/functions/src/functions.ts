@@ -1,4 +1,4 @@
-// Force rebuild - 2025-11-24 - Deploy payment integration with managed functions
+// Force rebuild - 2025-12-04 - Add Halaxy availability function
 import { app } from '@azure/functions';
 
 // Import and register all functions
@@ -11,5 +11,8 @@ import './ab-testing/trackConversion';
 
 // Import payment functions
 import './functions/create-payment-intent';
+
+// Import Halaxy availability function
+import './functions/get-halaxy-availability';
 
 export { app };

@@ -790,6 +790,7 @@ jobs:
           echo "✅ Build complete"
         env:
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_HALAXY_AVAILABILITY_FUNCTION_URL: /api/halaxy/availability
 
       - name: Verify Build Output
         run: |

@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { BlobServiceClient } from "@azure/storage-blob";
+import { BlobServiceClient, generateBlobSASQueryParameters, BlobSASPermissions, StorageSharedKeyCredential } from "@azure/storage-blob";
 
 async function uploadHandler(
   req: HttpRequest,
@@ -77,7 +77,28 @@ async function uploadHandler(
       blobHTTPHeaders: { blobContentType: contentType },
     });
 
-    const url = blockBlobClient.url;
+    // Generate a SAS token for the blob (valid for 1 year)
+    // Parse account name and key from connection string
+    const accountMatch = connectionString.match(/AccountName=([^;]+)/);
+    const keyMatch = connectionString.match(/AccountKey=([^;]+)/);
+    
+    let url = blockBlobClient.url;
+    
+    if (accountMatch && keyMatch) {
+      const accountName = accountMatch[1];
+      const accountKey = keyMatch[1];
+      const sharedKeyCredential = new StorageSharedKeyCredential(accountName, accountKey);
+      
+      const sasToken = generateBlobSASQueryParameters({
+        containerName: "applications",
+        blobName: fileName,
+        permissions: BlobSASPermissions.parse("r"), // Read only
+        startsOn: new Date(),
+        expiresOn: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+      }, sharedKeyCredential).toString();
+      
+      url = `${blockBlobClient.url}?${sasToken}`;
+    }
 
     return {
       status: 200,

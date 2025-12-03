@@ -9,12 +9,13 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { API_ENDPOINTS } from "@/config/api";
+import { API_ENDPOINTS, API_BASE_URL } from "@/config/api";
 import LoadingState from "@/components/common/LoadingState";
 import EmptyState from "@/components/common/EmptyState";
 import NetworkErrorState from "@/components/common/NetworkErrorState";
 import ServerErrorState from "@/components/common/ServerErrorState";
 import { AuthenticatedLayout } from "@/components/layout/AuthenticatedLayout";
+import { toast } from "sonner";
 
 interface Application {
   id: number;
@@ -70,6 +71,32 @@ export function Admin() {
       setError('network');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const openDocument = async (url: string, docType: string) => {
+    try {
+      // If URL already has a SAS token, open directly
+      if (url.includes('?')) {
+        window.open(url, '_blank');
+        return;
+      }
+      
+      // Fetch a signed URL from the API
+      const response = await fetch(
+        `${API_BASE_URL}/get-document-url?url=${encodeURIComponent(url)}`
+      );
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to get document URL');
+      }
+      
+      const data = await response.json();
+      window.open(data.url, '_blank');
+    } catch (err) {
+      console.error('Error opening document:', err);
+      toast.error(`Unable to open ${docType}. The document may no longer exist.`);
     }
   };
 
@@ -320,34 +347,28 @@ export function Admin() {
                   <Label className="font-medium">Documents</Label>
                   <div className="space-y-1">
                     {selectedApp.cv_url && (
-                      <a
-                        href={selectedApp.cv_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block text-sm text-primary-500 hover:underline"
+                      <button
+                        onClick={() => openDocument(selectedApp.cv_url, 'CV')}
+                        className="block text-sm text-primary-500 hover:underline text-left"
                       >
                         📄 View CV →
-                      </a>
+                      </button>
                     )}
                     {selectedApp.certificate_url && (
-                      <a
-                        href={selectedApp.certificate_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block text-sm text-primary-500 hover:underline"
+                      <button
+                        onClick={() => openDocument(selectedApp.certificate_url, 'AHPRA Certificate')}
+                        className="block text-sm text-primary-500 hover:underline text-left"
                       >
                         📜 View AHPRA Certificate →
-                      </a>
+                      </button>
                     )}
                     {selectedApp.photo_url && (
-                      <a
-                        href={selectedApp.photo_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block text-sm text-primary-500 hover:underline"
+                      <button
+                        onClick={() => openDocument(selectedApp.photo_url, 'Photo')}
+                        className="block text-sm text-primary-500 hover:underline text-left"
                       >
                         📷 View Professional Photo →
-                      </a>
+                      </button>
                     )}
                   </div>
                 </div>

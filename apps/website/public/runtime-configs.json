@@ -17,14 +17,14 @@
     "VITE_GOOGLE_ADS_ID": "",
     "VITE_GOOGLE_ADS_CONVERSION_LABEL": "",
     "VITE_OPENAI_API_KEY": "dev-api-key",
-    "VITE_AZURE_FUNCTION_URL": "https://fnt42kldozqahcu.azurewebsites.net",
+    "VITE_AZURE_FUNCTION_URL": "https://bloom-functions-dev.azurewebsites.net",
     "VITE_BOOKING_URL": "https://www.halaxy.com/book/widget/appointment/psychologist/ms-zoe-semmler/1304541/1023041?utm_source=lifepsychology&utm_medium=website&utm_campaign=booking_page_footer",
     "VITE_BASE_URL": "https://dev.life-psychology.com.au",
     "VITE_GTM_ID": "",
     "VITE_DEBUG_PANEL": "true",
     "VITE_BUILD_ITERATION": "101",
     "VITE_BUILD_TIME": "2025-09-12T06:13:00.000Z",
-    "apiUrl": "https://dev-api.life-psychology.com.au"
+    "apiUrl": "https://bloom-functions-dev.azurewebsites.net/api"
   },
   "staging": {
     "features": {
@@ -44,14 +44,14 @@
     "VITE_GOOGLE_ADS_ID": "AW-1684610836",
     "VITE_GOOGLE_ADS_CONVERSION_LABEL": "z7FFCJ3QgpMbEKvXgoor",
     "VITE_OPENAI_API_KEY": "",
-    "VITE_AZURE_FUNCTION_URL": "https://fnt42kldozqahcu.azurewebsites.net",
+    "VITE_AZURE_FUNCTION_URL": "https://bloom-functions-staging-new.azurewebsites.net",
     "VITE_BOOKING_URL": "https://www.halaxy.com/book/widget/appointment/psychologist/ms-zoe-semmler/1304541/1023041?utm_source=lifepsychology&utm_medium=website&utm_campaign=booking_page_footer",
     "VITE_BASE_URL": "https://staging.life-psychology.com.au",
     "VITE_GTM_ID": "GTM-STAGING-ID",
     "VITE_DEBUG_PANEL": "false",
     "VITE_BUILD_ITERATION": "101",
     "VITE_BUILD_TIME": "2025-09-12T06:13:00.000Z",
-    "apiUrl": "https://staging-api.life-psychology.com.au"
+    "apiUrl": "https://bloom-functions-staging-new.azurewebsites.net/api"
   },
   "production": {
     "features": {

@@ -463,9 +463,12 @@ jobs:
         run: |
           ENV_SUFFIX="${{ needs.determine-environment.outputs.db-environment == 'prod' && 'PROD' || 'DEV' }}"
           
+          # Use the actual Key Vault name (includes random suffix from Bicep deployment)
+          KV_NAME="lpa-kv-dev-i3u6u6psuu75o"
+          
           SQL_CONN=$(az keyvault secret show \
             --name "SQL-${ENV_SUFFIX}-CONNECTION-STRING" \
-            --vault-name "lpa-kv-${{ needs.determine-environment.outputs.db-environment }}" \
+            --vault-name "$KV_NAME" \
             --query value -o tsv 2>/dev/null || echo "")
           
           if [ -n "$SQL_CONN" ]; then
@@ -474,7 +477,7 @@ jobs:
           
           COSMOS_CONN=$(az keyvault secret show \
             --name "COSMOS-${ENV_SUFFIX}-CONNECTION-STRING" \
-            --vault-name "lpa-kv-${{ needs.determine-environment.outputs.db-environment }}" \
+            --vault-name "$KV_NAME" \
             --query value -o tsv 2>/dev/null || echo "")
           
           if [ -n "$COSMOS_CONN" ]; then

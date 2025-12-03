@@ -6,6 +6,7 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMsal } from '@azure/msal-react';
 import { isAuthEnabled } from '../config/authConfig';
 
 /**
@@ -60,9 +61,6 @@ const AuthCallbackFallback = () => {
  * Component that uses MSAL hooks - only rendered when auth is configured
  */
 const AuthCallbackWithMsal = () => {
-  // Dynamic import to avoid loading MSAL when not needed
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { useMsal } = require('@azure/msal-react');
   const navigate = useNavigate();
   const { instance } = useMsal();
 

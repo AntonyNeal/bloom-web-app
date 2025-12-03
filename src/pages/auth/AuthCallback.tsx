@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { Tier2Flower } from '@/components/flowers/Tier2Flower';
 import { isAuthEnabled } from '../../config/authConfig';
 
@@ -72,10 +73,6 @@ const AuthCallbackFallback = () => {
  * Component that uses MSAL hooks - only rendered when auth is configured
  */
 const AuthCallbackWithMsal = () => {
-  // Dynamic import to avoid loading MSAL when not needed
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { useMsal, useIsAuthenticated } = require('@azure/msal-react');
-  
   const navigate = useNavigate();
   const { instance } = useMsal();
   const isAuthenticated = useIsAuthenticated();

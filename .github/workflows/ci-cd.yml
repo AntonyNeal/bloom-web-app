@@ -870,16 +870,66 @@ jobs:
           
           echo "✅ All Halaxy Sync Service modules verified"
 
+      - name: Verify Build Output
+        working-directory: ./api
+        run: |
+          echo "🔍 Verifying build output..."
+          if [ ! -d "dist" ]; then
+            echo "❌ dist/ folder not found!"
+            exit 1
+          fi
+          
+          if [ ! -f "dist/index.js" ]; then
+            echo "❌ dist/index.js not found!"
+            exit 1
+          fi
+          
+          if [ ! -d "dist/functions" ]; then
+            echo "❌ dist/functions/ folder not found!"
+            exit 1
+          fi
+          
+          echo "📁 dist/ contents:"
+          ls -la dist/
+          echo "📁 dist/functions/ contents:"
+          ls -la dist/functions/
+          
+          # Count functions
+          FUNC_COUNT=$(ls -1 dist/functions/*.js 2>/dev/null | wc -l)
+          echo "✅ Found ${FUNC_COUNT} function files"
+          
+          if [ "$FUNC_COUNT" -eq 0 ]; then
+            echo "❌ No function .js files found in dist/functions/"
+            exit 1
+          fi
+
       - name: Package Bloom API
         working-directory: ./api
         run: |
+          echo "📦 Creating deploy package..."
+          rm -rf deploy-package
           mkdir -p deploy-package
-          cp -r dist/* deploy-package/ || true
-          cp host.json deploy-package/ || true
+          
+          # Copy compiled output
+          cp -r dist/* deploy-package/
+          
+          # Copy required config files
+          cp host.json deploy-package/
           cp package.json deploy-package/
+          
+          # Update package.json main entry point
           cd deploy-package
           sed -i 's|"main": "dist/index.js"|"main": "index.js"|' package.json
+          
+          # Install production dependencies
           npm install --production
+          
+          # Verify package contents
+          echo "📁 deploy-package/ contents:"
+          ls -la
+          echo "📁 deploy-package/functions/ contents:"
+          ls -la functions/
+          
           echo "✅ Package ready"
 
       - name: Upload Artifacts

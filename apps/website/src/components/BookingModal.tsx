@@ -68,7 +68,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-6"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
@@ -79,15 +79,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         onClick={onClose}
       ></div>
 
-      {/* Modal panel */}
+      {/* Modal panel - full screen on mobile, large modal on desktop */}
       <div
         ref={modalContentRef}
-        className="relative z-10 w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-2xl"
+        className="relative z-10 w-full h-full sm:h-auto sm:max-h-[95vh] max-w-3xl overflow-y-auto rounded-none sm:rounded-lg bg-white shadow-2xl"
       >
         {/* Close button - positioned absolutely in top-right corner */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all z-20 border border-gray-200"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-500 hover:text-gray-700 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all z-20 border border-gray-200"
           aria-label="Close"
         >
           <svg
@@ -106,7 +106,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </button>
 
         {/* Booking form */}
-        <div className="p-4 sm:p-6 pt-12">
+        <div className="p-3 sm:p-6 pt-10 sm:pt-12">
           <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
         </div>
       </div>

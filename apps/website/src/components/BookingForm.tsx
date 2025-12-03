@@ -420,46 +420,46 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-8 bg-white rounded-xl shadow-lg">
+    <div className="max-w-3xl mx-auto p-4 sm:p-8 bg-white rounded-xl shadow-lg">
       {/* Header */}
-      <div className="mb-10">
-        <h2 className="text-3xl font-bold text-gray-900">
+      <div className="mb-6 sm:mb-10">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
           Book Your Appointment
         </h2>
-        <p className="text-gray-600 mt-3 text-lg">
+        <p className="text-gray-600 mt-2 sm:mt-3 text-base sm:text-lg">
           Schedule a telehealth session with Zoe Semmler
         </p>
       </div>
 
       {/* Progress indicator */}
       {step !== 'success' && step !== 'error' && (
-        <div className="mb-12">
-          <div className="flex items-center justify-between gap-4">
+        <div className="mb-6 sm:mb-12">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
             <div
               className={`flex-1 ${step === 'details' ? 'text-blue-600' : step === 'datetime' || step === 'payment' || step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
             >
-              <div className="text-sm sm:text-base font-semibold text-center">
-                1. Your Details
+              <div className="text-xs sm:text-base font-semibold text-center">
+                1. Details
               </div>
             </div>
             <div
               className={`flex-1 ${step === 'datetime' ? 'text-blue-600' : step === 'payment' || step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
             >
-              <div className="text-sm sm:text-base font-semibold text-center">
-                2. Date & Time
+              <div className="text-xs sm:text-base font-semibold text-center">
+                2. Time
               </div>
             </div>
             <div
               className={`flex-1 ${step === 'payment' ? 'text-blue-600' : step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
             >
-              <div className="text-sm sm:text-base font-semibold text-center">
+              <div className="text-xs sm:text-base font-semibold text-center">
                 3. Payment
               </div>
             </div>
             <div
               className={`flex-1 ${step === 'confirm' ? 'text-blue-600' : 'text-gray-400'}`}
             >
-              <div className="text-sm sm:text-base font-semibold text-center">
+              <div className="text-xs sm:text-base font-semibold text-center">
                 4. Confirm
               </div>
             </div>
@@ -484,8 +484,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 1: Patient Details */}
       {step === 'details' && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4 sm:space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div>
               <label
                 htmlFor="firstName-input"
@@ -764,7 +764,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </select>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-10 border-t border-gray-100">
+          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4 sm:pt-10 border-t border-gray-100">
             <button
               type="button"
               onClick={onCancel}
@@ -1057,7 +1057,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-10 border-t border-gray-100">
+          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4 sm:pt-10 border-t border-gray-100">
             <button
               type="button"
               onClick={() => {

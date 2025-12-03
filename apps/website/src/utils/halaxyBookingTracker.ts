@@ -39,9 +39,10 @@ export class HalaxyBookingTracker {
   private static instance: HalaxyBookingTracker;
 
   // Azure endpoint configuration - key should be in environment variables
+  // Note: store-booking-session endpoint is only available in production
   private readonly AZURE_ENDPOINT =
     import.meta.env.VITE_HALAXY_WEBHOOK_URL || 
-    'https://lpa-halaxy-webhook-handler.azurewebsites.net/api/store-booking-session';
+    `${import.meta.env.VITE_AZURE_FUNCTION_URL || ''}/api/store-booking-session`;
   private readonly MEASUREMENT_ID = 'G-XGGBRLPBKK';
   private readonly AZURE_TIMEOUT = 3000; // 3 seconds
 
@@ -263,12 +264,13 @@ export class HalaxyBookingTracker {
         log.warn('Failed to capture GCLID/intent', 'HalaxyTracker', error);
       }
 
-      // Only run Azure integration in production environment
-      if (import.meta.env.VITE_ENVIRONMENT === 'production') {
+      // Only run Azure integration in production environment (requires store-booking-session function)
+      const environment = import.meta.env.VITE_ENVIRONMENT || 'development';
+      if (environment === 'production' && this.AZURE_ENDPOINT && !this.AZURE_ENDPOINT.endsWith('/api/store-booking-session')) {
         await this.handleAzureIntegration(targetUrlObj);
       } else {
         log.debug(
-          'Skipping Azure integration (not in production)',
+          `Skipping Azure integration (environment: ${environment})`,
           'HalaxyTracker'
         );
         // In development/staging, just redirect normally

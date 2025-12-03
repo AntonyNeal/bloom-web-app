@@ -55,7 +55,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       // This should call your Azure Function that creates a Stripe payment intent
       const baseUrl =
         import.meta.env['VITE_FUNCTIONS_URL'] ||
-        'https://lpa-halaxy-webhook-handler.azurewebsites.net/api';
+        import.meta.env['VITE_AZURE_FUNCTION_URL'] ||
+        '';
       const response = await apiService.post<{ clientSecret: string }>(
         `${baseUrl}/create-payment-intent`,
         {

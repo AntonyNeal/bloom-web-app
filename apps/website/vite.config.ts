@@ -4,6 +4,8 @@ import removeConsole from 'vite-plugin-remove-console';
 import { defineConfig } from 'vite';
 import { criticalCssInline } from './src/plugins/critical-css-plugin';
 
+// Force rebuild: 2025-12-03 - Added VITE_HALAXY_AVAILABILITY_FUNCTION_URL
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [

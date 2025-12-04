@@ -211,6 +211,63 @@ export interface FHIRAppointment {
 }
 
 /**
+ * FHIR Slot resource (for availability)
+ * https://www.hl7.org/fhir/slot.html
+ */
+export interface FHIRSlot {
+  resourceType: 'Slot';
+  id: string;
+  status: 'busy' | 'free' | 'busy-unavailable' | 'busy-tentative' | 'entered-in-error';
+  start: string; // ISO 8601 datetime
+  end: string;   // ISO 8601 datetime
+  schedule?: {
+    reference?: string; // e.g., "Schedule/123"
+    display?: string;
+  };
+  serviceCategory?: Array<{
+    coding?: Array<{
+      system?: string;
+      code?: string;
+      display?: string;
+    }>;
+    text?: string;
+  }>;
+  serviceType?: Array<{
+    coding?: Array<{
+      system?: string;
+      code?: string;
+      display?: string;
+    }>;
+    text?: string;
+  }>;
+  specialty?: Array<{
+    coding?: Array<{
+      system?: string;
+      code?: string;
+      display?: string;
+    }>;
+    text?: string;
+  }>;
+  appointmentType?: {
+    coding?: Array<{
+      system?: string;
+      code?: string;
+      display?: string;
+    }>;
+    text?: string;
+  };
+  comment?: string;
+  // Halaxy-specific extensions
+  extension?: Array<{
+    url: string;
+    valueReference?: {
+      reference?: string;
+      display?: string;
+    };
+  }>;
+}
+
+/**
  * FHIR Bundle for paginated responses
  */
 export interface FHIRBundle<T> {

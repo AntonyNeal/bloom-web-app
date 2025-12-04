@@ -12,6 +12,7 @@ import {
   FHIRPractitionerRole,
   FHIRPatient,
   FHIRAppointment,
+  FHIRSlot,
   FHIRBundle,
   HalaxyConfig,
 } from './types';
@@ -156,6 +157,39 @@ export class HalaxyClient {
     return this.getAllPages<FHIRAppointment>('/Appointment', {
       actor: `Patient/${patientId}`,
     });
+  }
+
+  // ===========================================================================
+  // Slot Endpoints (Availability)
+  // ===========================================================================
+
+  /**
+   * Get available slots for a practitioner within a date range
+   * 
+   * @param practitionerId - Halaxy practitioner ID
+   * @param startDate - Start of date range
+   * @param endDate - End of date range
+   * @param status - Filter by slot status (default: 'free')
+   */
+  async getAvailableSlots(
+    practitionerId: string,
+    startDate: Date,
+    endDate: Date,
+    status: string = 'free'
+  ): Promise<FHIRSlot[]> {
+    return this.getAllPages<FHIRSlot>('/Slot', {
+      'schedule.actor': `Practitioner/${practitionerId}`,
+      'start': `ge${startDate.toISOString()}`,
+      'start:lt': endDate.toISOString(),
+      status: status,
+    });
+  }
+
+  /**
+   * Get a single slot by ID
+   */
+  async getSlot(slotId: string): Promise<FHIRSlot> {
+    return this.request<FHIRSlot>(`/Slot/${slotId}`);
   }
 
   // ===========================================================================

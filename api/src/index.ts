@@ -13,6 +13,7 @@ import './functions/seed-database';
 import './functions/store-booking-session';
 import './functions/get-halaxy-availability';
 import './functions/create-halaxy-booking';
+import './functions/halaxy-sync-timer';
 
 export * from './functions/health';
 export * from './functions/applications';

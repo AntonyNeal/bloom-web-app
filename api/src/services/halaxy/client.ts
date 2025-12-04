@@ -13,6 +13,7 @@ import {
   FHIRPatient,
   FHIRAppointment,
   FHIRSlot,
+  FHIRSchedule,
   FHIRBundle,
   HalaxyConfig,
 } from './types';
@@ -161,6 +162,34 @@ export class HalaxyClient {
   }
 
   // ===========================================================================
+  // Schedule Endpoints (Practitioner Practice Hours)
+  // ===========================================================================
+
+  /**
+   * Get all schedules (practitioner practice hours)
+   * Each schedule represents a practitioner's hours at a specific clinic
+   */
+  async getAllSchedules(): Promise<FHIRSchedule[]> {
+    return this.getAllPages<FHIRSchedule>('/Schedule', {});
+  }
+
+  /**
+   * Get a single schedule by ID
+   */
+  async getSchedule(scheduleId: string): Promise<FHIRSchedule> {
+    return this.request<FHIRSchedule>(`/Schedule/${scheduleId}`);
+  }
+
+  /**
+   * Get schedules for a specific practitioner
+   */
+  async getSchedulesByPractitioner(practitionerId: string): Promise<FHIRSchedule[]> {
+    return this.getAllPages<FHIRSchedule>('/Schedule', {
+      actor: `Practitioner/${practitionerId}`,
+    });
+  }
+
+  // ===========================================================================
   // Slot Endpoints (Availability)
   // ===========================================================================
 
@@ -180,6 +209,23 @@ export class HalaxyClient {
   ): Promise<FHIRSlot[]> {
     return this.getAllPages<FHIRSlot>('/Slot', {
       'schedule.actor': `PractitionerRole/${practitionerId}`,
+      'start': `ge${startDate.toISOString()}`,
+      'start:lt': endDate.toISOString(),
+      status: status,
+    });
+  }
+
+  /**
+   * Get slots by schedule ID (more reliable than by practitioner)
+   */
+  async getSlotsBySchedule(
+    scheduleId: string,
+    startDate: Date,
+    endDate: Date,
+    status: string = 'free'
+  ): Promise<FHIRSlot[]> {
+    return this.getAllPages<FHIRSlot>('/Slot', {
+      schedule: `Schedule/${scheduleId}`,
       'start': `ge${startDate.toISOString()}`,
       'start:lt': endDate.toISOString(),
       status: status,

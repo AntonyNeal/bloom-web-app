@@ -248,38 +248,60 @@ export class HalaxySyncService {
       }
 
       // 4. Sync availability slots - next 90 days
+      // First fetch schedules for this practitioner, then get slots from each schedule
       console.log(`[HalaxySyncService] Syncing availability slots...`);
       const slotStartDate = new Date();
       const slotEndDate = new Date();
       slotEndDate.setDate(slotEndDate.getDate() + 90);
 
       try {
-        console.log(`[HalaxySyncService] Fetching slots for practitioner ID: ${halaxyPractitionerId}`);
-        
-        const slots = await this.client.getAvailableSlots(
-          halaxyPractitionerId,
-          slotStartDate,
-          slotEndDate
-        );
-        console.log(`[HalaxySyncService] Found ${slots.length} availability slots`);
+        // First, get the practitioner's schedules
+        console.log(`[HalaxySyncService] Fetching schedules for practitioner ID: ${halaxyPractitionerId}`);
+        const schedules = await this.client.getSchedulesByPractitioner(halaxyPractitionerId);
+        console.log(`[HalaxySyncService] Found ${schedules.length} schedules`);
 
         // Clean up old slots before syncing
         await this.cleanupOldSlots(practitioner.id);
 
-        for (const slot of slots) {
+        // For each schedule, fetch and sync slots
+        let totalSlots = 0;
+        for (const schedule of schedules) {
           try {
-            await this.syncSlot(slot, practitioner.id);
-            recordsUpdated++;
-          } catch (error) {
+            console.log(`[HalaxySyncService] Fetching slots for schedule: ${schedule.id}`);
+            const slots = await this.client.getSlotsBySchedule(
+              schedule.id,
+              slotStartDate,
+              slotEndDate
+            );
+            console.log(`[HalaxySyncService] Found ${slots.length} slots for schedule ${schedule.id}`);
+            totalSlots += slots.length;
+
+            for (const slot of slots) {
+              try {
+                await this.syncSlot(slot, practitioner.id);
+                recordsUpdated++;
+              } catch (error) {
+                errors.push({
+                  entityType: 'slot',
+                  entityId: slot.id,
+                  operation: 'sync',
+                  message: error instanceof Error ? error.message : 'Unknown error',
+                  timestamp: new Date(),
+                });
+              }
+            }
+          } catch (scheduleError) {
+            console.warn(`[HalaxySyncService] Could not fetch slots for schedule ${schedule.id}:`, scheduleError);
             errors.push({
               entityType: 'slot',
-              entityId: slot.id,
+              entityId: schedule.id,
               operation: 'sync',
-              message: error instanceof Error ? error.message : 'Unknown error',
+              message: `Could not fetch slots for schedule: ${getErrorMessage(scheduleError)}`,
               timestamp: new Date(),
             });
           }
         }
+        console.log(`[HalaxySyncService] Synced ${totalSlots} total availability slots`);
       } catch (error) {
         console.error('[HalaxySyncService] Failed to sync slots:', error);
         errors.push({

@@ -211,6 +211,27 @@ export interface FHIRAppointment {
 }
 
 /**
+ * FHIR Schedule resource (practitioner practice hours)
+ * https://www.hl7.org/fhir/schedule.html
+ * In Halaxy, each schedule represents practice hours of a practitioner for a specific clinic
+ */
+export interface FHIRSchedule {
+  resourceType: 'Schedule';
+  id: string;
+  active?: boolean;
+  planningHorizon?: {
+    start?: string; // YYYY-MM-DD
+    end?: string;   // YYYY-MM-DD
+  };
+  actor?: Array<{
+    reference: string; // e.g., "/main/Practitioner/PR-1234567" or "/main/Organization/CL-123456"
+    type: 'Practitioner' | 'Organization' | 'PractitionerRole';
+    display?: string;
+  }>;
+  comment?: string;
+}
+
+/**
  * FHIR Slot resource (for availability)
  * https://www.hl7.org/fhir/slot.html
  */

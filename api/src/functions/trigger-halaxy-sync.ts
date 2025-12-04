@@ -59,7 +59,8 @@ async function triggerHalaxySyncHandler(
       success: boolean; 
       recordsProcessed?: number;
       duration?: number;
-      error?: string 
+      error?: string;
+      errors?: Array<{ entityType: string; message: string }>;
     }> = [];
 
     for (const practitioner of practitioners) {
@@ -80,6 +81,10 @@ async function triggerHalaxySyncHandler(
           success: result.success,
           recordsProcessed: result.recordsProcessed,
           duration: result.duration,
+          errors: result.errors.length > 0 ? result.errors.map(e => ({
+            entityType: e.entityType,
+            message: e.message,
+          })) : undefined,
         });
 
         context.log(

@@ -106,6 +106,28 @@ async function runMigrations() {
     const appliedVersions = new Set(appliedResult.recordset.map(r => r.version));
     console.log(`📋 Already applied: ${appliedVersions.size} migrations\n`);
     
+    // One-time fix: If V2 is missing but V3 is applied, add V2 (fixes seeding bug)
+    if (!appliedVersions.has('V2') && appliedVersions.has('V3')) {
+      console.log('🔧 Fixing missing V2 migration record (one-time fix)...');
+      try {
+        await pool.request()
+          .input('version', sql.NVarChar, 'V2')
+          .input('description', sql.NVarChar, 'add ab testing')
+          .input('applied_by', sql.NVarChar, 'seed-fix')
+          .query(`
+            INSERT INTO schema_versions (version, description, applied_by)
+            VALUES (@version, @description, @applied_by)
+          `);
+        appliedVersions.add('V2');
+        console.log('   ✅ Added V2 to applied migrations\n');
+      } catch (err) {
+        // Ignore if already exists
+        if (!err.message.includes('duplicate')) {
+          console.log(`   ⚠️ Could not add V2: ${err.message}\n`);
+        }
+      }
+    }
+    
     // Find migration files (V*.sql pattern)
     const migrationsDir = path.join(__dirname, '..', 'db', 'migrations');
     if (!fs.existsSync(migrationsDir)) {

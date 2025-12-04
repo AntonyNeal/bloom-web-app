@@ -130,6 +130,27 @@ async function runMigrations() {
       }
     }
     
+    // One-time fix: If V3 is missing but V4 is applied, add V3
+    if (!appliedVersions.has('V3') && (appliedVersions.has('V4') || appliedVersions.has('V4b'))) {
+      console.log('🔧 Fixing missing V3 migration record (one-time fix)...');
+      try {
+        await pool.request()
+          .input('version', sql.NVarChar, 'V3')
+          .input('description', sql.NVarChar, 'add session tracking')
+          .input('applied_by', sql.NVarChar, 'seed-fix')
+          .query(`
+            INSERT INTO schema_versions (version, description, applied_by)
+            VALUES (@version, @description, @applied_by)
+          `);
+        appliedVersions.add('V3');
+        console.log('   ✅ Added V3 to applied migrations\n');
+      } catch (err) {
+        if (!err.message.includes('duplicate')) {
+          console.log(`   ⚠️ Could not add V3: ${err.message}\n`);
+        }
+      }
+    }
+    
     // One-time fix: If V4b is missing but V4 is applied, add V4b
     if (!appliedVersions.has('V4b') && appliedVersions.has('V4')) {
       console.log('🔧 Fixing missing V4b migration record (one-time fix)...');

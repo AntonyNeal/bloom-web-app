@@ -147,11 +147,11 @@ export class HalaxySyncService {
     try {
       // 2. Try to sync patients (clients) for this practitioner
       // This may fail if Halaxy API doesn't support the general-practitioner query format
-      // Use numeric ID for FHIR reference (strip PR-/EP- prefix)
-      const numericPractitionerId = extractNumericId(halaxyPractitionerId);
+      // Try both the original ID format and without prefix
       let patients: FHIRPatient[] = [];
       try {
-        patients = await this.client.getPatientsByPractitioner(numericPractitionerId);
+        // First try with original ID (e.g., PR-1439411)
+        patients = await this.client.getPatientsByPractitioner(halaxyPractitionerId);
         console.log(`[HalaxySyncService] Found ${patients.length} patients to sync`);
       } catch (patientError) {
         console.warn(`[HalaxySyncService] Could not fetch patients for ${halaxyPractitionerId}:`, patientError);
@@ -190,11 +190,10 @@ export class HalaxySyncService {
       endDate.setDate(endDate.getDate() + 90);
 
       // Try to sync appointments - may fail if API query format is invalid
-      // Use numericPractitionerId which is already extracted above
       let appointments: FHIRAppointment[] = [];
       try {
         appointments = await this.client.getAppointmentsByPractitioner(
-          numericPractitionerId,
+          halaxyPractitionerId,
           startDate,
           endDate
         );
@@ -254,12 +253,10 @@ export class HalaxySyncService {
       slotEndDate.setDate(slotEndDate.getDate() + 90);
 
       try {
-        // Use numeric ID for FHIR reference (strip PR-/EP- prefix)
-        const numericPractitionerId = extractNumericId(halaxyPractitionerId);
-        console.log(`[HalaxySyncService] Fetching slots for numeric ID: ${numericPractitionerId}`);
+        console.log(`[HalaxySyncService] Fetching slots for practitioner ID: ${halaxyPractitionerId}`);
         
         const slots = await this.client.getAvailableSlots(
-          numericPractitionerId,
+          halaxyPractitionerId,
           slotStartDate,
           slotEndDate
         );

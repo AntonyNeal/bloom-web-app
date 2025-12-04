@@ -99,8 +99,14 @@ export class HalaxySyncService {
       };
     }
 
-    // Now that we have the GUID, create the sync log
-    const syncLog = await this.createSyncLog('full', 'all', practitioner.id);
+    // Try to create sync log, but don't fail if table doesn't exist
+    let syncLogId: string = '';
+    try {
+      const syncLog = await this.createSyncLog('full', 'all', practitioner.id);
+      syncLogId = syncLog.id;
+    } catch (logError) {
+      console.warn('[HalaxySyncService] Could not create sync log (table may not exist):', logError);
+    }
 
     try {
       // 2. Sync all patients (clients) for this practitioner
@@ -221,15 +227,21 @@ export class HalaxySyncService {
       // Update MHCP used sessions for each client
       await this.updateMhcpSessionCounts(practitioner.id);
 
-      // Complete sync log
-      await this.completeSyncLog(syncLog.id, 'success', recordsCreated + recordsUpdated);
+      // Complete sync log if it was created
+      if (syncLogId) {
+        try {
+          await this.completeSyncLog(syncLogId, 'success', recordsCreated + recordsUpdated);
+        } catch (logError) {
+          console.warn('[HalaxySyncService] Could not complete sync log:', logError);
+        }
+      }
 
       const duration = Date.now() - startTime;
       console.log(`[HalaxySyncService] Full sync completed in ${duration}ms`);
 
       return {
         success: errors.length === 0,
-        syncLogId: syncLog.id,
+        syncLogId,
         recordsProcessed: recordsCreated + recordsUpdated + recordsDeleted,
         recordsCreated,
         recordsUpdated,
@@ -240,16 +252,22 @@ export class HalaxySyncService {
     } catch (error) {
       console.error('[HalaxySyncService] Full sync failed:', error);
       
-      await this.completeSyncLog(
-        syncLog.id,
-        'error',
-        0,
-        error instanceof Error ? error.message : 'Unknown error'
-      );
+      if (syncLogId) {
+        try {
+          await this.completeSyncLog(
+            syncLogId,
+            'error',
+            0,
+            error instanceof Error ? error.message : 'Unknown error'
+          );
+        } catch (logError) {
+          console.warn('[HalaxySyncService] Could not complete sync log:', logError);
+        }
+      }
 
       return {
         success: false,
-        syncLogId: syncLog.id,
+        syncLogId,
         recordsProcessed: 0,
         recordsCreated: 0,
         recordsUpdated: 0,
@@ -278,7 +296,15 @@ export class HalaxySyncService {
     resource: FHIRAppointment | FHIRPatient | FHIRPractitioner
   ): Promise<SyncResult> {
     const startTime = Date.now();
-    const syncLog = await this.createSyncLog('webhook', this.getEntityType(event), undefined);
+    
+    // Try to create sync log, but don't fail if table doesn't exist
+    let syncLogId: string = '';
+    try {
+      const syncLog = await this.createSyncLog('webhook', this.getEntityType(event), undefined);
+      syncLogId = syncLog.id;
+    } catch (logError) {
+      console.warn('[HalaxySyncService] Could not create sync log:', logError);
+    }
 
     try {
       console.log(`[HalaxySyncService] Processing webhook event: ${event}`);
@@ -317,15 +343,21 @@ export class HalaxySyncService {
           console.log(`[HalaxySyncService] Unhandled webhook event: ${event}`);
       }
 
-      await this.completeSyncLog(
-        syncLog.id,
-        'success',
-        result.created + result.updated + result.deleted
-      );
+      if (syncLogId) {
+        try {
+          await this.completeSyncLog(
+            syncLogId,
+            'success',
+            result.created + result.updated + result.deleted
+          );
+        } catch (logError) {
+          console.warn('[HalaxySyncService] Could not complete sync log:', logError);
+        }
+      }
 
       return {
         success: true,
-        syncLogId: syncLog.id,
+        syncLogId,
         recordsProcessed: result.created + result.updated + result.deleted,
         recordsCreated: result.created,
         recordsUpdated: result.updated,
@@ -336,16 +368,22 @@ export class HalaxySyncService {
     } catch (error) {
       console.error(`[HalaxySyncService] Webhook sync failed:`, error);
 
-      await this.completeSyncLog(
-        syncLog.id,
-        'error',
-        0,
-        error instanceof Error ? error.message : 'Unknown error'
-      );
+      if (syncLogId) {
+        try {
+          await this.completeSyncLog(
+            syncLogId,
+            'error',
+            0,
+            error instanceof Error ? error.message : 'Unknown error'
+          );
+        } catch (logError) {
+          console.warn('[HalaxySyncService] Could not complete sync log:', logError);
+        }
+      }
 
       return {
         success: false,
-        syncLogId: syncLog.id,
+        syncLogId,
         recordsProcessed: 0,
         recordsCreated: 0,
         recordsUpdated: 0,
@@ -390,6 +428,9 @@ export class HalaxySyncService {
     // Map isActive to status column (database uses NVARCHAR status, not BIT is_active)
     const status = practitioner.isActive ? 'active' : 'inactive';
 
+    // Generate placeholder email if empty (to avoid UNIQUE constraint violations)
+    const email = practitioner.email || `${halaxyPractitionerId}@placeholder.halaxy.local`;
+
     if (existingId) {
       // Update - only update fields we have data for
       await pool.request()
@@ -397,7 +438,7 @@ export class HalaxySyncService {
         .input('firstName', sql.NVarChar, practitioner.firstName)
         .input('lastName', sql.NVarChar, practitioner.lastName)
         .input('displayName', sql.NVarChar, practitioner.displayName)
-        .input('email', sql.NVarChar, practitioner.email)
+        .input('email', sql.NVarChar, email)
         .input('phone', sql.NVarChar, practitioner.phone)
         .input('qualificationType', sql.NVarChar, practitioner.qualifications)
         .input('specializations', sql.NVarChar, practitioner.specialty ? JSON.stringify([practitioner.specialty]) : null)
@@ -425,7 +466,7 @@ export class HalaxySyncService {
         .input('firstName', sql.NVarChar, practitioner.firstName)
         .input('lastName', sql.NVarChar, practitioner.lastName)
         .input('displayName', sql.NVarChar, practitioner.displayName)
-        .input('email', sql.NVarChar, practitioner.email)
+        .input('email', sql.NVarChar, email)
         .input('phone', sql.NVarChar, practitioner.phone)
         .input('qualificationType', sql.NVarChar, practitioner.qualifications)
         .input('specializations', sql.NVarChar, practitioner.specialty ? JSON.stringify([practitioner.specialty]) : null)

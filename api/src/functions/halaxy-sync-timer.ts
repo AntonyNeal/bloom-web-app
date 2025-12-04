@@ -4,34 +4,12 @@
  * Azure Function timer trigger for scheduled full sync.
  * Runs every 15 minutes as a safety net to catch any missed webhooks.
  * 
- * This is a BACKUP mechanism - primary sync happens via webhooks in real-time.
+ * Fetches practitioners directly from Halaxy API - no seeding required.
  */
 
 import { app, Timer, InvocationContext } from '@azure/functions';
 import { getHalaxySyncService } from '../services/halaxy/sync-service';
-import { getDbConnection } from '../services/database';
-
-/**
- * Get all active practitioners that need syncing
- */
-async function getActivePractitioners(): Promise<Array<{ id: string; halaxy_practitioner_id: string }>> {
-  try {
-    const pool = await getDbConnection();
-    
-    const result = await pool.request()
-      .query<{ id: string; halaxy_practitioner_id: string }>(`
-        SELECT id, halaxy_practitioner_id 
-        FROM practitioners 
-        WHERE is_active = 1
-      `);
-
-    return result.recordset;
-  } catch (error) {
-    // Table might not exist yet
-    console.log('[HalaxySyncTimer] Could not fetch practitioners:', error);
-    return [];
-  }
-}
+import { getHalaxyClient } from '../services/halaxy/client';
 
 /**
  * Main timer handler - runs every 15 minutes
@@ -55,44 +33,51 @@ async function halaxySyncTimerHandler(
   }
 
   try {
-    const practitioners = await getActivePractitioners();
+    // Fetch practitioners directly from Halaxy API - no seeding required
+    const halaxyClient = getHalaxyClient();
+    context.log('[HalaxySyncTimer] Fetching practitioners from Halaxy API...');
+    
+    const practitioners = await halaxyClient.getAllPractitioners();
     
     if (practitioners.length === 0) {
-      context.log('[HalaxySyncTimer] No active practitioners found');
+      context.log('[HalaxySyncTimer] No practitioners found in Halaxy');
       return;
     }
 
-    context.log(`[HalaxySyncTimer] Syncing ${practitioners.length} practitioner(s)`);
+    context.log(`[HalaxySyncTimer] Found ${practitioners.length} practitioner(s) in Halaxy`);
 
     const syncService = getHalaxySyncService();
-    const results: Array<{ practitionerId: string; success: boolean; error?: string }> = [];
+    const results: Array<{ practitionerId: string; name: string; success: boolean; error?: string }> = [];
 
     for (const practitioner of practitioners) {
       try {
-        const result = await syncService.fullSync(practitioner.halaxy_practitioner_id);
+        const name = practitioner.name?.[0]?.text || 
+                     `${practitioner.name?.[0]?.given?.join(' ') || ''} ${practitioner.name?.[0]?.family || ''}`.trim() ||
+                     practitioner.id;
+
+        const result = await syncService.fullSync(practitioner.id);
         
         results.push({
           practitionerId: practitioner.id,
+          name,
           success: result.success,
         });
 
         context.log(
-          `[HalaxySyncTimer] Synced practitioner ${practitioner.id}: ` +
-          `${result.recordsProcessed} records in ${result.duration}ms`
+          `[HalaxySyncTimer] Synced ${name}: ${result.recordsProcessed} records in ${result.duration}ms`
         );
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const name = practitioner.name?.[0]?.text || practitioner.id;
         
         results.push({
           practitionerId: practitioner.id,
+          name,
           success: false,
           error: errorMessage,
         });
 
-        context.error(
-          `[HalaxySyncTimer] Failed to sync practitioner ${practitioner.id}:`,
-          error
-        );
+        context.error(`[HalaxySyncTimer] Failed to sync ${name}:`, error);
       }
     }
 

@@ -7,7 +7,7 @@
 
 import * as sql from 'mssql';
 import { getDbConnection } from '../database';
-import { HalaxyClient, getHalaxyClient } from './client';
+import { HalaxyClient, getHalaxyClient, HalaxyApiError } from './client';
 import {
   transformPractitioner,
   transformPatient,
@@ -28,6 +28,21 @@ import {
   SyncLogEntry,
   HalaxyWebhookEvent,
 } from './types';
+
+/**
+ * Extract error message with API response details if available
+ */
+function getErrorMessage(error: unknown): string {
+  if (error instanceof HalaxyApiError) {
+    // Include response body for API errors
+    const bodyPreview = error.responseBody.slice(0, 200);
+    return `${error.message}: ${bodyPreview}`;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'Unknown error';
+}
 
 /**
  * Halaxy Sync Service
@@ -261,7 +276,7 @@ export class HalaxySyncService {
             syncLogId,
             'error',
             0,
-            error instanceof Error ? error.message : 'Unknown error'
+            getErrorMessage(error)
           );
         } catch (logError) {
           console.warn('[HalaxySyncService] Could not complete sync log:', logError);
@@ -279,7 +294,7 @@ export class HalaxySyncService {
           entityType: 'all',
           entityId: halaxyPractitionerId,
           operation: 'full_sync',
-          message: error instanceof Error ? error.message : 'Unknown error',
+          message: getErrorMessage(error),
           timestamp: new Date(),
         }],
         duration: Date.now() - startTime,

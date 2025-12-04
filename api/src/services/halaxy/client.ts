@@ -75,13 +75,14 @@ export class HalaxyClient {
 
   /**
    * Get all patients for a specific practitioner
-   * Note: Halaxy API expects numeric ID only (without PR-/EP- prefix) for general-practitioner queries
+   * Note: Halaxy API expects format Practitioner/{numericId} for general-practitioner queries
    */
   async getPatientsByPractitioner(practitionerId: string): Promise<FHIRPatient[]> {
     // Extract numeric ID - remove PR- or EP- prefix if present
     const numericId = practitionerId.replace(/^(PR|EP)-/, '');
+    // Format as Practitioner/{numericId} as per error message guidance
     return this.getAllPages<FHIRPatient>('/Patient', {
-      'general-practitioner': numericId,
+      'general-practitioner': `Practitioner/${numericId}`,
       active: 'true',
     });
   }

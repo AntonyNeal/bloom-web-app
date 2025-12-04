@@ -42,7 +42,7 @@ async function runMigrations() {
     `);
     
     // Check if we need to seed existing migrations
-    // If schema_versions is empty but applications table exists, seed the already-applied versions
+    // If schema_versions is empty but key tables exist, seed the already-applied versions
     const countResult = await pool.request().query('SELECT COUNT(*) as count FROM schema_versions');
     const versionCount = countResult.recordset[0].count;
     
@@ -56,6 +56,8 @@ async function runMigrations() {
       `);
       const existingTables = new Set(tablesResult.recordset.map(r => r.TABLE_NAME.toLowerCase()));
       
+      console.log(`   Found tables: ${Array.from(existingTables).join(', ')}\n`);
+      
       const seedVersions = [];
       
       // V1 creates applications table
@@ -63,13 +65,14 @@ async function runMigrations() {
         seedVersions.push({ version: 'V1', description: 'initial schema' });
       }
       
-      // V2 creates ab_test_events table  
-      if (existingTables.has('ab_test_events')) {
+      // V2 creates ab_test_metadata, ab_test_variants, ab_test_events tables
+      if (existingTables.has('ab_test_metadata') || existingTables.has('ab_test_events')) {
         seedVersions.push({ version: 'V2', description: 'add ab testing' });
       }
       
-      // V3 creates session_tracking or modifies ab_test_events
-      if (existingTables.has('session_tracking') || existingTables.has('ab_test_events')) {
+      // V3 adds session tracking columns/tables
+      // If V2 tables exist, assume V3 was also applied (they're sequential)
+      if (existingTables.has('ab_test_events')) {
         seedVersions.push({ version: 'V3', description: 'add session tracking' });
       }
       

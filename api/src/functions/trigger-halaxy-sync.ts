@@ -10,11 +10,14 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { getHalaxySyncService } from '../services/halaxy/sync-service';
 import { getDbConnection } from '../services/database';
+import * as sql from 'mssql';
+import crypto from 'crypto';
 
 /**
  * Get all active practitioners that need syncing
+ * If none exist, bootstrap from HALAXY_PRACTITIONER_ID env var
  */
-async function getActivePractitioners(): Promise<Array<{ id: string; halaxy_practitioner_id: string }>> {
+async function getActivePractitioners(context: InvocationContext): Promise<Array<{ id: string; halaxy_practitioner_id: string }>> {
   try {
     const pool = await getDbConnection();
     
@@ -25,7 +28,35 @@ async function getActivePractitioners(): Promise<Array<{ id: string; halaxy_prac
         WHERE is_active = 1
       `);
 
-    return result.recordset;
+    // If we have practitioners, return them
+    if (result.recordset.length > 0) {
+      return result.recordset;
+    }
+
+    // Bootstrap: Create practitioner from env var if none exist
+    const halaxyPractitionerId = process.env.HALAXY_PRACTITIONER_ID;
+    if (halaxyPractitionerId) {
+      context.log(`[TriggerSync] No practitioners found, bootstrapping from HALAXY_PRACTITIONER_ID: ${halaxyPractitionerId}`);
+      
+      const newId = crypto.randomUUID();
+      await pool.request()
+        .input('id', sql.UniqueIdentifier, newId)
+        .input('halaxyPractitionerId', sql.NVarChar, halaxyPractitionerId)
+        .query(`
+          INSERT INTO practitioners (
+            id, halaxy_practitioner_id, first_name, last_name, display_name,
+            is_active, created_at, updated_at
+          ) VALUES (
+            @id, @halaxyPractitionerId, 'Pending', 'Sync', 'Pending Sync',
+            1, GETUTCDATE(), GETUTCDATE()
+          )
+        `);
+      
+      context.log(`[TriggerSync] Bootstrapped practitioner ${newId} with Halaxy ID ${halaxyPractitionerId}`);
+      return [{ id: newId, halaxy_practitioner_id: halaxyPractitionerId }];
+    }
+
+    return [];
   } catch (error) {
     console.log('[TriggerSync] Could not fetch practitioners:', error);
     return [];
@@ -55,13 +86,13 @@ async function triggerHalaxySyncHandler(
   }
 
   try {
-    const practitioners = await getActivePractitioners();
+    const practitioners = await getActivePractitioners(context);
     
     if (practitioners.length === 0) {
       return {
         status: 200,
         jsonBody: { 
-          message: 'No active practitioners found',
+          message: 'No active practitioners found. Set HALAXY_PRACTITIONER_ID to bootstrap.',
           practitioners: 0,
           duration: Date.now() - startTime
         }

@@ -208,7 +208,7 @@ export class HalaxyClient {
   /**
    * Get available slots for a practitioner within a date range
    * 
-   * @param practitionerId - Halaxy practitioner ID
+   * @param practitionerId - Halaxy practitioner ID (with PR- prefix)
    * @param startDate - Start of date range
    * @param endDate - End of date range
    * @param status - Filter by slot status (default: 'free')
@@ -219,27 +219,29 @@ export class HalaxyClient {
     endDate: Date,
     status: string = 'free'
   ): Promise<FHIRSlot[]> {
+    // Extract numeric ID - remove PR- or EP- prefix if present
+    const numericId = practitionerId.replace(/^(PR|EP)-/, '');
     return this.getAllPages<FHIRSlot>('/Slot', {
-      'schedule.actor': `PractitionerRole/${practitionerId}`,
-      'start': `ge${startDate.toISOString()}`,
-      'start:lt': endDate.toISOString(),
+      practitioner: `Practitioner/${numericId}`,
+      start: `ge${startDate.toISOString()}`,
+      end: `le${endDate.toISOString()}`,
       status: status,
     });
   }
 
   /**
-   * Get slots by schedule ID (more reliable than by practitioner)
+   * Get slots by practitioner-role (for a specific clinic location)
    */
-  async getSlotsBySchedule(
-    scheduleId: string,
+  async getSlotsByPractitionerRole(
+    practitionerRoleId: string,
     startDate: Date,
     endDate: Date,
     status: string = 'free'
   ): Promise<FHIRSlot[]> {
     return this.getAllPages<FHIRSlot>('/Slot', {
-      schedule: `Schedule/${scheduleId}`,
-      'start': `ge${startDate.toISOString()}`,
-      'start:lt': endDate.toISOString(),
+      'practitioner-role': `PractitionerRole/${practitionerRoleId}`,
+      start: `ge${startDate.toISOString()}`,
+      end: `le${endDate.toISOString()}`,
       status: status,
     });
   }

@@ -73,12 +73,14 @@ async function listPractitionersHandler(
     const countResult = await pool.request().query(`
       SELECT 
         (SELECT COUNT(*) FROM practitioners) as practitionerCount,
-        (SELECT COUNT(*) FROM clients) as clientCount
+        (SELECT COUNT(*) FROM clients) as clientCount,
+        (SELECT COUNT(*) FROM sessions) as sessionCount
     `);
 
     const counts = {
       practitioners: countResult.recordset[0]?.practitionerCount || 0,
       clients: countResult.recordset[0]?.clientCount || 0,
+      sessions: countResult.recordset[0]?.sessionCount || 0,
     };
 
     return {

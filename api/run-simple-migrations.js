@@ -104,10 +104,12 @@ async function runMigrations() {
     // Get already applied migrations
     const appliedResult = await pool.request().query('SELECT version FROM schema_versions');
     const appliedVersions = new Set(appliedResult.recordset.map(r => r.version));
-    console.log(`📋 Already applied: ${appliedVersions.size} migrations\n`);
+    console.log(`📋 Already applied: ${appliedVersions.size} migrations`);
+    console.log(`   Versions: ${Array.from(appliedVersions).join(', ')}\n`);
     
-    // One-time fix: If V2 is missing but V3 is applied, add V2 (fixes seeding bug)
-    if (!appliedVersions.has('V2') && appliedVersions.has('V3')) {
+    // One-time fix: If V2 is missing but later migrations are applied, add V2 (fixes seeding bug)
+    const hasLaterMigration = appliedVersions.has('V3') || appliedVersions.has('V4') || appliedVersions.has('V4b');
+    if (!appliedVersions.has('V2') && hasLaterMigration) {
       console.log('🔧 Fixing missing V2 migration record (one-time fix)...');
       try {
         await pool.request()
@@ -124,6 +126,27 @@ async function runMigrations() {
         // Ignore if already exists
         if (!err.message.includes('duplicate')) {
           console.log(`   ⚠️ Could not add V2: ${err.message}\n`);
+        }
+      }
+    }
+    
+    // One-time fix: If V4b is missing but V4 is applied, add V4b
+    if (!appliedVersions.has('V4b') && appliedVersions.has('V4')) {
+      console.log('🔧 Fixing missing V4b migration record (one-time fix)...');
+      try {
+        await pool.request()
+          .input('version', sql.NVarChar, 'V4b')
+          .input('description', sql.NVarChar, 'practitioner dashboard schema fixed')
+          .input('applied_by', sql.NVarChar, 'seed-fix')
+          .query(`
+            INSERT INTO schema_versions (version, description, applied_by)
+            VALUES (@version, @description, @applied_by)
+          `);
+        appliedVersions.add('V4b');
+        console.log('   ✅ Added V4b to applied migrations\n');
+      } catch (err) {
+        if (!err.message.includes('duplicate')) {
+          console.log(`   ⚠️ Could not add V4b: ${err.message}\n`);
         }
       }
     }

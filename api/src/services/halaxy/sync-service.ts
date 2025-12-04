@@ -127,9 +127,22 @@ export class HalaxySyncService {
     }
 
     try {
-      // 2. Sync all patients (clients) for this practitioner
-      const patients = await this.client.getPatientsByPractitioner(halaxyPractitionerId);
-      console.log(`[HalaxySyncService] Found ${patients.length} patients to sync`);
+      // 2. Try to sync patients (clients) for this practitioner
+      // This may fail if Halaxy API doesn't support the general-practitioner query format
+      let patients: FHIRPatient[] = [];
+      try {
+        patients = await this.client.getPatientsByPractitioner(halaxyPractitionerId);
+        console.log(`[HalaxySyncService] Found ${patients.length} patients to sync`);
+      } catch (patientError) {
+        console.warn(`[HalaxySyncService] Could not fetch patients for ${halaxyPractitionerId}:`, patientError);
+        errors.push({
+          entityType: 'client',
+          entityId: halaxyPractitionerId,
+          operation: 'sync',
+          message: `Could not fetch patients: ${getErrorMessage(patientError)}`,
+          timestamp: new Date(),
+        });
+      }
 
       const clientMap = new Map<string, string>(); // halaxyPatientId -> bloomClientId
       
@@ -156,12 +169,25 @@ export class HalaxySyncService {
       const endDate = new Date();
       endDate.setDate(endDate.getDate() + 90);
 
-      const appointments = await this.client.getAppointmentsByPractitioner(
-        halaxyPractitionerId,
-        startDate,
-        endDate
-      );
-      console.log(`[HalaxySyncService] Found ${appointments.length} appointments to sync`);
+      // Try to sync appointments - may fail if API query format is invalid
+      let appointments: FHIRAppointment[] = [];
+      try {
+        appointments = await this.client.getAppointmentsByPractitioner(
+          halaxyPractitionerId,
+          startDate,
+          endDate
+        );
+        console.log(`[HalaxySyncService] Found ${appointments.length} appointments to sync`);
+      } catch (appointmentError) {
+        console.warn(`[HalaxySyncService] Could not fetch appointments for ${halaxyPractitionerId}:`, appointmentError);
+        errors.push({
+          entityType: 'session',
+          entityId: halaxyPractitionerId,
+          operation: 'sync',
+          message: `Could not fetch appointments: ${getErrorMessage(appointmentError)}`,
+          timestamp: new Date(),
+        });
+      }
 
       // Calculate session numbers per client
       const sessionCounters = await this.getSessionCounters(practitioner.id);

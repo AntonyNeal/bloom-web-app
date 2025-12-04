@@ -75,14 +75,13 @@ export class HalaxyClient {
 
   /**
    * Get all patients for a specific practitioner
-   * Uses full URL reference format as per Halaxy API documentation:
-   * https://au-api.halaxy.com/main/Practitioner/PR-1014021
+   * Note: Halaxy API expects numeric ID only (without PR-/EP- prefix) for general-practitioner queries
    */
   async getPatientsByPractitioner(practitionerId: string): Promise<FHIRPatient[]> {
-    // Try with full URL format as shown in Halaxy docs
-    const fullRef = `https://au-api.halaxy.com/main/Practitioner/${practitionerId}`;
+    // Extract numeric ID - remove PR- or EP- prefix if present
+    const numericId = practitionerId.replace(/^(PR|EP)-/, '');
     return this.getAllPages<FHIRPatient>('/Patient', {
-      'general-practitioner': fullRef,
+      'general-practitioner': numericId,
       active: 'true',
     });
   }

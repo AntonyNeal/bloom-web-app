@@ -70,18 +70,39 @@ export class HalaxySyncService {
     let recordsUpdated = 0;
     const recordsDeleted = 0;
 
-    // Start sync log
-    const syncLog = await this.createSyncLog('full', 'all', halaxyPractitionerId);
+    console.log(`[HalaxySyncService] Starting full sync for practitioner ${halaxyPractitionerId}`);
 
+    // 1. Sync practitioner profile FIRST to get the GUID
+    let practitioner: Practitioner | null = null;
     try {
-      console.log(`[HalaxySyncService] Starting full sync for practitioner ${halaxyPractitionerId}`);
-
-      // 1. Sync practitioner profile
-      const practitioner = await this.syncPractitioner(halaxyPractitionerId);
+      practitioner = await this.syncPractitioner(halaxyPractitionerId);
       if (!practitioner) {
         throw new Error(`Practitioner ${halaxyPractitionerId} not found in Halaxy`);
       }
+    } catch (error) {
+      console.error(`[HalaxySyncService] Failed to sync practitioner ${halaxyPractitionerId}:`, error);
+      return {
+        success: false,
+        syncLogId: '',
+        recordsProcessed: 0,
+        recordsCreated: 0,
+        recordsUpdated: 0,
+        recordsDeleted: 0,
+        errors: [{
+          entityType: 'practitioner',
+          entityId: halaxyPractitionerId,
+          operation: 'full_sync',
+          message: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date(),
+        }],
+        duration: Date.now() - startTime,
+      };
+    }
 
+    // Now that we have the GUID, create the sync log
+    const syncLog = await this.createSyncLog('full', 'all', practitioner.id);
+
+    try {
       // 2. Sync all patients (clients) for this practitioner
       const patients = await this.client.getPatientsByPractitioner(halaxyPractitionerId);
       console.log(`[HalaxySyncService] Found ${patients.length} patients to sync`);

@@ -73,7 +73,8 @@ async function triggerHalaxySyncHandler(
 
         context.log(`[TriggerSync] Syncing practitioner: ${name} (${practitioner.id})`);
         
-        const result = await syncService.fullSync(practitioner.id);
+        // Pass the practitioner data to avoid extra API call
+        const result = await syncService.fullSync(practitioner.id, practitioner);
         
         results.push({
           practitionerId: practitioner.id,

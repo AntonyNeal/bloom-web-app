@@ -62,8 +62,11 @@ export class HalaxySyncService {
    * 
    * Reconciles all data: practitioner profile, clients, and sessions
    * within the sync window (30 days past, 90 days future).
+   * 
+   * @param halaxyPractitionerId - The Halaxy practitioner ID
+   * @param fhirPractitioner - Optional FHIR practitioner data (skip API call if provided)
    */
-  async fullSync(halaxyPractitionerId: string): Promise<SyncResult> {
+  async fullSync(halaxyPractitionerId: string, fhirPractitioner?: FHIRPractitioner): Promise<SyncResult> {
     const startTime = Date.now();
     const errors: SyncError[] = [];
     const recordsCreated = 0;
@@ -75,7 +78,7 @@ export class HalaxySyncService {
     // 1. Sync practitioner profile FIRST to get the GUID
     let practitioner: Practitioner | null = null;
     try {
-      practitioner = await this.syncPractitioner(halaxyPractitionerId);
+      practitioner = await this.syncPractitioner(halaxyPractitionerId, fhirPractitioner);
       if (!practitioner) {
         throw new Error(`Practitioner ${halaxyPractitionerId} not found in Halaxy`);
       }
@@ -406,12 +409,15 @@ export class HalaxySyncService {
 
   /**
    * Sync a single practitioner
+   * 
+   * @param halaxyPractitionerId - The Halaxy practitioner ID
+   * @param fhirData - Optional FHIR practitioner data (skip API call if provided)
    */
-  async syncPractitioner(halaxyPractitionerId: string): Promise<Practitioner | null> {
+  async syncPractitioner(halaxyPractitionerId: string, fhirData?: FHIRPractitioner): Promise<Practitioner | null> {
     const pool = await this.getPool();
     
-    // Fetch from Halaxy
-    const fhirPractitioner = await this.client.getPractitioner(halaxyPractitionerId);
+    // Use provided data or fetch from Halaxy
+    const fhirPractitioner = fhirData || await this.client.getPractitioner(halaxyPractitionerId);
     if (!fhirPractitioner) return null;
 
     // Check if exists in Bloom

@@ -23,21 +23,22 @@ let tokenExpiryTime: Date | null = null;
 export function getHalaxyConfig(): HalaxyConfig {
   const clientId = process.env.HALAXY_CLIENT_ID;
   const clientSecret = process.env.HALAXY_CLIENT_SECRET;
+  const refreshToken = process.env.HALAXY_REFRESH_TOKEN;
   // FHIR API base - note: FHIR endpoints are at /fhir/, not /main/
   const fhirBaseUrl = process.env.HALAXY_FHIR_URL || 'https://au-api.halaxy.com/fhir';
-  // Token endpoint is at the root domain
-  const tokenUrl = 'https://au-api.halaxy.com/oauth2/token';
+  // Token endpoint is at /api/oauth/token (not /oauth2/token)
+  const tokenUrl = process.env.HALAXY_TOKEN_URL || 'https://au-api.halaxy.com/api/oauth/token';
   
-  if (!clientId || !clientSecret) {
+  if (!clientId || !clientSecret || !refreshToken) {
     throw new Error(
-      'Missing Halaxy credentials. Set HALAXY_CLIENT_ID and HALAXY_CLIENT_SECRET environment variables. ' +
-      'These are already configured in the lpa-halaxy-webhook-handler function app.'
+      'Missing Halaxy credentials. Set HALAXY_CLIENT_ID, HALAXY_CLIENT_SECRET, and HALAXY_REFRESH_TOKEN environment variables.'
     );
   }
 
   return {
     clientId,
     clientSecret,
+    refreshToken,
     apiBaseUrl: fhirBaseUrl,
     tokenUrl,
     webhookSecret: process.env.HALAXY_WEBHOOK_SECRET,
@@ -51,7 +52,7 @@ export function getHalaxyConfig(): HalaxyConfig {
 /**
  * Get a valid access token for Halaxy API
  * 
- * Uses OAuth 2.0 client credentials flow with Basic authentication.
+ * Uses OAuth 2.0 refresh token flow.
  * Tokens are cached and automatically refreshed when expired.
  * 
  * @returns Valid access token
@@ -68,19 +69,19 @@ export async function getAccessToken(): Promise<string> {
   console.log('[HalaxyTokenManager] Fetching new access token...');
 
   try {
-    // Halaxy uses Basic authentication for token requests
-    const basicAuth = Buffer.from(`${config.clientId}:${config.clientSecret}`).toString('base64');
-    
+    // Halaxy uses refresh_token grant type
     const response = await fetch(config.tokenUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${basicAuth}`,
         'Accept': 'application/json',
         'User-Agent': 'Life-Psychology-AUS/1.0',
       },
       body: new URLSearchParams({
-        grant_type: 'client_credentials',
+        grant_type: 'refresh_token',
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
+        refresh_token: config.refreshToken!,
       }).toString(),
     });
 

@@ -512,6 +512,7 @@ export interface SyncStatus {
 export interface HalaxyConfig {
   clientId: string;
   clientSecret: string;
+  refreshToken?: string;
   apiBaseUrl: string;
   tokenUrl: string;
   webhookSecret?: string;

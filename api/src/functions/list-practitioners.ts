@@ -38,10 +38,15 @@ async function listPractitionersHandler(
     return { status: 204, headers };
   }
 
-  try {
-    const config = getConfig();
-    const pool = await sql.connect(config);
+  let pool: sql.ConnectionPool | null = null;
 
+  try {
+    context.log('Connecting to database...');
+    const config = getConfig();
+    pool = await sql.connect(config);
+    context.log('Connected to database');
+
+    context.log('Querying practitioners...');
     const result = await pool.request().query(`
       SELECT 
         id,
@@ -53,6 +58,7 @@ async function listPractitionersHandler(
       FROM practitioners
       ORDER BY display_name
     `);
+    context.log(`Found ${result.recordset.length} practitioners`);
 
     const practitioners = result.recordset.map(row => ({
       id: row.id,
@@ -63,20 +69,17 @@ async function listPractitionersHandler(
       lastSynced: row.last_synced_at,
     }));
 
-    // Also get counts - with defensive queries
-    let counts = { practitioners: 0, clients: 0, appointments: 0 };
-    try {
-      const practitionerCount = await pool.request().query(`SELECT COUNT(*) as total FROM practitioners`);
-      counts.practitioners = practitionerCount.recordset[0]?.total || 0;
-    } catch (e) { /* table may not exist */ }
-    try {
-      const clientCount = await pool.request().query(`SELECT COUNT(*) as total FROM clients`);
-      counts.clients = clientCount.recordset[0]?.total || 0;
-    } catch (e) { /* table may not exist */ }
-    try {
-      const appointmentCount = await pool.request().query(`SELECT COUNT(*) as total FROM appointments`);
-      counts.appointments = appointmentCount.recordset[0]?.total || 0;
-    } catch (e) { /* table may not exist */ }
+    // Get counts
+    const countResult = await pool.request().query(`
+      SELECT 
+        (SELECT COUNT(*) FROM practitioners) as practitionerCount,
+        (SELECT COUNT(*) FROM clients) as clientCount
+    `);
+
+    const counts = {
+      practitioners: countResult.recordset[0]?.practitionerCount || 0,
+      clients: countResult.recordset[0]?.clientCount || 0,
+    };
 
     return {
       status: 200,
@@ -89,15 +92,26 @@ async function listPractitionersHandler(
     };
 
   } catch (error) {
-    context.error('List practitioners error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    context.error('List practitioners error:', errorMessage, errorStack);
     return {
       status: 500,
       headers,
       jsonBody: {
         success: false,
-        error: error instanceof Error ? error.message : 'Internal server error',
+        error: errorMessage,
+        stack: errorStack,
       },
     };
+  } finally {
+    if (pool) {
+      try {
+        await pool.close();
+      } catch (e) {
+        // Ignore close errors
+      }
+    }
   }
 }
 

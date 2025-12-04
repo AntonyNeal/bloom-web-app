@@ -11,6 +11,7 @@ import './functions/smoke-test';
 import './functions/practitioner-dashboard';
 import './functions/seed-database';
 import './functions/store-booking-session';
+import './functions/get-halaxy-availability';
 
 export * from './functions/health';
 export * from './functions/applications';

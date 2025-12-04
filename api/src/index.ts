@@ -9,6 +9,7 @@ import './functions/track-ab-test';
 import './functions/dbvc';
 import './functions/smoke-test';
 import './functions/practitioner-dashboard';
+import './functions/list-practitioners';
 import './functions/seed-database';
 import './functions/store-booking-session';
 import './functions/get-halaxy-availability';

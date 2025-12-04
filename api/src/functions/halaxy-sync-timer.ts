@@ -51,9 +51,10 @@ async function halaxySyncTimerHandler(
 
     for (const practitioner of practitioners) {
       try {
-        const name = practitioner.name?.[0]?.text || 
-                     `${practitioner.name?.[0]?.given?.join(' ') || ''} ${practitioner.name?.[0]?.family || ''}`.trim() ||
-                     practitioner.id;
+        const nameObj = practitioner.name?.[0];
+        const name = nameObj 
+          ? `${nameObj.given?.join(' ') || ''} ${nameObj.family || ''}`.trim() 
+          : practitioner.id;
 
         const result = await syncService.fullSync(practitioner.id);
         
@@ -68,7 +69,8 @@ async function halaxySyncTimerHandler(
         );
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        const name = practitioner.name?.[0]?.text || practitioner.id;
+        const errNameObj = practitioner.name?.[0];
+        const name = errNameObj ? `${errNameObj.given?.join(' ') || ''} ${errNameObj.family || ''}`.trim() : practitioner.id;
         
         results.push({
           practitionerId: practitioner.id,

@@ -387,8 +387,11 @@ export class HalaxySyncService {
     const existingId = existing.recordset[0]?.id;
     const practitioner = transformPractitioner(fhirPractitioner, existingId);
 
+    // Map isActive to status column (database uses NVARCHAR status, not BIT is_active)
+    const status = practitioner.isActive ? 'active' : 'inactive';
+
     if (existingId) {
-      // Update
+      // Update - only update fields we have data for
       await pool.request()
         .input('id', sql.UniqueIdentifier, existingId)
         .input('firstName', sql.NVarChar, practitioner.firstName)
@@ -396,9 +399,9 @@ export class HalaxySyncService {
         .input('displayName', sql.NVarChar, practitioner.displayName)
         .input('email', sql.NVarChar, practitioner.email)
         .input('phone', sql.NVarChar, practitioner.phone)
-        .input('qualifications', sql.NVarChar, practitioner.qualifications)
-        .input('specialty', sql.NVarChar, practitioner.specialty)
-        .input('isActive', sql.Bit, practitioner.isActive)
+        .input('qualificationType', sql.NVarChar, practitioner.qualifications)
+        .input('specializations', sql.NVarChar, practitioner.specialty ? JSON.stringify([practitioner.specialty]) : null)
+        .input('status', sql.NVarChar, status)
         .input('lastSyncedAt', sql.DateTime2, practitioner.lastSyncedAt)
         .query(`
           UPDATE practitioners SET
@@ -407,9 +410,9 @@ export class HalaxySyncService {
             display_name = @displayName,
             email = @email,
             phone = @phone,
-            qualifications = @qualifications,
-            specialty = @specialty,
-            is_active = @isActive,
+            qualification_type = COALESCE(@qualificationType, qualification_type),
+            specializations = COALESCE(@specializations, specializations),
+            status = @status,
             last_synced_at = @lastSyncedAt,
             updated_at = GETUTCDATE()
           WHERE id = @id
@@ -424,18 +427,18 @@ export class HalaxySyncService {
         .input('displayName', sql.NVarChar, practitioner.displayName)
         .input('email', sql.NVarChar, practitioner.email)
         .input('phone', sql.NVarChar, practitioner.phone)
-        .input('qualifications', sql.NVarChar, practitioner.qualifications)
-        .input('specialty', sql.NVarChar, practitioner.specialty)
-        .input('isActive', sql.Bit, practitioner.isActive)
+        .input('qualificationType', sql.NVarChar, practitioner.qualifications)
+        .input('specializations', sql.NVarChar, practitioner.specialty ? JSON.stringify([practitioner.specialty]) : null)
+        .input('status', sql.NVarChar, status)
         .input('lastSyncedAt', sql.DateTime2, practitioner.lastSyncedAt)
         .query(`
           INSERT INTO practitioners (
             id, halaxy_practitioner_id, first_name, last_name, display_name,
-            email, phone, qualifications, specialty, is_active, last_synced_at,
+            email, phone, qualification_type, specializations, status, last_synced_at,
             created_at, updated_at
           ) VALUES (
             @id, @halaxyPractitionerId, @firstName, @lastName, @displayName,
-            @email, @phone, @qualifications, @specialty, @isActive, @lastSyncedAt,
+            @email, @phone, @qualificationType, @specializations, @status, @lastSyncedAt,
             GETUTCDATE(), GETUTCDATE()
           )
         `);
@@ -469,6 +472,9 @@ export class HalaxySyncService {
       existingClient?.mhcpUsedSessions
     );
 
+    // Map isActive to status column (database uses NVARCHAR status, not BIT is_active)
+    const status = client.isActive ? 'active' : 'inactive';
+
     if (existingClient) {
       // Update (preserve MHCP data if not in FHIR)
       await pool.request()
@@ -480,7 +486,7 @@ export class HalaxySyncService {
         .input('phone', sql.NVarChar, client.phone)
         .input('dateOfBirth', sql.Date, client.dateOfBirth)
         .input('presentingIssues', sql.NVarChar, client.presentingIssues)
-        .input('isActive', sql.Bit, client.isActive)
+        .input('status', sql.NVarChar, status)
         .input('lastSyncedAt', sql.DateTime2, client.lastSyncedAt)
         .query(`
           UPDATE clients SET
@@ -491,7 +497,7 @@ export class HalaxySyncService {
             phone = @phone,
             date_of_birth = @dateOfBirth,
             presenting_issues = COALESCE(@presentingIssues, presenting_issues),
-            is_active = @isActive,
+            status = @status,
             last_synced_at = @lastSyncedAt,
             updated_at = GETUTCDATE()
           WHERE id = @id
@@ -511,18 +517,18 @@ export class HalaxySyncService {
         .input('mhcpTotalSessions', sql.Int, client.mhcpTotalSessions)
         .input('mhcpUsedSessions', sql.Int, client.mhcpUsedSessions)
         .input('presentingIssues', sql.NVarChar, client.presentingIssues)
-        .input('isActive', sql.Bit, client.isActive)
+        .input('status', sql.NVarChar, status)
         .input('lastSyncedAt', sql.DateTime2, client.lastSyncedAt)
         .query(`
           INSERT INTO clients (
             id, halaxy_patient_id, practitioner_id, first_name, last_name,
             initials, email, phone, date_of_birth, mhcp_total_sessions,
-            mhcp_used_sessions, presenting_issues, is_active, last_synced_at,
+            mhcp_used_sessions, presenting_issues, status, last_synced_at,
             created_at, updated_at
           ) VALUES (
             @id, @halaxyPatientId, @practitionerId, @firstName, @lastName,
             @initials, @email, @phone, @dateOfBirth, @mhcpTotalSessions,
-            @mhcpUsedSessions, @presentingIssues, @isActive, @lastSyncedAt,
+            @mhcpUsedSessions, @presentingIssues, @status, @lastSyncedAt,
             GETUTCDATE(), GETUTCDATE()
           )
         `);
@@ -869,7 +875,7 @@ export class HalaxySyncService {
       .input('halaxyId', sql.NVarChar, fhir.id)
       .query(`
         UPDATE clients SET 
-          is_active = 0,
+          status = 'inactive',
           updated_at = GETUTCDATE()
         WHERE halaxy_patient_id = @halaxyId
       `);

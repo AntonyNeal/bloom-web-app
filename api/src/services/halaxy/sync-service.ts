@@ -45,6 +45,24 @@ function getErrorMessage(error: unknown): string {
 }
 
 /**
+ * Extract numeric ID from Halaxy practitioner ID.
+ * Halaxy FHIR IDs have prefixes like "PR-" for practitioners, "EP-" for employees.
+ * For FHIR references (e.g., Practitioner/123), we need just the numeric part.
+ * 
+ * @param halaxyId - Full Halaxy ID like "PR-1439411" or "EP-16680221"
+ * @returns Numeric ID without prefix, or original ID if no prefix found
+ */
+function extractNumericId(halaxyId: string): string {
+  // Match pattern: 2-3 letter prefix, hyphen, numeric ID
+  const match = halaxyId.match(/^[A-Z]{2,3}-(\d+)$/);
+  if (match) {
+    return match[1];
+  }
+  // If no prefix pattern, return original (might already be numeric)
+  return halaxyId;
+}
+
+/**
  * Halaxy Sync Service
  * 
  * Manages synchronization between Halaxy Practice Management System
@@ -129,9 +147,11 @@ export class HalaxySyncService {
     try {
       // 2. Try to sync patients (clients) for this practitioner
       // This may fail if Halaxy API doesn't support the general-practitioner query format
+      // Use numeric ID for FHIR reference (strip PR-/EP- prefix)
+      const numericPractitionerId = extractNumericId(halaxyPractitionerId);
       let patients: FHIRPatient[] = [];
       try {
-        patients = await this.client.getPatientsByPractitioner(halaxyPractitionerId);
+        patients = await this.client.getPatientsByPractitioner(numericPractitionerId);
         console.log(`[HalaxySyncService] Found ${patients.length} patients to sync`);
       } catch (patientError) {
         console.warn(`[HalaxySyncService] Could not fetch patients for ${halaxyPractitionerId}:`, patientError);
@@ -170,10 +190,11 @@ export class HalaxySyncService {
       endDate.setDate(endDate.getDate() + 90);
 
       // Try to sync appointments - may fail if API query format is invalid
+      // Use numericPractitionerId which is already extracted above
       let appointments: FHIRAppointment[] = [];
       try {
         appointments = await this.client.getAppointmentsByPractitioner(
-          halaxyPractitionerId,
+          numericPractitionerId,
           startDate,
           endDate
         );
@@ -233,8 +254,12 @@ export class HalaxySyncService {
       slotEndDate.setDate(slotEndDate.getDate() + 90);
 
       try {
+        // Use numeric ID for FHIR reference (strip PR-/EP- prefix)
+        const numericPractitionerId = extractNumericId(halaxyPractitionerId);
+        console.log(`[HalaxySyncService] Fetching slots for numeric ID: ${numericPractitionerId}`);
+        
         const slots = await this.client.getAvailableSlots(
-          halaxyPractitionerId,
+          numericPractitionerId,
           slotStartDate,
           slotEndDate
         );
@@ -749,8 +774,21 @@ export class HalaxySyncService {
   private async syncSlot(slot: FHIRSlot, practitionerId: string): Promise<void> {
     const pool = await this.getPool();
 
+    // Validate slot dates
+    if (!slot.start || !slot.end) {
+      console.warn(`[HalaxySyncService] Slot ${slot.id} missing start or end time`);
+      return;
+    }
+
     const slotStart = new Date(slot.start);
     const slotEnd = new Date(slot.end);
+
+    // Validate parsed dates
+    if (isNaN(slotStart.getTime()) || isNaN(slotEnd.getTime())) {
+      console.warn(`[HalaxySyncService] Slot ${slot.id} has invalid dates: start=${slot.start}, end=${slot.end}`);
+      return;
+    }
+
     const durationMinutes = Math.round((slotEnd.getTime() - slotStart.getTime()) / (1000 * 60));
 
     // Extract schedule ID from reference if available

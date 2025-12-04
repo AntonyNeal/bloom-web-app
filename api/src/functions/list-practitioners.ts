@@ -63,20 +63,27 @@ async function listPractitionersHandler(
       lastSynced: row.last_synced_at,
     }));
 
-    // Also get counts
-    const countsResult = await pool.request().query(`
-      SELECT 
-        (SELECT COUNT(*) FROM practitioners) as practitioners,
-        (SELECT COUNT(*) FROM clients) as clients,
-        (SELECT COUNT(*) FROM appointments) as appointments
-    `);
+    // Also get counts - with defensive queries
+    let counts = { practitioners: 0, clients: 0, appointments: 0 };
+    try {
+      const practitionerCount = await pool.request().query(`SELECT COUNT(*) as total FROM practitioners`);
+      counts.practitioners = practitionerCount.recordset[0]?.total || 0;
+    } catch (e) { /* table may not exist */ }
+    try {
+      const clientCount = await pool.request().query(`SELECT COUNT(*) as total FROM clients`);
+      counts.clients = clientCount.recordset[0]?.total || 0;
+    } catch (e) { /* table may not exist */ }
+    try {
+      const appointmentCount = await pool.request().query(`SELECT COUNT(*) as total FROM appointments`);
+      counts.appointments = appointmentCount.recordset[0]?.total || 0;
+    } catch (e) { /* table may not exist */ }
 
     return {
       status: 200,
       headers,
       jsonBody: {
         success: true,
-        counts: countsResult.recordset[0],
+        counts,
         practitioners,
       },
     };

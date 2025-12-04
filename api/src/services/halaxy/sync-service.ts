@@ -146,28 +146,12 @@ export class HalaxySyncService {
 
     try {
       // Practitioner has been synced successfully at this point
-      // Mark as success even if downstream syncs fail
-      // We can add patient/appointment/slot sync later when API supports it
-      
       console.log(`[HalaxySyncService] Practitioner ${practitioner.firstName} ${practitioner.lastName} synced successfully`);
       
-      // NOTE: Patient, Appointment, and Slot syncing is disabled because:
-      // - Halaxy FHIR API doesn't support general-practitioner search on Patient
-      // - Halaxy FHIR API doesn't support actor search on Appointment  
-      // - Halaxy FHIR API doesn't have a /Slot endpoint
-      // These will need alternative implementation approaches
-      
-      // For now, just count the practitioner as successfully synced
-      recordsUpdated = 1;
-
-      /*
-      // DISABLED: Patient sync - API doesn't support this query
       // 2. Try to sync patients (clients) for this practitioner
-      // This may fail if Halaxy API doesn't support the general-practitioner query format
-      // Try both the original ID format and without prefix
+      // Now using PractitionerRole reference as per Halaxy API documentation
       let patients: FHIRPatient[] = [];
       try {
-        // First try with original ID (e.g., PR-1439411)
         patients = await this.client.getPatientsByPractitioner(halaxyPractitionerId);
         console.log(`[HalaxySyncService] Found ${patients.length} patients to sync`);
       } catch (patientError) {
@@ -306,7 +290,6 @@ export class HalaxySyncService {
           timestamp: new Date(),
         });
       }
-      */ // END DISABLED SECTION
 
       // Update MHCP used sessions for each client
       await this.updateMhcpSessionCounts(practitioner.id);

@@ -1,0 +1,214 @@
+curl --request POST \
+     --url https://au-api.halaxy.com/main/Patient \
+     --header 'accept: application/fhir+json' \
+     --header 'content-type: application/json' \
+     --header 'Authorization: ••••••' \
+     --data '
+{
+	"resourceType": "Patient",
+  "name": [
+    {
+      "use": "official",
+      "family": "Citizen",
+      "given": [
+        "Jane"
+      ]
+    },
+    {
+      "use": "usual",
+      "given": [
+        "Ginny"
+      ]
+    }
+  ],
+  "telecom": [
+    {
+      "system": "email",
+      "value": "jane.citizen@email.com",
+      "use": "home"
+    },
+    {
+      "system": "sms",
+      "value": "+61412345678",
+      "use": "mobile"
+    }
+  ],
+  "gender": "female",
+  "birthDate": "1988-06-01",
+  "deceasedBoolean": false,
+  "address": [
+    {
+      "use": "mailing",
+      "type": "both",
+      "line": [
+        "27 Oak Street"
+      ],
+      "city": "Melbourne",
+      "state": "VIC",
+      "postalCode": "3000",
+      "country": "AU"
+    }
+  ],
+  "contact": [
+    {
+      "relationship": [
+        {
+          "coding": [
+            {
+              "system": "https://terminology.halaxy.com/CodeSystem/contact-relationship",
+              "display": "Father"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "https://terminology.halaxy.com/CodeSystem/contact-type",
+              "display": "Emergency"
+            }
+          ]
+        }
+      ],
+      "name": {
+        "use": "official",
+        "family": "Citizen",
+        "given": [
+          "Joseph"
+        ]
+      },
+      "telecom": [
+        {
+          "system": "sms",
+          "value": "+61456789123",
+          "use": "home"
+        }
+      ],
+      "gender": "male"
+    }
+  ],
+  "attachments": [
+    {
+        "data": "<YOUR ENCODED BASE64 FILE HERE>",
+        "contentType": "application/pdf",
+        "title": "Immunisation history"
+    }
+  ]
+}
+'
+
+curl --request POST \
+     --url https://au-api.halaxy.com/main/Appointment/$book \
+     --header 'accept: application/fhir+json' \
+     --header 'content-type: application/json' \
+     --header 'Authorization: ••••••' \
+     --data '
+{
+    "resourceType": "Parameters",
+    "parameter": [
+        {
+            "name": "appt-resource",
+            "resource": {
+                "start": "2025-10-15T15:00:00+10:00",
+                "end": "2025-10-15T16:00:00+10:00",
+                "minutesDuration": 60,
+                "resourceType": "Appointment",
+                "participant": [
+                    {
+                        "actor": {
+                            "reference": "https://au-api.halaxy.com/main/PractitionerRole/PR-1234567",
+                            "type": "PractitionerRole"
+                        }
+                    }
+                ]
+            }
+        },        
+        {
+            "name": "patient-id",
+            "valueReference": {
+                "reference": "https://au-api.halaxy.com/main/Patient/12345678",
+                "type": "Patient"
+            }
+        },
+        {
+            "name": "healthcare-service-id",
+            "valueReference": {
+                "reference": "https://au-api.halaxy.com/main/HealthcareService/33",
+                "type": "HealthcareService"
+            }
+        },
+        {
+            "name": "location-type",
+            "valueCode": "clinic"
+        },
+        {
+            "name": "status",
+            "valueCode": "booked"
+        },
+        {
+            "name": "charge-item-definition-id",
+            "valueReference": {
+                "reference": "https://au-api.halaxy.com/main/ChargeItemDefinition/123456",
+                "type": "ChargeItemDefinition"
+            }
+        }
+    ]
+}
+
+curl --request POST \
+     --url https://au-api.halaxy.com/main/Appointment/$book \
+     --header 'accept: application/fhir+json' \
+     --header 'content-type: application/json' \
+     --header 'Authorization: ••••••' \
+     --data '
+{
+    "resourceType": "Parameters",
+    "parameter": [
+        {
+            "name": "appt-resource",
+            "resource": {
+                "start": "2025-10-15T15:00:00+10:00",
+                "end": "2025-10-15T16:00:00+10:00",
+                "minutesDuration": 60,
+                "resourceType": "Appointment",
+                "participant": [
+                    {
+                        "actor": {
+                            "reference": "https://au-api.halaxy.com/main/PractitionerRole/PR-1234567",
+                            "type": "PractitionerRole"
+                        }
+                    }
+                ]
+            }
+        },        
+        {
+            "name": "patient-id",
+            "valueReference": {
+                "reference": "https://au-api.halaxy.com/main/Patient/12345678",
+                "type": "Patient"
+            }
+        },
+        {
+            "name": "healthcare-service-id",
+            "valueReference": {
+                "reference": "https://au-api.halaxy.com/main/HealthcareService/33",
+                "type": "HealthcareService"
+            }
+        },
+        {
+            "name": "location-type",
+            "valueCode": "clinic"
+        },
+        {
+            "name": "status",
+            "valueCode": "booked"
+        },
+        {
+            "name": "charge-item-definition-id",
+            "valueReference": {
+                "reference": "https://au-api.halaxy.com/main/ChargeItemDefinition/123456",
+                "type": "ChargeItemDefinition"
+            }
+        }
+    ]
+}
+

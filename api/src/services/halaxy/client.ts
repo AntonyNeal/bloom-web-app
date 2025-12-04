@@ -74,10 +74,11 @@ export class HalaxyClient {
 
   /**
    * Get all patients for a specific practitioner
+   * Note: Uses PractitionerRole reference as per Halaxy API documentation
    */
   async getPatientsByPractitioner(practitionerId: string): Promise<FHIRPatient[]> {
     return this.getAllPages<FHIRPatient>('/Patient', {
-      'general-practitioner': `Practitioner/${practitionerId}`,
+      'general-practitioner': `PractitionerRole/${practitionerId}`,
       active: 'true',
     });
   }
@@ -127,7 +128,7 @@ export class HalaxyClient {
     statuses?: string[]
   ): Promise<FHIRAppointment[]> {
     const params: Record<string, string> = {
-      actor: `Practitioner/${practitionerId}`,
+      actor: `PractitionerRole/${practitionerId}`,
       date: `ge${formatDate(startDate)}`,
       'date:lt': formatDate(endDate),
     };
@@ -178,7 +179,7 @@ export class HalaxyClient {
     status: string = 'free'
   ): Promise<FHIRSlot[]> {
     return this.getAllPages<FHIRSlot>('/Slot', {
-      'schedule.actor': `Practitioner/${practitionerId}`,
+      'schedule.actor': `PractitionerRole/${practitionerId}`,
       'start': `ge${startDate.toISOString()}`,
       'start:lt': endDate.toISOString(),
       status: status,

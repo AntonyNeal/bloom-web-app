@@ -193,6 +193,95 @@ export class HalaxyClient {
   }
 
   // ===========================================================================
+  // Patient/Appointment Creation (Booking)
+  // ===========================================================================
+
+  /**
+   * Create or find a patient in Halaxy
+   */
+  async createOrFindPatient(patientData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    dateOfBirth?: string;
+    gender?: 'male' | 'female' | 'other' | 'unknown';
+  }): Promise<FHIRPatient> {
+    // First try to find existing patient by email
+    try {
+      const existing = await this.getAllPages<FHIRPatient>('/Patient', {
+        email: patientData.email,
+      });
+      if (existing.length > 0) {
+        console.log(`[HalaxyClient] Found existing patient: ${existing[0].id}`);
+        return existing[0];
+      }
+    } catch (error) {
+      console.log('[HalaxyClient] No existing patient found, creating new');
+    }
+
+    // Create new patient
+    const fhirPatient = {
+      resourceType: 'Patient',
+      active: true,
+      name: [{
+        use: 'official',
+        family: patientData.lastName,
+        given: [patientData.firstName],
+      }],
+      telecom: [
+        { system: 'email', value: patientData.email, use: 'home' },
+        ...(patientData.phone ? [{ system: 'phone', value: patientData.phone, use: 'mobile' }] : []),
+      ],
+      ...(patientData.dateOfBirth && { birthDate: patientData.dateOfBirth }),
+      ...(patientData.gender && { gender: patientData.gender }),
+    };
+
+    return this.request<FHIRPatient>('/Patient', {
+      method: 'POST',
+      body: JSON.stringify(fhirPatient),
+    });
+  }
+
+  /**
+   * Create an appointment in Halaxy
+   */
+  async createAppointment(appointmentData: {
+    patientId: string;
+    practitionerId: string;
+    start: string; // ISO 8601
+    end: string;   // ISO 8601
+    description?: string;
+    serviceType?: string;
+  }): Promise<FHIRAppointment> {
+    const fhirAppointment = {
+      resourceType: 'Appointment',
+      status: 'booked',
+      start: appointmentData.start,
+      end: appointmentData.end,
+      minutesDuration: Math.round(
+        (new Date(appointmentData.end).getTime() - new Date(appointmentData.start).getTime()) / 60000
+      ),
+      description: appointmentData.description || 'Appointment booked via website',
+      participant: [
+        {
+          actor: { reference: `Patient/${appointmentData.patientId}` },
+          status: 'accepted',
+        },
+        {
+          actor: { reference: `Practitioner/${appointmentData.practitionerId}` },
+          status: 'accepted',
+        },
+      ],
+    };
+
+    return this.request<FHIRAppointment>('/Appointment', {
+      method: 'POST',
+      body: JSON.stringify(fhirAppointment),
+    });
+  }
+
+  // ===========================================================================
   // Request Helpers
   // ===========================================================================
 

@@ -12,6 +12,7 @@ import './functions/practitioner-dashboard';
 import './functions/seed-database';
 import './functions/store-booking-session';
 import './functions/get-halaxy-availability';
+import './functions/create-halaxy-booking';
 
 export * from './functions/health';
 export * from './functions/applications';

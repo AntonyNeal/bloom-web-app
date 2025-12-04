@@ -26,8 +26,8 @@ export function getHalaxyConfig(): HalaxyConfig {
   const refreshToken = process.env.HALAXY_REFRESH_TOKEN;
   // FHIR API base - note: FHIR endpoints are at /fhir/, not /main/
   const fhirBaseUrl = process.env.HALAXY_FHIR_URL || 'https://au-api.halaxy.com/fhir';
-  // Token endpoint is at /api/oauth/token (not /oauth2/token)
-  const tokenUrl = process.env.HALAXY_TOKEN_URL || 'https://au-api.halaxy.com/api/oauth/token';
+  // Token endpoint is at /main/oauth/token
+  const tokenUrl = process.env.HALAXY_TOKEN_URL || 'https://au-api.halaxy.com/main/oauth/token';
   
   if (!clientId || !clientSecret || !refreshToken) {
     throw new Error(

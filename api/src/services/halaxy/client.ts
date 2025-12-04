@@ -75,11 +75,14 @@ export class HalaxyClient {
 
   /**
    * Get all patients for a specific practitioner
-   * Note: Uses PractitionerRole reference as per Halaxy API documentation
+   * Uses full URL reference format as per Halaxy API documentation:
+   * https://au-api.halaxy.com/main/Practitioner/PR-1014021
    */
   async getPatientsByPractitioner(practitionerId: string): Promise<FHIRPatient[]> {
+    // Try with full URL format as shown in Halaxy docs
+    const fullRef = `https://au-api.halaxy.com/main/Practitioner/${practitionerId}`;
     return this.getAllPages<FHIRPatient>('/Patient', {
-      'general-practitioner': `PractitionerRole/${practitionerId}`,
+      'general-practitioner': fullRef,
       active: 'true',
     });
   }
@@ -94,6 +97,14 @@ export class HalaxyClient {
   }
 
   /**
+   * Export patient IDs - returns list of patient references the user can access
+   */
+  async exportPatientIds(): Promise<string[]> {
+    const response = await this.request<{ parameter: Array<{ valueReference: { reference: string } }> }>('/Patient/$export-ids');
+    return response.parameter?.map(p => p.valueReference?.reference).filter(Boolean) || [];
+  }
+
+  /**
    * Search patients by name
    */
   async searchPatients(query: string): Promise<FHIRPatient[]> {
@@ -102,7 +113,6 @@ export class HalaxyClient {
       active: 'true',
     });
   }
-
   // ===========================================================================
   // Appointment Endpoints
   // ===========================================================================
@@ -128,8 +138,10 @@ export class HalaxyClient {
     endDate: Date,
     statuses?: string[]
   ): Promise<FHIRAppointment[]> {
+    // Try with full URL reference format as shown in Halaxy booking recipe
+    const fullRef = `https://au-api.halaxy.com/main/PractitionerRole/${practitionerId}`;
     const params: Record<string, string> = {
-      actor: `PractitionerRole/${practitionerId}`,
+      actor: fullRef,
       date: `ge${formatDate(startDate)}`,
       'date:lt': formatDate(endDate),
     };

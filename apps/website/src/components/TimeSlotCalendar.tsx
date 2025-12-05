@@ -5,6 +5,7 @@ import {
   groupSlotsByDate,
   type AvailableSlot,
 } from '../utils/halaxyAvailability';
+import { getCachedAvailability } from '../utils/availabilityPreloader';
 
 interface TimeSlot {
   time: string;
@@ -69,28 +70,39 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         weekEnd.setDate(currentWeekStart.getDate() + 7);
         const weekKey = currentWeekStart.toISOString();
 
-        console.log('[TimeSlotCalendar] Fetching Halaxy availability:', {
-          start: currentWeekStart.toISOString(),
-          end: weekEnd.toISOString(),
-          duration,
-          practitionerId,
-          timestamp: new Date().toISOString(),
-        });
+        // Check if we have cached availability from the preloader
+        const cachedSlots = getCachedAvailability(currentWeekStart);
+        let slots: AvailableSlot[];
 
-        const params = {
-          startDate: currentWeekStart,
-          endDate: weekEnd,
-          duration,
-          ...(practitionerId ? { practitionerId } : {}),
-        };
+        if (cachedSlots !== null && !practitionerId) {
+          // Use cached data (only if no practitioner filter, since cache doesn't filter)
+          console.log('[TimeSlotCalendar] Using cached availability:', cachedSlots.length, 'slots');
+          slots = cachedSlots;
+        } else {
+          // Fetch fresh data
+          console.log('[TimeSlotCalendar] Fetching Halaxy availability:', {
+            start: currentWeekStart.toISOString(),
+            end: weekEnd.toISOString(),
+            duration,
+            practitionerId,
+            timestamp: new Date().toISOString(),
+          });
 
-        const slots = await fetchAvailableSlots(params);
+          const params = {
+            startDate: currentWeekStart,
+            endDate: weekEnd,
+            duration,
+            ...(practitionerId ? { practitionerId } : {}),
+          };
 
-        console.log(
-          '[TimeSlotCalendar] Received slots from Halaxy:',
-          slots.length
-        );
-        console.log('[TimeSlotCalendar] First 10 slots:', slots.slice(0, 10));
+          slots = await fetchAvailableSlots(params);
+
+          console.log(
+            '[TimeSlotCalendar] Received slots from Halaxy:',
+            slots.length
+          );
+          console.log('[TimeSlotCalendar] First 10 slots:', slots.slice(0, 10));
+        }
         
         // If no slots found and we haven't exceeded search limit, auto-advance to next week
         if (slots.length === 0 && isSearchingForAvailability) {

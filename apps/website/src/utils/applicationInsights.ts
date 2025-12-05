@@ -182,7 +182,7 @@ const setupPerformanceMonitoring = () => {
   if (typeof window !== 'undefined') {
     // Import and use web-vitals if available
     import('web-vitals')
-      .then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+      .then(({ getCLS, getINP, getFCP, getLCP, getTTFB }) => {
         getCLS((metric) => {
           trackMetric('CoreWebVitals.CLS', metric.value, {
             name: metric.name,
@@ -191,8 +191,9 @@ const setupPerformanceMonitoring = () => {
           });
         });
 
-        getFID((metric) => {
-          trackMetric('CoreWebVitals.FID', metric.value, {
+        // INP (Interaction to Next Paint) replaced FID in web-vitals v4+
+        getINP((metric) => {
+          trackMetric('CoreWebVitals.INP', metric.value, {
             name: metric.name,
             rating: metric.rating,
             delta: metric.delta,

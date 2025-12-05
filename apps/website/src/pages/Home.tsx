@@ -7,6 +7,7 @@ import SmartHeader from '../components/SmartHeader';
 import ServicesSection from '../components/sections/ServicesSection';
 import HorizonBackground from '../components/HorizonBackground';
 import { getEnvBool, getEnvVar, isAzureStaticWebApps } from '../utils/env';
+import { preloadAvailability } from '../utils/availabilityPreloader';
 
 declare global {
   interface Window {
@@ -38,6 +39,9 @@ const Home = () => {
     import('../utils/analytics').then(({ intentScorer }) => {
       intentScorer.trackPageView('/');
     });
+
+    // Preload availability data in the background for faster booking modal
+    preloadAvailability();
   }, []);
 
   // Streamlined services data for better performance

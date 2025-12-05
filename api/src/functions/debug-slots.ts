@@ -6,6 +6,7 @@
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy/client';
+import { FHIRSlot } from '../services/halaxy/types';
 
 async function debugSlotsHandler(
   req: HttpRequest,
@@ -22,7 +23,7 @@ async function debugSlotsHandler(
     context.log('Testing slot endpoints...');
     
     // Test 1: Get all slots without any filters
-    let allSlots: any[] = [];
+    let allSlots: FHIRSlot[] = [];
     let allSlotsError: string | null = null;
     try {
       allSlots = await client.getAllSlots();
@@ -37,7 +38,7 @@ async function debugSlotsHandler(
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + 90);
     
-    let dateRangeSlots: any[] = [];
+    let dateRangeSlots: FHIRSlot[] = [];
     let dateRangeSlotsError: string | null = null;
     try {
       dateRangeSlots = await client.getAllAvailableSlots(startDate, endDate, 'free');

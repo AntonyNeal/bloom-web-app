@@ -183,6 +183,11 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     });
   };
 
+  // Helper functions - defined before use
+  const formatDateForValue = (date: Date): string => {
+    return date.toISOString().split('T')[0];
+  };
+
   const weekSchedule = generateWeekSchedule();
   const gridColumnTemplate = `repeat(${Math.max(weekSchedule.length, 1)}, minmax(0, 1fr))`;
   const selectedDateIndex = selectedDate
@@ -239,10 +244,6 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     const endMonth = endDate.toLocaleDateString('en-AU', { month: 'short' });
 
     return `${startDay} ${startMonth} - ${endDay} ${endMonth}`;
-  };
-
-  const formatDateForValue = (date: Date): string => {
-    return date.toISOString().split('T')[0];
   };
 
   const formatTimeForValue = (timeStr: string): string => {

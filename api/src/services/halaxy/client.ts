@@ -217,9 +217,10 @@ export class HalaxyClient {
     endDate: Date,
     status: string = 'free'
   ): Promise<FHIRSlot[]> {
+    // Format dates as ISO strings without FHIR comparison prefixes
     return this.getAllPages<FHIRSlot>('/Slot', {
-      start: `ge${startDate.toISOString()}`,
-      end: `le${endDate.toISOString()}`,
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
       status: status,
     });
   }

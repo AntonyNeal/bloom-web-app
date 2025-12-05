@@ -7,9 +7,10 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy/client';
 import { FHIRSlot } from '../services/halaxy/types';
+import { getAccessToken, getHalaxyConfig } from '../services/halaxy/token-manager';
 
 async function debugSlotsHandler(
-  req: HttpRequest,
+  _req: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   const headers = {
@@ -19,10 +20,30 @@ async function debugSlotsHandler(
 
   try {
     const client = getHalaxyClient();
+    const config = getHalaxyConfig();
+    const token = await getAccessToken();
     
     context.log('Testing slot endpoints...');
     
-    // Test 1: Get all slots without any filters
+    // First, make a direct fetch to see the raw FHIR response with pagination links
+    const directUrl = `${config.apiBaseUrl}/Slot`;
+    context.log(`Direct fetch to: ${directUrl}`);
+    
+    const directResponse = await fetch(directUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/fhir+json',
+      },
+    });
+    
+    const directJson = await directResponse.json();
+    
+    // Extract pagination info
+    const paginationLinks = directJson.link || [];
+    const nextLink = paginationLinks.find((l: { relation: string }) => l.relation === 'next');
+    const selfLink = paginationLinks.find((l: { relation: string }) => l.relation === 'self');
+    
+    // Test 1: Get all slots via client
     let allSlots: FHIRSlot[] = [];
     let allSlotsError: string | null = null;
     try {
@@ -33,47 +54,41 @@ async function debugSlotsHandler(
       context.error('getAllSlots failed:', e);
     }
     
-    // Test 2: Get slots with date range
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 90);
-    
-    let dateRangeSlots: FHIRSlot[] = [];
-    let dateRangeSlotsError: string | null = null;
-    try {
-      dateRangeSlots = await client.getAllAvailableSlots(startDate, endDate, 'free');
-      context.log(`getAllAvailableSlots returned ${dateRangeSlots.length} slots`);
-    } catch (e) {
-      dateRangeSlotsError = e instanceof Error ? e.message : 'Unknown error';
-      context.error('getAllAvailableSlots failed:', e);
-    }
-    
     // Sample some slots for inspection
-    const sampleSlots = allSlots.slice(0, 5).map(slot => ({
+    const sampleSlots = allSlots.slice(0, 3).map(slot => ({
       id: slot.id,
       start: slot.start,
       end: slot.end,
       status: slot.status,
-      schedule: slot.schedule,
     }));
     
     return {
       status: 200,
       headers,
       jsonBody: {
-        summary: {
+        config: {
+          apiBaseUrl: config.apiBaseUrl,
+          directUrl,
+        },
+        directFetchResult: {
+          status: directResponse.status,
+          resourceType: directJson.resourceType,
+          total: directJson.total,
+          entryCount: directJson.entry?.length || 0,
+        },
+        pagination: {
+          allLinks: paginationLinks,
+          selfLink: selfLink?.url,
+          nextLink: nextLink?.url,
+          hasNextPage: !!nextLink,
+        },
+        clientResult: {
           allSlotsCount: allSlots.length,
           allSlotsError,
-          dateRangeSlotsCount: dateRangeSlots.length,
-          dateRangeSlotsError,
-          dateRange: {
-            start: startDate.toISOString(),
-            end: endDate.toISOString(),
-          },
+          freeSlots: allSlots.filter(s => s.status === 'free').length,
+          busySlots: allSlots.filter(s => s.status === 'busy').length,
         },
         sampleSlots,
-        freeSlots: allSlots.filter(s => s.status === 'free').length,
-        busySlots: allSlots.filter(s => s.status === 'busy').length,
       },
     };
   } catch (error) {

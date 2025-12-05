@@ -206,6 +206,14 @@ export class HalaxyClient {
   // ===========================================================================
 
   /**
+   * Get all slots (paginated)
+   * Uses the exact format from Halaxy API docs
+   */
+  async getAllSlots(): Promise<FHIRSlot[]> {
+    return this.getAllPages<FHIRSlot>('/Slot', {});
+  }
+
+  /**
    * Get available slots within a date range (all practitioners)
    * 
    * @param startDate - Start of date range
@@ -217,7 +225,6 @@ export class HalaxyClient {
     endDate: Date,
     status: string = 'free'
   ): Promise<FHIRSlot[]> {
-    // Format dates as ISO strings without FHIR comparison prefixes
     return this.getAllPages<FHIRSlot>('/Slot', {
       start: startDate.toISOString(),
       end: endDate.toISOString(),

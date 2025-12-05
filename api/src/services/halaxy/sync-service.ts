@@ -264,17 +264,26 @@ export class HalaxySyncService {
           // Clean up old slots before syncing
           await this.cleanupOldSlots(practitioner.id);
 
-          // Query slots directly by practitioner
-          console.log(`[HalaxySyncService] Fetching slots for practitioner ID: ${halaxyPractitionerId}`);
-          const slots = await this.client.getAvailableSlots(
-            halaxyPractitionerId,
-            slotStartDate,
-            slotEndDate,
-            'free' // Only sync free slots
-          );
-          console.log(`[HalaxySyncService] Found ${slots.length} available slots`);
+          // First, try fetching ALL slots to test the endpoint
+          console.log(`[HalaxySyncService] Testing: Fetching all slots...`);
+          const allSlots = await this.client.getAllSlots();
+          console.log(`[HalaxySyncService] Total slots in system: ${allSlots.length}`);
+          
+          if (allSlots.length > 0) {
+            console.log(`[HalaxySyncService] Sample slot:`, JSON.stringify(allSlots[0]).slice(0, 300));
+          }
 
-          for (const slot of slots) {
+          // Filter slots for this practitioner client-side
+          const practitionerSlots = allSlots.filter(slot => {
+            if (!slot.actor) return false;
+            return slot.actor.some(actor => {
+              const ref = actor.reference || '';
+              return ref.includes(halaxyPractitionerId);
+            });
+          });
+          console.log(`[HalaxySyncService] Slots for ${halaxyPractitionerId}: ${practitionerSlots.length}`);
+
+          for (const slot of practitionerSlots) {
             try {
               await this.syncSlot(slot, practitioner.id);
               recordsUpdated++;
@@ -288,7 +297,7 @@ export class HalaxySyncService {
             });
           }
         }
-        console.log(`[HalaxySyncService] Synced ${slots.length} availability slots`);
+        console.log(`[HalaxySyncService] Synced ${practitionerSlots.length} availability slots`);
         } catch (error) {
           console.error('[HalaxySyncService] Failed to sync slots:', error);
           errors.push({

@@ -774,10 +774,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION_API }}
           cache: 'npm'
+          cache-dependency-path: api/package-lock.json
 
       - name: Install API Dependencies
         working-directory: ./api
-        run: npm install
+        run: npm ci
 
       - name: Build Bloom API
         working-directory: ./api
@@ -973,10 +974,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: services/halaxy-sync-worker/package-lock.json
 
       - name: Install Worker Dependencies
         working-directory: ./services/halaxy-sync-worker
-        run: npm install
+        run: npm ci
 
       - name: Build Worker
         working-directory: ./services/halaxy-sync-worker

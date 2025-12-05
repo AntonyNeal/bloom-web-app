@@ -139,6 +139,7 @@ async function halaxyApiDiscoveryHandler(
       headers,
       jsonBody: {
         baseUrl,
+        envVar: process.env.HALAXY_API_URL || 'NOT SET (using default)',
         summary: {
           total: results.length,
           available: available.length,

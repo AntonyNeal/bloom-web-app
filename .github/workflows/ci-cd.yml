@@ -82,189 +82,10 @@ env:
   PNPM_VERSION: '9'
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# STAGE 1: SETUP & CHANGE DETECTION
+# STAGE 1: SETUP & ENVIRONMENT CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
 jobs:
-  # ─────────────────────────────────────────────────────────────────────────────
-  # Detect Changes (Determine What to Build/Deploy)
-  # ─────────────────────────────────────────────────────────────────────────────
-
-  detect-changes:
-    name: 🔎 Detect Changes
-    runs-on: ubuntu-latest
-    outputs:
-      bloom-frontend: ${{ steps.combined.outputs.bloom-frontend }}
-      bloom-api: ${{ steps.combined.outputs.bloom-api }}
-      website-frontend: ${{ steps.combined.outputs.website-frontend }}
-      website-api: ${{ steps.combined.outputs.website-api }}
-      shared-packages: ${{ steps.combined.outputs.shared-packages }}
-      infrastructure: ${{ steps.combined.outputs.infrastructure }}
-      database: ${{ steps.combined.outputs.database }}
-      halaxy-sync: ${{ steps.combined.outputs.halaxy-sync }}
-      halaxy-worker: ${{ steps.combined.outputs.halaxy-worker }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Full history needed for comparing commits
-
-      # Strategy 1: paths-filter for single-commit detection
-      - name: Detect File Changes (Single Commit)
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            bloom-frontend:
-              - 'apps/bloom/src/**'
-              - 'apps/bloom/public/**'
-              - 'apps/bloom/index.html'
-              - 'apps/bloom/vite.config.ts'
-              - 'apps/bloom/package.json'
-              - 'apps/bloom/staticwebapp.config.json'
-              - 'src/**'
-            bloom-api:
-              - 'api/**'
-            website-frontend:
-              - 'apps/website/src/**'
-              - 'apps/website/public/**'
-              - 'apps/website/index.html'
-              - 'apps/website/vite.config.ts'
-              - 'apps/website/package.json'
-              - 'apps/website/staticwebapp.config.json'
-            website-api:
-              - 'apps/website/functions/**'
-            shared-packages:
-              - 'packages/**'
-            infrastructure:
-              - '.github/workflows/**'
-              - 'pnpm-workspace.yaml'
-              - 'package.json'
-              - 'infra/**'
-            database:
-              - 'db/migrations/**'
-              - 'api/src/db-version-control/**'
-              - 'scripts/db-version-control/**'
-            halaxy-sync:
-              - 'api/src/services/halaxy/**'
-              - 'api/src/functions/halaxy-*.ts'
-            halaxy-worker:
-              - 'services/halaxy-sync-worker/**'
-
-      # Strategy 2: Check all commits in the push event (for fast-forwards with multiple commits)
-      - name: Detect Changes Across All Pushed Commits
-        id: push-range
-        run: |
-          # For push events, check all files changed across the entire push range
-          BEFORE="${{ github.event.before }}"
-          AFTER="${{ github.event.after }}"
-          
-          echo "📍 Push range: $BEFORE..$AFTER"
-          
-          # Handle initial push or force push where before is all zeros
-          if [[ "$BEFORE" == "0000000000000000000000000000000000000000" ]]; then
-            echo "🆕 Initial push or new branch - will trigger all builds"
-            echo "bloom-frontend=true" >> $GITHUB_OUTPUT
-            echo "bloom-api=true" >> $GITHUB_OUTPUT
-            echo "website-frontend=true" >> $GITHUB_OUTPUT
-            echo "website-api=true" >> $GITHUB_OUTPUT
-            echo "shared-packages=true" >> $GITHUB_OUTPUT
-            echo "infrastructure=true" >> $GITHUB_OUTPUT
-            echo "database=true" >> $GITHUB_OUTPUT
-            echo "halaxy-sync=true" >> $GITHUB_OUTPUT
-            echo "halaxy-worker=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          
-          # Get all changed files across the push range
-          CHANGED_FILES=$(git diff --name-only "$BEFORE" "$AFTER" 2>/dev/null || echo "")
-          
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "⚠️ Could not determine changed files, using paths-filter results only"
-            echo "bloom-frontend=false" >> $GITHUB_OUTPUT
-            echo "bloom-api=false" >> $GITHUB_OUTPUT
-            echo "website-frontend=false" >> $GITHUB_OUTPUT
-            echo "website-api=false" >> $GITHUB_OUTPUT
-            echo "shared-packages=false" >> $GITHUB_OUTPUT
-            echo "infrastructure=false" >> $GITHUB_OUTPUT
-            echo "database=false" >> $GITHUB_OUTPUT
-            echo "halaxy-sync=false" >> $GITHUB_OUTPUT
-            echo "halaxy-worker=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          
-          echo "📝 Changed files in push range:"
-          echo "$CHANGED_FILES"
-          echo ""
-          
-          # Check each category
-          check_pattern() {
-            local name=$1
-            shift
-            for pattern in "$@"; do
-              if echo "$CHANGED_FILES" | grep -qE "$pattern"; then
-                echo "$name=true" >> $GITHUB_OUTPUT
-                echo "✅ $name: detected changes"
-                return
-              fi
-            done
-            echo "$name=false" >> $GITHUB_OUTPUT
-          }
-          
-          check_pattern "bloom-frontend" "^apps/bloom/src/" "^apps/bloom/public/" "^apps/bloom/index.html" "^apps/bloom/vite.config.ts" "^apps/bloom/package.json" "^apps/bloom/staticwebapp.config.json" "^src/"
-          check_pattern "bloom-api" "^api/"
-          check_pattern "website-frontend" "^apps/website/src/" "^apps/website/public/" "^apps/website/index.html" "^apps/website/vite.config.ts" "^apps/website/package.json" "^apps/website/staticwebapp.config.json"
-          check_pattern "website-api" "^apps/website/functions/"
-          check_pattern "shared-packages" "^packages/"
-          check_pattern "infrastructure" "^\.github/workflows/" "^pnpm-workspace.yaml" "^package.json$" "^infra/"
-          check_pattern "database" "^db/migrations/" "^api/src/db-version-control/" "^scripts/db-version-control/"
-          check_pattern "halaxy-sync" "^api/src/services/halaxy/" "^api/src/functions/halaxy-"
-          check_pattern "halaxy-worker" "^services/halaxy-sync-worker/"
-
-      # Combine both detection strategies (OR logic)
-      - name: Combine Detection Results
-        id: combined
-        run: |
-          combine() {
-            local name=$1
-            local filter_val=$2
-            local range_val=$3
-            if [[ "$filter_val" == "true" || "$range_val" == "true" ]]; then
-              echo "$name=true" >> $GITHUB_OUTPUT
-            else
-              echo "$name=false" >> $GITHUB_OUTPUT
-            fi
-          }
-          
-          combine "bloom-frontend" "${{ steps.filter.outputs.bloom-frontend }}" "${{ steps.push-range.outputs.bloom-frontend }}"
-          combine "bloom-api" "${{ steps.filter.outputs.bloom-api }}" "${{ steps.push-range.outputs.bloom-api }}"
-          combine "website-frontend" "${{ steps.filter.outputs.website-frontend }}" "${{ steps.push-range.outputs.website-frontend }}"
-          combine "website-api" "${{ steps.filter.outputs.website-api }}" "${{ steps.push-range.outputs.website-api }}"
-          combine "shared-packages" "${{ steps.filter.outputs.shared-packages }}" "${{ steps.push-range.outputs.shared-packages }}"
-          combine "infrastructure" "${{ steps.filter.outputs.infrastructure }}" "${{ steps.push-range.outputs.infrastructure }}"
-          combine "database" "${{ steps.filter.outputs.database }}" "${{ steps.push-range.outputs.database }}"
-          combine "halaxy-sync" "${{ steps.filter.outputs.halaxy-sync }}" "${{ steps.push-range.outputs.halaxy-sync }}"
-          combine "halaxy-worker" "${{ steps.filter.outputs.halaxy-worker }}" "${{ steps.push-range.outputs.halaxy-worker }}"
-
-      - name: Display Changes
-        run: |
-          echo "═══════════════════════════════════════════════════════"
-          echo "📊 CHANGE DETECTION RESULTS (Combined)"
-          echo "═══════════════════════════════════════════════════════"
-          echo "🌸 Bloom Frontend:    ${{ steps.combined.outputs.bloom-frontend }}"
-          echo "🔌 Bloom API:         ${{ steps.combined.outputs.bloom-api }}"
-          echo "🌐 Website Frontend:  ${{ steps.combined.outputs.website-frontend }}"
-          echo "⚡ Website API:       ${{ steps.combined.outputs.website-api }}"
-          echo "📦 Shared Packages:   ${{ steps.combined.outputs.shared-packages }}"
-          echo "🏗️ Infrastructure:    ${{ steps.combined.outputs.infrastructure }}"
-          echo "🗄️ Database:          ${{ steps.combined.outputs.database }}"
-          echo "🔄 Halaxy Sync:       ${{ steps.combined.outputs.halaxy-sync }}"
-          echo "👷 Halaxy Worker:     ${{ steps.combined.outputs.halaxy-worker }}"
-          echo "═══════════════════════════════════════════════════════"
-          echo ""
-          echo "📋 Detection Sources:"
-          echo "   paths-filter: Single commit analysis"
-          echo "   push-range:   All commits in push (${{ github.event.before }}...${{ github.event.after }})"
-
   # ─────────────────────────────────────────────────────────────────────────────
   # Environment Configuration
   # ─────────────────────────────────────────────────────────────────────────────
@@ -737,13 +558,9 @@ jobs:
   build-bloom-frontend:
     name: 🌸 Build Bloom Frontend
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, lint, type-check]
+    needs: [determine-environment, lint, type-check]
     if: |
       always() &&
-      (needs.detect-changes.outputs.bloom-frontend == 'true' ||
-       needs.detect-changes.outputs.shared-packages == 'true' ||
-       needs.detect-changes.outputs.infrastructure == 'true' ||
-       github.event.inputs.deploy_bloom == 'true') &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success'
@@ -800,13 +617,9 @@ jobs:
   build-website-frontend:
     name: 🌐 Build Website Frontend
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, lint, type-check]
+    needs: [determine-environment, lint, type-check]
     if: |
       always() &&
-      (needs.detect-changes.outputs.website-frontend == 'true' ||
-       needs.detect-changes.outputs.shared-packages == 'true' ||
-       needs.detect-changes.outputs.infrastructure == 'true' ||
-       github.event.inputs.deploy_website == 'true') &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success'
@@ -860,15 +673,9 @@ jobs:
   build-bloom-api:
     name: 🔌 Build Bloom API (incl. Halaxy Sync)
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, lint, type-check]
+    needs: [determine-environment, lint, type-check]
     if: |
       always() &&
-      (needs.detect-changes.outputs.bloom-api == 'true' ||
-       needs.detect-changes.outputs.halaxy-sync == 'true' ||
-       needs.detect-changes.outputs.shared-packages == 'true' ||
-       needs.detect-changes.outputs.infrastructure == 'true' ||
-       github.event.inputs.deploy_apis == 'true' ||
-       github.event.inputs.deploy_halaxy_sync == 'true') &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success'
@@ -994,13 +801,9 @@ jobs:
   build-website-api:
     name: ⚡ Build Website API
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, lint, type-check]
+    needs: [determine-environment, lint, type-check]
     if: |
       always() &&
-      (needs.detect-changes.outputs.website-api == 'true' ||
-       needs.detect-changes.outputs.shared-packages == 'true' ||
-       needs.detect-changes.outputs.infrastructure == 'true' ||
-       github.event.inputs.deploy_apis == 'true') &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success'
@@ -1051,12 +854,9 @@ jobs:
   build-halaxy-worker:
     name: 🐳 Build Halaxy Sync Worker
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, lint, type-check]
+    needs: [determine-environment, lint, type-check]
     if: |
       always() &&
-      (needs.detect-changes.outputs.halaxy-worker == 'true' ||
-       needs.detect-changes.outputs.infrastructure == 'true' ||
-       github.event.inputs.deploy_halaxy_sync == 'true') &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success'
@@ -1168,7 +968,7 @@ jobs:
   deploy-bloom-frontend:
     name: 🚀 Deploy Bloom Frontend
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, build-bloom-frontend, run-migrations]
+    needs: [determine-environment, build-bloom-frontend, run-migrations]
     if: |
       always() &&
       needs.build-bloom-frontend.result == 'success' &&
@@ -1213,7 +1013,7 @@ jobs:
   deploy-website-frontend:
     name: 🚀 Deploy Website Frontend
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, build-website-frontend, run-migrations]
+    needs: [determine-environment, build-website-frontend, run-migrations]
     if: |
       always() &&
       needs.build-website-frontend.result == 'success' &&
@@ -1252,7 +1052,7 @@ jobs:
   deploy-website-api:
     name: 🚀 Deploy Website API
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, build-website-api, run-migrations]
+    needs: [determine-environment, build-website-api, run-migrations]
     if: |
       always() &&
       needs.build-website-api.result == 'success' &&
@@ -1302,7 +1102,7 @@ jobs:
   deploy-bloom-api:
     name: 🚀 Deploy Bloom API
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, build-bloom-api, run-migrations]
+    needs: [determine-environment, build-bloom-api, run-migrations]
     if: |
       always() &&
       needs.build-bloom-api.result == 'success' &&
@@ -1346,7 +1146,7 @@ jobs:
   deploy-halaxy-worker:
     name: 🐳 Deploy Halaxy Sync Worker
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-changes, build-halaxy-worker, run-migrations]
+    needs: [determine-environment, build-halaxy-worker, run-migrations]
     if: |
       always() &&
       needs.build-halaxy-worker.result == 'success' &&

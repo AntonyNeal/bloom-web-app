@@ -6,6 +6,17 @@ const Footer = () => {
   const showRecruitment = true;
   const { openBookingModal } = useBooking('footer');
 
+  // Determine the correct "Join Our Team" URL based on current hostname
+  const getJoinTeamUrl = () => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      if (hostname === 'staging.life-psychology.com.au') {
+        return 'https://staging.bloom.life-psychology.com.au';
+      }
+    }
+    return 'https://bloom.life-psychology.com.au';
+  };
+
   return (
     <>
       <footer className="bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 text-gray-800 min-h-[400px] md:min-h-[350px]">
@@ -125,7 +136,7 @@ const Footer = () => {
               {showRecruitment && (
                 <li>
                   <a
-                    href="https://bloom.life-psychology.com.au"
+                    href={getJoinTeamUrl()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-blue-600 transition-colors flex items-center py-1 min-h-[44px]"

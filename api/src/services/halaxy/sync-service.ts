@@ -258,6 +258,9 @@ export class HalaxySyncService {
           // Clean up old slots first
           await this.cleanupOldSlots(practitioner.id);
           
+          // Debug: Log the config being used
+          console.log(`[HalaxySyncService] Slot sync: API base URL = ${this.client['config'].apiBaseUrl}`);
+          
           // Fetch ALL slots from Halaxy (without date filter, which may cause issues)
           // The discovery endpoint confirmed /Slot without params returns 200 slots
           console.log(`[HalaxySyncService] Fetching slots from Halaxy...`);
@@ -269,6 +272,8 @@ export class HalaxySyncService {
             console.log(`[HalaxySyncService] getAllSlots returned ${slots.length} slots`);
           } catch (fetchError) {
             console.error(`[HalaxySyncService] getAllSlots failed:`, fetchError);
+            // Also log the exact URL that was tried
+            console.error(`[HalaxySyncService] Expected URL: ${this.client['config'].apiBaseUrl}/Slot`);
             throw fetchError;
           }
           

@@ -55,8 +55,10 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSearchingForAvailability, setIsSearchingForAvailability] = useState(true);
+  const [searchedWeeksWithNoSlots, setSearchedWeeksWithNoSlots] = useState<Set<string>>(new Set());
 
-  // Fetch available slots when week changes
+  // Fetch available slots when week changes and auto-advance if no availability
   useEffect(() => {
     const fetchSlots = async () => {
       setLoading(true);
@@ -65,6 +67,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       try {
         const weekEnd = new Date(currentWeekStart);
         weekEnd.setDate(currentWeekStart.getDate() + 7);
+        const weekKey = currentWeekStart.toISOString();
 
         console.log('[TimeSlotCalendar] Fetching Halaxy availability:', {
           start: currentWeekStart.toISOString(),
@@ -88,17 +91,41 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           slots.length
         );
         console.log('[TimeSlotCalendar] First 10 slots:', slots.slice(0, 10));
+        
+        // If no slots found and we haven't exceeded search limit, auto-advance to next week
+        if (slots.length === 0 && isSearchingForAvailability) {
+          const newSearchedWeeks = new Set(searchedWeeksWithNoSlots);
+          newSearchedWeeks.add(weekKey);
+          
+          // Stop searching after 12 weeks to prevent infinite loop
+          if (newSearchedWeeks.size < 12) {
+            console.log('[TimeSlotCalendar] No availability this week, advancing to next week');
+            setSearchedWeeksWithNoSlots(newSearchedWeeks);
+            const nextWeekStart = new Date(currentWeekStart);
+            nextWeekStart.setDate(currentWeekStart.getDate() + 7);
+            setCurrentWeekStart(nextWeekStart);
+            return; // Don't set slots or finish loading - let next fetch handle it
+          } else {
+            console.log('[TimeSlotCalendar] Searched 12 weeks, stopping search');
+            setIsSearchingForAvailability(false);
+          }
+        } else if (slots.length > 0) {
+          // Found availability, stop searching
+          setIsSearchingForAvailability(false);
+        }
+        
         setAvailableSlots(slots);
       } catch (err) {
         console.error('[TimeSlotCalendar] Error fetching slots:', err);
         setError('Failed to load availability. Please try again.');
+        setIsSearchingForAvailability(false);
       } finally {
         setLoading(false);
       }
     };
 
     fetchSlots();
-  }, [currentWeekStart, duration, practitionerId]);
+  }, [currentWeekStart, duration, practitionerId, isSearchingForAvailability, searchedWeeksWithNoSlots]);
 
   // Auto-refresh availability every 60 seconds to mirror Halaxy in real-time
   useEffect(() => {
@@ -334,43 +361,14 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     setCurrentWeekStart(newStart);
   };
 
-  // Find and navigate to first week with availability
-  const goToFirstAvailableWeek = async () => {
-    // If current week has availability, stay here
-    if (weekSchedule.length > 0) {
-      return;
+  // Find and navigate to first week with availability (triggered by button click)
+  const goToFirstAvailableWeek = () => {
+    // Reset search state and let the effect handle finding availability
+    if (weekSchedule.length === 0) {
+      setSearchedWeeksWithNoSlots(new Set());
+      setIsSearchingForAvailability(true);
+      nextWeek();
     }
-
-    // Search up to 12 weeks ahead for availability
-    const maxWeeksToSearch = 12;
-    const searchWeekStart = new Date(currentWeekStart);
-    
-    for (let i = 0; i < maxWeeksToSearch; i++) {
-      searchWeekStart.setDate(searchWeekStart.getDate() + 7);
-      const weekEnd = new Date(searchWeekStart);
-      weekEnd.setDate(searchWeekStart.getDate() + 7);
-
-      try {
-        const params = {
-          startDate: searchWeekStart,
-          endDate: weekEnd,
-          duration,
-          ...(practitionerId ? { practitionerId } : {}),
-        };
-
-        const slots = await fetchAvailableSlots(params);
-        
-        if (slots.length > 0) {
-          setCurrentWeekStart(new Date(searchWeekStart));
-          return;
-        }
-      } catch {
-        // Continue searching if this week fails
-      }
-    }
-    
-    // If no availability found, just advance one week
-    nextWeek();
   };
 
   return (
@@ -470,8 +468,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         </div>
       )}
 
-      {/* No availability this week message */}
-      {!loading && !error && weekSchedule.length === 0 && (
+      {/* No availability message - only show after search is complete */}
+      {!loading && !isSearchingForAvailability && !error && weekSchedule.length === 0 && (
         <div
           className="p-6 text-center rounded-lg"
           style={{
@@ -485,8 +483,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <p className="text-slate-600 font-medium mb-2">No availability this week</p>
-          <p className="text-sm text-slate-500 mb-4">Try checking the next week for available appointments.</p>
+          <p className="text-slate-600 font-medium mb-2">No availability found</p>
+          <p className="text-sm text-slate-500 mb-4">We searched 12 weeks ahead but couldn't find any available appointments. Please check back later or contact us directly.</p>
           <button
             onClick={nextWeek}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all"
@@ -495,7 +493,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
               boxShadow: '0 2px 8px rgba(16,185,129,0.3)'
             }}
           >
-            <span>Check next week</span>
+            <span>Keep looking</span>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
@@ -637,7 +635,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.95)'
           }}
         >
-          {loading && (
+          {(loading || isSearchingForAvailability) && (
             <div
               className="absolute top-2 right-2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-white"
               style={{
@@ -651,7 +649,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                 className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"
                 aria-hidden="true"
               ></div>
-              <span>Loading...</span>
+              <span>{isSearchingForAvailability ? 'Finding availability...' : 'Loading...'}</span>
             </div>
           )}
 

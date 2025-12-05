@@ -289,10 +289,27 @@ export class HalaxySyncService {
           });
           console.log(`[HalaxySyncService] Filtered to ${futureSlots.length} future free slots`);
           
+          // Filter out weekend slots (Saturday = 6, Sunday = 0)
+          // Bloom only operates Monday-Friday
+          const weekdaySlots = futureSlots.filter(s => {
+            const slotStart = new Date(s.start);
+            const dayOfWeek = slotStart.getDay();
+            return dayOfWeek !== 0 && dayOfWeek !== 6; // Exclude Sunday (0) and Saturday (6)
+          });
+          
+          const weekendSlotsFiltered = futureSlots.length - weekdaySlots.length;
+          if (weekendSlotsFiltered > 0) {
+            console.log(`[HalaxySyncService] Filtered out ${weekendSlotsFiltered} weekend slots`);
+          }
+          console.log(`[HalaxySyncService] Processing ${weekdaySlots.length} weekday slots`);
+          
+          // Reconcile: delete any slots not returned by Halaxy (including weekends)
+          await this.reconcilePractitionerSlots(practitioner.id, weekdaySlots);
+          
           // Sync each slot
           let successCount = 0;
           let failCount = 0;
-          for (const slot of futureSlots) {
+          for (const slot of weekdaySlots) {
             try {
               await this.syncSlot(slot, practitioner.id);
               successCount++;
@@ -795,6 +812,44 @@ export class HalaxySyncService {
     } catch (error) {
       // Non-critical error, log and continue
       console.warn('[HalaxySyncService] Failed to cleanup old slots:', error);
+    }
+  }
+
+  /**
+   * Reconcile practitioner slots by deleting entries no longer returned by Halaxy.
+   * This handles all cleanup including weekend slots (since Halaxy won't return them).
+   */
+  private async reconcilePractitionerSlots(
+    practitionerId: string,
+    slots: FHIRSlot[]
+  ): Promise<void> {
+    const pool = await this.getPool();
+
+    try {
+      const slotIdsJson = JSON.stringify(slots.map((slot) => slot.id));
+
+      const result = await pool.request()
+        .input('practitionerId', sql.UniqueIdentifier, practitionerId)
+        .input('slotIdsJson', sql.NVarChar(sql.MAX), slotIdsJson)
+        .query(`
+          WITH slot_ids AS (
+            SELECT value AS slot_id FROM OPENJSON(@slotIdsJson)
+          )
+          DELETE a
+          FROM availability_slots a
+          LEFT JOIN slot_ids s ON a.halaxy_slot_id = s.slot_id
+          WHERE a.practitioner_id = @practitionerId
+            AND a.slot_start >= GETUTCDATE()
+            AND s.slot_id IS NULL;
+        `);
+
+      const deletedCount = result.rowsAffected[0] || 0;
+      if (deletedCount > 0) {
+        console.log(`[HalaxySyncService] Deleted ${deletedCount} stale slots for practitioner ${practitionerId}`);
+      }
+    } catch (error) {
+      // Non-critical error, log and continue
+      console.warn('[HalaxySyncService] Failed to reconcile practitioner slots:', error);
     }
   }
 

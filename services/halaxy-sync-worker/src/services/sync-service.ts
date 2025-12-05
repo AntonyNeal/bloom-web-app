@@ -162,18 +162,33 @@ export class HalaxySyncService {
 
       let slotsSynced = 0;
       try {
-        const slots = await this.client.findAvailableSlots(
+        const allSlots = await this.client.findAvailableSlots(
           halaxyPractitionerId,
           slotStartDate,
           slotEndDate,
           60 // Default 60 min duration
         );
-        console.log(`[SyncService]   Found ${slots.length} availability slots`);
+        console.log(`[SyncService]   Found ${allSlots.length} availability slots from Halaxy`);
+
+        // Filter out weekend slots (Saturday = 6, Sunday = 0)
+        // Bloom only operates Monday-Friday
+        const slots = allSlots.filter((slot) => {
+          const slotDate = new Date(slot.start);
+          const dayOfWeek = slotDate.getDay();
+          return dayOfWeek !== 0 && dayOfWeek !== 6; // Exclude Sunday (0) and Saturday (6)
+        });
+        
+        const weekendSlotsFiltered = allSlots.length - slots.length;
+        if (weekendSlotsFiltered > 0) {
+          console.log(`[SyncService]   Filtered out ${weekendSlotsFiltered} weekend slots`);
+        }
+        console.log(`[SyncService]   Processing ${slots.length} weekday slots`);
 
         // Clean up old slots before syncing new ones
         await this.cleanupOldSlots(pool, practitioner.id);
 
         // Reconcile current database state with the snapshot we just fetched
+        // This deletes any slots not returned by Halaxy (including weekends)
         await this.reconcilePractitionerSlots(pool, practitioner.id, slots);
 
         for (const slot of slots) {
@@ -432,8 +447,8 @@ export class HalaxySyncService {
   }
 
   /**
-   * Reconcile practitioner slots so that entries no longer returned by Halaxy
-   * are immediately marked as not bookable.
+   * Reconcile practitioner slots by deleting entries no longer returned by Halaxy.
+   * This handles all cleanup including weekend slots (since Halaxy won't return them).
    */
   private async reconcilePractitionerSlots(
     pool: sql.ConnectionPool,
@@ -445,19 +460,14 @@ export class HalaxySyncService {
     try {
       const slotIdsJson = JSON.stringify(slots.map((slot) => slot.id));
 
-      await pool.request()
+      const result = await pool.request()
         .input('practitionerId', sql.UniqueIdentifier, practitionerId)
         .input('slotIdsJson', sql.NVarChar(sql.MAX), slotIdsJson)
         .query(`
           WITH slot_ids AS (
             SELECT value AS slot_id FROM OPENJSON(@slotIdsJson)
           )
-          UPDATE a
-          SET
-            status = CASE WHEN a.status = 'free' THEN 'busy-unavailable' ELSE a.status END,
-            is_bookable = 0,
-            updated_at = GETUTCDATE(),
-            last_synced_at = GETUTCDATE()
+          DELETE a
           FROM availability_slots a
           LEFT JOIN slot_ids s ON a.halaxy_slot_id = s.slot_id
           WHERE a.practitioner_id = @practitionerId
@@ -465,10 +475,16 @@ export class HalaxySyncService {
             AND s.slot_id IS NULL;
         `);
 
+      const deletedCount = result.rowsAffected[0] || 0;
+      if (deletedCount > 0) {
+        console.log(`[SyncService] Deleted ${deletedCount} stale slots for practitioner ${practitionerId}`);
+
+      }
+
       trackDependency(
         'SQL',
         'reconcilePractitionerSlots',
-        'UPDATE availability_slots',
+        'DELETE availability_slots',
         Date.now() - startTime,
         true
       );
@@ -476,7 +492,7 @@ export class HalaxySyncService {
       trackDependency(
         'SQL',
         'reconcilePractitionerSlots',
-        'UPDATE availability_slots',
+        'DELETE availability_slots',
         Date.now() - startTime,
         false
       );

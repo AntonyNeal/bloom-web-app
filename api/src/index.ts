@@ -16,6 +16,7 @@ import './functions/get-halaxy-availability';
 import './functions/create-halaxy-booking';
 import './functions/halaxy-sync-timer';
 import './functions/trigger-halaxy-sync';
+import './functions/halaxy-api-discovery';
 
 export * from './functions/health';
 export * from './functions/applications';

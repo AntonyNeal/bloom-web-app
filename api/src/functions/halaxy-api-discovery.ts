@@ -139,7 +139,7 @@ async function halaxyApiDiscoveryHandler(
       headers,
       jsonBody: {
         baseUrl,
-        clientBaseUrl: client['config'].apiBaseUrl,  // What the client uses
+        clientBaseUrl: client.getApiBaseUrl(),  // What the client uses
         envVar: process.env.HALAXY_API_URL || 'NOT SET (using default)',
         summary: {
           total: results.length,

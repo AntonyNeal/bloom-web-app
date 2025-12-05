@@ -34,6 +34,13 @@ export class HalaxyClient {
     const defaultConfig = getHalaxyConfig();
     this.config = { ...defaultConfig, ...config };
   }
+  
+  /**
+   * Get the API base URL (for debugging)
+   */
+  getApiBaseUrl(): string {
+    return this.config.apiBaseUrl;
+  }
 
   // ===========================================================================
   // Practitioner Endpoints

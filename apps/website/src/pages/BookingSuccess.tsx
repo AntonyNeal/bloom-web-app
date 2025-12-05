@@ -9,16 +9,15 @@ import { trackBookingComplete, conversionManager } from '../tracking';
 
 /**
  * Booking Success Page
- * Displayed after successful booking completion via Halaxy redirect
+ * Displayed after successful booking completion via our onsite flow
  * Handles all conversion tracking for Google Ads, GA4, and Microsoft Clarity
  *
  * Testing Steps:
- * 1. Click Book Now → Redirected to Halaxy
- * 2. Complete test booking in Halaxy
- * 3. Redirected back to /booking-success
- * 4. Open console → See all conversion logs
- * 5. Check GA4 Realtime → See events
- * 6. Check Google Ads → See conversion (may take 3 hours)
+ * 1. Click Book Now → Complete booking inside modal
+ * 2. Confirm success state routes to /booking-success
+ * 3. Open console → See all conversion logs
+ * 4. Check GA4 Realtime → See events
+ * 5. Check Google Ads → See conversion (may take 3 hours)
  */
 
 const BookingSuccess = () => {
@@ -42,9 +41,9 @@ const BookingSuccess = () => {
         // Also fire new unified tracking system for booking completion
         // This provides normalized funnel tracking alongside legacy conversions
         trackBookingComplete({
-          bookingId: `halaxy-redirect-${Date.now()}`,
+          bookingId: `onsite-booking-${Date.now()}`,
           serviceType: 'initial_consultation',
-          practitionerName: 'Unknown', // Halaxy redirect doesn't pass this
+          practitionerName: 'Unknown',
           appointmentDate: 'Unknown',
           value: 220, // Standard consultation fee
         });
@@ -310,8 +309,9 @@ const BookingSuccess = () => {
             </h2>
 
             <p className="text-gray-600 mb-4">
-              If you need to reschedule or cancel your appointment, please log
-              back into your Halaxy account or contact us directly:
+              If you need to reschedule or cancel your appointment, use the
+              manage-booking link in your confirmation email or contact us
+              directly:
             </p>
 
             <div className="space-y-3">

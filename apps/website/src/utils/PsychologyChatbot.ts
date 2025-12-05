@@ -62,8 +62,8 @@ RESPONSE STYLE:
 • Use professional, empathetic tone
 • When suggesting professional help → Always mention Zoe Semmler specifically
 • NEVER give generic greetings like "Hello! How can I assist you today?" in the middle of a conversation
-• NEVER use markdown link format [text](url) - provide plain URLs instead
-• Format links naturally: "visit this link: https://example.com"
+• NEVER use markdown link format [text](url) - use plain text directions instead
+• When booking is discussed, refer to the on-page "Book a session" button rather than sharing URLs
 • Stay in context of the ongoing discussion - don't reset to initial greeting mode
 • Reference previous messages when appropriate
 
@@ -77,17 +77,13 @@ CONVERSATIONAL APPROACH:
 • Act like a helpful friend guiding them to Zoe's services
 • Always stay in context - reference previous parts of the conversation
 • If user says "yes" to a previous question, provide the requested information directly
-• Format links naturally: "You can book at: https://www.halaxy.com/..." (never use [text](url))
+• Remind users they can tap the "Book a session" button below the chat whenever they're ready (no external links)
 
 BOOKING INTEGRATION:
-• When users express interest in booking or scheduling → Provide the direct Halaxy booking link
-• Always track booking handoffs for analytics
-• Encourage immediate booking when users show high intent
-• Mention that the booking system is secure and Zoe reviews all requests personally
-• Include session rates and availability information when suggesting booking
-• Use the exact booking URL: https://www.halaxy.com/book/widget/appointment/psychologist/ms-zoe-semmler/1304541/1023041
-
-BOOKING LINK: https://www.halaxy.com/book/widget/appointment/psychologist/ms-zoe-semmler/1304541/1023041
+• When users express interest in booking or scheduling → Prompt them to tap the "Book a session" button in this chat or the blue CTA on the website
+• Do NOT share any old Halaxy booking links or external scheduling URLs
+• Mention that the booking experience stays on lifepsychology.com.au, is secure, and Zoe reviews every request personally
+• Include session rates and availability information when suggesting booking so people know what to expect
 
 FIRST SESSION INFO:
 • 60-minute comprehensive assessment to understand your needs
@@ -325,12 +321,9 @@ Use Australian English. Be supportive but brief.`,
       const availabilityInfo = this.getAvailabilityInfo();
       return `Great question about availability! ${availabilityInfo}
 
-Zoe's regular hours are Monday-Friday 9 AM - 7 PM, with Saturday sessions available. She specialises in evening appointments for working professionals.
+    Zoe's regular hours are Monday-Friday 9 AM - 7 PM, with Saturday sessions available. She specialises in evening appointments for working professionals.
 
-To see real-time availability and book a session:
-https://www.halaxy.com/book/widget/appointment/psychologist/ms-zoe-semmler/1304541/1023041
-
-The booking system will show you all available times, and Zoe personally reviews each request.`;
+    When you're ready, tap the "Book a session" button in this chat (or on the page) and I'll open the secure booking form right here. It shows real-time availability and Zoe personally reviews each request before confirming.`;
     }
 
     // Check if user is ready to book
@@ -338,17 +331,14 @@ The booking system will show you all available times, and Zoe personally reviews
       const availabilityInfo = this.getAvailabilityInfo();
       return `Perfect! I'm glad you're ready to take this step. Zoe Semmler offers secure online therapy sessions tailored to your needs.
 
-${availabilityInfo}
+    ${availabilityInfo}
 
-**Book your session now:**
-https://www.halaxy.com/book/widget/appointment/psychologist/ms-zoe-semmler/1304541/1023041
+    Session rates:
+    • Individual therapy: $250/session (Medicare rebates available)
+    • Couples therapy: $300/session
+    • NDIS sessions: $233/session
 
-Session rates:
-• Individual therapy: $250/session (Medicare rebates available)
-• Couples therapy: $300/session
-• NDIS sessions: $233/session
-
-Zoe is available for evening appointments and works with clients across Australia through secure telehealth. Click the link above to see available times and book directly with Zoe.`;
+    Tap the "Book a session" button in this chat (or use the blue CTA on the page) and I'll open the secure booking form right away so you can choose a time that works.`;
     }
 
     // General inquiry response
@@ -405,11 +395,6 @@ What specific concerns are you hoping to address? We offer individual therapy st
   trackBookingHandoff(intentScore?: number) {
     // This will be handled by the chat component using the analytics utilities
     log.info('Booking handoff tracked', 'PsychologyChatbot', { intentScore });
-  }
-
-  // Get booking URL for direct access
-  getBookingUrl(): string {
-    return 'https://www.halaxy.com/book/widget/appointment/psychologist/ms-zoe-semmler/1304541/1023041';
   }
 
   // Get availability information

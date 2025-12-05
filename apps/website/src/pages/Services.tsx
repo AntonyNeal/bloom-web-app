@@ -2,23 +2,10 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 import { tracker } from '../utils/UnifiedTracker';
-
-// Extend window interface for halaxyBookingTracker
-declare global {
-  interface Window {
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
-  }
-}
+import { useBooking } from '../hooks/useBooking';
 
 const Services = () => {
+  const { openBookingModal } = useBooking('services_page');
   useEffect(() => {
     // Initialize services page tracking with unified tracker
     tracker.trackServicePage();
@@ -174,14 +161,7 @@ const Services = () => {
                     'services_top_cta',
                     'general_psychology'
                   );
-
-                  if (window.halaxyBookingTracker) {
-                    window.halaxyBookingTracker.handleBookingClick(e);
-                  } else {
-                    console.warn(
-                      '[Services] halaxyBookingTracker not available'
-                    );
-                  }
+                  openBookingModal(e);
                 }}
                 className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-lg"
               >
@@ -495,14 +475,7 @@ const Services = () => {
                     'services_bottom_cta',
                     'general_psychology'
                   );
-
-                  if (window.halaxyBookingTracker) {
-                    window.halaxyBookingTracker.handleBookingClick(e);
-                  } else {
-                    console.warn(
-                      '[Services] halaxyBookingTracker not available'
-                    );
-                  }
+                  openBookingModal(e);
                 }}
                 className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-lg"
               >

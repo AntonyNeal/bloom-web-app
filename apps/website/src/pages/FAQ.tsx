@@ -1,10 +1,8 @@
 import { Helmet } from 'react-helmet-async';
-import { BookingModal } from '../components/BookingModal';
 import { useBooking } from '../hooks/useBooking';
 
 const FAQ = () => {
-  const { isBookingModalOpen, openBookingModal, closeBookingModal } =
-    useBooking();
+  const { openBookingModal } = useBooking('faq_page');
 
   const faqData = [
     {
@@ -18,12 +16,12 @@ const FAQ = () => {
         {
           question: 'How do I book an appointment?',
           answer:
-            "Tap Book via Halaxy to choose a time, enter your details, and confirm. You'll receive automatic confirmations and reminders.",
+            "Tap Book Appointment to choose a time inside our secure booking portal, enter your details, and confirm. You'll receive automatic confirmations and reminders.",
         },
         {
           question: 'How soon can I be seen?',
           answer:
-            'Availability changes during the week. The Halaxy booking page shows the latest times.',
+            'Availability changes during the week. The booking portal always shows the latest available times.',
         },
         {
           question: 'Do you see people outside the Greater Hunter?',
@@ -163,7 +161,7 @@ const FAQ = () => {
         {
           question: 'What is your cancellation policy?',
           answer:
-            'You can cancel or reschedule via your Halaxy patient portal. If you provide 24 hours or more notice, you will receive a full refund. Cancellations with less than 24 hours notice will be charged the full session fee. No reason is required to cancel.',
+            'You can cancel or reschedule using the link in your confirmation email or by contacting us directly. If you provide 24 hours or more notice, you will receive a full refund. Cancellations with less than 24 hours notice will be charged the full session fee. No reason is required to cancel.',
         },
       ],
     },
@@ -284,7 +282,6 @@ const FAQ = () => {
       </div>
 
       {/* Booking Modal */}
-      <BookingModal isOpen={isBookingModalOpen} onClose={closeBookingModal} />
     </>
   );
 };

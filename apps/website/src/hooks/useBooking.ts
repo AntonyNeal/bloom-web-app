@@ -1,27 +1,45 @@
-import { useState } from 'react';
+import { useCallback } from 'react';
+import type React from 'react';
+import { useBookingService } from './useBookingService';
+import type { BookingClickOptions } from '../services/BookingService';
+
+type OpenBookingOptions = Partial<BookingClickOptions>;
 
 /**
- * Shared hook for managing booking modal across all pages
- * Centralizes booking button behavior to ensure consistency
+ * Shared hook that proxies all booking interactions through the global BookingService
+ * Ensures every CTA triggers the same modal instance regardless of component
  */
-export const useBooking = () => {
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+export const useBooking = (fallbackSource = 'shared_booking_cta') => {
+  const { isModalOpen, handleBookingClick, openModal, closeModal } =
+    useBookingService();
 
-  const openBookingModal = (event?: React.MouseEvent) => {
-    if (event) {
-      event.preventDefault();
-    }
-    console.log('[useBooking] Opening booking modal');
-    setIsBookingModalOpen(true);
-  };
+  const openBookingModal = useCallback(
+    (
+      event?: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>,
+      options: OpenBookingOptions = {}
+    ) => {
+      const resolvedOptions: BookingClickOptions = {
+        buttonLocation: options.buttonLocation || fallbackSource,
+        pageSection: options.pageSection,
+        variant: options.variant,
+      };
 
-  const closeBookingModal = () => {
-    console.log('[useBooking] Closing booking modal');
-    setIsBookingModalOpen(false);
-  };
+      if (event) {
+        handleBookingClick(event, resolvedOptions);
+        return;
+      }
+
+      openModal(resolvedOptions.buttonLocation);
+    },
+    [fallbackSource, handleBookingClick, openModal]
+  );
+
+  const closeBookingModal = useCallback(() => {
+    closeModal();
+  }, [closeModal]);
 
   return {
-    isBookingModalOpen,
+    isBookingModalOpen: isModalOpen,
     openBookingModal,
     closeBookingModal,
   };

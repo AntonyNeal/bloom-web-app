@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getEnvBool } from '../utils/env';
-import { BookingModal } from './BookingModal';
 import { trackBookNowClick } from '../tracking';
+import { useBooking } from '../hooks/useBooking';
 
 // Extend Window interface for our custom properties
 declare global {
@@ -10,22 +10,13 @@ declare global {
     VITE_ASSESSMENT_ENABLED?: string;
     VITE_CHAT_ENABLED?: string;
     __ENV_VARS__?: Record<string, string>;
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
   }
 }
 
 const Header = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showBookingModal, setShowBookingModal] = useState(false);
+  const { openBookingModal } = useBooking('header');
 
   // Feature switches default to false unless explicitly set to 'true'
   const isAssessmentEnabled = getEnvBool('VITE_ASSESSMENT_ENABLED');
@@ -152,7 +143,10 @@ const Header = () => {
                     button_location: 'desktop_navigation',
                   });
 
-                  setShowBookingModal(true);
+                  openBookingModal(event, {
+                    buttonLocation: 'desktop_navigation',
+                    pageSection: 'header',
+                  });
                 }}
                 className="ml-6 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 border border-blue-500/20"
               >
@@ -193,7 +187,10 @@ const Header = () => {
                     button_location: 'mobile_navigation',
                   });
 
-                  setShowBookingModal(true);
+                  openBookingModal(event, {
+                    buttonLocation: 'mobile_navigation',
+                    pageSection: 'header',
+                  });
                 }}
                 className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200 border border-blue-500/20"
               >
@@ -298,14 +295,6 @@ const Header = () => {
         </div>
       </header>
 
-      {/* Booking Modal */}
-      <BookingModal
-        isOpen={showBookingModal}
-        onClose={() => {
-          console.log('[Header] Closing booking modal');
-          setShowBookingModal(false);
-        }}
-      />
     </>
   );
 };

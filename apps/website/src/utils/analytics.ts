@@ -188,21 +188,6 @@ export function trackEvent(
   }
 }
 
-export function trackHalaxyHandoff(data: {
-  psychologist?: string;
-  service?: string;
-  source: string;
-  intent_score?: number;
-}) {
-  trackEvent('halaxy_handoff', {
-    psychologist: data.psychologist,
-    service: data.service,
-    source: data.source,
-    intent_score: data.intent_score,
-    value: 300, // Session value
-  });
-}
-
 export function trackHighIntentUser(data: {
   pages_viewed: number;
   time_on_site: number;
@@ -229,16 +214,6 @@ export function trackLocationInterest(data: {
   trackEvent('location_interest', {
     suburb: data.suburb,
     service: data.service,
-  });
-}
-
-export function trackReturnFromHalaxy(data: {
-  time_away: number;
-  presumed_abandoned: boolean;
-}) {
-  trackEvent('return_from_halaxy', {
-    time_away: data.time_away,
-    presumed_abandoned: data.presumed_abandoned,
   });
 }
 

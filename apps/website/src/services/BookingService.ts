@@ -5,6 +5,7 @@
  * Reduces code duplication across Header, MinimalHeader, UnifiedHeader, and MobileCTABar.
  */
 
+import type React from 'react';
 import { tracker } from '../utils/UnifiedTracker';
 import { log } from '../utils/logger';
 
@@ -23,32 +24,13 @@ export class BookingService {
   private static instance: BookingService;
   private modalCallbacks: Array<(state: BookingModalState) => void> = [];
 
-  private constructor() {
-    // Initialize Halaxy booking tracker integration
-    this.initializeHalaxyIntegration();
-  }
+  private constructor() {}
 
   static getInstance(): BookingService {
     if (!BookingService.instance) {
       BookingService.instance = new BookingService();
     }
     return BookingService.instance;
-  }
-
-  /**
-   * Initialize Halaxy booking tracker integration
-   */
-  private initializeHalaxyIntegration(): void {
-    // Lazy load halaxy booking tracker
-    if (typeof window !== 'undefined') {
-      import('../utils/halaxyBookingTracker')
-        .then(() => {
-          log.info('Halaxy booking tracker loaded', 'BookingService');
-        })
-        .catch((error) => {
-          log.error('Failed to load halaxy tracker', 'BookingService', error);
-        });
-    }
   }
 
   /**
@@ -87,16 +69,6 @@ export class BookingService {
       trackBookNowClick(trackingData);
     });
 
-    // Trigger Halaxy booking tracker if available
-    if (window.halaxyBookingTracker) {
-      try {
-        window.halaxyBookingTracker.handleBookingClick(event);
-        log.debug('Halaxy tracker invoked', 'BookingService');
-      } catch (error) {
-        log.error('Halaxy tracker failed', 'BookingService', error);
-      }
-    }
-
     // Notify modal state listeners
     this.notifyModalState({ isOpen: true, source: options.buttonLocation });
   }
@@ -133,18 +105,3 @@ export class BookingService {
 
 // Export singleton instance
 export const bookingService = BookingService.getInstance();
-
-// Extend Window interface
-declare global {
-  interface Window {
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
-  }
-}

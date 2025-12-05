@@ -2,24 +2,9 @@ import { Helmet } from 'react-helmet-async';
 
 import { useEffect } from 'react';
 import { tracker } from '../utils/UnifiedTracker';
-import { getEnvVar } from '../utils/env';
-
-// Extend window interface for halaxyBookingTracker
-declare global {
-  interface Window {
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
-  }
-}
+import { useBooking } from '../hooks/useBooking';
 const Neurodiversity = () => {
-  const halaxyBookingUrl = getEnvVar('VITE_BOOKING_URL') || '#';
+  const { openBookingModal } = useBooking('neurodiversity_page');
 
   useEffect(() => {
     try {
@@ -343,23 +328,14 @@ const Neurodiversity = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
-              <a
-                href={halaxyBookingUrl}
-                onClick={(e) => {
-                  if (window.halaxyBookingTracker) {
-                    window.halaxyBookingTracker.handleBookingClick(e);
-                  } else {
-                    console.warn(
-                      '[Neurodiversity] halaxyBookingTracker not available'
-                    );
-                  }
-                }}
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={openBookingModal}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 <span className="mr-2">📅</span>
                 Book a consultation
-              </a>
+              </button>
             </div>
 
             <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500">

@@ -1,26 +1,14 @@
 import { Link } from 'react-router-dom';
-
-// Extend window interface for halaxyBookingTracker
-declare global {
-  interface Window {
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
-  }
-}
+import { useBooking } from '../hooks/useBooking';
 
 const Footer = () => {
   // Show recruitment link in all environments
   const showRecruitment = true;
+  const { openBookingModal } = useBooking('footer');
 
   return (
-    <footer className="bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 text-gray-800 min-h-[400px] md:min-h-[350px]">
+    <>
+      <footer className="bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 text-gray-800 min-h-[400px] md:min-h-[350px]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
@@ -57,15 +45,12 @@ const Footer = () => {
             </div>
             <div className="mt-4">
               <button
-                onClick={(event) => {
-                  if (window.halaxyBookingTracker) {
-                    window.halaxyBookingTracker.handleBookingClick(event);
-                  } else {
-                    console.warn(
-                      '[Footer] halaxyBookingTracker not available on window'
-                    );
-                  }
-                }}
+                onClick={(event) =>
+                  openBookingModal(event, {
+                    buttonLocation: 'footer_primary_cta',
+                    pageSection: 'footer',
+                  })
+                }
                 className="inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base rounded-lg transition-all duration-200 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 w-full sm:w-auto justify-center gap-2"
               >
                 <span className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-blue-100/70 rounded-md border border-blue-200/60 shadow-sm text-sm sm:text-lg">
@@ -273,6 +258,7 @@ const Footer = () => {
         </div>
       </div>
     </footer>
+    </>
   );
 };
 

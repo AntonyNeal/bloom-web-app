@@ -69,7 +69,7 @@ export function trackBookNowClick(params: {
     return;
   }
 
-  // GA4 Event (Google Ads conversion handled by halaxyBookingTracker)
+  // GA4 Event (conversion tracking handled internally)
   gtag('event', 'book_now_click', {
     event_category: 'conversion',
     event_label: 'book_now_button',

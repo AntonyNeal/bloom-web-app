@@ -6,7 +6,6 @@ import { HelmetProvider } from 'react-helmet-async';
 // import './index.css'; // Moved to async loading for performance
 import App from './App';
 import { loadRuntimeConfig } from './runtime-fetch';
-import { halaxyTracker } from './utils/halaxyBookingTracker';
 import { initializeApplicationInsights } from './utils/applicationInsights';
 
 // Lightweight build metadata logging (kept minimal)
@@ -212,10 +211,3 @@ if (typeof requestIdleCallback !== 'undefined') {
   }, 100);
 }
 
-// Expose halaxyTracker globally for debugging
-(window as unknown as Record<string, unknown>).halaxyBookingTracker =
-  halaxyTracker;
-console.log(
-  '[Main] halaxyBookingTracker exposed globally:',
-  !!(window as unknown as Record<string, unknown>).halaxyBookingTracker
-);

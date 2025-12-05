@@ -1,24 +1,9 @@
 import { Helmet } from 'react-helmet-async';
 import { Shield, Server, CheckCircle, Lock } from 'lucide-react';
-import { getEnvVar } from '../utils/env';
-
-// Extend window interface for halaxyBookingTracker
-declare global {
-  interface Window {
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
-  }
-}
+import { useBooking } from '../hooks/useBooking';
 
 const Privacy = () => {
-  const halaxyBookingUrl = getEnvVar('VITE_BOOKING_URL') || '#';
+  const { openBookingModal } = useBooking('privacy_page');
 
   return (
     <>
@@ -89,11 +74,11 @@ const Privacy = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm text-blue-700">
-                  <strong>Important:</strong> Life Psychology Australia uses
-                  Halaxy for all appointment bookings and client data
-                  management. Your personal information is collected and managed
-                  through Halaxy's secure platform in accordance with their
-                  privacy policy.
+                  <strong>Important:</strong> Life Psychology Australia manages
+                  all appointment bookings and client data through our secure,
+                  in-house practice systems. Your personal information is
+                  collected and stored in accordance with Australian privacy
+                  legislation and professional guidelines.
                 </p>
               </div>
             </div>
@@ -104,9 +89,9 @@ const Privacy = () => {
               Information We Collect
             </h2>
             <p className="text-gray-700 mb-4">
-              When you book an appointment with Life Psychology Australia, all
-              personal information is collected and stored through Halaxy, our
-              secure practice management platform. This includes:
+              When you book an appointment with Life Psychology Australia, your
+              personal information is collected through our secure intake forms
+              and encrypted practice management system. This includes:
             </p>
             <ul className="space-y-2 text-gray-700">
               <li className="flex items-start">
@@ -162,8 +147,8 @@ const Privacy = () => {
             </h2>
             <p className="text-gray-700 mb-8">
               Your personal health information is protected with
-              enterprise-grade security through our trusted partner Halaxy.
-              Here's how we keep your data safe:
+              enterprise-grade security that meets or exceeds Australian health
+              privacy requirements. Here's how we keep your data safe:
             </p>
             <div className="grid md:grid-cols-2 gap-6 mb-8">
               <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -220,33 +205,13 @@ const Privacy = () => {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
               <p className="text-gray-700 mb-3">
                 <strong>Privacy Notice:</strong> Your booking and personal
-                information is securely managed by our practice management
-                partner, Halaxy.
+                information is securely managed by the Life Psychology Australia
+                clinical team using encrypted practice management systems with
+                strict access controls.
               </p>
-              <a
-                href="https://www.halaxy.com/article/privacy"
-                className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Read Halaxy's Privacy Policy
-                <svg
-                  className="ml-1 h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
-                </svg>
-              </a>
             </div>
           </section>
-          {/* Halaxy Privacy Policy */}
+          {/* Security Overview */}
           <div className="max-w-xl mx-auto mt-12">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 flex flex-col gap-4">
               <div className="flex items-center gap-3">
@@ -287,7 +252,7 @@ const Privacy = () => {
               </ul>
             </div>
           </div>
-          {/* Halaxy Privacy Policy */}
+          {/* Additional Information */}
           <div className="max-w-xl mx-auto mt-8">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 flex flex-col gap-4">
               <div className="flex items-center gap-3">
@@ -305,37 +270,20 @@ const Privacy = () => {
                   />
                 </svg>
                 <h2 className="text-xl font-semibold text-gray-900">
-                  Halaxy Privacy Policy
+                  Need More Information?
                 </h2>
               </div>
               <p className="text-gray-700">
-                As our practice management partner, Halaxy’s privacy policy
-                governs the collection, use, and protection of your personal
-                information. Your information is protected by secure, encrypted
-                systems and strict Australian privacy standards. You can learn
-                more about how your data is protected by reading Halaxy’s full
-                privacy policy below.
+                We are happy to answer questions about how your information is
+                collected, stored, and used within our practice. Please reach
+                out if you require additional details about our privacy
+                safeguards, policies, or data handling procedures.
               </p>
               <a
-                href="https://www.halaxy.com/article/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="mailto:info@life-psychology.com.au"
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium w-fit"
               >
-                <svg
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
-                </svg>
-                Read Halaxy's Privacy Policy
+                Contact Our Team
               </a>
             </div>
           </div>
@@ -401,8 +349,9 @@ const Privacy = () => {
             <p className="text-gray-700">
               Our website (life-psychology.com.au) may collect basic analytics
               information to improve user experience. We do not collect personal
-              information through our website - all personal data collection
-              occurs through Halaxy when you book an appointment.
+              information directly through browsing activity—personal data is
+              only requested when you submit booking or intake details through
+              our secure practice systems.
             </p>
           </section>
           {/* Call to Action */}
@@ -415,23 +364,14 @@ const Privacy = () => {
               secure telehealth appointment today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href={halaxyBookingUrl}
-                onClick={(e) => {
-                  if (window.halaxyBookingTracker) {
-                    window.halaxyBookingTracker.handleBookingClick(e);
-                  } else {
-                    console.warn(
-                      '[Privacy] halaxyBookingTracker not available'
-                    );
-                  }
-                }}
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={openBookingModal}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
               >
                 <span className="mr-2">📅</span>
                 Book an Appointment
-              </a>
+              </button>
               <a
                 href="/about"
                 className="bg-white hover:bg-gray-50 text-blue-600 font-semibold py-3 px-6 rounded-lg border border-blue-600 hover:border-blue-700 transition-all duration-200"

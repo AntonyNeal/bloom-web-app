@@ -1,24 +1,9 @@
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { getEnvVar } from '../utils/env';
-
-// Extend window interface for halaxyBookingTracker
-declare global {
-  interface Window {
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
-  }
-}
+import { useBooking } from '../hooks/useBooking';
 
 const GreaterHunter = () => {
-  const halaxyBookingUrl = getEnvVar('VITE_BOOKING_URL') || '#';
+  const { openBookingModal } = useBooking('greater_hunter_page');
 
   useEffect(() => {
     // Scroll to top when component mounts
@@ -136,23 +121,14 @@ const GreaterHunter = () => {
           {/* CTA Section */}
           <section className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 lg:p-12 text-center border border-blue-100 mb-12">
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
-              <a
-                href={halaxyBookingUrl}
-                onClick={(e) => {
-                  if (window.halaxyBookingTracker) {
-                    window.halaxyBookingTracker.handleBookingClick(e);
-                  } else {
-                    console.warn(
-                      '[GreaterHunter] halaxyBookingTracker not available'
-                    );
-                  }
-                }}
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={openBookingModal}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 <span className="mr-2">📅</span>
                 Book an appointment
-              </a>
+              </button>
 
               <a
                 href="/services"

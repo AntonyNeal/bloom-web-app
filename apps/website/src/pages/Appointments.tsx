@@ -1,27 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { getEnvVar } from '../utils/env';
 import { trackPageView } from '../utils/trackingEvents';
 import { trackBookNowClick } from '../tracking';
-
-// Extend window interface for halaxyBookingTracker
-declare global {
-  interface Window {
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
-  }
-}
+import { useBooking } from '../hooks/useBooking';
 
 const Appointments = () => {
-  const halaxyBookingUrl = getEnvVar('VITE_BOOKING_URL') || '#';
+  const { openBookingModal } = useBooking('appointments_page');
 
   // Interactive service selection state
   const [serviceSelectionExpanded, setServiceSelectionExpanded] =
@@ -440,19 +425,14 @@ const Appointments = () => {
                       ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse shadow-xl scale-105 focus:ring-green-300'
                       : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg focus:ring-blue-300'
                   }`}
-                  onClick={() => {
+                  onClick={(event) => {
                     // GA4 tracking
                     trackBookNowClick({
                       page_section: 'appointments_page',
                       button_location: 'service_selection_cta',
                       service_type: selectedService || 'no_service_selected',
                     });
-
-                    if (window.halaxyBookingTracker) {
-                      window.halaxyBookingTracker.handleBookingClick();
-                    } else {
-                      window.open(halaxyBookingUrl, '_blank');
-                    }
+                    openBookingModal(event);
                   }}
                   aria-label={
                     selectedService
@@ -582,8 +562,8 @@ const Appointments = () => {
                 <div className="max-w-2xl mx-auto">
                   <p className="text-gray-700 text-center mb-6">
                     We understand that plans can change. You can cancel or
-                    reschedule your appointment easily via your Halaxy patient
-                    portal.
+                    reschedule your appointment easily via our secure booking
+                    portal using the link in your confirmation email.
                   </p>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="bg-white rounded-lg p-6 shadow-sm border border-green-200">
@@ -643,7 +623,7 @@ const Appointments = () => {
                   </div>
                   <p className="text-sm text-gray-600 text-center mt-6 italic">
                     No reason required to cancel - manage your bookings anytime
-                    through your Halaxy account
+                    using your confirmation email or by contacting our team
                   </p>
                 </div>
               </div>

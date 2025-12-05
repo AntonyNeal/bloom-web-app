@@ -2,11 +2,9 @@ import { Helmet } from 'react-helmet-async';
 import { useEffect } from 'react';
 import { tracker } from '../utils/UnifiedTracker';
 import { useBooking } from '../hooks/useBooking';
-import { BookingModal } from '../components/BookingModal';
 
 const AnxietyDepression = () => {
-  const { isBookingModalOpen, openBookingModal, closeBookingModal } =
-    useBooking();
+  const { openBookingModal } = useBooking('anxiety_depression_page');
 
   useEffect(() => {
     try {
@@ -369,7 +367,6 @@ const AnxietyDepression = () => {
       </div>
 
       {/* Booking Modal */}
-      <BookingModal isOpen={isBookingModalOpen} onClose={closeBookingModal} />
     </>
   );
 };

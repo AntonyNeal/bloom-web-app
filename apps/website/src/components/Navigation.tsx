@@ -1,36 +1,16 @@
 import { Link, useLocation } from 'react-router-dom';
-import { getEnvVar } from '../utils/env';
-import { Link } from 'react-router-dom';
-
-// Extend window interface for halaxyBookingTracker
-declare global {
-  interface Window {
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
-  }
-}
+import { trackBookNowClick } from '../tracking';
+import { useBooking } from '../hooks/useBooking';
 
 const Navigation = () => {
   const location = useLocation();
+  const { openBookingModal } = useBooking('navigation');
 
   const navItems = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
     { name: 'Services', path: '/services' },
   ];
-
-  const ctaButton = {
-    name: 'Book Now',
-    href: getEnvVar('VITE_BOOKING_URL') || '#',
-    external: true,
-  };
 
   return (
     <nav className="bg-white shadow-lg border-b border-gray-100">
@@ -60,45 +40,26 @@ const Navigation = () => {
                 {item.name}
               </Link>
             ))}
-            {ctaButton.external ? (
-              <a
-                href={ctaButton.href}
-                onClick={(e) => {
-                  // GA4 tracking
-                  trackBookNowClick({
-                    page_section: 'navigation',
-                    button_location: 'top_navigation_cta',
-                  });
-
-                  if (window.halaxyBookingTracker) {
-                    window.halaxyBookingTracker.handleBookingClick(e);
-                  } else {
-                    console.warn(
-                      '[Navigation] halaxyBookingTracker not available on window'
-                    );
-                  }
-                }}
-                rel="noopener noreferrer"
-                className="ml-6 sm:ml-8 px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-sm rounded-md shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 border border-blue-500/20"
-              >
-                <span className="flex items-center gap-1">
-                  <span className="text-sm">📅</span>
-                  <span className="hidden sm:inline">Book Now</span>
-                  <span className="sm:hidden">Book</span>
-                </span>
-              </a>
-            ) : (
-              <Link
-                to={ctaButton.href}
-                className="ml-6 sm:ml-8 px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-sm rounded-md shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 border border-blue-500/20"
-              >
-                <span className="flex items-center gap-1">
-                  <span className="text-sm">📅</span>
-                  <span className="hidden sm:inline">Book Now</span>
-                  <span className="sm:hidden">Book</span>
-                </span>
-              </Link>
-            )}
+            <button
+              type="button"
+              onClick={(event) => {
+                trackBookNowClick({
+                  page_section: 'navigation',
+                  button_location: 'top_navigation_cta',
+                });
+                openBookingModal(event, {
+                  buttonLocation: 'top_navigation_cta',
+                  pageSection: 'navigation',
+                });
+              }}
+              className="ml-6 sm:ml-8 px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-sm rounded-md shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 border border-blue-500/20"
+            >
+              <span className="flex items-center gap-1">
+                <span className="text-sm">📅</span>
+                <span className="hidden sm:inline">Book Now</span>
+                <span className="sm:hidden">Book</span>
+              </span>
+            </button>
           </div>
         </div>
       </div>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { BookingModal } from '../components/BookingModal';
 import { useBooking } from '../hooks/useBooking';
 import { tracker } from '../utils/UnifiedTracker';
 
@@ -9,8 +8,7 @@ const Pricing = () => {
   const [fundingType, setFundingType] = useState('private');
   const [calculatorStep, setCalculatorStep] = useState(0);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
-  const { isBookingModalOpen, openBookingModal, closeBookingModal } =
-    useBooking();
+  const { openBookingModal } = useBooking('pricing_page');
 
   useEffect(() => {
     // Initialize pricing page tracking with unified tracker
@@ -269,7 +267,7 @@ const Pricing = () => {
     {
       question: 'What payment methods do you accept?',
       answer:
-        'We accept standard payment methods through our secure Halaxy booking system. Fees are collected at the time of service as per standard practice.',
+        'We accept standard payment methods through our secure online booking portal. Fees are collected at the time of service as per standard practice.',
     },
   ];
 
@@ -1041,7 +1039,7 @@ const Pricing = () => {
                   Convenient Scheduling
                 </h3>
                 <p className="text-gray-600">
-                  Online booking available through Halaxy
+                  Online booking available through our secure client portal
                 </p>
               </div>
 
@@ -1196,7 +1194,6 @@ const Pricing = () => {
       </div>
 
       {/* Booking Modal */}
-      <BookingModal isOpen={isBookingModalOpen} onClose={closeBookingModal} />
     </>
   );
 };

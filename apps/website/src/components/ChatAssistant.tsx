@@ -1,23 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, MessageCircle, Send, Bot, User } from 'lucide-react';
 import { PsychologyChatbot } from '../utils/PsychologyChatbot';
-import { trackHalaxyHandoff, intentScorer } from '../utils/analytics';
-import { getEnvVar } from '../utils/env';
-
-// Extend window interface for halaxyBookingTracker
-declare global {
-  interface Window {
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
-  }
-}
+import { useBooking } from '../hooks/useBooking';
 
 interface Message {
   id: string;
@@ -44,6 +28,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ isOpen, onToggle }) => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { openBookingModal } = useBooking('chat_assistant');
 
   // Initialize AI chatbot (you'll need to add your OpenAI API key)
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
@@ -110,43 +95,16 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ isOpen, onToggle }) => {
     }
   };
 
-  const handleBookingLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    const intentScore = intentScorer.getScore();
-    trackHalaxyHandoff({
-      psychologist: 'zoe_semmler',
-      source: 'chatbot',
-      intent_score: intentScore,
+  const handleBookingButtonClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    openBookingModal(event, {
+      buttonLocation: 'chat_assistant_cta',
+      pageSection: 'chat',
     });
-    // Use the halaxyTracker for proper conversion tracking with delay
-    if (window.halaxyBookingTracker) {
-      window.halaxyBookingTracker.handleBookingClick(e);
-    } else {
-      console.warn(
-        '[ChatAssistant] halaxyBookingTracker not available on window'
-      );
-    }
   };
 
   const renderMessage = (message: Message) => {
-    // Convert Halaxy booking URLs to clickable links with tracking
-    const halaxyUrl = getEnvVar('VITE_BOOKING_URL') || '#';
-    if (message.text.includes(halaxyUrl)) {
-      const parts = message.text.split(halaxyUrl);
-      return (
-        <div>
-          {parts[0]}
-          <a
-            href={halaxyUrl}
-            rel="noopener noreferrer"
-            onClick={handleBookingLinkClick}
-            className="text-blue-600 hover:text-blue-700 underline font-medium"
-          >
-            Book your session with Zoe now
-          </a>
-          {parts[1]}
-        </div>
-      );
-    }
     return <div>{message.text}</div>;
   };
 
@@ -235,6 +193,20 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ isOpen, onToggle }) => {
           )}
 
           <div ref={messagesEndRef} />
+        </div>
+
+        {/* Booking CTA */}
+        <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
+          <p className="text-xs text-gray-600 mb-2">
+            Ready to start therapy? Tap below and I'll open the secure booking form right here.
+          </p>
+          <button
+            onClick={handleBookingButtonClick}
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            <span className="text-base">🗓️</span>
+            <span>Book a session with Zoe</span>
+          </button>
         </div>
 
         {/* Input */}

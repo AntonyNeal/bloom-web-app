@@ -8,6 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ScrollToTop from './components/ScrollToTop';
 import SEO from './components/SEO';
 import MobileCTABar from './components/MobileCTABar';
+import GlobalBookingModal from './components/GlobalBookingModal';
 import {
   ABTestProvider,
   ABTestControlPanel,
@@ -330,6 +331,7 @@ function App() {
 
         {/* Mobile-only sticky CTA bar */}
         <MobileCTABar />
+        <GlobalBookingModal />
         {/* {(() => {
         console.log('💬 ===========================================');
         console.log('💬 APP COMPONENT - CHAT COMPONENT DEBUG');

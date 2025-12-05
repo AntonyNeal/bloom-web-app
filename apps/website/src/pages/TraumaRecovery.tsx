@@ -2,24 +2,9 @@ import { Helmet } from 'react-helmet-async';
 
 import { useEffect } from 'react';
 import { tracker } from '../utils/UnifiedTracker';
-import { getEnvVar } from '../utils/env';
-
-// Extend window interface for halaxyBookingTracker
-declare global {
-  interface Window {
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
-  }
-}
+import { useBooking } from '../hooks/useBooking';
 const TraumaRecovery = () => {
-  const halaxyBookingUrl = getEnvVar('VITE_BOOKING_URL') || '#';
+  const { openBookingModal } = useBooking('trauma_recovery_page');
 
   useEffect(() => {
     try {
@@ -208,25 +193,16 @@ const TraumaRecovery = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
-              <a
-                href={halaxyBookingUrl}
-                onClick={(e) => {
-                  if (window.halaxyBookingTracker) {
-                    window.halaxyBookingTracker.handleBookingClick(e);
-                  } else {
-                    console.warn(
-                      '[TraumaRecovery] halaxyBookingTracker not available'
-                    );
-                  }
-                }}
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={openBookingModal}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100/70 backdrop-blur-sm rounded-lg border border-blue-200/60 shadow-sm mr-3">
                   <span className="text-sm">📅</span>
                 </span>
                 Book a consultation
-              </a>
+              </button>
             </div>
 
             <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500">

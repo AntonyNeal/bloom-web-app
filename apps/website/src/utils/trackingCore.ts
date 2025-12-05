@@ -5,7 +5,6 @@
  * These are the building blocks used by:
  * - trackingEvents.ts (high-level event tracking)
  * - UnifiedTracker.ts (orchestration layer)
- * - halaxyBookingTracker.ts (booking-specific logic)
  * - microConversions.ts (Google Ads micro-conversions)
  */
 

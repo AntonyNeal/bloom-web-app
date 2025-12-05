@@ -1,20 +1,6 @@
 import React from 'react';
 import { conversionManager } from '../tracking';
-
-// Extend window interface for halaxyBookingTracker
-declare global {
-  interface Window {
-    halaxyBookingTracker?: {
-      handleBookingClick: (
-        eventOrButton?:
-          | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-          | HTMLButtonElement
-          | Event,
-        customUrl?: string
-      ) => void;
-    };
-  }
-}
+import { useBooking } from '../hooks/useBooking';
 
 interface BookingButtonProps {
   children: React.ReactNode;
@@ -34,9 +20,10 @@ export const BookingButton: React.FC<BookingButtonProps> = ({
   className = '',
   variant = 'primary',
   size = 'md',
-  customUrl,
+  customUrl: _customUrl,
   onClick,
 }) => {
+  const { openBookingModal } = useBooking('booking_button');
   const baseClasses =
     'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
 
@@ -63,14 +50,7 @@ export const BookingButton: React.FC<BookingButtonProps> = ({
       onClick(event);
     }
 
-    // Handle booking tracking and redirect
-    if (window.halaxyBookingTracker) {
-      window.halaxyBookingTracker.handleBookingClick(event, customUrl);
-    } else {
-      console.warn(
-        '[BookingButton] halaxyBookingTracker not available on window'
-      );
-    }
+    openBookingModal(event);
   };
 
   return (
@@ -96,9 +76,10 @@ interface BookingLinkProps {
 export const BookingLink: React.FC<BookingLinkProps> = ({
   children,
   className = '',
-  customUrl,
+  customUrl: _customUrl,
   onClick,
 }) => {
+  const { openBookingModal } = useBooking('booking_link');
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     // Track booking intent in unified tracking system
     conversionManager.trackBookingIntent('booking_link');
@@ -108,14 +89,7 @@ export const BookingLink: React.FC<BookingLinkProps> = ({
       onClick(event);
     }
 
-    // Handle booking tracking and redirect
-    if (window.halaxyBookingTracker) {
-      window.halaxyBookingTracker.handleBookingClick(event, customUrl);
-    } else {
-      console.warn(
-        '[BookingButton] halaxyBookingTracker not available on window'
-      );
-    }
+    openBookingModal(event);
   };
 
   return (

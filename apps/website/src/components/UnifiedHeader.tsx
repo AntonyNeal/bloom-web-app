@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useBookingService } from '../hooks/useBookingService';
-import { BookingModal } from './BookingModal';
 import { log } from '../utils/logger';
 
 const UnifiedHeader = () => {
-  const { isModalOpen, handleBookingClick, closeModal } = useBookingService();
+  const { isModalOpen, handleBookingClick } = useBookingService();
 
   useEffect(() => {
     log.debug('Component mounted', 'UnifiedHeader', {
@@ -50,24 +49,6 @@ const UnifiedHeader = () => {
 
   // Floating toggle icon (⚙️)
 
-  const floatingIconStyle: React.CSSProperties = {
-    position: 'fixed',
-    top: 20,
-    left: 20,
-    zIndex: 9999,
-    background: 'rgba(255,255,255,0.85)',
-    borderRadius: '50%',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-    width: 36,
-    height: 36,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    border: '1px solid #e5e7eb',
-    transition: 'background 0.2s',
-  };
-
   const abTestButtonStyle: React.CSSProperties = {
     position: 'fixed',
     top: 20,
@@ -90,20 +71,6 @@ const UnifiedHeader = () => {
   return (
     <>
       {/* Hero image preload is handled in index.html for earlier discovery */}
-      {/* Floating dev toggle icon (⚙️) */}
-      <div
-        style={floatingIconStyle}
-        title="Show/hide A/B Test button (Ctrl+Shift+A)"
-        onClick={() => setShowABTestButton((v) => !v)}
-        tabIndex={0}
-        aria-label="Toggle A/B Test button"
-        role="button"
-        onKeyDown={(e) =>
-          (e.key === 'Enter' || e.key === ' ') && setShowABTestButton((v) => !v)
-        }
-      >
-        <span style={{ fontSize: 20, lineHeight: 1 }}>⚙️</span>
-      </div>
       {/* A/B Test button (hidden by default) */}
       <button style={abTestButtonStyle}>🧪 A/B Test</button>
 
@@ -308,14 +275,6 @@ const UnifiedHeader = () => {
           </div>
         </div>
 
-        {/* Booking Modal */}
-        <BookingModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            log.debug('Closing modal', 'UnifiedHeader');
-            closeModal();
-          }}
-        />
         {/* Debug output */}
         {(() => {
           log.debug('Render state', 'UnifiedHeader', {

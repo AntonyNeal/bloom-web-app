@@ -5,7 +5,6 @@ export interface RuntimeConfig {
   VITE_ASSESSMENT_ENABLED?: boolean;
   VITE_CHAT_ENABLED?: boolean;
   VITE_BUILD_ITERATION?: string;
-  VITE_BOOKING_URL?: string;
   [key: string]: unknown;
 }
 

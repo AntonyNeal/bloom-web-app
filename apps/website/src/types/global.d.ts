@@ -20,20 +20,5 @@ declare global {
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
 
-    // Halaxy booking tracker
-    halaxyBookingTracker?: HalaxyBookingTracker;
-  }
-
-  /**
-   * Halaxy booking tracker interface
-   */
-  interface HalaxyBookingTracker {
-    handleBookingClick: (
-      eventOrButton?:
-        | React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
-        | HTMLButtonElement
-        | Event,
-      customUrl?: string
-    ) => void;
   }
 }

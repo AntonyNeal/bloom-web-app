@@ -1,13 +1,10 @@
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { BookingModal } from '../components/BookingModal';
 import { useBooking } from '../hooks/useBooking';
 import { tracker } from '../utils/UnifiedTracker';
 import { trackBookNowClick } from '../tracking';
-
 const About = () => {
-  const { isBookingModalOpen, openBookingModal, closeBookingModal } =
-    useBooking();
+  const { openBookingModal } = useBooking('about_page');
   useEffect(() => {
     // Initialize about page tracking with unified tracker (matches Pricing.tsx pattern)
     tracker.trackAboutPage();
@@ -530,7 +527,7 @@ const About = () => {
       </div>
 
       {/* Booking Modal */}
-      <BookingModal isOpen={isBookingModalOpen} onClose={closeBookingModal} />
+      
     </>
   );
 };

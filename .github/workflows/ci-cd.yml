@@ -1,5 +1,6 @@
 # LIFE PSYCHOLOGY UNIFIED CI/CD WORKFLOW
 # Combined Application Deployment + Database Migrations
+# Last updated: 2025-12-06
 #
 # APPLICATIONS:
 # 1. Bloom Portal (apps/bloom) + Bloom API (api/)

@@ -89,12 +89,13 @@ async function halaxyApiDiscoveryHandler(
     const client = getHalaxyClient();
     
     // Access the internal token manager
-    const { getAccessToken } = await import('../services/halaxy/token-manager');
+    const { getAccessToken, getHalaxyConfig } = await import('../services/halaxy/token-manager');
     const token = await getAccessToken();
+    const config = getHalaxyConfig();
     
-    const baseUrl = process.env.HALAXY_API_BASE_URL || 'https://au-api.halaxy.com/main/fhir/r4';
+    const baseUrl = config.apiBaseUrl; // Use the same URL as the working client
     
-    context.log('Testing Halaxy API endpoints...');
+    context.log('Testing Halaxy API endpoints at:', baseUrl);
     
     // Test various FHIR endpoints
     const endpointsToTest = [

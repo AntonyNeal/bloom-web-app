@@ -1022,7 +1022,7 @@ useEffect(() => {
 ## Environment Variables
 
 ```env
-VITE_HALAXY_AVAILABILITY_FUNCTION_URL=https://your-api.azurewebsites.net/api/get-halaxy-availability
+VITE_AVAILABILITY_FUNCTION_URL=https://your-api.azurewebsites.net/api/get-halaxy-availability
 ```
 
 ---
@@ -1076,7 +1076,7 @@ function BookingPage() {
 - [ ] Install and configure Tailwind CSS
 - [ ] Set up environment variables
   - [ ] `VITE_HALAXY_BOOKING_FUNCTION_URL`
-  - [ ] `VITE_HALAXY_AVAILABILITY_FUNCTION_URL`
+  - [ ] `VITE_AVAILABILITY_FUNCTION_URL`
 - [ ] Configure Google Analytics 4 (gtag.js)
 - [ ] Configure Google Tag Manager (optional)
 

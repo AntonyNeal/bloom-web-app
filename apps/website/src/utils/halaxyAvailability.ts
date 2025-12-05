@@ -38,13 +38,23 @@ export async function fetchAvailableSlots(
   params: AvailabilityParams
 ): Promise<AvailableSlot[]> {
   try {
-    const functionUrl = import.meta.env[
-      'VITE_HALAXY_AVAILABILITY_FUNCTION_URL'
-    ];
+    const configuredUrl =
+      import.meta.env['VITE_AVAILABILITY_FUNCTION_URL'] ||
+      import.meta.env['VITE_HALAXY_AVAILABILITY_FUNCTION_URL'];
+
+    const azureFunctionsBase =
+      import.meta.env['VITE_AZURE_FUNCTION_URL'] ||
+      import.meta.env['VITE_AZURE_FUNCTIONS_URL'];
+
+    const defaultUrl = azureFunctionsBase
+      ? `${azureFunctionsBase.replace(/\/$/, '')}/api/halaxy/availability`
+      : undefined;
+
+    const functionUrl = configuredUrl || defaultUrl;
 
     if (!functionUrl) {
       log.warn(
-        'VITE_HALAXY_AVAILABILITY_FUNCTION_URL not configured - using fallback',
+        'Availability function URL not configured; set VITE_AVAILABILITY_FUNCTION_URL or VITE_AZURE_FUNCTION_URL',
         'HalaxyAvailability'
       );
       return [];

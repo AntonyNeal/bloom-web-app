@@ -384,7 +384,7 @@ Add to `.env.local`:
 
 ```bash
 # Frontend - URL to Azure Function
-VITE_HALAXY_AVAILABILITY_FUNCTION_URL=http://localhost:7071/api/halaxy/availability
+VITE_AVAILABILITY_FUNCTION_URL=http://localhost:7071/api/halaxy/availability
 ```
 
 Add to `azure-functions-project/local.settings.json`:
@@ -439,7 +439,7 @@ To configure in Halaxy:
 
 **Calendar shows "Unavailable"**:
 
-- Check `VITE_HALAXY_AVAILABILITY_FUNCTION_URL` is set
+- Check `VITE_AVAILABILITY_FUNCTION_URL` is set
 - Verify Azure Function is running
 - Check browser console for errors
 

@@ -25,7 +25,9 @@ async function testEndpoint(
   params?: Record<string, string>
 ): Promise<EndpointTest> {
   try {
-    const url = new URL(endpoint, baseUrl);
+    // Construct URL correctly - baseUrl + endpoint (same as HalaxyClient does)
+    const fullUrl = `${baseUrl}${endpoint}`;
+    const url = new URL(fullUrl);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         url.searchParams.set(key, value);

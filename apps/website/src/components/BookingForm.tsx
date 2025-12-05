@@ -35,7 +35,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   console.log('[BookingForm] Component rendered');
 
   const [step, setStep] = useState<
-    'details' | 'datetime' | 'payment' | 'confirm' | 'success' | 'error'
+    'details' | 'datetime' | 'session' | 'payment' | 'confirm' | 'success' | 'error'
   >('details');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -250,10 +250,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   const validateDateTimeStep = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!appointmentType) {
-      newErrors['appointmentType'] = 'Please select an appointment type';
-    }
-
     if (!appointmentDate) {
       newErrors['appointmentDate'] = 'Please select a date';
     } else {
@@ -272,9 +268,20 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const validateSessionStep = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!appointmentType) {
+      newErrors['appointmentType'] = 'Please select an appointment type';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   // Check if date/time step is valid (without setting errors)
   const isDateTimeStepValid = (): boolean => {
-    if (!appointmentType || !appointmentDate || !appointmentTime) {
+    if (!appointmentDate || !appointmentTime) {
       return false;
     }
 
@@ -283,6 +290,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     today.setHours(0, 0, 0, 0);
 
     return selectedDate >= today;
+  };
+
+  // Check if session step is valid (without setting errors)
+  const isSessionStepValid = (): boolean => {
+    return !!appointmentType;
   };
 
   const handleDetailsNext = () => {
@@ -311,6 +323,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         selectedTime: appointmentTime,
       });
       
+      setStep('session');
+      // Scroll modal to top when changing steps
+      window.dispatchEvent(new CustomEvent('bookingStepChanged'));
+    }
+  };
+
+  const handleSessionNext = () => {
+    if (validateSessionStep()) {
       // Track payment initiation
       const bookingValue = appointmentType === 'couples-session' ? 300 : 
                           appointmentType === 'ndis-psychology-session' ? 232.99 : 250;
@@ -434,22 +454,24 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       {/* Progress indicator - Steel bar design */}
       {step !== 'success' && step !== 'error' && (
         <div className="mb-8 p-4 sm:p-5 rounded-xl bg-gradient-to-b from-slate-100 to-slate-50 border-2 border-slate-200" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.05)' }}>
-          <div className="grid grid-cols-4 gap-1 sm:gap-3">
+          <div className="grid grid-cols-5 gap-1 sm:gap-2">
             {[
               { num: 1, label: 'Details', key: 'details' },
               { num: 2, label: 'Time', key: 'datetime' },
-              { num: 3, label: 'Payment', key: 'payment' },
-              { num: 4, label: 'Confirm', key: 'confirm' },
+              { num: 3, label: 'Session', key: 'session' },
+              { num: 4, label: 'Payment', key: 'payment' },
+              { num: 5, label: 'Confirm', key: 'confirm' },
             ].map(({ num, label, key }) => {
               const isActive = step === key;
               const isPast = 
-                (key === 'details' && ['datetime', 'payment', 'confirm'].includes(step)) ||
-                (key === 'datetime' && ['payment', 'confirm'].includes(step)) ||
+                (key === 'details' && ['datetime', 'session', 'payment', 'confirm'].includes(step)) ||
+                (key === 'datetime' && ['session', 'payment', 'confirm'].includes(step)) ||
+                (key === 'session' && ['payment', 'confirm'].includes(step)) ||
                 (key === 'payment' && step === 'confirm');
               return (
                 <div key={key} className="text-center">
                   <div
-                    className={`mx-auto w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-sm sm:text-base font-bold mb-1.5 sm:mb-2 border-2 transition-all ${
+                    className={`mx-auto w-7 h-7 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-xs sm:text-base font-bold mb-1.5 sm:mb-2 border-2 transition-all ${
                       isActive
                         ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-emerald-400 shadow-lg'
                         : isPast
@@ -460,7 +482,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   >
                     {isPast ? '✓' : num}
                   </div>
-                  <div className={`text-xs sm:text-sm font-semibold ${isActive ? 'text-emerald-600' : isPast ? 'text-emerald-500' : 'text-slate-400'}`}>
+                  <div className={`text-[10px] sm:text-sm font-semibold ${isActive ? 'text-emerald-600' : isPast ? 'text-emerald-500' : 'text-slate-400'}`}>
                     {label}
                   </div>
                 </div>
@@ -474,12 +496,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               style={{
                 width:
                   step === 'details'
-                    ? '25%'
+                    ? '20%'
                     : step === 'datetime'
-                      ? '50%'
-                      : step === 'payment'
-                        ? '75%'
-                        : '100%',
+                      ? '40%'
+                      : step === 'session'
+                        ? '60%'
+                        : step === 'payment'
+                          ? '80%'
+                          : '100%',
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 1px 2px rgba(0,0,0,0.1)'
               }}
             />
@@ -853,6 +877,52 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             )}
           </div>
 
+          {/* Action buttons - Polished steel finish */}
+          <div className="flex flex-col sm:flex-row justify-between gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setStep('details');
+                window.dispatchEvent(new CustomEvent('bookingStepChanged'));
+              }}
+              className="px-6 py-3.5 text-sm font-bold rounded-lg text-slate-600 border border-slate-300 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-1 transition-all active:scale-[0.98]"
+              style={{ 
+                background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9)' 
+              }}
+            >
+              ← Back
+            </button>
+            <button
+              type="button"
+              onClick={handleDateTimeNext}
+              disabled={!isDateTimeStepValid()}
+              className={`px-8 py-3.5 text-sm font-bold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                isDateTimeStepValid()
+                  ? 'text-white border border-emerald-400 focus:ring-emerald-300 cursor-pointer active:scale-[0.98]'
+                  : 'text-slate-400 border border-slate-200 cursor-not-allowed'
+              }`}
+              style={isDateTimeStepValid() 
+                ? { 
+                    background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255,255,255,0.2)' 
+                  } 
+                : { 
+                    background: 'linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' 
+                  }
+              }
+              aria-disabled={!isDateTimeStepValid()}
+            >
+              Continue {isDateTimeStepValid() && '→'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Session Type & Notes */}
+      {step === 'session' && (
+        <div className="space-y-5">
           {/* Session Details - Frosted glass panel */}
           <div 
             className="rounded-xl p-4 sm:p-5 border border-slate-200/60 relative overflow-hidden"
@@ -884,7 +954,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   color: '#64748b',
                   boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8)'
                 }}
-              >2</span>
+              >1</span>
               <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">Appointment type <span className="text-red-500">*</span></span>
             </div>
 
@@ -1019,7 +1089,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   color: '#64748b',
                   boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8)'
                 }}
-              >3</span>
+              >2</span>
               <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">Notes <span className="font-normal normal-case text-slate-400">(optional)</span></span>
             </div>
 
@@ -1086,7 +1156,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <button
               type="button"
               onClick={() => {
-                setStep('details');
+                setStep('datetime');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
               className="px-6 py-3.5 text-sm font-bold rounded-lg text-slate-600 border border-slate-300 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-1 transition-all active:scale-[0.98]"
@@ -1099,14 +1169,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </button>
             <button
               type="button"
-              onClick={handleDateTimeNext}
-              disabled={!isDateTimeStepValid()}
+              onClick={handleSessionNext}
+              disabled={!isSessionStepValid()}
               className={`px-8 py-3.5 text-sm font-bold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
-                isDateTimeStepValid()
+                isSessionStepValid()
                   ? 'text-white border border-emerald-400 focus:ring-emerald-300 cursor-pointer active:scale-[0.98]'
                   : 'text-slate-400 border border-slate-200 cursor-not-allowed'
               }`}
-              style={isDateTimeStepValid() 
+              style={isSessionStepValid() 
                 ? { 
                     background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
                     boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255,255,255,0.2)' 
@@ -1116,15 +1186,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' 
                   }
               }
-              aria-disabled={!isDateTimeStepValid()}
+              aria-disabled={!isSessionStepValid()}
             >
-              Continue {isDateTimeStepValid() && '→'}
+              Continue {isSessionStepValid() && '→'}
             </button>
           </div>
         </div>
       )}
 
-      {/* Step 3: Payment */}
+      {/* Step 4: Payment */}
       {step === 'payment' && (
         <div className="space-y-8">
           <div className="rounded-xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 to-white p-6 sm:p-8" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}>
@@ -1181,14 +1251,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               window.dispatchEvent(new CustomEvent('bookingStepChanged'));
             }}
             onCancel={() => {
-              setStep('datetime');
+              setStep('session');
               window.dispatchEvent(new CustomEvent('bookingStepChanged'));
             }}
           />
         </div>
       )}
 
-      {/* Step 4: Confirmation */}
+      {/* Step 5: Confirmation */}
       {step === 'confirm' && (
         <div className="space-y-6">
           <div className="rounded-xl border-2 border-emerald-300 bg-gradient-to-b from-emerald-50 to-white p-6 sm:p-8" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(16, 185, 129, 0.15)' }}>

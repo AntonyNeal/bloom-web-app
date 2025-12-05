@@ -20,6 +20,7 @@ export type BookingStep =
   | 'start'
   | 'details' 
   | 'datetime' 
+  | 'session'
   | 'payment' 
   | 'confirm' 
   | 'success'

@@ -173,14 +173,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       (day) => day.date.getTime() >= today.getTime()
     );
 
-    return upcomingDays.filter((day) => {
-      const isToday =
-        day.date.toDateString() === today.toDateString();
-      if (isToday && day.slots.length === 0) {
-        return false;
-      }
-      return true;
-    });
+    // Filter out all days with no availability
+    return upcomingDays.filter((day) => day.slots.length > 0);
   };
 
   // Helper functions - defined before use
@@ -441,7 +435,41 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         </div>
       )}
 
+      {/* No availability this week message */}
+      {!loading && !error && weekSchedule.length === 0 && (
+        <div
+          className="p-6 text-center rounded-lg"
+          style={{
+            background: 'linear-gradient(145deg, rgba(248,250,252,0.95) 0%, rgba(255,255,255,0.98) 100%)',
+            border: '1px solid rgba(226,232,240,0.6)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+          }}
+        >
+          <div className="text-slate-400 mb-3">
+            <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <p className="text-slate-600 font-medium mb-2">No availability this week</p>
+          <p className="text-sm text-slate-500 mb-4">Try checking the next week for available appointments.</p>
+          <button
+            onClick={nextWeek}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              boxShadow: '0 2px 8px rgba(16,185,129,0.3)'
+            }}
+          >
+            <span>Check next week</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Mobile-first stacked calendar - Glass finish */}
+      {weekSchedule.length > 0 && (
       <div
         className="lg:hidden space-y-3"
         role="region"
@@ -556,8 +584,10 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           )}
         </div>
       </div>
+      )}
 
       {/* Desktop calendar grid - Clean glass finish */}
+      {weekSchedule.length > 0 && (
       <div
         className="hidden lg:block"
         role="region"
@@ -667,6 +697,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           </div>
         </div>
       </div>
+      )}
 
     </div>
   );

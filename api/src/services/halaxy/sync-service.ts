@@ -264,24 +264,36 @@ export class HalaxySyncService {
           // Clean up old slots before syncing
           await this.cleanupOldSlots(practitioner.id);
 
-          // First, try fetching ALL slots to test the endpoint
-          console.log(`[HalaxySyncService] Testing: Fetching all slots...`);
-          const allSlots = await this.client.getAllSlots();
-          console.log(`[HalaxySyncService] Total slots in system: ${allSlots.length}`);
+          let practitionerSlots: FHIRSlot[] = [];
           
-          if (allSlots.length > 0) {
-            console.log(`[HalaxySyncService] Sample slot:`, JSON.stringify(allSlots[0]).slice(0, 300));
-          }
-
-          // Filter slots for this practitioner client-side
-          const practitionerSlots = allSlots.filter(slot => {
-            if (!slot.actor) return false;
-            return slot.actor.some(actor => {
-              const ref = actor.reference || '';
-              return ref.includes(halaxyPractitionerId);
+          // Try direct query first (more efficient)
+          try {
+            console.log(`[HalaxySyncService] Querying slots for practitioner: Practitioner/${halaxyPractitionerId}`);
+            practitionerSlots = await this.client.getAvailableSlots(
+              halaxyPractitionerId,
+              slotStartDate,
+              slotEndDate,
+              'free'
+            );
+            console.log(`[HalaxySyncService] Direct query returned ${practitionerSlots.length} slots`);
+          } catch (directError) {
+            // Fall back to fetching all slots and filtering client-side
+            console.log(`[HalaxySyncService] Direct query failed, trying client-side filter...`);
+            console.log(`[HalaxySyncService] Error: ${directError instanceof Error ? directError.message : 'Unknown'}`);
+            
+            const allSlots = await this.client.getAllSlots();
+            console.log(`[HalaxySyncService] Total slots in system: ${allSlots.length}`);
+            
+            // Filter slots for this practitioner
+            practitionerSlots = allSlots.filter(slot => {
+              if (!slot.actor) return false;
+              return slot.actor.some(actor => {
+                const ref = actor.reference || '';
+                return ref.includes(halaxyPractitionerId);
+              });
             });
-          });
-          console.log(`[HalaxySyncService] Slots for ${halaxyPractitionerId}: ${practitionerSlots.length}`);
+            console.log(`[HalaxySyncService] Filtered slots for ${halaxyPractitionerId}: ${practitionerSlots.length}`);
+          }
 
           for (const slot of practitionerSlots) {
             try {

@@ -215,6 +215,7 @@ export class HalaxyClient {
 
   /**
    * Get available slots within a date range (all practitioners)
+   * Uses FHIR date prefixes: ge (>=), le (<=), gt (>), lt (<)
    * 
    * @param startDate - Start of date range
    * @param endDate - End of date range
@@ -225,18 +226,19 @@ export class HalaxyClient {
     endDate: Date,
     status: string = 'free'
   ): Promise<FHIRSlot[]> {
+    // Use FHIR date prefix format: ge2024-01-01T00:00:00Z
     return this.getAllPages<FHIRSlot>('/Slot', {
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
+      start: `ge${startDate.toISOString()}`,
+      end: `le${endDate.toISOString()}`,
       status: status,
     });
   }
 
   /**
-   * Get available slots for a practitioner within a date range
-   * Note: Falls back to fetching all slots if practitioner filter fails
+   * Get available slots for a specific practitioner
+   * Uses reference format: Practitioner/PR-12345
    * 
-   * @param practitionerId - Halaxy practitioner ID (with PR- prefix)
+   * @param practitionerId - Halaxy practitioner ID (e.g., PR-1439411)
    * @param startDate - Start of date range
    * @param endDate - End of date range
    * @param status - Filter by slot status (default: 'free')
@@ -247,18 +249,12 @@ export class HalaxyClient {
     endDate: Date,
     status: string = 'free'
   ): Promise<FHIRSlot[]> {
-    // Fetch all slots and filter client-side by practitioner
-    const allSlots = await this.getAllAvailableSlots(startDate, endDate, status);
-    
-    // Filter by practitioner ID in actor references
-    return allSlots.filter(slot => {
-      if (!slot.actor) return false;
-      return slot.actor.some(actor => {
-        const ref = actor.reference || '';
-        // Match both Practitioner and PractitionerRole references
-        return ref.includes(practitionerId) || 
-               ref.includes(practitionerId.replace(/^(PR|EP)-/, ''));
-      });
+    // Use reference format from Halaxy docs: Practitioner/PR-12345
+    return this.getAllPages<FHIRSlot>('/Slot', {
+      practitioner: `Practitioner/${practitionerId}`,
+      start: `ge${startDate.toISOString()}`,
+      end: `le${endDate.toISOString()}`,
+      status: status,
     });
   }
 

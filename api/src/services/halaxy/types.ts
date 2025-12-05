@@ -241,10 +241,17 @@ export interface FHIRSlot {
   status: 'busy' | 'free' | 'busy-unavailable' | 'busy-tentative' | 'entered-in-error';
   start: string; // ISO 8601 datetime
   end: string;   // ISO 8601 datetime
+  overbooked?: boolean;
   schedule?: {
     reference?: string; // e.g., "Schedule/123"
     display?: string;
   };
+  // Actor references - practitioner, organization, practitioner-role
+  actor?: Array<{
+    reference?: string; // e.g., "/main/Practitioner/PR-1234567"
+    type?: string;      // e.g., "Practitioner", "Organization", "PractitionerRole"
+    display?: string;
+  }>;
   serviceCategory?: Array<{
     coding?: Array<{
       system?: string;

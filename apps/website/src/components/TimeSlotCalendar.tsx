@@ -196,12 +196,12 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       });
     }
 
+    // Filter out past days but keep all upcoming days (even those with no availability)
     const upcomingDays = schedule.filter(
       (day) => day.date.getTime() >= today.getTime()
     );
 
-    // Filter out all days with no availability
-    return upcomingDays.filter((day) => day.slots.length > 0);
+    return upcomingDays;
   };
 
   // Helper functions - defined before use
@@ -468,8 +468,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         </div>
       )}
 
-      {/* No availability message - only show after search is complete */}
-      {!loading && !isSearchingForAvailability && !error && weekSchedule.length === 0 && (
+      {/* No availability message - only show after search is complete and week has no slots */}
+      {!loading && !isSearchingForAvailability && !error && weekSchedule.every(day => day.slots.length === 0) && (
         <div
           className="p-6 text-center rounded-lg"
           style={{

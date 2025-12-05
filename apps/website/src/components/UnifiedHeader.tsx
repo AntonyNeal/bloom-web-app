@@ -74,10 +74,11 @@ const UnifiedHeader = () => {
       {/* A/B Test button (hidden by default) */}
       <button style={abTestButtonStyle}>🧪 A/B Test</button>
 
-      {/* Main header section */}
+      {/* Main header section - min-height set to prevent CLS */}
       <section
         className="py-8 sm:py-12 lg:py-24 bg-gradient-to-br from-blue-50/30 to-white relative overflow-hidden hero-section"
         aria-label="Life Psychology Australia header"
+        style={{ minHeight: '80vh' }}
       >
         {/* Simplified background - removed blur effects for performance */}
         <div className="absolute top-20 right-0 w-96 h-96 bg-blue-100/10 rounded-full -z-10"></div>
@@ -126,10 +127,12 @@ const UnifiedHeader = () => {
                     height="1600"
                     loading="eager"
                     decoding="async"
+                    fetchPriority="high"
                     style={{
                       display: 'block',
                       maxWidth: '100%',
                       height: 'auto',
+                      aspectRatio: '1200 / 1600',
                     }}
                   />
                 </picture>

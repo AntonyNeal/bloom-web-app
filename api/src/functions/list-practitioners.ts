@@ -74,13 +74,17 @@ async function listPractitionersHandler(
       SELECT 
         (SELECT COUNT(*) FROM practitioners) as practitionerCount,
         (SELECT COUNT(*) FROM clients) as clientCount,
-        (SELECT COUNT(*) FROM sessions) as sessionCount
+        (SELECT COUNT(*) FROM sessions) as sessionCount,
+        (SELECT COUNT(*) FROM availability_slots) as slotCount,
+        (SELECT COUNT(*) FROM availability_slots WHERE status = 'free') as freeSlotCount
     `);
 
     const counts = {
       practitioners: countResult.recordset[0]?.practitionerCount || 0,
       clients: countResult.recordset[0]?.clientCount || 0,
       sessions: countResult.recordset[0]?.sessionCount || 0,
+      slots: countResult.recordset[0]?.slotCount || 0,
+      freeSlots: countResult.recordset[0]?.freeSlotCount || 0,
     };
 
     return {

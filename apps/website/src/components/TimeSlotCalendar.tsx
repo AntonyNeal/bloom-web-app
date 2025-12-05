@@ -334,8 +334,43 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     setCurrentWeekStart(newStart);
   };
 
-  const goToToday = () => {
-    setCurrentWeekStart(getWeekStart(new Date()));
+  // Find and navigate to first week with availability
+  const goToFirstAvailableWeek = async () => {
+    // If current week has availability, stay here
+    if (weekSchedule.length > 0) {
+      return;
+    }
+
+    // Search up to 12 weeks ahead for availability
+    const maxWeeksToSearch = 12;
+    const searchWeekStart = new Date(currentWeekStart);
+    
+    for (let i = 0; i < maxWeeksToSearch; i++) {
+      searchWeekStart.setDate(searchWeekStart.getDate() + 7);
+      const weekEnd = new Date(searchWeekStart);
+      weekEnd.setDate(searchWeekStart.getDate() + 7);
+
+      try {
+        const params = {
+          startDate: searchWeekStart,
+          endDate: weekEnd,
+          duration,
+          ...(practitionerId ? { practitionerId } : {}),
+        };
+
+        const slots = await fetchAvailableSlots(params);
+        
+        if (slots.length > 0) {
+          setCurrentWeekStart(new Date(searchWeekStart));
+          return;
+        }
+      } catch {
+        // Continue searching if this week fails
+      }
+    }
+    
+    // If no availability found, just advance one week
+    nextWeek();
   };
 
   return (
@@ -402,9 +437,9 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         </div>
 
         <button
-          onClick={goToToday}
+          onClick={goToFirstAvailableWeek}
           className="text-emerald-600 hover:text-emerald-700 font-medium text-xs flex items-center gap-1 transition-colors"
-          aria-label="View full calendar"
+          aria-label="Find first available week"
         >
           <svg
             className="w-3.5 h-3.5"
@@ -419,7 +454,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          View calendar
+          Find availability
         </button>
       </div>
 

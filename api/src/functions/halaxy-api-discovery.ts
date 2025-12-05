@@ -99,33 +99,27 @@ async function halaxyApiDiscoveryHandler(
     
     context.log('Testing Halaxy API endpoints at:', baseUrl);
     
-    // Test various FHIR endpoints
+    // Test various FHIR endpoints - use the same query params as the actual client
     const endpointsToTest = [
-      // Standard FHIR endpoints
+      // Standard FHIR endpoints - same as client getAllPractitioners/Patients
+      { endpoint: '/Practitioner', params: { active: 'true' } },
+      { endpoint: '/Patient', params: { active: 'true' } },
+      { endpoint: '/Appointment', params: undefined },
+      { endpoint: '/Schedule', params: undefined },
+      { endpoint: '/Slot', params: undefined },
+      { endpoint: '/Slot', params: { status: 'free' } },
+      
+      // Test with specific practitioner
+      { endpoint: '/Schedule', params: { actor: 'Practitioner/1439411' } },
+      { endpoint: '/Slot', params: { practitioner: 'Practitioner/PR-1439411' } },
+      { endpoint: '/Slot', params: { 'schedule.actor': 'Practitioner/PR-1439411' } },
+      
+      // Other resources
+      { endpoint: '/Location', params: undefined },
+      { endpoint: '/Organization', params: undefined },
+      { endpoint: '/HealthcareService', params: undefined },
+      { endpoint: '/PractitionerRole', params: undefined },
       { endpoint: '/metadata', params: undefined },
-      { endpoint: '/Practitioner', params: { _count: '1' } },
-      { endpoint: '/Patient', params: { _count: '1' } },
-      { endpoint: '/Appointment', params: { _count: '1' } },
-      { endpoint: '/Schedule', params: { _count: '1' } },
-      { endpoint: '/Slot', params: { _count: '1' } },
-      { endpoint: '/Location', params: { _count: '1' } },
-      { endpoint: '/Organization', params: { _count: '1' } },
-      { endpoint: '/HealthcareService', params: { _count: '1' } },
-      { endpoint: '/PractitionerRole', params: { _count: '1' } },
-      
-      // Try alternative base paths
-      { endpoint: '/../Schedule', params: { _count: '1' } },
-      { endpoint: '/../availability', params: undefined },
-      { endpoint: '/../slots', params: undefined },
-      
-      // Try date-based appointment query (without practitioner filter)
-      { 
-        endpoint: '/Appointment', 
-        params: { 
-          date: `ge${new Date().toISOString().split('T')[0]}`,
-          _count: '5' 
-        } 
-      },
     ];
 
     const results: EndpointTest[] = [];

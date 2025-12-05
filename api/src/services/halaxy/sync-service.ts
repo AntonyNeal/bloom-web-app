@@ -258,37 +258,47 @@ export class HalaxySyncService {
           // Clean up old slots first
           await this.cleanupOldSlots(practitioner.id);
           
-          // Fetch available slots from Halaxy - next 90 days
-          const slotStartDate = new Date();
-          const slotEndDate = new Date();
-          slotEndDate.setDate(slotEndDate.getDate() + 90);
-          
-          // Get slots - try getAllAvailableSlots first (with date range)
+          // Fetch ALL slots from Halaxy (without date filter, which may cause issues)
+          // The discovery endpoint confirmed /Slot without params returns 200 slots
+          console.log(`[HalaxySyncService] Fetching slots from Halaxy...`);
           let slots: FHIRSlot[] = [];
+          
           try {
-            slots = await this.client.getAllAvailableSlots(slotStartDate, slotEndDate, 'free');
-            console.log(`[HalaxySyncService] Found ${slots.length} free slots via date query`);
-          } catch (dateQueryError) {
-            // If date query fails, try getting all slots without date filter
-            console.log(`[HalaxySyncService] Date query failed, trying without date filter`);
+            // First try: get all slots without any filter
             slots = await this.client.getAllSlots();
-            console.log(`[HalaxySyncService] Found ${slots.length} slots (all)`);
-            // Filter to free slots only
-            slots = slots.filter(s => s.status === 'free');
-            console.log(`[HalaxySyncService] Filtered to ${slots.length} free slots`);
+            console.log(`[HalaxySyncService] getAllSlots returned ${slots.length} slots`);
+          } catch (fetchError) {
+            console.error(`[HalaxySyncService] getAllSlots failed:`, fetchError);
+            throw fetchError;
           }
           
+          // Filter to free slots only (bookable)
+          const freeSlots = slots.filter(s => s.status === 'free');
+          console.log(`[HalaxySyncService] Filtered to ${freeSlots.length} free slots out of ${slots.length} total`);
+          
+          // Filter to future slots only
+          const now = new Date();
+          const futureSlots = freeSlots.filter(s => {
+            const slotStart = new Date(s.start);
+            return slotStart > now;
+          });
+          console.log(`[HalaxySyncService] Filtered to ${futureSlots.length} future free slots`);
+          
           // Sync each slot
-          for (const slot of slots) {
+          let successCount = 0;
+          let failCount = 0;
+          for (const slot of futureSlots) {
             try {
               await this.syncSlot(slot, practitioner.id);
+              successCount++;
               recordsUpdated++;
             } catch (slotError) {
+              failCount++;
               console.warn(`[HalaxySyncService] Failed to sync slot ${slot.id}:`, slotError);
             }
           }
           
-          console.log(`[HalaxySyncService] Synced ${slots.length} availability slots`);
+          console.log(`[HalaxySyncService] Slot sync complete: ${successCount} saved, ${failCount} failed`);
         } catch (slotSyncError) {
           console.warn(`[HalaxySyncService] Could not sync slots for ${halaxyPractitionerId}:`, slotSyncError);
           errors.push({

@@ -219,11 +219,9 @@ export class HalaxyClient {
     endDate: Date,
     status: string = 'free'
   ): Promise<FHIRSlot[]> {
-    // Extract numeric ID - remove PR- or EP- prefix if present
-    const numericId = practitionerId.replace(/^(PR|EP)-/, '');
-    // Try just the numeric ID without Practitioner/ prefix
+    // Try practitioner-role parameter with the full ID
     return this.getAllPages<FHIRSlot>('/Slot', {
-      practitioner: numericId,
+      'practitioner-role': practitionerId,
       start: `ge${startDate.toISOString()}`,
       end: `le${endDate.toISOString()}`,
       status: status,

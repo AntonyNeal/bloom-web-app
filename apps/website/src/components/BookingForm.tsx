@@ -805,49 +805,96 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         </div>
       )}
 
-      {/* Step 2: Date & Time */}
+      {/* Step 2: Date & Time - Glass & Steel Composition */}
       {step === 'datetime' && (
-        <div className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="order-2 lg:order-1 space-y-4">
-              <div>
-                <label className="block text-lg font-bold text-slate-800 mb-3 uppercase tracking-wide">
-                  Pick a time{' '}
-                  <span className="text-red-500" aria-label="required">
-                    *
-                  </span>
-                </label>
-                <TimeSlotCalendar
-                  onSelectSlot={(date, time) => {
-                    setAppointmentDate(date);
-                    setAppointmentTime(time);
-                    const newErrors = { ...errors };
-                    delete newErrors['appointmentDate'];
-                    delete newErrors['appointmentTime'];
-                    setErrors(newErrors);
-                  }}
-                  selectedDate={appointmentDate}
-                  selectedTime={appointmentTime}
-                  duration={60}
-                />
-                {(errors['appointmentDate'] || errors['appointmentTime']) && (
-                  <p className="text-red-500 text-sm mt-2 font-medium">
-                    {errors['appointmentDate'] || errors['appointmentTime']}
-                  </p>
-                )}
-              </div>
+        <div className="space-y-5">
+          {/* Calendar Section - Clean white panel with subtle steel edge */}
+          <div 
+            className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5"
+            style={{
+              boxShadow: `
+                0 1px 3px rgba(0,0,0,0.04),
+                0 4px 12px rgba(0,0,0,0.03),
+                inset 0 1px 0 rgba(255,255,255,0.9)
+              `
+            }}
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <span 
+                className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border"
+                style={{
+                  background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+                  borderColor: 'rgba(148,163,184,0.4)',
+                  color: '#64748b',
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8)'
+                }}
+              >1</span>
+              <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">
+                Pick a time <span className="text-red-500">*</span>
+              </span>
+            </div>
+            <TimeSlotCalendar
+              onSelectSlot={(date, time) => {
+                setAppointmentDate(date);
+                setAppointmentTime(time);
+                const newErrors = { ...errors };
+                delete newErrors['appointmentDate'];
+                delete newErrors['appointmentTime'];
+                setErrors(newErrors);
+              }}
+              selectedDate={appointmentDate}
+              selectedTime={appointmentTime}
+              duration={60}
+            />
+            {(errors['appointmentDate'] || errors['appointmentTime']) && (
+              <p className="text-red-500 text-sm mt-3 font-medium">
+                {errors['appointmentDate'] || errors['appointmentTime']}
+              </p>
+            )}
+          </div>
+
+          {/* Session Details - Frosted glass panel */}
+          <div 
+            className="rounded-xl p-4 sm:p-5 border border-slate-200/60 relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(145deg, rgba(248,250,252,0.97) 0%, rgba(241,245,249,0.92) 100%)',
+              backdropFilter: 'blur(12px)',
+              boxShadow: `
+                0 1px 2px rgba(0,0,0,0.03),
+                0 4px 16px rgba(0,0,0,0.04),
+                inset 0 1px 0 rgba(255,255,255,0.95),
+                inset 0 -1px 0 rgba(148,163,184,0.08)
+              `
+            }}
+          >
+            {/* Subtle steel accent line at top */}
+            <div 
+              className="absolute top-0 left-4 right-4 h-px"
+              style={{
+                background: 'linear-gradient(90deg, transparent 0%, rgba(148,163,184,0.25) 30%, rgba(203,213,225,0.4) 50%, rgba(148,163,184,0.25) 70%, transparent 100%)'
+              }}
+            />
+            
+            <div className="flex items-center gap-2 mb-5">
+              <span 
+                className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border"
+                style={{
+                  background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+                  borderColor: 'rgba(148,163,184,0.4)',
+                  color: '#64748b',
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8)'
+                }}
+              >2</span>
+              <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">Session details</span>
             </div>
 
-            <div className="order-1 lg:order-2 space-y-6">
+            <div className="space-y-5">
               <div>
                 <label
                   htmlFor="appointmentType-select"
-                  className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
+                  className="block text-sm font-semibold text-slate-600 mb-2"
                 >
-                  Appointment Type{' '}
-                  <span className="text-red-500" aria-label="required">
-                    *
-                  </span>
+                  Appointment Type <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="appointmentType-select"
@@ -858,8 +905,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                       setMedicareSelectedThisSession(true);
                     }
                   }}
-                  className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['appointmentType'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
-                  style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+                  className={`w-full px-4 py-3 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['appointmentType'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50'}`}
+                  style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)' }}
                   aria-required="true"
                   aria-invalid={!!errors['appointmentType']}
                   aria-describedby={
@@ -894,32 +941,38 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
                 {appointmentType === 'medicare-psychologist-session' &&
                   medicareSelectedThisSession && (
-                    <div className="mt-4 space-y-3 rounded-xl border-2 border-emerald-300 bg-gradient-to-b from-emerald-50 to-white p-5" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 2px 8px rgba(16, 185, 129, 0.1)' }}>
-                      <div className="flex items-center gap-2 text-sm font-bold text-slate-800 uppercase tracking-wide">
+                    <div 
+                      className="mt-4 space-y-3 rounded-xl border border-emerald-200/80 p-4"
+                      style={{ 
+                        background: 'linear-gradient(135deg, rgba(236,253,245,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.08)' 
+                      }}
+                    >
+                      <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
                         <span aria-hidden="true">💚</span>
                         Medicare Cost Breakdown
                       </div>
-                      <div className="grid grid-cols-3 gap-3 text-center text-xs font-semibold text-slate-600">
-                        <div className="rounded-lg border-2 border-slate-200 bg-white p-3" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)' }}>
-                          <div className="mb-1 text-slate-500">Session Fee</div>
-                          <div className="text-xl font-bold text-slate-800">
-                            $250
-                          </div>
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs font-semibold text-slate-600">
+                        <div className="rounded-lg border border-slate-200 bg-white p-2.5" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)' }}>
+                          <div className="mb-0.5 text-slate-500 text-[10px]">Session Fee</div>
+                          <div className="text-lg font-bold text-slate-800">$250</div>
                         </div>
-                        <div className="rounded-lg border-2 border-emerald-200 bg-emerald-50 p-3">
-                          <div className="mb-1 text-emerald-600">Rebate</div>
-                          <div className="text-xl font-bold text-emerald-600">
-                            −$145.25
-                          </div>
+                        <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-2.5">
+                          <div className="mb-0.5 text-emerald-600 text-[10px]">Rebate</div>
+                          <div className="text-lg font-bold text-emerald-600">−$145.25</div>
                         </div>
-                        <div className="rounded-lg border-2 border-emerald-500 bg-gradient-to-b from-emerald-500 to-emerald-600 p-3 text-white" style={{ boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }}>
-                          <div className="mb-1 text-emerald-100">Your Gap</div>
-                          <div className="text-xl font-bold">
-                            $104.75
-                          </div>
+                        <div 
+                          className="rounded-lg border border-emerald-400 p-2.5 text-white"
+                          style={{ 
+                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)' 
+                          }}
+                        >
+                          <div className="mb-0.5 text-emerald-100 text-[10px]">Your Gap</div>
+                          <div className="text-lg font-bold">$104.75</div>
                         </div>
                       </div>
-                      <p className="text-xs text-slate-500 text-center font-medium">
+                      <p className="text-[11px] text-slate-500 text-center">
                         Requires a valid GP Mental Health Treatment Plan
                       </p>
                     </div>
@@ -931,8 +984,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 ) && (
                   <p
                     id="appointmentType-hint"
-                    className="mt-3 rounded-lg bg-gradient-to-r from-slate-100 to-slate-50 border-2 border-slate-200 px-4 py-3 text-sm text-slate-600 font-medium"
-                    style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
+                    className="mt-3 rounded-lg border border-slate-200/80 px-4 py-3 text-sm text-slate-600"
+                    style={{ 
+                      background: 'linear-gradient(135deg, rgba(248,250,252,0.8) 0%, rgba(241,245,249,0.6) 100%)',
+                      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' 
+                    }}
                   >
                     💡 Medicare rebates available for eligible appointments ($250 −
                     $145.25 rebate = $104.75 gap)
@@ -943,22 +999,28 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               <div>
                 <label
                   htmlFor="notes-textarea"
-                  className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
+                  className="block text-sm font-semibold text-slate-600 mb-2"
                 >
-                  Notes <span className="font-normal normal-case text-slate-400">(optional)</span>
+                  Notes <span className="font-normal text-slate-400">(optional)</span>
                 </label>
-                <div className="mb-3 flex items-center gap-3 rounded-lg border-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white p-4" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}>
+                <div 
+                  className="mb-3 flex items-center gap-3 rounded-lg border border-slate-200/80 p-3"
+                  style={{ 
+                    background: 'linear-gradient(135deg, rgba(248,250,252,0.6) 0%, rgba(255,255,255,0.8) 100%)',
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' 
+                  }}
+                >
                   <input
                     type="checkbox"
                     id="first-session-toggle"
                     checked={isFirstSession}
                     onChange={(e) => setIsFirstSession(e.target.checked)}
-                    className="h-5 w-5 cursor-pointer rounded border-2 border-slate-300 text-emerald-600 focus:ring-3 focus:ring-emerald-200 focus:ring-offset-2"
+                    className="h-5 w-5 cursor-pointer rounded border-slate-300 text-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:ring-offset-1"
                     aria-describedby="first-session-hint"
                   />
                   <label
                     htmlFor="first-session-toggle"
-                    className="text-sm font-semibold text-slate-700 cursor-pointer"
+                    className="text-sm font-medium text-slate-600 cursor-pointer"
                   >
                     👋 This is my first session with Zoe
                   </label>
@@ -967,13 +1029,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 {isFirstSession && (
                   <details
                     open
-                    className="mb-3 rounded-lg border-2 border-slate-200 bg-slate-50 p-4 text-sm text-slate-600"
-                    style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
+                    className="mb-3 rounded-lg border border-slate-200/80 bg-slate-50/80 p-3 text-sm text-slate-600"
                   >
-                    <summary className="mb-2 cursor-pointer font-bold text-slate-700">
+                    <summary className="mb-2 cursor-pointer font-semibold text-slate-700">
                       What should I include?
                     </summary>
-                    <ul className="list-disc space-y-1 pl-5 font-medium">
+                    <ul className="list-disc space-y-1 pl-5 text-sm">
                       <li>What brings you to therapy and your goals</li>
                       <li>Any previous therapy experience</li>
                       <li>Current challenges or symptoms</li>
@@ -989,9 +1050,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="notes-textarea"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  rows={isFirstSession ? 5 : 3}
-                  className="w-full rounded-lg border-2 border-slate-300 px-4 py-3.5 text-base font-medium focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100 focus:outline-none transition-all"
-                  style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+                  rows={isFirstSession ? 4 : 2}
+                  className="w-full rounded-lg border border-slate-200 px-4 py-3 text-base focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50 focus:outline-none transition-all bg-white"
+                  style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)' }}
                   placeholder={
                     isFirstSession
                       ? 'Share the top things Zoe should know before your first session...'
@@ -1002,16 +1063,19 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </div>
           </div>
 
-          {/* Action buttons - HEAVY styling */}
-          <div className="flex flex-col sm:flex-row justify-between gap-4 border-t-2 border-slate-200 pt-6 sm:pt-8">
+          {/* Action buttons - Polished steel finish */}
+          <div className="flex flex-col sm:flex-row justify-between gap-3 pt-2">
             <button
               type="button"
               onClick={() => {
                 setStep('details');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-              className="px-8 py-4 text-base font-bold rounded-lg text-slate-600 bg-gradient-to-b from-white to-slate-100 border-2 border-slate-300 hover:border-slate-400 hover:from-slate-50 hover:to-slate-150 focus:outline-none focus:ring-3 focus:ring-slate-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
-              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
+              className="px-6 py-3.5 text-sm font-bold rounded-lg text-slate-600 border border-slate-300 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-1 transition-all active:scale-[0.98]"
+              style={{ 
+                background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9)' 
+              }}
             >
               ← Back
             </button>
@@ -1019,12 +1083,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleDateTimeNext}
               disabled={!isDateTimeStepValid()}
-              className={`px-10 py-4 text-base font-bold rounded-lg transition-all duration-200 focus:outline-none focus:ring-3 focus:ring-offset-2 border-2 ${
+              className={`px-8 py-3.5 text-sm font-bold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
                 isDateTimeStepValid()
-                  ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 focus:ring-emerald-300 cursor-pointer active:scale-[0.98]'
-                  : 'bg-gradient-to-b from-slate-200 to-slate-300 text-slate-500 border-slate-300 cursor-not-allowed'
+                  ? 'text-white border border-emerald-400 focus:ring-emerald-300 cursor-pointer active:scale-[0.98]'
+                  : 'text-slate-400 border border-slate-200 cursor-not-allowed'
               }`}
-              style={isDateTimeStepValid() ? { boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' } : { boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)' }}
+              style={isDateTimeStepValid() 
+                ? { 
+                    background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255,255,255,0.2)' 
+                  } 
+                : { 
+                    background: 'linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' 
+                  }
+              }
               aria-disabled={!isDateTimeStepValid()}
             >
               Continue {isDateTimeStepValid() && '→'}

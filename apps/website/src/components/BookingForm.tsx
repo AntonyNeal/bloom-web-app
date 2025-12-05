@@ -420,45 +420,57 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="max-w-4xl w-full mx-auto p-4 sm:p-6">
-      {/* Header */}
-      <div className="mb-4 sm:mb-6">
-        <h2 className="text-2xl sm:text-[28px] font-bold text-gray-900">
+    <div className="max-w-4xl w-full mx-auto">
+      {/* Header - Heavy, substantial */}
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
           Book Your Appointment
         </h2>
-        <p className="text-gray-600 mt-1.5 text-base">
+        <p className="text-slate-500 mt-2 text-base font-medium">
           Schedule a telehealth session with Zoe Semmler
         </p>
       </div>
 
-      {/* Progress indicator */}
+      {/* Progress indicator - Steel bar design */}
       {step !== 'success' && step !== 'error' && (
-        <div className="mb-6">
-          <div className="grid grid-cols-4 gap-2 text-xs sm:text-sm font-semibold">
-            <div
-              className={`${step === 'details' ? 'text-blue-600' : step === 'datetime' || step === 'payment' || step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
-            >
-              <div className="text-center">1. Details</div>
-            </div>
-            <div
-              className={`${step === 'datetime' ? 'text-blue-600' : step === 'payment' || step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
-            >
-              <div className="text-center">2. Time</div>
-            </div>
-            <div
-              className={`${step === 'payment' ? 'text-blue-600' : step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
-            >
-              <div className="text-center">3. Payment</div>
-            </div>
-            <div
-              className={`${step === 'confirm' ? 'text-blue-600' : 'text-gray-400'}`}
-            >
-              <div className="text-center">4. Confirm</div>
-            </div>
+        <div className="mb-8 p-4 sm:p-5 rounded-xl bg-gradient-to-b from-slate-100 to-slate-50 border-2 border-slate-200" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.05)' }}>
+          <div className="grid grid-cols-4 gap-1 sm:gap-3">
+            {[
+              { num: 1, label: 'Details', key: 'details' },
+              { num: 2, label: 'Time', key: 'datetime' },
+              { num: 3, label: 'Payment', key: 'payment' },
+              { num: 4, label: 'Confirm', key: 'confirm' },
+            ].map(({ num, label, key }) => {
+              const isActive = step === key;
+              const isPast = 
+                (key === 'details' && ['datetime', 'payment', 'confirm'].includes(step)) ||
+                (key === 'datetime' && ['payment', 'confirm'].includes(step)) ||
+                (key === 'payment' && step === 'confirm');
+              return (
+                <div key={key} className="text-center">
+                  <div
+                    className={`mx-auto w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-sm sm:text-base font-bold mb-1.5 sm:mb-2 border-2 transition-all ${
+                      isActive
+                        ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-emerald-400 shadow-lg'
+                        : isPast
+                          ? 'bg-gradient-to-b from-emerald-100 to-emerald-50 text-emerald-600 border-emerald-300'
+                          : 'bg-gradient-to-b from-white to-slate-100 text-slate-400 border-slate-300'
+                    }`}
+                    style={isActive ? { boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)' } : {}}
+                  >
+                    {isPast ? '✓' : num}
+                  </div>
+                  <div className={`text-xs sm:text-sm font-semibold ${isActive ? 'text-emerald-600' : isPast ? 'text-emerald-500' : 'text-slate-400'}`}>
+                    {label}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="mt-2 h-1.5 bg-gray-200 rounded-full">
+          {/* Heavy progress bar */}
+          <div className="mt-4 h-2.5 bg-slate-200 rounded-full overflow-hidden border border-slate-300" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)' }}>
             <div
-              className="h-full bg-blue-600 rounded-full transition-all duration-300"
+              className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 rounded-full transition-all duration-500 ease-out"
               style={{
                 width:
                   step === 'details'
@@ -468,6 +480,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                       : step === 'payment'
                         ? '75%'
                         : '100%',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4), 0 1px 2px rgba(0,0,0,0.1)'
               }}
             />
           </div>
@@ -476,15 +489,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 1: Patient Details */}
       {step === 'details' && (
-        <div className="space-y-4 sm:space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-5 sm:space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label
                 htmlFor="firstName-input"
-                className="block text-base font-medium text-gray-900 mb-2"
+                className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
               >
                 First Name{' '}
-                <span className="text-red-600" aria-label="required">
+                <span className="text-red-500" aria-label="required">
                   *
                 </span>
               </label>
@@ -493,7 +506,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:outline-none transition-colors ${errors['firstName'] ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}`}
+                className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['firstName'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
+                style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
                 placeholder="John"
                 aria-required="true"
                 aria-invalid={!!errors['firstName']}
@@ -504,7 +518,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               {errors['firstName'] && (
                 <p
                   id="firstName-error"
-                  className="text-red-600 text-sm mt-2"
+                  className="text-red-500 text-sm mt-2 font-medium"
                   role="alert"
                 >
                   {errors['firstName']}
@@ -514,10 +528,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <div>
               <label
                 htmlFor="lastName-input"
-                className="block text-base font-medium text-gray-900 mb-2"
+                className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
               >
                 Last Name{' '}
-                <span className="text-red-600" aria-label="required">
+                <span className="text-red-500" aria-label="required">
                   *
                 </span>
               </label>
@@ -526,7 +540,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:outline-none transition-colors ${errors['lastName'] ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}`}
+                className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['lastName'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
+                style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
                 placeholder="Smith"
                 aria-required="true"
                 aria-invalid={!!errors['lastName']}
@@ -537,7 +552,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               {errors['lastName'] && (
                 <p
                   id="lastName-error"
-                  className="text-red-600 text-sm mt-2"
+                  className="text-red-500 text-sm mt-2 font-medium"
                   role="alert"
                 >
                   {errors['lastName']}
@@ -549,10 +564,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <div>
             <label
               htmlFor="email-input"
-              className="block text-base font-medium text-gray-900 mb-2"
+              className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
             >
               Email{' '}
-              <span className="text-red-600" aria-label="required">
+              <span className="text-red-500" aria-label="required">
                 *
               </span>
             </label>
@@ -561,7 +576,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:outline-none transition-colors ${errors['email'] ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}`}
+              className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['email'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
+              style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
               placeholder="john.smith@example.com"
               aria-required="true"
               aria-invalid={!!errors['email']}
@@ -570,7 +586,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             {errors['email'] && (
               <p
                 id="email-error"
-                className="text-red-600 text-sm mt-2"
+                className="text-red-500 text-sm mt-2 font-medium"
                 role="alert"
               >
                 {errors['email']}
@@ -579,9 +595,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           <div>
-            <label className="block text-base font-medium text-gray-900 mb-2">
+            <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
               Date of Birth
-              <span className="text-red-600 ml-1" aria-label="required">
+              <span className="text-red-500 ml-1" aria-label="required">
                 *
               </span>
             </label>
@@ -594,7 +610,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-day"
                   value={dateOfBirth.split('/')[0] || ''}
                   onChange={(e) => handleDayChange(e.target.value)}
-                  className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:outline-none transition-colors bg-white ${errors['dateOfBirth'] ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}`}
+                  className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['dateOfBirth'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
+                  style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
                   aria-label="Day of birth"
                   aria-required="true"
                   aria-invalid={!!errors['dateOfBirth']}
@@ -618,7 +635,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-month"
                   value={dateOfBirth.split('/')[1] || ''}
                   onChange={(e) => handleMonthChange(e.target.value)}
-                  className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:outline-none transition-colors bg-white ${errors['dateOfBirth'] ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}`}
+                  className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['dateOfBirth'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
+                  style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
                   aria-label="Month of birth"
                   aria-required="true"
                   aria-invalid={!!errors['dateOfBirth']}
@@ -649,7 +667,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-year"
                   value={dateOfBirth.split('/')[2] || ''}
                   onChange={(e) => handleYearChange(e.target.value)}
-                  className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:outline-none transition-colors bg-white ${errors['dateOfBirth'] ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}`}
+                  className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['dateOfBirth'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
+                  style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
                   aria-label="Year of birth"
                   aria-required="true"
                   aria-invalid={!!errors['dateOfBirth']}
@@ -696,7 +715,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 {errors['dateOfBirth']}
               </p>
             )}
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-slate-500 font-medium">
               Required - helps us provide age-appropriate care
             </p>
           </div>
@@ -704,16 +723,17 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <div>
             <label
               htmlFor="phone-input"
-              className="block text-base font-medium text-gray-900 mb-2"
+              className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
             >
-              Phone (optional - enables SMS appointment notifications)
+              Phone <span className="font-normal normal-case text-slate-400">(optional - for SMS reminders)</span>
             </label>
             <input
               id="phone-input"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:outline-none transition-colors ${errors['phone'] ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}`}
+              className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['phone'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
+              style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
               placeholder="0400 000 000"
               aria-invalid={!!errors['phone']}
               aria-describedby={errors['phone'] ? 'phone-error' : undefined}
@@ -721,7 +741,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             {errors['phone'] && (
               <p
                 id="phone-error"
-                className="text-red-600 text-sm mt-2"
+                className="text-red-500 text-sm mt-2 font-medium"
                 role="alert"
               >
                 {errors['phone']}
@@ -732,7 +752,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <div>
             <label
               htmlFor="gender-select"
-              className="block text-base font-medium text-gray-900 mb-2"
+              className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
             >
               Gender
             </label>
@@ -740,7 +760,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               id="gender-select"
               value={gender}
               onChange={(e) => setGender(e.target.value as typeof gender)}
-              className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-colors bg-white"
+              className="w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100"
+              style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
             >
               <option value="unknown">Prefer not to say</option>
               <option value="male">Male</option>
@@ -756,11 +777,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </select>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4 sm:pt-10 border-t border-gray-100">
+          {/* Action buttons - HEAVY, substantial feel */}
+          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6 sm:pt-8 mt-2 border-t-2 border-slate-200">
             <button
               type="button"
               onClick={onCancel}
-              className="px-8 py-3.5 text-base font-medium border-2 border-gray-300 rounded-lg text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors"
+              className="px-8 py-4 text-base font-bold rounded-lg text-slate-600 bg-gradient-to-b from-white to-slate-100 border-2 border-slate-300 hover:border-slate-400 hover:from-slate-50 hover:to-slate-150 focus:outline-none focus:ring-3 focus:ring-slate-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
+              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
             >
               Cancel
             </button>
@@ -768,14 +791,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleDetailsNext}
               disabled={!isDetailsStepValid()}
-              className={`px-8 py-3.5 text-base font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              className={`px-10 py-4 text-base font-bold rounded-lg transition-all duration-200 focus:outline-none focus:ring-3 focus:ring-offset-2 border-2 ${
                 isDetailsStepValid()
-                  ? 'bg-green-700 text-white hover:bg-green-800 focus:ring-green-600 shadow-md hover:shadow-lg cursor-pointer'
-                  : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                  ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 focus:ring-emerald-300 cursor-pointer active:scale-[0.98]'
+                  : 'bg-gradient-to-b from-slate-200 to-slate-300 text-slate-500 border-slate-300 cursor-not-allowed'
               }`}
+              style={isDetailsStepValid() ? { boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' } : { boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)' }}
               aria-disabled={!isDetailsStepValid()}
             >
-              Next {isDetailsStepValid() && '→'}
+              Continue {isDetailsStepValid() && '→'}
             </button>
           </div>
         </div>
@@ -787,9 +811,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="order-2 lg:order-1 space-y-4">
               <div>
-                <label className="block text-xl font-bold text-gray-900 mb-3">
+                <label className="block text-lg font-bold text-slate-800 mb-3 uppercase tracking-wide">
                   Pick a time{' '}
-                  <span className="text-red-600" aria-label="required">
+                  <span className="text-red-500" aria-label="required">
                     *
                   </span>
                 </label>
@@ -807,7 +831,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   duration={60}
                 />
                 {(errors['appointmentDate'] || errors['appointmentTime']) && (
-                  <p className="text-red-500 text-sm mt-2">
+                  <p className="text-red-500 text-sm mt-2 font-medium">
                     {errors['appointmentDate'] || errors['appointmentTime']}
                   </p>
                 )}
@@ -818,10 +842,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               <div>
                 <label
                   htmlFor="appointmentType-select"
-                  className="block text-lg font-semibold text-gray-900 mb-2"
+                  className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
                 >
                   Appointment Type{' '}
-                  <span className="text-red-600" aria-label="required">
+                  <span className="text-red-500" aria-label="required">
                     *
                   </span>
                 </label>
@@ -834,7 +858,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                       setMedicareSelectedThisSession(true);
                     }
                   }}
-                  className={`w-full px-4 py-3.5 text-base border-2 rounded-lg focus:outline-none transition-colors bg-white ${errors['appointmentType'] ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}`}
+                  className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['appointmentType'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
+                  style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
                   aria-required="true"
                   aria-invalid={!!errors['appointmentType']}
                   aria-describedby={
@@ -860,7 +885,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 {errors['appointmentType'] && (
                   <p
                     id="appointmentType-error"
-                    className="text-red-600 text-sm mt-2"
+                    className="text-red-500 text-sm mt-2 font-medium"
                     role="alert"
                   >
                     {errors['appointmentType']}
@@ -869,32 +894,32 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
                 {appointmentType === 'medicare-psychologist-session' &&
                   medicareSelectedThisSession && (
-                    <div className="mt-3 space-y-3 rounded-lg border border-green-200 bg-green-50/80 p-4">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                    <div className="mt-4 space-y-3 rounded-xl border-2 border-emerald-300 bg-gradient-to-b from-emerald-50 to-white p-5" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 2px 8px rgba(16, 185, 129, 0.1)' }}>
+                      <div className="flex items-center gap-2 text-sm font-bold text-slate-800 uppercase tracking-wide">
                         <span aria-hidden="true">💚</span>
-                        Medicare Session Cost Breakdown
+                        Medicare Cost Breakdown
                       </div>
-                      <div className="grid grid-cols-3 gap-2 text-center text-xs font-medium text-gray-700">
-                        <div className="rounded-lg border border-green-200 bg-white p-3">
-                          <div className="mb-1">Session Fee</div>
-                          <div className="text-lg font-bold text-gray-900">
+                      <div className="grid grid-cols-3 gap-3 text-center text-xs font-semibold text-slate-600">
+                        <div className="rounded-lg border-2 border-slate-200 bg-white p-3" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)' }}>
+                          <div className="mb-1 text-slate-500">Session Fee</div>
+                          <div className="text-xl font-bold text-slate-800">
                             $250
                           </div>
                         </div>
-                        <div className="rounded-lg border border-green-200 bg-white p-3">
-                          <div className="mb-1">Medicare Rebate</div>
-                          <div className="text-lg font-bold text-green-600">
-                            -$145.25
+                        <div className="rounded-lg border-2 border-emerald-200 bg-emerald-50 p-3">
+                          <div className="mb-1 text-emerald-600">Rebate</div>
+                          <div className="text-xl font-bold text-emerald-600">
+                            −$145.25
                           </div>
                         </div>
-                        <div className="rounded-lg border border-blue-500 bg-gradient-to-br from-blue-500 to-indigo-600 p-3 text-blue-50">
-                          <div className="mb-1">Your Gap</div>
-                          <div className="text-lg font-bold text-white">
+                        <div className="rounded-lg border-2 border-emerald-500 bg-gradient-to-b from-emerald-500 to-emerald-600 p-3 text-white" style={{ boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }}>
+                          <div className="mb-1 text-emerald-100">Your Gap</div>
+                          <div className="text-xl font-bold">
                             $104.75
                           </div>
                         </div>
                       </div>
-                      <p className="text-[11px] text-gray-600 text-center">
+                      <p className="text-xs text-slate-500 text-center font-medium">
                         Requires a valid GP Mental Health Treatment Plan
                       </p>
                     </div>
@@ -906,9 +931,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 ) && (
                   <p
                     id="appointmentType-hint"
-                    className="mt-3 rounded-lg bg-blue-50 px-4 py-2 text-sm text-gray-700"
+                    className="mt-3 rounded-lg bg-gradient-to-r from-slate-100 to-slate-50 border-2 border-slate-200 px-4 py-3 text-sm text-slate-600 font-medium"
+                    style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   >
-                    💡 Medicare rebates available for eligible appointments ($250 -
+                    💡 Medicare rebates available for eligible appointments ($250 −
                     $145.25 rebate = $104.75 gap)
                   </p>
                 )}
@@ -917,22 +943,22 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               <div>
                 <label
                   htmlFor="notes-textarea"
-                  className="block text-base font-medium text-gray-900 mb-2"
+                  className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
                 >
-                  Notes (optional)
+                  Notes <span className="font-normal normal-case text-slate-400">(optional)</span>
                 </label>
-                <div className="mb-3 flex items-center gap-3 rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-3">
+                <div className="mb-3 flex items-center gap-3 rounded-lg border-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white p-4" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}>
                   <input
                     type="checkbox"
                     id="first-session-toggle"
                     checked={isFirstSession}
                     onChange={(e) => setIsFirstSession(e.target.checked)}
-                    className="h-5 w-5 cursor-pointer rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="h-5 w-5 cursor-pointer rounded border-2 border-slate-300 text-emerald-600 focus:ring-3 focus:ring-emerald-200 focus:ring-offset-2"
                     aria-describedby="first-session-hint"
                   />
                   <label
                     htmlFor="first-session-toggle"
-                    className="text-sm font-semibold text-gray-900 cursor-pointer"
+                    className="text-sm font-semibold text-slate-700 cursor-pointer"
                   >
                     👋 This is my first session with Zoe
                   </label>
@@ -941,18 +967,19 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 {isFirstSession && (
                   <details
                     open
-                    className="mb-3 rounded-lg border border-blue-200 bg-blue-50/70 p-4 text-sm text-gray-700"
+                    className="mb-3 rounded-lg border-2 border-slate-200 bg-slate-50 p-4 text-sm text-slate-600"
+                    style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   >
-                    <summary className="mb-2 cursor-pointer font-semibold text-gray-900">
+                    <summary className="mb-2 cursor-pointer font-bold text-slate-700">
                       What should I include?
                     </summary>
-                    <ul className="list-disc space-y-1 pl-5">
+                    <ul className="list-disc space-y-1 pl-5 font-medium">
                       <li>What brings you to therapy and your goals</li>
                       <li>Any previous therapy experience</li>
                       <li>Current challenges or symptoms</li>
                       <li>How you prefer sessions to run</li>
                     </ul>
-                    <p className="mt-2 text-[12px] text-gray-600">
+                    <p className="mt-2 text-xs text-slate-500">
                       Keep it brief—Zoe will explore everything in session, this just gives her a heads‑up.
                     </p>
                   </details>
@@ -963,7 +990,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={isFirstSession ? 5 : 3}
-                  className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  className="w-full rounded-lg border-2 border-slate-300 px-4 py-3.5 text-base font-medium focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100 focus:outline-none transition-all"
+                  style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
                   placeholder={
                     isFirstSession
                       ? 'Share the top things Zoe should know before your first session...'
@@ -974,14 +1002,16 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between gap-4 border-t border-gray-100 pt-4 sm:pt-8">
+          {/* Action buttons - HEAVY styling */}
+          <div className="flex flex-col sm:flex-row justify-between gap-4 border-t-2 border-slate-200 pt-6 sm:pt-8">
             <button
               type="button"
               onClick={() => {
                 setStep('details');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-              className="px-8 py-3.5 text-base font-medium border-2 border-gray-300 rounded-lg text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors"
+              className="px-8 py-4 text-base font-bold rounded-lg text-slate-600 bg-gradient-to-b from-white to-slate-100 border-2 border-slate-300 hover:border-slate-400 hover:from-slate-50 hover:to-slate-150 focus:outline-none focus:ring-3 focus:ring-slate-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
+              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
             >
               ← Back
             </button>
@@ -989,14 +1019,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleDateTimeNext}
               disabled={!isDateTimeStepValid()}
-              className={`px-8 py-3.5 text-base font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              className={`px-10 py-4 text-base font-bold rounded-lg transition-all duration-200 focus:outline-none focus:ring-3 focus:ring-offset-2 border-2 ${
                 isDateTimeStepValid()
-                  ? 'bg-green-700 text-white hover:bg-green-800 focus:ring-green-600 shadow-md hover:shadow-lg cursor-pointer'
-                  : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                  ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 focus:ring-emerald-300 cursor-pointer active:scale-[0.98]'
+                  : 'bg-gradient-to-b from-slate-200 to-slate-300 text-slate-500 border-slate-300 cursor-not-allowed'
               }`}
+              style={isDateTimeStepValid() ? { boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' } : { boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)' }}
               aria-disabled={!isDateTimeStepValid()}
             >
-              Next {isDateTimeStepValid() && '→'}
+              Continue {isDateTimeStepValid() && '→'}
             </button>
           </div>
         </div>
@@ -1005,28 +1036,32 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       {/* Step 3: Payment */}
       {step === 'payment' && (
         <div className="space-y-8">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-8 rounded-xl shadow-sm">
-            <h3 className="text-2xl font-bold text-gray-900 mb-5">
-              Payment Details
+          <div className="rounded-xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 to-white p-6 sm:p-8" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}>
+            <h3 className="text-xl font-extrabold text-slate-800 mb-5 uppercase tracking-wide">
+              Payment Summary
             </h3>
-            <div className="text-base text-gray-900 space-y-3">
-              <div>
-                <span className="font-semibold">Appointment Type:</span>{' '}
-                {appointmentType === 'psychologist-session'
-                  ? 'Psychologist Session'
-                  : appointmentType === 'medicare-psychologist-session'
-                    ? 'Medicare Psychologist Session'
-                    : appointmentType === 'couples-session'
-                      ? 'Couples Session'
-                      : 'NDIS Psychology Session'}
+            <div className="text-base text-slate-700 space-y-3">
+              <div className="flex justify-between items-center py-2 border-b border-slate-200">
+                <span className="font-semibold text-slate-600">Appointment Type</span>
+                <span className="font-bold text-slate-800">
+                  {appointmentType === 'psychologist-session'
+                    ? 'Psychologist Session'
+                    : appointmentType === 'medicare-psychologist-session'
+                      ? 'Medicare Psychologist Session'
+                      : appointmentType === 'couples-session'
+                        ? 'Couples Session'
+                        : 'NDIS Psychology Session'}
+                </span>
               </div>
-              <div>
-                <span className="font-semibold">Amount:</span>{' '}
-                {appointmentType === 'couples-session'
-                  ? '$300.00'
-                  : appointmentType === 'ndis-psychology-session'
-                    ? '$232.99'
-                    : '$250.00'}
+              <div className="flex justify-between items-center py-2">
+                <span className="font-semibold text-slate-600">Amount Due</span>
+                <span className="text-2xl font-extrabold text-emerald-600">
+                  {appointmentType === 'couples-session'
+                    ? '$300.00'
+                    : appointmentType === 'ndis-psychology-session'
+                      ? '$232.99'
+                      : '$250.00'}
+                </span>
               </div>
             </div>
           </div>
@@ -1065,68 +1100,70 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       {/* Step 4: Confirmation */}
       {step === 'confirm' && (
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-8 rounded-xl shadow-sm">
-            <h3 className="text-xl font-bold text-gray-900 mb-5">
-              Please confirm your booking details:
+          <div className="rounded-xl border-2 border-emerald-300 bg-gradient-to-b from-emerald-50 to-white p-6 sm:p-8" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(16, 185, 129, 0.15)' }}>
+            <h3 className="text-lg font-extrabold text-slate-800 mb-5 uppercase tracking-wide">
+              Confirm Your Booking
             </h3>
 
             <div className="space-y-3 text-base">
-              <div className="flex flex-col sm:flex-row sm:gap-2">
-                <span className="font-semibold text-gray-700 min-w-[140px]">
-                  Patient:
+              <div className="flex flex-col sm:flex-row sm:gap-2 py-2 border-b border-emerald-200">
+                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
+                  Patient
                 </span>
-                <span className="text-gray-900">
+                <span className="text-slate-800 font-medium">
                   {firstName} {lastName}
                 </span>
               </div>
-              <div className="flex flex-col sm:flex-row sm:gap-2">
-                <span className="font-semibold text-gray-700 min-w-[140px]">
-                  Email:
+              <div className="flex flex-col sm:flex-row sm:gap-2 py-2 border-b border-emerald-200">
+                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
+                  Email
                 </span>
-                <span className="text-gray-900">{email}</span>
+                <span className="text-slate-800 font-medium">{email}</span>
               </div>
               {phone && (
-                <div className="flex flex-col sm:flex-row sm:gap-2">
-                  <span className="font-semibold text-gray-700 min-w-[140px]">
-                    Phone:
+                <div className="flex flex-col sm:flex-row sm:gap-2 py-2 border-b border-emerald-200">
+                  <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
+                    Phone
                   </span>
-                  <span className="text-gray-900">{phone}</span>
+                  <span className="text-slate-800 font-medium">{phone}</span>
                 </div>
               )}
-              <div className="flex flex-col sm:flex-row sm:gap-2">
-                <span className="font-semibold text-gray-700 min-w-[140px]">
-                  Appointment:
+              <div className="flex flex-col sm:flex-row sm:gap-2 py-2 border-b border-emerald-200">
+                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
+                  Appointment
                 </span>
-                <span className="text-gray-900">
+                <span className="text-slate-800 font-medium">
                   {appointmentType
                     .split('-')
                     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(' ')}
                 </span>
               </div>
-              <div className="flex flex-col sm:flex-row sm:gap-2">
-                <span className="font-semibold text-gray-700 min-w-[140px]">
-                  Date & Time:
+              <div className="flex flex-col sm:flex-row sm:gap-2 py-2">
+                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
+                  Date & Time
                 </span>
-                <span className="text-gray-900">{formatDateForDisplay()}</span>
+                <span className="text-slate-800 font-semibold">{formatDateForDisplay()}</span>
               </div>
               {notes && (
-                <div className="flex flex-col sm:flex-row sm:gap-2 pt-2 border-t border-green-200">
-                  <span className="font-semibold text-gray-700 min-w-[140px]">
-                    Notes:
+                <div className="flex flex-col sm:flex-row sm:gap-2 pt-3 mt-2 border-t-2 border-emerald-200">
+                  <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
+                    Notes
                   </span>
-                  <span className="text-gray-900">{notes}</span>
+                  <span className="text-slate-700 font-medium">{notes}</span>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6">
+          {/* Action buttons - HEAVY styling */}
+          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
             <button
               type="button"
               onClick={() => setStep('payment')}
               disabled={loading}
-              className="px-8 py-3.5 text-base font-medium border-2 border-gray-300 rounded-lg text-gray-900 hover:bg-gray-50 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors"
+              className="px-8 py-4 text-base font-bold rounded-lg text-slate-600 bg-gradient-to-b from-white to-slate-100 border-2 border-slate-300 hover:border-slate-400 disabled:opacity-50 focus:outline-none focus:ring-3 focus:ring-slate-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
+              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
             >
               ← Back
             </button>
@@ -1134,7 +1171,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleSubmit}
               disabled={loading}
-              className="px-8 py-3.5 text-base font-semibold bg-green-700 text-white rounded-lg hover:bg-green-800 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 shadow-md hover:shadow-lg flex items-center justify-center transition-all"
+              className="px-10 py-4 text-base font-bold rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-2 border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-50 focus:outline-none focus:ring-3 focus:ring-emerald-300 focus:ring-offset-2 flex items-center justify-center transition-all active:scale-[0.98]"
+              style={{ boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
             >
               {loading ? (
                 <>
@@ -1161,7 +1199,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   Booking...
                 </>
               ) : (
-                'Confirm Booking'
+                'Confirm Booking →'
               )}
             </button>
           </div>
@@ -1170,82 +1208,83 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Success State */}
       {step === 'success' && (
-        <div className="text-center py-12">
-          <div className="mb-6">
+        <div className="text-center py-8 sm:py-12">
+          <div className="mb-6 w-24 h-24 mx-auto rounded-2xl bg-gradient-to-b from-emerald-400 to-emerald-500 flex items-center justify-center border-4 border-emerald-300" style={{ boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4), inset 0 2px 0 rgba(255,255,255,0.3)' }}>
             <svg
-              className="w-20 h-20 text-green-500 mx-auto"
+              className="w-12 h-12 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              strokeWidth={3}
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M5 13l4 4L19 7"
               />
             </svg>
           </div>
-          <h3 className="text-3xl font-bold text-gray-900 mb-3">
+          <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-800 mb-3">
             Booking Confirmed!
           </h3>
-          <p className="text-gray-600 text-lg mb-8">
+          <p className="text-slate-500 text-lg mb-8 font-medium">
             Your appointment has been successfully booked.
           </p>
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-8 rounded-xl text-left mb-8 shadow-sm">
+          <div className="rounded-xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 to-white p-6 sm:p-8 text-left mb-8" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}>
             <div className="space-y-3 text-base">
-              <div className="flex flex-col sm:flex-row sm:gap-2">
-                <span className="font-semibold text-gray-700 min-w-[140px]">
-                  Appointment ID:
+              <div className="flex flex-col sm:flex-row sm:gap-2 py-2 border-b border-slate-200">
+                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
+                  Appointment ID
                 </span>
-                <span className="text-gray-900 font-mono">{appointmentId}</span>
+                <span className="text-slate-800 font-mono font-semibold">{appointmentId}</span>
               </div>
-              <div className="flex flex-col sm:flex-row sm:gap-2">
-                <span className="font-semibold text-gray-700 min-w-[140px]">
-                  Date & Time:
+              <div className="flex flex-col sm:flex-row sm:gap-2 py-2">
+                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
+                  Date & Time
                 </span>
-                <span className="text-gray-900">{formatDateForDisplay()}</span>
+                <span className="text-slate-800 font-semibold">{formatDateForDisplay()}</span>
               </div>
             </div>
-            <div className="mt-6 pt-6 border-t border-blue-200">
-              <p className="text-sm text-gray-700 leading-relaxed">
+            <div className="mt-6 pt-6 border-t-2 border-slate-200">
+              <p className="text-sm text-slate-600 leading-relaxed font-medium">
                 A confirmation email has been sent to{' '}
-                <strong className="text-gray-900">{email}</strong> with your
+                <strong className="text-slate-800">{email}</strong> with your
                 appointment details and telehealth link.
               </p>
             </div>
           </div>
           <button
             onClick={onCancel}
-            className="px-8 py-3.5 bg-blue-600 text-white text-base font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg transition-all"
+            className="px-10 py-4 bg-gradient-to-b from-emerald-500 to-emerald-600 text-white text-base font-bold rounded-lg border-2 border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 focus:outline-none focus:ring-3 focus:ring-emerald-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
+            style={{ boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
           >
-            Close
+            Done
           </button>
         </div>
       )}
 
       {/* Error State */}
       {step === 'error' && (
-        <div className="text-center py-12">
-          <div className="mb-6">
+        <div className="text-center py-8 sm:py-12">
+          <div className="mb-6 w-24 h-24 mx-auto rounded-2xl bg-gradient-to-b from-red-400 to-red-500 flex items-center justify-center border-4 border-red-300" style={{ boxShadow: '0 8px 24px rgba(239, 68, 68, 0.4), inset 0 2px 0 rgba(255,255,255,0.3)' }}>
             <svg
-              className="w-20 h-20 text-red-500 mx-auto"
+              className="w-12 h-12 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              strokeWidth={3}
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M6 18L18 6M6 6l12 12"
               />
             </svg>
           </div>
-          <h3 className="text-3xl font-bold text-gray-900 mb-3">
+          <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-800 mb-3">
             Booking Failed
           </h3>
-          <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto leading-relaxed">
+          <p className="text-slate-500 text-lg mb-8 max-w-md mx-auto leading-relaxed font-medium">
             {errorMessage}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -1254,13 +1293,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 setStep('confirm');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-              className="px-8 py-3.5 bg-blue-600 text-white text-base font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg transition-all"
+              className="px-10 py-4 bg-gradient-to-b from-emerald-500 to-emerald-600 text-white text-base font-bold rounded-lg border-2 border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 focus:outline-none focus:ring-3 focus:ring-emerald-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
+              style={{ boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
             >
               Try Again
             </button>
             <button
               onClick={onCancel}
-              className="px-8 py-3.5 border-2 border-gray-300 rounded-lg text-gray-900 text-base font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors"
+              className="px-8 py-4 text-base font-bold rounded-lg text-slate-600 bg-gradient-to-b from-white to-slate-100 border-2 border-slate-300 hover:border-slate-400 focus:outline-none focus:ring-3 focus:ring-slate-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
+              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
             >
               Cancel
             </button>

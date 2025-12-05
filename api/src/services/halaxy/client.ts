@@ -390,6 +390,8 @@ export class HalaxyClient {
 
     const token = await getAccessToken();
     const url = `${this.config.apiBaseUrl}${endpoint}`;
+    
+    console.log(`[HalaxyClient] Request: ${options.method || 'GET'} ${url}`);
 
     const response = await fetch(url, {
       ...options,

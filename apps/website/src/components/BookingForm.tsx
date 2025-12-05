@@ -420,51 +420,43 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4 sm:p-8 bg-white rounded-xl shadow-lg">
+    <div className="max-w-4xl w-full mx-auto p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 sm:mb-10">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-2xl sm:text-[28px] font-bold text-gray-900">
           Book Your Appointment
         </h2>
-        <p className="text-gray-600 mt-2 sm:mt-3 text-base sm:text-lg">
+        <p className="text-gray-600 mt-1.5 text-base">
           Schedule a telehealth session with Zoe Semmler
         </p>
       </div>
 
       {/* Progress indicator */}
       {step !== 'success' && step !== 'error' && (
-        <div className="mb-6 sm:mb-12">
-          <div className="flex items-center justify-between gap-2 sm:gap-4">
+        <div className="mb-6">
+          <div className="grid grid-cols-4 gap-2 text-xs sm:text-sm font-semibold">
             <div
-              className={`flex-1 ${step === 'details' ? 'text-blue-600' : step === 'datetime' || step === 'payment' || step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
+              className={`${step === 'details' ? 'text-blue-600' : step === 'datetime' || step === 'payment' || step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
             >
-              <div className="text-xs sm:text-base font-semibold text-center">
-                1. Details
-              </div>
+              <div className="text-center">1. Details</div>
             </div>
             <div
-              className={`flex-1 ${step === 'datetime' ? 'text-blue-600' : step === 'payment' || step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
+              className={`${step === 'datetime' ? 'text-blue-600' : step === 'payment' || step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
             >
-              <div className="text-xs sm:text-base font-semibold text-center">
-                2. Time
-              </div>
+              <div className="text-center">2. Time</div>
             </div>
             <div
-              className={`flex-1 ${step === 'payment' ? 'text-blue-600' : step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
+              className={`${step === 'payment' ? 'text-blue-600' : step === 'confirm' ? 'text-green-600' : 'text-gray-400'}`}
             >
-              <div className="text-xs sm:text-base font-semibold text-center">
-                3. Payment
-              </div>
+              <div className="text-center">3. Payment</div>
             </div>
             <div
-              className={`flex-1 ${step === 'confirm' ? 'text-blue-600' : 'text-gray-400'}`}
+              className={`${step === 'confirm' ? 'text-blue-600' : 'text-gray-400'}`}
             >
-              <div className="text-xs sm:text-base font-semibold text-center">
-                4. Confirm
-              </div>
+              <div className="text-center">4. Confirm</div>
             </div>
           </div>
-          <div className="mt-4 h-2 bg-gray-200 rounded-full">
+          <div className="mt-2 h-1.5 bg-gray-200 rounded-full">
             <div
               className="h-full bg-blue-600 rounded-full transition-all duration-300"
               style={{
@@ -484,8 +476,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 1: Patient Details */}
       {step === 'details' && (
-        <div className="space-y-4 sm:space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="firstName-input"
@@ -791,273 +783,198 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 2: Date & Time */}
       {step === 'datetime' && (
-        <div className="space-y-8">
-          <div>
-            <label
-              htmlFor="appointmentType-select"
-              className="block text-lg font-semibold text-gray-900 mb-3"
-            >
-              Appointment Type{' '}
-              <span className="text-red-600" aria-label="required">
-                *
-              </span>
-            </label>
-            <select
-              id="appointmentType-select"
-              value={appointmentType}
-              onChange={(e) => {
-                setAppointmentType(e.target.value);
-                // Track if Medicare was selected in this session
-                if (e.target.value === 'medicare-psychologist-session') {
-                  setMedicareSelectedThisSession(true);
-                }
-              }}
-              className={`w-full px-4 py-3.5 text-base border-2 rounded-lg focus:outline-none transition-colors bg-white ${errors['appointmentType'] ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}`}
-              aria-required="true"
-              aria-invalid={!!errors['appointmentType']}
-              aria-describedby={
-                errors['appointmentType']
-                  ? 'appointmentType-error'
-                  : 'appointmentType-hint'
-              }
-            >
-              <option value="">Select appointment type</option>
-              <option value="psychologist-session">
-                Psychologist Session - Online (60 mins) - $250.00
-              </option>
-              <option value="medicare-psychologist-session">
-                Medicare Psychologist Session - Online (60 mins) - $250.00
-              </option>
-              <option value="couples-session">
-                Couples Session - Online (60 mins) - $300.00
-              </option>
-              <option value="ndis-psychology-session">
-                NDIS Psychology Session - Online (60 mins) - $232.99
-              </option>
-            </select>
-            {errors['appointmentType'] && (
-              <p
-                id="appointmentType-error"
-                className="text-red-600 text-sm mt-2"
-                role="alert"
-              >
-                {errors['appointmentType']}
-              </p>
-            )}
-
-            {/* Medicare Cost Infographic */}
-            {appointmentType === 'medicare-psychologist-session' &&
-              medicareSelectedThisSession && (
-                <div className="mt-3 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg p-4 shadow-sm">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg" aria-hidden="true">
-                      💚
-                    </span>
-                    <h4 className="text-sm font-bold text-gray-900">
-                      Medicare Session Cost Breakdown (Clinical Psychologist)
-                    </h4>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="bg-white rounded-lg p-3 border border-green-200">
-                      <div className="text-xs text-gray-600 font-medium mb-1">
-                        Session Fee
-                      </div>
-                      <div className="text-lg font-bold text-gray-900">
-                        $250
-                      </div>
-                    </div>
-                    <div className="bg-white rounded-lg p-3 border border-green-200">
-                      <div className="text-xs text-gray-600 font-medium mb-1">
-                        Medicare Rebate
-                      </div>
-                      <div className="text-lg font-bold text-green-600">
-                        -$145.25
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg p-3 border-2 border-blue-600 shadow-md">
-                      <div className="text-xs text-blue-100 font-medium mb-1">
-                        Your Gap
-                      </div>
-                      <div className="text-lg font-bold text-white">
-                        $104.75
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-green-200 space-y-1">
-                    <p className="text-xs text-gray-700 text-center">
-                      <strong>Requires:</strong> Valid GP Mental Health
-                      Treatment Plan
-                    </p>
-                    <p className="text-xs text-gray-600 text-center italic">
-                      Item 80010 • 10 sessions per calendar year • You claim
-                      rebate after session
-                    </p>
-                    <p className="text-xs text-gray-500 text-center">
-                      Prices current as of November 2025
-                    </p>
-                  </div>
-                </div>
-              )}
-
-            {/* Show hint unless green Medicare infographic is displayed */}
-            {!(
-              appointmentType === 'medicare-psychologist-session' &&
-              medicareSelectedThisSession
-            ) && (
-              <p
-                id="appointmentType-hint"
-                className="text-sm text-gray-700 mt-3 font-medium bg-blue-50 px-4 py-2.5 rounded-lg"
-              >
-                💡 Medicare rebates available for eligible appointments ($250 -
-                $145.25 rebate = $104.75 gap)
-              </p>
-            )}
-          </div>
-
-          {/* Halaxy-style Time Slot Calendar */}
-          <div>
-            <label className="block text-xl font-bold text-gray-900 mb-5">
-              Pick a time{' '}
-              <span className="text-red-600" aria-label="required">
-                *
-              </span>
-            </label>
-            <TimeSlotCalendar
-              onSelectSlot={(date, time) => {
-                setAppointmentDate(date);
-                setAppointmentTime(time);
-                // Clear errors when selection is made
-                const newErrors = { ...errors };
-                delete newErrors['appointmentDate'];
-                delete newErrors['appointmentTime'];
-                setErrors(newErrors);
-              }}
-              selectedDate={appointmentDate}
-              selectedTime={appointmentTime}
-              duration={60} // All appointments are 60 minutes
-            />
-            {(errors['appointmentDate'] || errors['appointmentTime']) && (
-              <p className="text-red-500 text-sm mt-2">
-                {errors['appointmentDate'] || errors['appointmentTime']}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="notes-textarea"
-              className="block text-base font-medium text-gray-900 mb-2"
-            >
-              Notes (optional)
-            </label>
-
-            {/* First Session Toggle */}
-            <div className="mb-4 flex items-center gap-3 bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border-2 border-purple-200">
-              <input
-                type="checkbox"
-                id="first-session-toggle"
-                checked={isFirstSession}
-                onChange={(e) => setIsFirstSession(e.target.checked)}
-                className="w-5 h-5 text-blue-600 bg-white border-2 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
-                aria-describedby="first-session-hint"
-              />
-              <label
-                htmlFor="first-session-toggle"
-                className="text-base font-semibold text-gray-900 cursor-pointer select-none"
-              >
-                👋 This is my first session with Zoe
-              </label>
+        <div className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="order-2 lg:order-1 space-y-4">
+              <div>
+                <label className="block text-xl font-bold text-gray-900 mb-3">
+                  Pick a time{' '}
+                  <span className="text-red-600" aria-label="required">
+                    *
+                  </span>
+                </label>
+                <TimeSlotCalendar
+                  onSelectSlot={(date, time) => {
+                    setAppointmentDate(date);
+                    setAppointmentTime(time);
+                    const newErrors = { ...errors };
+                    delete newErrors['appointmentDate'];
+                    delete newErrors['appointmentTime'];
+                    setErrors(newErrors);
+                  }}
+                  selectedDate={appointmentDate}
+                  selectedTime={appointmentTime}
+                  duration={60}
+                />
+                {(errors['appointmentDate'] || errors['appointmentTime']) && (
+                  <p className="text-red-500 text-sm mt-2">
+                    {errors['appointmentDate'] || errors['appointmentTime']}
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* First Session Guidance */}
-            {isFirstSession && (
-              <div className="mb-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 p-6 rounded-xl shadow-sm space-y-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl flex-shrink-0" aria-hidden="true">
-                    💡
+            <div className="order-1 lg:order-2 space-y-6">
+              <div>
+                <label
+                  htmlFor="appointmentType-select"
+                  className="block text-lg font-semibold text-gray-900 mb-2"
+                >
+                  Appointment Type{' '}
+                  <span className="text-red-600" aria-label="required">
+                    *
                   </span>
-                  <div className="space-y-3">
-                    <h4 className="text-lg font-bold text-gray-900">
-                      What to include in your first session notes
-                    </h4>
-                    <p className="text-base text-gray-700 leading-relaxed">
-                      To help Zoe prepare for your first session, consider
-                      sharing:
-                    </p>
-                    <ul className="text-base text-gray-700 space-y-2 list-none">
-                      <li className="flex items-start gap-2">
-                        <span className="text-blue-600 font-bold flex-shrink-0">
-                          •
-                        </span>
-                        <span>
-                          <strong>What brings you to therapy</strong> - A brief
-                          overview of your main concerns or goals
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-blue-600 font-bold flex-shrink-0">
-                          •
-                        </span>
-                        <span>
-                          <strong>Previous therapy experience</strong> - If
-                          you've seen other therapists, what helped or didn't
-                          help
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-blue-600 font-bold flex-shrink-0">
-                          •
-                        </span>
-                        <span>
-                          <strong>Current challenges</strong> - Any specific
-                          situations or symptoms you're dealing with
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-blue-600 font-bold flex-shrink-0">
-                          •
-                        </span>
-                        <span>
-                          <strong>What you hope to achieve</strong> - Your
-                          therapy goals or what success looks like to you
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-blue-600 font-bold flex-shrink-0">
-                          •
-                        </span>
-                        <span>
-                          <strong>Any preferences</strong> - Communication
-                          style, session structure, or topics you want to
-                          prioritize
-                        </span>
-                      </li>
-                    </ul>
-                    <p className="text-sm text-gray-600 italic border-t border-blue-200 pt-3 mt-3">
-                      Remember: You'll have time to discuss everything in detail
-                      during your session. These notes just help Zoe prepare to
-                      support you better.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+                </label>
+                <select
+                  id="appointmentType-select"
+                  value={appointmentType}
+                  onChange={(e) => {
+                    setAppointmentType(e.target.value);
+                    if (e.target.value === 'medicare-psychologist-session') {
+                      setMedicareSelectedThisSession(true);
+                    }
+                  }}
+                  className={`w-full px-4 py-3.5 text-base border-2 rounded-lg focus:outline-none transition-colors bg-white ${errors['appointmentType'] ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}`}
+                  aria-required="true"
+                  aria-invalid={!!errors['appointmentType']}
+                  aria-describedby={
+                    errors['appointmentType']
+                      ? 'appointmentType-error'
+                      : 'appointmentType-hint'
+                  }
+                >
+                  <option value="">Select appointment type</option>
+                  <option value="psychologist-session">
+                    Psychologist Session - Online (60 mins) - $250.00
+                  </option>
+                  <option value="medicare-psychologist-session">
+                    Medicare Psychologist Session - Online (60 mins) - $250.00
+                  </option>
+                  <option value="couples-session">
+                    Couples Session - Online (60 mins) - $300.00
+                  </option>
+                  <option value="ndis-psychology-session">
+                    NDIS Psychology Session - Online (60 mins) - $232.99
+                  </option>
+                </select>
+                {errors['appointmentType'] && (
+                  <p
+                    id="appointmentType-error"
+                    className="text-red-600 text-sm mt-2"
+                    role="alert"
+                  >
+                    {errors['appointmentType']}
+                  </p>
+                )}
 
-            <textarea
-              id="notes-textarea"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={isFirstSession ? 6 : 4}
-              className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-colors"
-              placeholder={
-                isFirstSession
-                  ? 'Share what brings you to therapy, your main concerns, and what you hope to achieve...'
-                  : "Any additional information you'd like to share..."
-              }
-            />
+                {appointmentType === 'medicare-psychologist-session' &&
+                  medicareSelectedThisSession && (
+                    <div className="mt-3 space-y-3 rounded-lg border border-green-200 bg-green-50/80 p-4">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                        <span aria-hidden="true">💚</span>
+                        Medicare Session Cost Breakdown
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs font-medium text-gray-700">
+                        <div className="rounded-lg border border-green-200 bg-white p-3">
+                          <div className="mb-1">Session Fee</div>
+                          <div className="text-lg font-bold text-gray-900">
+                            $250
+                          </div>
+                        </div>
+                        <div className="rounded-lg border border-green-200 bg-white p-3">
+                          <div className="mb-1">Medicare Rebate</div>
+                          <div className="text-lg font-bold text-green-600">
+                            -$145.25
+                          </div>
+                        </div>
+                        <div className="rounded-lg border border-blue-500 bg-gradient-to-br from-blue-500 to-indigo-600 p-3 text-blue-50">
+                          <div className="mb-1">Your Gap</div>
+                          <div className="text-lg font-bold text-white">
+                            $104.75
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-gray-600 text-center">
+                        Requires a valid GP Mental Health Treatment Plan
+                      </p>
+                    </div>
+                  )}
+
+                {!(
+                  appointmentType === 'medicare-psychologist-session' &&
+                  medicareSelectedThisSession
+                ) && (
+                  <p
+                    id="appointmentType-hint"
+                    className="mt-3 rounded-lg bg-blue-50 px-4 py-2 text-sm text-gray-700"
+                  >
+                    💡 Medicare rebates available for eligible appointments ($250 -
+                    $145.25 rebate = $104.75 gap)
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="notes-textarea"
+                  className="block text-base font-medium text-gray-900 mb-2"
+                >
+                  Notes (optional)
+                </label>
+                <div className="mb-3 flex items-center gap-3 rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-3">
+                  <input
+                    type="checkbox"
+                    id="first-session-toggle"
+                    checked={isFirstSession}
+                    onChange={(e) => setIsFirstSession(e.target.checked)}
+                    className="h-5 w-5 cursor-pointer rounded border-2 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    aria-describedby="first-session-hint"
+                  />
+                  <label
+                    htmlFor="first-session-toggle"
+                    className="text-sm font-semibold text-gray-900 cursor-pointer"
+                  >
+                    👋 This is my first session with Zoe
+                  </label>
+                </div>
+
+                {isFirstSession && (
+                  <details
+                    open
+                    className="mb-3 rounded-lg border border-blue-200 bg-blue-50/70 p-4 text-sm text-gray-700"
+                  >
+                    <summary className="mb-2 cursor-pointer font-semibold text-gray-900">
+                      What should I include?
+                    </summary>
+                    <ul className="list-disc space-y-1 pl-5">
+                      <li>What brings you to therapy and your goals</li>
+                      <li>Any previous therapy experience</li>
+                      <li>Current challenges or symptoms</li>
+                      <li>How you prefer sessions to run</li>
+                    </ul>
+                    <p className="mt-2 text-[12px] text-gray-600">
+                      Keep it brief—Zoe will explore everything in session, this just gives her a heads‑up.
+                    </p>
+                  </details>
+                )}
+
+                <textarea
+                  id="notes-textarea"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={isFirstSession ? 5 : 3}
+                  className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  placeholder={
+                    isFirstSession
+                      ? 'Share the top things Zoe should know before your first session...'
+                      : "Any additional information you'd like to share..."
+                  }
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4 sm:pt-10 border-t border-gray-100">
+          <div className="flex flex-col sm:flex-row justify-between gap-4 border-t border-gray-100 pt-4 sm:pt-8">
             <button
               type="button"
               onClick={() => {

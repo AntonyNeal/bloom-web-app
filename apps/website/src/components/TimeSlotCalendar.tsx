@@ -28,6 +28,10 @@ interface TimeSlotCalendarProps {
   practitionerId?: string; // Optional: filter by specific practitioner
 }
 
+const DISPLAY_START_HOUR = 8;
+const DISPLAY_END_HOUR = 20; // 8 pm
+const SLOT_ROW_HEIGHT_PX = 44;
+
 const getWeekStart = (date: Date): Date => {
   const dayOfWeek = date.getDay();
   const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Start on Monday
@@ -46,6 +50,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
 }) => {
   const [minWeekStart] = useState<Date>(() => getWeekStart(new Date()));
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(minWeekStart);
+  const [mobileActiveDayIndex, setMobileActiveDayIndex] = useState(0);
 
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -131,6 +136,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   const generateWeekSchedule = (): DaySchedule[] => {
     const schedule: DaySchedule[] = [];
     const daysToShow = 7;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     // Group available slots by date
     const slotsByDate = groupSlotsByDate(availableSlots);
@@ -162,15 +169,61 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       });
     }
 
-    return schedule;
+    const upcomingDays = schedule.filter(
+      (day) => day.date.getTime() >= today.getTime()
+    );
+
+    return upcomingDays.filter((day) => {
+      const isToday =
+        day.date.toDateString() === today.toDateString();
+      if (isToday && day.slots.length === 0) {
+        return false;
+      }
+      return true;
+    });
   };
 
   const weekSchedule = generateWeekSchedule();
+  const gridColumnTemplate = `repeat(${Math.max(weekSchedule.length, 1)}, minmax(0, 1fr))`;
+  const selectedDateIndex = selectedDate
+    ? weekSchedule.findIndex(
+        (day) => formatDateForValue(day.date) === selectedDate
+      )
+    : -1;
+
+  useEffect(() => {
+    if (selectedDateIndex >= 0) {
+      setMobileActiveDayIndex(selectedDateIndex);
+      return;
+    }
+
+    setMobileActiveDayIndex((currentIndex) =>
+      currentIndex < weekSchedule.length ? currentIndex : 0
+    );
+  }, [selectedDateIndex, weekSchedule.length]);
+
+  useEffect(() => {
+    if (selectedDateIndex === -1) {
+      setMobileActiveDayIndex(0);
+    }
+  }, [currentWeekStart, selectedDateIndex]);
+
+  const mobileActiveDay = weekSchedule[mobileActiveDayIndex] || weekSchedule[0];
+
+  // Ensure consistent column heights by anchoring to a full 8am-8pm window
+  const slotsPerHour = Math.max(
+    1,
+    Math.ceil(60 / Math.max(duration, 1))
+  );
+  const minDisplayRows = Math.max(
+    1,
+    (DISPLAY_END_HOUR - DISPLAY_START_HOUR) * slotsPerHour
+  );
 
   // Calculate the maximum number of slots across all days for consistent height
   const maxSlotsInWeek = Math.max(
-    ...weekSchedule.map((day) => day.slots.length),
-    1 // Minimum 1 to avoid height 0
+    minDisplayRows,
+    ...weekSchedule.map((day) => day.slots.length)
   );
 
   // Format date range display (e.g., "09 Nov - 15 Nov")
@@ -223,6 +276,49 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     const timeStr = formatTimeForValue(slot.time);
 
     return dateStr === selectedDate && timeStr === selectedTime;
+  };
+
+  const renderSlotButton = (
+    day: DaySchedule,
+    slot: TimeSlot,
+    slotIndex: number
+  ) => {
+    const isSelected = isSlotSelected(day, slot);
+    const isWholeHour = slot.time.includes(':00 ');
+
+    return (
+      <button
+        key={`${formatDateForValue(day.date)}-${slot.isoDateTime}-${slotIndex}`}
+        type="button"
+        onClick={() => handleSlotClick(day, slot)}
+        className={`
+            w-full text-xs sm:text-sm py-2 sm:py-3 transition-all duration-150 font-medium relative
+            border-b border-gray-100 last:border-b-0
+            focus:outline-none focus:ring-4 focus:ring-blue-400 focus:ring-inset focus:z-20
+            touch-manipulation min-h-[44px]
+            ${
+              isSelected
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-sm ring-2 ring-inset ring-blue-400 z-10'
+                : 'bg-blue-50 text-blue-700 hover:bg-blue-100 hover:shadow-sm'
+            }
+          `}
+        aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${isSelected ? ' (selected)' : ''}`}
+        aria-pressed={isSelected}
+      >
+        <div className="flex items-center px-2">
+          {isWholeHour ? (
+            <span className="font-semibold">{slot.time}</span>
+          ) : (
+            <div className="flex items-center gap-1.5 w-full">
+              <div className="h-px w-2 bg-blue-400" aria-hidden="true"></div>
+              <span className="text-[10px] sm:text-xs opacity-60">
+                {slot.time.split(' ')[0]}
+              </span>
+            </div>
+          )}
+        </div>
+      </button>
+    );
   };
 
   // Navigation handlers
@@ -337,189 +433,184 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         </div>
       )}
 
-      {/* Calendar grid - Always visible */}
+      {/* Mobile-first stacked calendar */}
       <div
-        className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white relative"
+        className="lg:hidden space-y-4"
         role="region"
-        aria-labelledby="calendar-month-label"
-        aria-label="Weekly appointment calendar"
+        aria-label="Mobile appointment calendar"
       >
-        {/* Loading overlay - subtle, doesn't hide calendar */}
-        {loading && (
-          <div
-            className="absolute top-2 right-2 z-20 flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-full shadow-lg text-xs font-medium"
-            role="status"
-            aria-live="polite"
-          >
-            <div
-              className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"
-              aria-hidden="true"
-            ></div>
-            <span>Loading...</span>
-          </div>
-        )}
-
-        {/* Day headers - Fixed at top */}
         <div
-          className="grid grid-cols-7 gap-0 border-b-2 border-gray-300 bg-gray-50 sticky top-0 z-10"
-          role="row"
-          aria-label="Days of the week"
+          className="-mx-1 flex gap-2 overflow-x-auto pb-2 px-1"
+          role="tablist"
+          aria-label="Select a day"
         >
-          {weekSchedule.map((day, dayIndex) => {
+          {weekSchedule.map((day, index) => {
+            const isActive = index === mobileActiveDayIndex;
             const isToday =
               day.date.toDateString() === new Date().toDateString();
 
             return (
-              <div
-                key={dayIndex}
-                className={`text-center p-2 sm:p-3 border-r border-gray-200 last:border-r-0 ${
-                  isToday
-                    ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300'
-                    : 'bg-gray-50 text-gray-700'
+              <button
+                key={`${day.dayName}-${index}`}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setMobileActiveDayIndex(index)}
+                className={`flex flex-col min-w-[90px] rounded-xl border-2 px-3 py-2 text-left shadow-sm transition-colors ${
+                  isActive
+                    ? 'border-blue-500 bg-blue-50 text-blue-900'
+                    : 'border-gray-200 bg-white text-gray-700'
                 }`}
-                role="columnheader"
-                aria-label={`${day.dayName} ${day.dayNumber} ${day.month}${isToday ? ' (Today)' : ''}`}
               >
-                <div className="text-xs font-medium uppercase">
+                <span className="text-[11px] font-semibold uppercase tracking-wide">
                   {day.dayName}
-                </div>
-                <div
-                  className={`text-base sm:text-lg font-bold ${isToday ? 'text-amber-900' : 'text-gray-900'}`}
-                >
-                  {day.dayNumber}
-                </div>
-                <div className="text-xs">{day.month}</div>
-                {isToday && <span className="sr-only">Today</span>}
-              </div>
+                </span>
+                <span className="text-lg font-bold">
+                  {day.dayNumber} {day.month}
+                </span>
+                {isToday && (
+                  <span className="text-xs font-medium text-amber-600">
+                    Today
+                  </span>
+                )}
+              </button>
             );
           })}
         </div>
 
-        {/* Time slots grid - Fixed height based on max slots */}
-        <div
-          className="grid grid-cols-7 gap-0"
-          role="grid"
-          aria-label="Available appointment time slots"
-        >
-          {weekSchedule.map((day, dayIndex) => (
-            <div
-              key={dayIndex}
-              className="border-r border-gray-200 last:border-r-0 flex flex-col"
-              role="gridcell"
-              style={{ minHeight: `${maxSlotsInWeek * 44}px` }} // 44px per slot minimum
-            >
-              <div className="flex flex-col">
-                {day.slots.length === 0 ? (
-                  <div
-                    className="p-3 sm:p-4 text-center text-xs sm:text-sm text-gray-400"
-                    role="status"
-                  >
-                    No availability
+        <div className="border-2 border-gray-200 rounded-2xl bg-white p-4 shadow-sm">
+          {mobileActiveDay ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-blue-900">
+                    {mobileActiveDay.dayName}, {mobileActiveDay.dayNumber}{' '}
+                    {mobileActiveDay.month}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {mobileActiveDay.slots.length || 'No'} times today
+                  </p>
+                </div>
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                  {mobileActiveDay.slots.length > 0
+                    ? 'Tap a time'
+                    : 'No times'}
+                </span>
+              </div>
+
+              <div className="max-h-[420px] overflow-y-auto rounded-xl border border-gray-100">
+                {mobileActiveDay.slots.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-gray-500">
+                    No availability for this day
                   </div>
                 ) : (
-                  day.slots.map((slot, slotIndex) => {
-                    const isSelected = isSlotSelected(day, slot);
-                    // Check if this is a whole hour (e.g., "8:00 am", "9:00 am")
-                    const isWholeHour = slot.time.includes(':00 ');
-
-                    return (
-                      <button
-                        key={slotIndex}
-                        type="button"
-                        onClick={() => handleSlotClick(day, slot)}
-                        className={`
-                            w-full text-xs sm:text-sm py-2 sm:py-3 transition-all duration-150 font-medium relative
-                            border-b border-gray-100 last:border-b-0
-                            focus:outline-none focus:ring-4 focus:ring-blue-400 focus:ring-inset focus:z-20
-                            touch-manipulation min-h-[44px]
-                            ${
-                              isSelected
-                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-sm ring-2 ring-inset ring-blue-400 z-10'
-                                : 'bg-blue-50 text-blue-700 hover:bg-blue-100 hover:shadow-sm'
-                            }
-                          `}
-                        aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${isSelected ? ' (selected)' : ''}`}
-                        aria-pressed={isSelected}
-                      >
-                        <div className="flex items-center px-2">
-                          {isWholeHour ? (
-                            // Show full hour label
-                            <span className="font-semibold">{slot.time}</span>
-                          ) : (
-                            // Show small notch for 15-min intervals
-                            <div className="flex items-center gap-1.5 w-full">
-                              <div
-                                className="h-px w-2 bg-blue-400"
-                                aria-hidden="true"
-                              ></div>
-                              <span className="text-[10px] sm:text-xs opacity-60">
-                                {slot.time.split(' ')[0]}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })
+                  <div className="flex flex-col">
+                    {mobileActiveDay.slots.map((slot, slotIndex) =>
+                      renderSlotButton(mobileActiveDay, slot, slotIndex)
+                    )}
+                  </div>
                 )}
               </div>
             </div>
-          ))}
+          ) : (
+            <div className="p-4 text-center text-sm text-gray-500">
+              No days loaded
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Legend */}
+      {/* Desktop calendar grid */}
       <div
-        className="mt-4 sm:mt-6 flex flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm bg-gradient-to-r from-gray-50 to-blue-50 p-3 sm:p-4 rounded-lg border-2 border-gray-200"
-        role="note"
-        aria-label="Calendar legend"
+        className="hidden lg:block"
+        role="region"
+        aria-labelledby="calendar-month-label"
+        aria-label="Weekly appointment calendar"
       >
-        <div className="flex items-center gap-2">
-          <div
-            className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-50 border-2 border-blue-200 rounded flex items-center justify-center flex-shrink-0"
-            aria-hidden="true"
-          >
-            <svg
-              className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white relative">
+          {loading && (
+            <div
+              className="absolute top-2 right-2 z-20 flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-full shadow-lg text-xs font-medium"
+              role="status"
+              aria-live="polite"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={3}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-          <span className="font-medium text-gray-700">Available</span>
-        </div>
-        <div className="flex items-center gap-2">
+              <div
+                className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"
+                aria-hidden="true"
+              ></div>
+              <span>Loading...</span>
+            </div>
+          )}
+
           <div
-            className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded shadow flex-shrink-0"
-            aria-hidden="true"
-          ></div>
-          <span className="font-medium text-gray-700">Selected</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 bg-white px-2 sm:px-3 py-1.5 rounded-md border border-gray-300">
-          <svg
-            className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
+            className="grid gap-0 border-b-2 border-gray-300 bg-gray-50"
+            style={{ gridTemplateColumns: gridColumnTemplate }}
+            role="row"
+            aria-label="Days of the week"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span>Only available times are shown</span>
+            {weekSchedule.map((day, dayIndex) => {
+              const isToday =
+                day.date.toDateString() === new Date().toDateString();
+
+              return (
+                <div
+                  key={dayIndex}
+                  className={`text-center p-2 sm:p-3 border-r border-gray-200 last:border-r-0 ${
+                    isToday
+                      ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300'
+                      : 'bg-gray-50 text-gray-700'
+                  }`}
+                  role="columnheader"
+                  aria-label={`${day.dayName} ${day.dayNumber} ${day.month}${isToday ? ' (Today)' : ''}`}
+                >
+                  <div className="text-xs font-medium uppercase">
+                    {day.dayName}
+                  </div>
+                  <div
+                    className={`text-base sm:text-lg font-bold ${isToday ? 'text-amber-900' : 'text-gray-900'}`}
+                  >
+                    {day.dayNumber}
+                  </div>
+                  <div className="text-xs">{day.month}</div>
+                  {isToday && <span className="sr-only">Today</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          <div
+            className="grid gap-0"
+            style={{ gridTemplateColumns: gridColumnTemplate }}
+            role="grid"
+            aria-label="Available appointment time slots"
+          >
+            {weekSchedule.map((day, dayIndex) => (
+              <div
+                key={dayIndex}
+                className="border-r border-gray-200 last:border-r-0 flex flex-col"
+                role="gridcell"
+                style={{ minHeight: `${maxSlotsInWeek * SLOT_ROW_HEIGHT_PX}px` }}
+              >
+                <div className="flex flex-1 flex-col">
+                  {day.slots.length === 0 ? (
+                    <div
+                      className="p-3 sm:p-4 text-center text-xs sm:text-sm text-gray-400 flex-1 flex items-center justify-center"
+                      role="status"
+                    >
+                      No availability
+                    </div>
+                  ) : (
+                    day.slots.map((slot, slotIndex) =>
+                      renderSlotButton(day, slot, slotIndex)
+                    )
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
     </div>
   );
 };

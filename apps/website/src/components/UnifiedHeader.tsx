@@ -125,7 +125,6 @@ const UnifiedHeader = () => {
                     width="1200"
                     height="1600"
                     loading="eager"
-                    fetchPriority="high"
                     decoding="async"
                     style={{
                       display: 'block',

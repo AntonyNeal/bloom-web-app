@@ -25,13 +25,36 @@ export async function loadRuntimeConfig(url?: string): Promise<RuntimeConfig> {
 
   try {
     log.info('Loading runtime config', 'RuntimeConfig', { url: configUrl });
-    const response = await apiService.get<RuntimeConfig>(configUrl);
 
-    if (!response.success) {
-      throw new Error(response.error || 'Failed to load runtime config');
+    const isAbsoluteUrl = /^https?:\/\//i.test(configUrl);
+    let data: RuntimeConfig = {};
+
+    if (isAbsoluteUrl) {
+      const response = await apiService.get<RuntimeConfig>(configUrl);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to load runtime config');
+      }
+
+      data = response.data ?? {};
+    } else {
+      const response = await fetch(configUrl, {
+        headers: {
+          Accept: 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to load runtime config (status ${response.status})`
+        );
+      }
+
+      data = ((await response.json()) as RuntimeConfig) ?? {};
     }
 
-    runtimeConfig = response.data;
+    runtimeConfig = data;
 
     // Set window variables for compatibility with getEnvVar/getEnvBool
     if (typeof window !== 'undefined') {

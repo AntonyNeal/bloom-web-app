@@ -8,16 +8,49 @@ export async function loadRuntimeConfig(
   timeoutMs = 2000
 ): Promise<Record<string, unknown> | null> {
   try {
-    const response = await apiService.get<Record<string, unknown>>(url, {
-      timeout: timeoutMs,
-    });
+    const isAbsoluteUrl = /^https?:\/\//i.test(url);
+    let json: Record<string, unknown> = {};
 
-    if (!response.success) {
-      log.error('Runtime config fetch failed', 'RuntimeFetch', response.error);
-      return null;
+    if (isAbsoluteUrl) {
+      const response = await apiService.get<Record<string, unknown>>(url, {
+        timeout: timeoutMs,
+      });
+
+      if (!response.success) {
+        log.error('Runtime config fetch failed', 'RuntimeFetch', response.error);
+        return null;
+      }
+
+      json = response.data || {};
+    } else {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        const response = await fetch(url, {
+          headers: {
+            Accept: 'application/json',
+            'Cache-Control': 'no-cache',
+          },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          log.error(
+            'Runtime config fetch failed',
+            'RuntimeFetch',
+            `Status ${response.status}`
+          );
+          return null;
+        }
+
+        json = ((await response.json()) as Record<string, unknown>) || {};
+      } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+      }
     }
-
-    const json = response.data || {};
 
     // Check if we're in development and conditionally disable chat
     const isDevelopment = import.meta.env.MODE === 'development';

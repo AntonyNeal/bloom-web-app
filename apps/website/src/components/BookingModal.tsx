@@ -82,7 +82,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       {/* Modal panel - full screen on mobile, large modal on desktop */}
       <div
         ref={modalContentRef}
-        className="relative z-10 w-full h-full sm:h-auto sm:max-h-[95vh] max-w-3xl overflow-y-auto rounded-none sm:rounded-lg bg-white shadow-2xl"
+        className="relative z-10 w-full h-full sm:h-auto sm:max-h-[95vh] max-w-4xl overflow-y-auto rounded-none sm:rounded-2xl bg-white shadow-2xl"
       >
         {/* Close button - positioned absolutely in top-right corner */}
         <button
@@ -106,7 +106,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </button>
 
         {/* Booking form */}
-        <div className="p-3 sm:p-6 pt-10 sm:pt-12">
+        <div className="p-3 sm:p-6 pt-8 sm:pt-10">
           <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
         </div>
       </div>

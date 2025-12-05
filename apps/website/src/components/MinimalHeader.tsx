@@ -40,7 +40,6 @@ const MinimalHeader = () => {
                 width="1200"
                 height="800"
                 loading="eager"
-                fetchPriority="high"
                 decoding="sync"
               />
             </div>

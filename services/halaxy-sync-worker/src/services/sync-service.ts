@@ -173,6 +173,9 @@ export class HalaxySyncService {
         // Clean up old slots before syncing new ones
         await this.cleanupOldSlots(pool, practitioner.id);
 
+        // Reconcile current database state with the snapshot we just fetched
+        await this.reconcilePractitionerSlots(pool, practitioner.id, slots);
+
         for (const slot of slots) {
           try {
             await this.syncSlot(pool, slot, practitioner.id);
@@ -425,6 +428,59 @@ export class HalaxySyncService {
       trackDependency('SQL', 'cleanupOldSlots', 'DELETE availability_slots', Date.now() - startTime, false);
       // Non-critical error, log and continue
       console.warn('[SyncService] Failed to cleanup old slots:', error);
+    }
+  }
+
+  /**
+   * Reconcile practitioner slots so that entries no longer returned by Halaxy
+   * are immediately marked as not bookable.
+   */
+  private async reconcilePractitionerSlots(
+    pool: sql.ConnectionPool,
+    practitionerId: string,
+    slots: FHIRSlot[]
+  ): Promise<void> {
+    const startTime = Date.now();
+
+    try {
+      const slotIdsJson = JSON.stringify(slots.map((slot) => slot.id));
+
+      await pool.request()
+        .input('practitionerId', sql.UniqueIdentifier, practitionerId)
+        .input('slotIdsJson', sql.NVarChar(sql.MAX), slotIdsJson)
+        .query(`
+          WITH slot_ids AS (
+            SELECT value AS slot_id FROM OPENJSON(@slotIdsJson)
+          )
+          UPDATE a
+          SET
+            status = CASE WHEN a.status = 'free' THEN 'busy-unavailable' ELSE a.status END,
+            is_bookable = 0,
+            updated_at = GETUTCDATE(),
+            last_synced_at = GETUTCDATE()
+          FROM availability_slots a
+          LEFT JOIN slot_ids s ON a.halaxy_slot_id = s.slot_id
+          WHERE a.practitioner_id = @practitionerId
+            AND a.slot_start >= GETUTCDATE()
+            AND s.slot_id IS NULL;
+        `);
+
+      trackDependency(
+        'SQL',
+        'reconcilePractitionerSlots',
+        'UPDATE availability_slots',
+        Date.now() - startTime,
+        true
+      );
+    } catch (error) {
+      trackDependency(
+        'SQL',
+        'reconcilePractitionerSlots',
+        'UPDATE availability_slots',
+        Date.now() - startTime,
+        false
+      );
+      console.warn('[SyncService] Failed to reconcile practitioner slots:', error);
     }
   }
 

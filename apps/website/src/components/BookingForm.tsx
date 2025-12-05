@@ -875,7 +875,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               }}
             />
             
-            <div className="flex items-center gap-2 mb-5">
+            <div className="flex items-center gap-2 mb-4">
               <span 
                 className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border"
                 style={{
@@ -885,182 +885,200 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8)'
                 }}
               >2</span>
-              <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">Session details</span>
+              <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">Appointment type <span className="text-red-500">*</span></span>
             </div>
 
-            <div className="space-y-5">
-              <div>
-                <label
-                  htmlFor="appointmentType-select"
-                  className="block text-sm font-semibold text-slate-600 mb-2"
-                >
-                  Appointment Type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="appointmentType-select"
-                  value={appointmentType}
-                  onChange={(e) => {
-                    setAppointmentType(e.target.value);
-                    if (e.target.value === 'medicare-psychologist-session') {
-                      setMedicareSelectedThisSession(true);
-                    }
-                  }}
-                  className={`w-full px-4 py-3 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['appointmentType'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50'}`}
-                  style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)' }}
-                  aria-required="true"
-                  aria-invalid={!!errors['appointmentType']}
-                  aria-describedby={
-                    errors['appointmentType']
-                      ? 'appointmentType-error'
-                      : 'appointmentType-hint'
-                  }
-                >
-                  <option value="">Select appointment type</option>
-                  <option value="psychologist-session">
-                    Psychologist Session - Online (60 mins) - $250.00
-                  </option>
-                  <option value="medicare-psychologist-session">
-                    Medicare Psychologist Session - Online (60 mins) - $250.00
-                  </option>
-                  <option value="couples-session">
-                    Couples Session - Online (60 mins) - $300.00
-                  </option>
-                  <option value="ndis-psychology-session">
-                    NDIS Psychology Session - Online (60 mins) - $232.99
-                  </option>
-                </select>
-                {errors['appointmentType'] && (
-                  <p
-                    id="appointmentType-error"
-                    className="text-red-500 text-sm mt-2 font-medium"
-                    role="alert"
-                  >
-                    {errors['appointmentType']}
-                  </p>
-                )}
+            <select
+              id="appointmentType-select"
+              value={appointmentType}
+              onChange={(e) => {
+                setAppointmentType(e.target.value);
+                if (e.target.value === 'medicare-psychologist-session') {
+                  setMedicareSelectedThisSession(true);
+                }
+              }}
+              className={`w-full px-4 py-3 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['appointmentType'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50'}`}
+              style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)' }}
+              aria-required="true"
+              aria-invalid={!!errors['appointmentType']}
+              aria-describedby={
+                errors['appointmentType']
+                  ? 'appointmentType-error'
+                  : 'appointmentType-hint'
+              }
+            >
+              <option value="">Select appointment type</option>
+              <option value="psychologist-session">
+                Psychologist Session - Online (60 mins) - $250.00
+              </option>
+              <option value="medicare-psychologist-session">
+                Medicare Psychologist Session - Online (60 mins) - $250.00
+              </option>
+              <option value="couples-session">
+                Couples Session - Online (60 mins) - $300.00
+              </option>
+              <option value="ndis-psychology-session">
+                NDIS Psychology Session - Online (60 mins) - $232.99
+              </option>
+            </select>
+            {errors['appointmentType'] && (
+              <p
+                id="appointmentType-error"
+                className="text-red-500 text-sm mt-2 font-medium"
+                role="alert"
+              >
+                {errors['appointmentType']}
+              </p>
+            )}
 
-                {appointmentType === 'medicare-psychologist-session' &&
-                  medicareSelectedThisSession && (
+            {appointmentType === 'medicare-psychologist-session' &&
+              medicareSelectedThisSession && (
+                <div 
+                  className="mt-4 space-y-3 rounded-xl border border-emerald-200/80 p-4"
+                  style={{ 
+                    background: 'linear-gradient(135deg, rgba(236,253,245,0.9) 0%, rgba(255,255,255,0.95) 100%)',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.08)' 
+                  }}
+                >
+                  <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                    <span aria-hidden="true">💚</span>
+                    Medicare Cost Breakdown
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center text-xs font-semibold text-slate-600">
+                    <div className="rounded-lg border border-slate-200 bg-white p-2.5" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)' }}>
+                      <div className="mb-0.5 text-slate-500 text-[10px]">Session Fee</div>
+                      <div className="text-lg font-bold text-slate-800">$250</div>
+                    </div>
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-2.5">
+                      <div className="mb-0.5 text-emerald-600 text-[10px]">Rebate</div>
+                      <div className="text-lg font-bold text-emerald-600">−$145.25</div>
+                    </div>
                     <div 
-                      className="mt-4 space-y-3 rounded-xl border border-emerald-200/80 p-4"
+                      className="rounded-lg border border-emerald-400 p-2.5 text-white"
                       style={{ 
-                        background: 'linear-gradient(135deg, rgba(236,253,245,0.9) 0%, rgba(255,255,255,0.95) 100%)',
-                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.08)' 
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)' 
                       }}
                     >
-                      <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                        <span aria-hidden="true">💚</span>
-                        Medicare Cost Breakdown
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-center text-xs font-semibold text-slate-600">
-                        <div className="rounded-lg border border-slate-200 bg-white p-2.5" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)' }}>
-                          <div className="mb-0.5 text-slate-500 text-[10px]">Session Fee</div>
-                          <div className="text-lg font-bold text-slate-800">$250</div>
-                        </div>
-                        <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-2.5">
-                          <div className="mb-0.5 text-emerald-600 text-[10px]">Rebate</div>
-                          <div className="text-lg font-bold text-emerald-600">−$145.25</div>
-                        </div>
-                        <div 
-                          className="rounded-lg border border-emerald-400 p-2.5 text-white"
-                          style={{ 
-                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)' 
-                          }}
-                        >
-                          <div className="mb-0.5 text-emerald-100 text-[10px]">Your Gap</div>
-                          <div className="text-lg font-bold">$104.75</div>
-                        </div>
-                      </div>
-                      <p className="text-[11px] text-slate-500 text-center">
-                        Requires a valid GP Mental Health Treatment Plan
-                      </p>
+                      <div className="mb-0.5 text-emerald-100 text-[10px]">Your Gap</div>
+                      <div className="text-lg font-bold">$104.75</div>
                     </div>
-                  )}
-
-                {!(
-                  appointmentType === 'medicare-psychologist-session' &&
-                  medicareSelectedThisSession
-                ) && (
-                  <p
-                    id="appointmentType-hint"
-                    className="mt-3 rounded-lg border border-slate-200/80 px-4 py-3 text-sm text-slate-600"
-                    style={{ 
-                      background: 'linear-gradient(135deg, rgba(248,250,252,0.8) 0%, rgba(241,245,249,0.6) 100%)',
-                      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' 
-                    }}
-                  >
-                    💡 Medicare rebates available for eligible appointments ($250 −
-                    $145.25 rebate = $104.75 gap)
+                  </div>
+                  <p className="text-[11px] text-slate-500 text-center">
+                    Requires a valid GP Mental Health Treatment Plan
                   </p>
-                )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor="notes-textarea"
-                  className="block text-sm font-semibold text-slate-600 mb-2"
-                >
-                  Notes <span className="font-normal text-slate-400">(optional)</span>
-                </label>
-                <div 
-                  className="mb-3 flex items-center gap-3 rounded-lg border border-slate-200/80 p-3"
-                  style={{ 
-                    background: 'linear-gradient(135deg, rgba(248,250,252,0.6) 0%, rgba(255,255,255,0.8) 100%)',
-                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' 
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    id="first-session-toggle"
-                    checked={isFirstSession}
-                    onChange={(e) => setIsFirstSession(e.target.checked)}
-                    className="h-5 w-5 cursor-pointer rounded border-slate-300 text-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:ring-offset-1"
-                    aria-describedby="first-session-hint"
-                  />
-                  <label
-                    htmlFor="first-session-toggle"
-                    className="text-sm font-medium text-slate-600 cursor-pointer"
-                  >
-                    👋 This is my first session with Zoe
-                  </label>
                 </div>
+              )}
 
-                {isFirstSession && (
-                  <details
-                    open
-                    className="mb-3 rounded-lg border border-slate-200/80 bg-slate-50/80 p-3 text-sm text-slate-600"
-                  >
-                    <summary className="mb-2 cursor-pointer font-semibold text-slate-700">
-                      What should I include?
-                    </summary>
-                    <ul className="list-disc space-y-1 pl-5 text-sm">
-                      <li>What brings you to therapy and your goals</li>
-                      <li>Any previous therapy experience</li>
-                      <li>Current challenges or symptoms</li>
-                      <li>How you prefer sessions to run</li>
-                    </ul>
-                    <p className="mt-2 text-xs text-slate-500">
-                      Keep it brief—Zoe will explore everything in session, this just gives her a heads‑up.
-                    </p>
-                  </details>
-                )}
+            {!(
+              appointmentType === 'medicare-psychologist-session' &&
+              medicareSelectedThisSession
+            ) && (
+              <p
+                id="appointmentType-hint"
+                className="mt-3 rounded-lg border border-slate-200/80 px-4 py-3 text-sm text-slate-600"
+                style={{ 
+                  background: 'linear-gradient(135deg, rgba(248,250,252,0.8) 0%, rgba(241,245,249,0.6) 100%)',
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' 
+                }}
+              >
+                💡 Medicare rebates available for eligible appointments ($250 −
+                $145.25 rebate = $104.75 gap)
+              </p>
+            )}
+          </div>
 
-                <textarea
-                  id="notes-textarea"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={isFirstSession ? 4 : 2}
-                  className="w-full rounded-lg border border-slate-200 px-4 py-3 text-base focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50 focus:outline-none transition-all bg-white"
-                  style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)' }}
-                  placeholder={
-                    isFirstSession
-                      ? 'Share the top things Zoe should know before your first session...'
-                      : "Any additional information you'd like to share..."
-                  }
-                />
-              </div>
+          {/* Notes Section - Separate glass panel */}
+          <div 
+            className="rounded-xl p-4 sm:p-5 border border-slate-200/60 relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(145deg, rgba(248,250,252,0.97) 0%, rgba(241,245,249,0.92) 100%)',
+              backdropFilter: 'blur(12px)',
+              boxShadow: `
+                0 1px 2px rgba(0,0,0,0.03),
+                0 4px 16px rgba(0,0,0,0.04),
+                inset 0 1px 0 rgba(255,255,255,0.95),
+                inset 0 -1px 0 rgba(148,163,184,0.08)
+              `
+            }}
+          >
+            {/* Subtle steel accent line at top */}
+            <div 
+              className="absolute top-0 left-4 right-4 h-px"
+              style={{
+                background: 'linear-gradient(90deg, transparent 0%, rgba(148,163,184,0.25) 30%, rgba(203,213,225,0.4) 50%, rgba(148,163,184,0.25) 70%, transparent 100%)'
+              }}
+            />
+            
+            <div className="flex items-center gap-2 mb-4">
+              <span 
+                className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border"
+                style={{
+                  background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+                  borderColor: 'rgba(148,163,184,0.4)',
+                  color: '#64748b',
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8)'
+                }}
+              >3</span>
+              <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">Notes <span className="font-normal normal-case text-slate-400">(optional)</span></span>
             </div>
+
+            <div 
+              className="mb-3 flex items-center gap-3 rounded-lg border border-slate-200/80 p-3"
+              style={{ 
+                background: 'linear-gradient(135deg, rgba(248,250,252,0.6) 0%, rgba(255,255,255,0.8) 100%)',
+                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' 
+              }}
+            >
+              <input
+                type="checkbox"
+                id="first-session-toggle"
+                checked={isFirstSession}
+                onChange={(e) => setIsFirstSession(e.target.checked)}
+                className="h-5 w-5 cursor-pointer rounded border-slate-300 text-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:ring-offset-1"
+                aria-describedby="first-session-hint"
+              />
+              <label
+                htmlFor="first-session-toggle"
+                className="text-sm font-medium text-slate-600 cursor-pointer"
+              >
+                👋 This is my first session with Zoe
+              </label>
+            </div>
+
+            {isFirstSession && (
+              <details
+                open
+                className="mb-3 rounded-lg border border-slate-200/80 bg-slate-50/80 p-3 text-sm text-slate-600"
+              >
+                <summary className="mb-2 cursor-pointer font-semibold text-slate-700">
+                  What should I include?
+                </summary>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  <li>What brings you to therapy and your goals</li>
+                  <li>Any previous therapy experience</li>
+                  <li>Current challenges or symptoms</li>
+                  <li>How you prefer sessions to run</li>
+                </ul>
+                <p className="mt-2 text-xs text-slate-500">
+                  Keep it brief—Zoe will explore everything in session, this just gives her a heads‑up.
+                </p>
+              </details>
+            )}
+
+            <textarea
+              id="notes-textarea"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={isFirstSession ? 4 : 2}
+              className="w-full rounded-lg border border-slate-200 px-4 py-3 text-base focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50 focus:outline-none transition-all bg-white"
+              style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)' }}
+              placeholder={
+                isFirstSession
+                  ? 'Share the top things Zoe should know before your first session...'
+                  : "Any additional information you'd like to share..."
+              }
+            />
           </div>
 
           {/* Action buttons - Polished steel finish */}

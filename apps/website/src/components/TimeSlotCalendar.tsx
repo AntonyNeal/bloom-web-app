@@ -28,6 +28,15 @@ interface TimeSlotCalendarProps {
   practitionerId?: string; // Optional: filter by specific practitioner
 }
 
+const getWeekStart = (date: Date): Date => {
+  const dayOfWeek = date.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Start on Monday
+  const monday = new Date(date);
+  monday.setDate(date.getDate() + diff);
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+};
+
 export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   onSelectSlot,
   selectedDate,
@@ -35,15 +44,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   duration = 60,
   practitionerId,
 }) => {
-  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Start on Monday
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + diff);
-    monday.setHours(0, 0, 0, 0);
-    return monday;
-  });
+  const [minWeekStart] = useState<Date>(() => getWeekStart(new Date()));
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(minWeekStart);
 
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -227,6 +229,12 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   const previousWeek = () => {
     const newStart = new Date(currentWeekStart);
     newStart.setDate(currentWeekStart.getDate() - 7);
+
+    if (newStart.getTime() < minWeekStart.getTime()) {
+      setCurrentWeekStart(minWeekStart);
+      return;
+    }
+
     setCurrentWeekStart(newStart);
   };
 
@@ -237,13 +245,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   };
 
   const goToToday = () => {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + diff);
-    monday.setHours(0, 0, 0, 0);
-    setCurrentWeekStart(monday);
+    setCurrentWeekStart(getWeekStart(new Date()));
   };
 
   return (
@@ -253,7 +255,10 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={previousWeek}
-            disabled={loading}
+            disabled={
+              loading ||
+              currentWeekStart.getTime() <= minWeekStart.getTime()
+            }
             className="w-10 h-10 flex items-center justify-center bg-white border-2 border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             aria-label="Previous week"
           >

@@ -363,12 +363,18 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
 
   // Find and navigate to first week with availability (triggered by button click)
   const goToFirstAvailableWeek = () => {
-    // Reset search state and let the effect handle finding availability
-    if (weekSchedule.length === 0) {
-      setSearchedWeeksWithNoSlots(new Set());
-      setIsSearchingForAvailability(true);
-      nextWeek();
+    // Check if current week has any availability
+    const currentWeekHasAvailability = weekSchedule.some(day => day.slots.length > 0);
+    
+    if (currentWeekHasAvailability) {
+      // Current week has slots - no need to search
+      return;
     }
+    
+    // Reset search state and trigger search for availability
+    setSearchedWeeksWithNoSlots(new Set());
+    setIsSearchingForAvailability(true);
+    nextWeek();
   };
 
   return (

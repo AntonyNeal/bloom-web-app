@@ -250,18 +250,58 @@ export class HalaxySyncService {
       }
 
       // 4. Sync availability slots - next 90 days
-      // Note: Slot endpoint may not be available for all Halaxy API configurations
-      // Skipping slot sync for now - can be enabled once endpoint is confirmed working
-      console.log(`[HalaxySyncService] Skipping slot sync (endpoint not available)`);
-      
-      /*
       // Only sync slots for actual practitioners (PR- prefix), not employees (EP- prefix)
       const isPractitioner = halaxyPractitionerId.startsWith('PR-');
       
       if (isPractitioner) {
-        // ... slot sync code commented out until endpoint is confirmed
+        try {
+          // Clean up old slots first
+          await this.cleanupOldSlots(practitioner.id);
+          
+          // Fetch available slots from Halaxy - next 90 days
+          const slotStartDate = new Date();
+          const slotEndDate = new Date();
+          slotEndDate.setDate(slotEndDate.getDate() + 90);
+          
+          // Get slots - try getAllAvailableSlots first (with date range)
+          let slots: FHIRSlot[] = [];
+          try {
+            slots = await this.client.getAllAvailableSlots(slotStartDate, slotEndDate, 'free');
+            console.log(`[HalaxySyncService] Found ${slots.length} free slots via date query`);
+          } catch (dateQueryError) {
+            // If date query fails, try getting all slots without date filter
+            console.log(`[HalaxySyncService] Date query failed, trying without date filter`);
+            slots = await this.client.getAllSlots();
+            console.log(`[HalaxySyncService] Found ${slots.length} slots (all)`);
+            // Filter to free slots only
+            slots = slots.filter(s => s.status === 'free');
+            console.log(`[HalaxySyncService] Filtered to ${slots.length} free slots`);
+          }
+          
+          // Sync each slot
+          for (const slot of slots) {
+            try {
+              await this.syncSlot(slot, practitioner.id);
+              recordsUpdated++;
+            } catch (slotError) {
+              console.warn(`[HalaxySyncService] Failed to sync slot ${slot.id}:`, slotError);
+            }
+          }
+          
+          console.log(`[HalaxySyncService] Synced ${slots.length} availability slots`);
+        } catch (slotSyncError) {
+          console.warn(`[HalaxySyncService] Could not sync slots for ${halaxyPractitionerId}:`, slotSyncError);
+          errors.push({
+            entityType: 'slot',
+            entityId: halaxyPractitionerId,
+            operation: 'sync',
+            message: `Could not sync slots: ${getErrorMessage(slotSyncError)}`,
+            timestamp: new Date(),
+          });
+        }
+      } else {
+        console.log(`[HalaxySyncService] Skipping slot sync for employee ${halaxyPractitionerId}`);
       }
-      */
 
       // Update MHCP used sessions for each client
       await this.updateMhcpSessionCounts(practitioner.id);

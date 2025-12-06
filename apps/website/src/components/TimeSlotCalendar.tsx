@@ -246,6 +246,29 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     }
   }, [currentWeekStart, selectedDateIndex]);
 
+  // Auto-select the first day with availability when the modal opens
+  useEffect(() => {
+    // Only auto-select if no date is currently selected and we have availability
+    if (!selectedDate && !loading && availableSlots.length > 0) {
+      // Find the first day in the schedule that has available slots
+      const firstAvailableDay = weekSchedule.find((day) => day.slots.length > 0);
+      
+      if (firstAvailableDay) {
+        const dateValue = formatDateForValue(firstAvailableDay.date);
+        console.log('[TimeSlotCalendar] Auto-selecting first available day:', dateValue);
+        
+        // Update mobile active day index
+        const dayIndex = weekSchedule.findIndex((day) => day.slots.length > 0);
+        if (dayIndex >= 0) {
+          setMobileActiveDayIndex(dayIndex);
+        }
+        
+        // Note: We don't call onSelectSlot here because we only want to highlight the day,
+        // not actually select a time slot. The user still needs to pick a specific time.
+      }
+    }
+  }, [selectedDate, loading, availableSlots.length, weekSchedule]);
+
   const mobileActiveDay = weekSchedule[mobileActiveDayIndex] || weekSchedule[0];
 
   // Ensure consistent column heights by anchoring to a full 8am-8pm window

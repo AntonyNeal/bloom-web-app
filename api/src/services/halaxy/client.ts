@@ -213,15 +213,14 @@ export class HalaxyClient {
   // ===========================================================================
 
   /**
-   * Get all slots (paginated)
+   * Get all slots (paginated through all pages)
    * Uses the exact format from Halaxy API docs
    */
   async getAllSlots(): Promise<FHIRSlot[]> {
-    // For debugging: just get first page directly instead of using getAllPages
-    // This mimics what the discovery endpoint does
-    const bundle = await this.request<FHIRBundle<FHIRSlot>>('/Slot');
-    console.log(`[HalaxyClient] getAllSlots got bundle with ${bundle.total} total slots`);
-    return bundle.entry?.map(e => e.resource) || [];
+    // Use getAllPages to fetch all slots, not just the first page
+    const slots = await this.getAllPages<FHIRSlot>('/Slot');
+    console.log(`[HalaxyClient] getAllSlots fetched ${slots.length} total slots (all pages)`);
+    return slots;
   }
 
   /**

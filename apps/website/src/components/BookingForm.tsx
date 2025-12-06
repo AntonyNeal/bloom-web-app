@@ -843,19 +843,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               `
             }}
           >
-            <div className="flex items-center gap-2 mb-4">
-              <span 
-                className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border"
-                style={{
-                  background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
-                  borderColor: 'rgba(148,163,184,0.4)',
-                  color: '#64748b',
-                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8)'
-                }}
-              >1</span>
-              <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">
-                Pick a time <span className="text-red-500">*</span>
-              </span>
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-slate-700">
+                Select a Date & Time <span className="text-red-500">*</span>
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                Choose an available slot that works for you
+              </p>
             </div>
             <TimeSlotCalendar
               onSelectSlot={(date, time) => {

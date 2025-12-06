@@ -47,6 +47,21 @@ function getEnvOrDefault(key: string, defaultValue: string): string {
   return process.env[key] || defaultValue;
 }
 
+function isPlaceholder(value: string | undefined | null): boolean {
+  const trimmed = (value || '').trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  const lower = trimmed.toLowerCase();
+  return (
+    lower.includes('placeholder') ||
+    lower.includes('your-client-id') ||
+    lower.includes('your-client-secret') ||
+    lower.includes('your-refresh-token')
+  );
+}
+
 export const config: WorkerConfig = {
   // Environment
   environment: (process.env.ENVIRONMENT || 'development') as WorkerConfig['environment'],
@@ -95,16 +110,25 @@ export function validateConfig(): void {
     errors.push('SQL_CONNECTION_STRING is required');
   }
   
-  if (!config.halaxyClientId) {
-    errors.push('HALAXY_CLIENT_ID is required');
+  const missingHalaxySecrets: string[] = [];
+
+  if (isPlaceholder(config.halaxyClientId)) {
+    missingHalaxySecrets.push('HALAXY_CLIENT_ID');
   }
-  
-  if (!config.halaxyClientSecret) {
-    errors.push('HALAXY_CLIENT_SECRET is required');
+
+  if (isPlaceholder(config.halaxyClientSecret)) {
+    missingHalaxySecrets.push('HALAXY_CLIENT_SECRET');
   }
-  
-  if (!config.halaxyRefreshToken) {
-    errors.push('HALAXY_REFRESH_TOKEN is required');
+
+  if (isPlaceholder(config.halaxyRefreshToken)) {
+    missingHalaxySecrets.push('HALAXY_REFRESH_TOKEN');
+  }
+
+  if (missingHalaxySecrets.length > 0) {
+    errors.push(
+      `Halaxy credentials missing or placeholder: ${missingHalaxySecrets.join(', ')}. ` +
+        'Update the corresponding Key Vault secrets (HALAXY-CLIENT-ID, HALAXY-CLIENT-SECRET, HALAXY-REFRESH-TOKEN).'
+    );
   }
   
   // Real-time services (warn if missing but don't fail - graceful degradation)

@@ -6,10 +6,25 @@ import {
 } from '@azure/functions';
 import Stripe from 'stripe';
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-02-24.acacia',
-});
+let stripeClient: Stripe | null = null;
+
+function getStripeClient(context: InvocationContext): Stripe {
+  if (stripeClient) {
+    return stripeClient;
+  }
+
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    context.error('STRIPE_SECRET_KEY environment variable is not configured');
+    throw new Error('Stripe configuration is missing');
+  }
+
+  stripeClient = new Stripe(secretKey, {
+    apiVersion: '2025-02-24.acacia',
+  });
+
+  return stripeClient;
+}
 
 interface CreatePaymentIntentRequest {
   amount: number;
@@ -77,6 +92,8 @@ async function createPaymentIntent(
       currency: body.currency,
       customerEmail: body.customerEmail,
     });
+
+    const stripe = getStripeClient(context);
 
     // Create PaymentIntent with Stripe
     const paymentIntent = await stripe.paymentIntents.create({

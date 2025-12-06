@@ -213,9 +213,9 @@ export class HalaxyClient {
     status: FHIRSlotStatus = 'free'
   ): Promise<FHIRSlot[]> {
     return this.getAllPages<FHIRSlot>('/Slot', {
-      'schedule.actor': `Practitioner/${practitionerId}`,
-      'start': `ge${startDate.toISOString()}`,
-      'start:lt': endDate.toISOString(),
+      practitioner: `Practitioner/${practitionerId}`,
+      start: `ge${startDate.toISOString()}`,
+      end: `le${endDate.toISOString()}`,
       status: status,
     });
   }
@@ -243,21 +243,26 @@ export class HalaxyClient {
       status: 'free',
     });
 
+    if (config.halaxyHealthcareServiceId) {
+      params.set('healthcareService', `HealthcareService/${config.halaxyHealthcareServiceId}`);
+    }
+
     try {
       const bundle = await this.request<FHIRBundle<FHIRSlot>>(
         `/Slot/$find?${params.toString()}`
       );
 
-      if (bundle.entry) {
+      if (bundle.entry && bundle.entry.length > 0) {
         return bundle.entry.map(e => e.resource);
       }
-
-      return [];
+      console.warn('[HalaxyClient] $find returned no slots, falling back to standard Slot search');
     } catch (error) {
       // Fallback to standard Slot search if $find is not supported
       console.warn('[HalaxyClient] $find operation failed, falling back to standard search');
       return this.getSlotsByPractitioner(practitionerId, startDate, endDate, 'free');
     }
+
+    return this.getSlotsByPractitioner(practitionerId, startDate, endDate, 'free');
   }
 
   /**
@@ -271,10 +276,14 @@ export class HalaxyClient {
     endDate: Date
   ): Promise<FHIRSlot[]> {
     return this.getAllPages<FHIRSlot>('/Slot', {
-      'start': `ge${startDate.toISOString()}`,
-      'start:lt': endDate.toISOString(),
+      start: `ge${startDate.toISOString()}`,
+      end: `le${endDate.toISOString()}`,
       status: 'free',
     });
+  }
+
+  async getAllSlots(): Promise<FHIRSlot[]> {
+    return this.getAllPages<FHIRSlot>('/Slot');
   }
 }
 

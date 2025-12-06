@@ -65,6 +65,19 @@ function allocateUserToVariant(userId: string, testConfig: TestConfig): string {
   return testConfig.variants[0];
 }
 
+function normalizeFunctionBaseUrl(functionUrl: string): string {
+  if (!functionUrl) {
+    return '';
+  }
+
+  const trimmed = functionUrl.replace(/\/+$/, '');
+  if (/\/api$/i.test(trimmed)) {
+    return trimmed.slice(0, -4);
+  }
+
+  return trimmed;
+}
+
 // Call Azure Function for variant allocation (production)
 async function allocateVariantViaAzure(userId: string): Promise<string> {
   try {
@@ -72,7 +85,8 @@ async function allocateVariantViaAzure(userId: string): Promise<string> {
       import.meta.env.VITE_AZURE_FUNCTION_URL ||
       'https://lpa-functions.azurewebsites.net';
 
-    const endpoint = `${functionUrl}/api/ab-test/allocate?test=homepage-header-test&userId=${userId}`;
+    const normalizedBase = normalizeFunctionBaseUrl(functionUrl);
+    const endpoint = `${normalizedBase}/api/ab-test/allocate?test=homepage-header-test&userId=${userId}`;
     const result = await apiService.get<{ variant: string }>(endpoint);
 
     if (!result.success || !result.data) {

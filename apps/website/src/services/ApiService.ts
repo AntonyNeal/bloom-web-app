@@ -208,7 +208,24 @@ export class ApiService {
       ? endpoint.slice(1)
       : endpoint;
 
-    return `${this.baseUrl}/${cleanEndpoint}`;
+    const normalizedBase = this.baseUrl.replace(/\/+$/, '');
+    const normalizedEndpoint = cleanEndpoint.replace(/^\/+/, '');
+
+    if (!normalizedBase) {
+      return `/${normalizedEndpoint}`;
+    }
+
+    const baseEndsWithApi = /\/api$/i.test(normalizedBase);
+    const endpointStartsWithApi = /^api(\/|$)/i.test(normalizedEndpoint);
+
+    if (baseEndsWithApi && endpointStartsWithApi) {
+      const trimmedEndpoint = normalizedEndpoint.replace(/^api\/?/i, '');
+      return trimmedEndpoint
+        ? `${normalizedBase}/${trimmedEndpoint}`
+        : normalizedBase;
+    }
+
+    return `${normalizedBase}/${normalizedEndpoint}`;
   }
 
   /**

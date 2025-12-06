@@ -1142,6 +1142,9 @@ jobs:
       needs.build-bloom-api.result == 'success' &&
       (needs.run-migrations.result == 'success' || needs.run-migrations.result == 'skipped')
     environment: ${{ needs.determine-environment.outputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
@@ -1165,6 +1168,30 @@ jobs:
           app-name: ${{ needs.determine-environment.outputs.bloom-api-app }}
           package: bloom-api-dist
           publish-profile: ${{ secrets[needs.determine-environment.outputs.bloom-api-secret] }}
+
+      - name: Sync Function Triggers
+        if: steps.check-secret.outputs.secret-exists == 'true'
+        run: |
+          echo "🔄 Waiting for deployment to settle..."
+          sleep 15
+          
+          # Extract credentials from publish profile
+          PUBLISH_PROFILE='${{ secrets[needs.determine-environment.outputs.bloom-api-secret] }}'
+          USERNAME=$(echo "$PUBLISH_PROFILE" | grep -oP 'userName="\$[^"]+' | head -1 | sed 's/userName="//')
+          PASSWORD=$(echo "$PUBLISH_PROFILE" | grep -oP 'userPWD="[^"]+' | head -1 | sed 's/userPWD="//')
+          
+          echo "🔄 Triggering function sync..."
+          curl -X POST "https://${{ needs.determine-environment.outputs.bloom-api-app }}.scm.azurewebsites.net/api/functions/synctriggers" \
+            -u "${USERNAME}:${PASSWORD}" \
+            --silent --show-error --max-time 60 || echo "⚠️ Sync trigger request completed (may have timed out)"
+          
+          echo "🔄 Restarting function app to ensure functions are loaded..."
+          curl -X POST "https://${{ needs.determine-environment.outputs.bloom-api-app }}.scm.azurewebsites.net/api/restart" \
+            -u "${USERNAME}:${PASSWORD}" \
+            --silent --show-error --max-time 30 || echo "⚠️ Restart request sent"
+          
+          sleep 10
+          echo "✅ Function sync and restart complete"
 
       - name: Deployment Summary
         if: steps.check-secret.outputs.secret-exists == 'true'

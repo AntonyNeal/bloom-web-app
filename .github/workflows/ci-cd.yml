@@ -180,11 +180,10 @@ jobs:
               ;;
             staging)
               BLOOM_FRONTEND_APP="lpa-bloom-staging"
-              # TODO: Change back to bloom-functions-staging-new once BLOOM_STAGING_API_PUBLISH_PROFILE secret is added to GitHub
-              BLOOM_API_APP="bloom-functions-dev"
-              BLOOM_API_URL="https://bloom-functions-dev.azurewebsites.net/api"
+              BLOOM_API_APP="bloom-functions-staging-new"
+              BLOOM_API_URL="https://bloom-functions-staging-new.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING"
-              BLOOM_API_SECRET="BLOOM_DEV_API_PUBLISH_PROFILE"
+              BLOOM_API_SECRET="BLOOM_STAGING_API_PUBLISH_PROFILE"
               WEBSITE_FRONTEND_APP="lpa-frontend-staging"
               WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_STAGING"

@@ -276,13 +276,15 @@ export class HalaxySyncService {
       const lastName = name?.family || '';
       const email = practitioner.telecom?.find(t => t.system === 'email')?.value || '';
 
-      // Upsert practitioner
+      // Upsert practitioner using OUTPUT INTO to handle tables with triggers
       const result = await pool.request()
         .input('halaxyId', sql.VarChar, halaxyPractitionerId)
         .input('firstName', sql.NVarChar, firstName)
         .input('lastName', sql.NVarChar, lastName)
         .input('email', sql.VarChar, email)
         .query(`
+          DECLARE @OutputTable TABLE (id UNIQUEIDENTIFIER);
+          
           MERGE INTO practitioners AS target
           USING (SELECT @halaxyId AS halaxy_practitioner_id) AS source
           ON target.halaxy_practitioner_id = source.halaxy_practitioner_id
@@ -296,7 +298,9 @@ export class HalaxySyncService {
           WHEN NOT MATCHED THEN
             INSERT (halaxy_practitioner_id, first_name, last_name, display_name, email, status, created_at, updated_at, last_synced_at)
             VALUES (@halaxyId, @firstName, @lastName, CONCAT(@firstName, ' ', @lastName), @email, 'active', GETUTCDATE(), GETUTCDATE(), GETUTCDATE())
-          OUTPUT inserted.id;
+          OUTPUT inserted.id INTO @OutputTable;
+          
+          SELECT id FROM @OutputTable;
         `);
 
       trackDependency('SQL', 'syncPractitioner', 'MERGE practitioners', Date.now() - startTime, true);
@@ -340,6 +344,8 @@ export class HalaxySyncService {
         .input('phone', sql.VarChar, phone)
         .input('birthDate', sql.Date, birthDate ? new Date(birthDate) : null)
         .query(`
+          DECLARE @OutputTable TABLE (id UNIQUEIDENTIFIER);
+          
           MERGE INTO clients AS target
           USING (SELECT @halaxyPatientId AS halaxy_patient_id, @practitionerId AS practitioner_id) AS source
           ON target.halaxy_patient_id = source.halaxy_patient_id
@@ -357,7 +363,9 @@ export class HalaxySyncService {
           WHEN NOT MATCHED THEN
             INSERT (halaxy_patient_id, practitioner_id, first_name, last_name, initials, email, phone, date_of_birth, status, created_at, updated_at, last_synced_at)
             VALUES (@halaxyPatientId, @practitionerId, @firstName, @lastName, @initials, @email, @phone, @birthDate, 'active', GETUTCDATE(), GETUTCDATE(), GETUTCDATE())
-          OUTPUT inserted.id;
+          OUTPUT inserted.id INTO @OutputTable;
+          
+          SELECT id FROM @OutputTable;
         `);
 
       trackDependency('SQL', 'syncClient', 'MERGE clients', Date.now() - startTime, true);
@@ -404,14 +412,15 @@ export class HalaxySyncService {
             UPDATE SET
               practitioner_id = @practitionerId,
               client_id = @clientId,
-              start_time = @startDateTime,
-              end_time = @endDateTime,
+              scheduled_start_time = @startDateTime,
+              scheduled_end_time = @endDateTime,
               status = @status,
               notes = COALESCE(@description, target.notes),
-              updated_at = GETUTCDATE()
+              updated_at = GETUTCDATE(),
+              last_synced_at = GETUTCDATE()
           WHEN NOT MATCHED THEN
-            INSERT (halaxy_appointment_id, practitioner_id, client_id, start_time, end_time, status, notes, created_at, updated_at)
-            VALUES (@halaxyAppointmentId, @practitionerId, @clientId, @startDateTime, @endDateTime, @status, @description, GETUTCDATE(), GETUTCDATE());
+            INSERT (halaxy_appointment_id, practitioner_id, client_id, scheduled_start_time, scheduled_end_time, status, notes, created_at, updated_at, last_synced_at)
+            VALUES (@halaxyAppointmentId, @practitionerId, @clientId, @startDateTime, @endDateTime, @status, @description, GETUTCDATE(), GETUTCDATE(), GETUTCDATE());
         `);
 
       trackDependency('SQL', 'syncSession', 'MERGE sessions', Date.now() - startTime, true);

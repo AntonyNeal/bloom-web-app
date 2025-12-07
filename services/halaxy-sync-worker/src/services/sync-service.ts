@@ -121,13 +121,21 @@ export class HalaxySyncService {
         );
         console.log(`[SyncService]   Found ${allSlots.length} availability slots from Halaxy`);
 
-        // Filter out weekend slots (Saturday = 6, Sunday = 0)
+        // Filter out weekend slots in AEDT timezone (UTC+11 in summer)
+        // Halaxy is Australian, so we must check day of week in local time
+        const AEDT_OFFSET_MS = 11 * 60 * 60 * 1000; // UTC+11 for AEDT (daylight saving)
         const slots = allSlots.filter((slot) => {
-          const slotDate = new Date(slot.start);
-          const dayOfWeek = slotDate.getDay();
-          return dayOfWeek !== 0 && dayOfWeek !== 6;
+          const slotDateUtc = new Date(slot.start);
+          // Convert UTC to AEDT by adding 11 hours
+          const slotDateAedt = new Date(slotDateUtc.getTime() + AEDT_OFFSET_MS);
+          const dayOfWeekAedt = slotDateAedt.getUTCDay(); // Use getUTCDay since we manually offset
+          const isWeekend = dayOfWeekAedt === 0 || dayOfWeekAedt === 6;
+          if (isWeekend) {
+            console.log(`[SyncService]   Filtering weekend slot: ${slot.start} (${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dayOfWeekAedt]} AEDT)`);
+          }
+          return !isWeekend;
         });
-        console.log(`[SyncService]   Processing ${slots.length} weekday slots`);
+        console.log(`[SyncService]   Processing ${slots.length} weekday slots (AEDT timezone)`);
 
         // Clean up old slots before syncing new ones
         await this.cleanupOldSlots(pool, practitioner.id);

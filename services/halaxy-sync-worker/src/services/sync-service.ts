@@ -274,7 +274,9 @@ export class HalaxySyncService {
       const name = practitioner.name?.[0];
       const firstName = name?.given?.join(' ') || '';
       const lastName = name?.family || '';
-      const email = practitioner.telecom?.find(t => t.system === 'email')?.value || '';
+      // Use NULL for missing emails to avoid unique constraint violations on empty strings
+      const emailValue = practitioner.telecom?.find(t => t.system === 'email')?.value;
+      const email = emailValue && emailValue.trim() ? emailValue.trim() : null;
 
       // Upsert practitioner using OUTPUT INTO to handle tables with triggers
       const result = await pool.request()
@@ -292,12 +294,12 @@ export class HalaxySyncService {
             UPDATE SET 
               first_name = @firstName,
               last_name = @lastName,
-              email = COALESCE(@email, target.email),
+              email = COALESCE(NULLIF(@email, ''), target.email),
               updated_at = GETUTCDATE(),
               last_synced_at = GETUTCDATE()
           WHEN NOT MATCHED THEN
             INSERT (halaxy_practitioner_id, first_name, last_name, display_name, email, status, created_at, updated_at, last_synced_at)
-            VALUES (@halaxyId, @firstName, @lastName, CONCAT(@firstName, ' ', @lastName), @email, 'active', GETUTCDATE(), GETUTCDATE(), GETUTCDATE())
+            VALUES (@halaxyId, @firstName, @lastName, CONCAT(@firstName, ' ', @lastName), NULLIF(@email, ''), 'active', GETUTCDATE(), GETUTCDATE(), GETUTCDATE())
           OUTPUT inserted.id INTO @OutputTable;
           
           SELECT id FROM @OutputTable;

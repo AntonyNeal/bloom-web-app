@@ -83,8 +83,9 @@ async function fetchAvailableSlots(
   const dbPool = await getDbConnection(context);
 
   // Query for available slots from the availability_slots table
-  // Slots must be free, bookable, and in the future
-  // Duration filter is optional - if provided, slot must be at least that long
+  // Slots must be free, bookable, and have remaining bookable time
+  // We check if the slot END is in the future (with buffer for booking lead time)
+  // This allows showing slots that have already started but still have bookable times
   let query = `
     SELECT 
       a.id,
@@ -100,7 +101,7 @@ async function fetchAvailableSlots(
       AND a.slot_end <= @endDate
       AND a.status = 'free'
       AND a.is_bookable = 1
-      AND a.slot_start > GETUTCDATE()
+      AND a.slot_end > DATEADD(MINUTE, 60, GETUTCDATE())
   `;
 
   // Only filter by duration if explicitly requested and > 0

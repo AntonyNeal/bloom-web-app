@@ -99,66 +99,17 @@ export class HalaxySyncService {
       }
       recordsUpdated++;
 
-      // 2. Sync patients (clients)
-      console.log('[SyncService] Step 2: Syncing patients');
-      const patients = await this.client.getPatientsByPractitioner(halaxyPractitionerId);
-      console.log(`[SyncService]   Found ${patients.length} patients`);
+      // 2. Patient sync disabled - not needed at this time
+      console.log('[SyncService] Step 2: Skipping patient sync (disabled)');
 
-      const clientMap = new Map<string, string>();
-
-      for (const patient of patients) {
-        try {
-          const clientId = await this.syncClient(pool, patient, practitioner.id);
-          clientMap.set(patient.id, clientId);
-          recordsUpdated++;
-        } catch (error) {
-          errors.push({
-            entityType: 'client',
-            entityId: patient.id,
-            message: error instanceof Error ? error.message : 'Unknown error',
-          });
-        }
-      }
-
-      // 3. Sync appointments (sessions)
-      console.log('[SyncService] Step 3: Syncing appointments');
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
-
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + 90);
-
-      const appointments = await this.client.getAppointmentsByPractitioner(
-        halaxyPractitionerId,
-        startDate,
-        endDate
-      );
-      console.log(`[SyncService]   Found ${appointments.length} appointments`);
-
-      for (const appointment of appointments) {
-        try {
-          const patientId = this.getPatientIdFromAppointment(appointment);
-          if (!patientId) continue;
-
-          const clientId = clientMap.get(patientId);
-          if (!clientId) continue;
-
-          await this.syncSession(pool, appointment, practitioner.id, clientId);
-          recordsUpdated++;
-        } catch (error) {
-          errors.push({
-            entityType: 'session',
-            entityId: appointment.id,
-            message: error instanceof Error ? error.message : 'Unknown error',
-          });
-        }
-      }
+      // 3. Sync appointments (sessions) - also skip since we don't have clients
+      console.log('[SyncService] Step 3: Skipping appointment sync (requires clients)');
 
       // 4. Sync availability slots
       console.log('[SyncService] Step 4: Syncing availability slots');
       const slotStartDate = new Date();
       const slotEndDate = new Date();
-      slotEndDate.setDate(slotEndDate.getDate() + 90); // Sync slots for next 90 days
+      slotEndDate.setDate(slotEndDate.getDate() + 30);
 
       let slotsSynced = 0;
       try {
@@ -171,24 +122,17 @@ export class HalaxySyncService {
         console.log(`[SyncService]   Found ${allSlots.length} availability slots from Halaxy`);
 
         // Filter out weekend slots (Saturday = 6, Sunday = 0)
-        // Bloom only operates Monday-Friday
         const slots = allSlots.filter((slot) => {
           const slotDate = new Date(slot.start);
           const dayOfWeek = slotDate.getDay();
-          return dayOfWeek !== 0 && dayOfWeek !== 6; // Exclude Sunday (0) and Saturday (6)
+          return dayOfWeek !== 0 && dayOfWeek !== 6;
         });
-        
-        const weekendSlotsFiltered = allSlots.length - slots.length;
-        if (weekendSlotsFiltered > 0) {
-          console.log(`[SyncService]   Filtered out ${weekendSlotsFiltered} weekend slots`);
-        }
         console.log(`[SyncService]   Processing ${slots.length} weekday slots`);
 
         // Clean up old slots before syncing new ones
         await this.cleanupOldSlots(pool, practitioner.id);
 
-        // Reconcile current database state with the snapshot we just fetched
-        // This deletes any slots not returned by Halaxy (including weekends)
+        // Reconcile database state with fetched slots
         await this.reconcilePractitionerSlots(pool, practitioner.id, slots);
 
         for (const slot of slots) {
@@ -196,20 +140,20 @@ export class HalaxySyncService {
             await this.syncSlot(pool, slot, practitioner.id);
             slotsSynced++;
             recordsUpdated++;
-          } catch (error) {
+          } catch (slotError) {
             errors.push({
               entityType: 'slot',
               entityId: slot.id,
-              message: error instanceof Error ? error.message : 'Unknown error',
+              message: slotError instanceof Error ? slotError.message : 'Unknown error',
             });
           }
         }
-      } catch (error) {
-        console.error('[SyncService] Failed to sync availability slots:', error);
+      } catch (slotsError) {
+        console.error('[SyncService] Failed to sync availability slots:', slotsError);
         errors.push({
           entityType: 'slots',
           entityId: halaxyPractitionerId,
-          message: error instanceof Error ? error.message : 'Unknown error syncing slots',
+          message: slotsError instanceof Error ? slotsError.message : 'Unknown error syncing slots',
         });
       }
 

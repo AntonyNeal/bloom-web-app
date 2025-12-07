@@ -112,7 +112,7 @@ export class DatabaseService {
         email: string;
         first_name: string;
         last_name: string;
-        is_active: boolean;
+        status: string;
       }>(`
         SELECT 
           id,
@@ -120,9 +120,9 @@ export class DatabaseService {
           email,
           first_name,
           last_name,
-          is_active
+          status
         FROM practitioners
-        WHERE is_active = 1
+        WHERE status = 'active'
           AND halaxy_practitioner_id IS NOT NULL
         ORDER BY last_name, first_name
       `);
@@ -141,7 +141,7 @@ export class DatabaseService {
         email: row.email,
         firstName: row.first_name,
         lastName: row.last_name,
-        isActive: row.is_active,
+        isActive: row.status === 'active',
       }));
 
     } catch (error) {

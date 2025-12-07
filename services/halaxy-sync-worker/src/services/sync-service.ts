@@ -291,10 +291,11 @@ export class HalaxySyncService {
               first_name = @firstName,
               last_name = @lastName,
               email = COALESCE(@email, target.email),
-              updated_at = GETUTCDATE()
+              updated_at = GETUTCDATE(),
+              last_synced_at = GETUTCDATE()
           WHEN NOT MATCHED THEN
-            INSERT (halaxy_practitioner_id, first_name, last_name, email, is_active, created_at, updated_at)
-            VALUES (@halaxyId, @firstName, @lastName, @email, 1, GETUTCDATE(), GETUTCDATE())
+            INSERT (halaxy_practitioner_id, first_name, last_name, display_name, email, status, created_at, updated_at, last_synced_at)
+            VALUES (@halaxyId, @firstName, @lastName, CONCAT(@firstName, ' ', @lastName), @email, 'active', GETUTCDATE(), GETUTCDATE(), GETUTCDATE())
           OUTPUT inserted.id;
         `);
 
@@ -326,12 +327,15 @@ export class HalaxySyncService {
       const email = patient.telecom?.find((t: FhirTelecom) => t.system === 'email')?.value || null;
       const phone = patient.telecom?.find((t: FhirTelecom) => t.system === 'phone')?.value || null;
       const birthDate = patient.birthDate || null;
+      // Generate initials from first and last name (required field)
+      const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || 'XX';
 
       const result = await pool.request()
         .input('halaxyPatientId', sql.VarChar, patient.id)
         .input('practitionerId', sql.UniqueIdentifier, practitionerId)
         .input('firstName', sql.NVarChar, firstName)
         .input('lastName', sql.NVarChar, lastName)
+        .input('initials', sql.NVarChar, initials)
         .input('email', sql.VarChar, email)
         .input('phone', sql.VarChar, phone)
         .input('birthDate', sql.Date, birthDate ? new Date(birthDate) : null)
@@ -344,13 +348,15 @@ export class HalaxySyncService {
             UPDATE SET
               first_name = @firstName,
               last_name = @lastName,
+              initials = @initials,
               email = COALESCE(@email, target.email),
               phone = COALESCE(@phone, target.phone),
               date_of_birth = COALESCE(@birthDate, target.date_of_birth),
-              updated_at = GETUTCDATE()
+              updated_at = GETUTCDATE(),
+              last_synced_at = GETUTCDATE()
           WHEN NOT MATCHED THEN
-            INSERT (halaxy_patient_id, practitioner_id, first_name, last_name, email, phone, date_of_birth, is_active, created_at, updated_at)
-            VALUES (@halaxyPatientId, @practitionerId, @firstName, @lastName, @email, @phone, @birthDate, 1, GETUTCDATE(), GETUTCDATE())
+            INSERT (halaxy_patient_id, practitioner_id, first_name, last_name, initials, email, phone, date_of_birth, status, created_at, updated_at, last_synced_at)
+            VALUES (@halaxyPatientId, @practitionerId, @firstName, @lastName, @initials, @email, @phone, @birthDate, 'active', GETUTCDATE(), GETUTCDATE(), GETUTCDATE())
           OUTPUT inserted.id;
         `);
 

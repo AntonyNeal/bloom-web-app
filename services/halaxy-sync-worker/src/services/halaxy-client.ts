@@ -2,14 +2,17 @@
  * Halaxy API Client for Container Apps Worker
  * 
  * FHIR-R4 compliant client for Halaxy's Practice Management API.
+ * Uses OAuth 2.0 client_credentials flow for authentication.
  */
 
 import { config } from '../config';
 import { trackDependency } from '../telemetry';
 
+// Token expiry buffer (2 minutes before actual expiry for safety)
+const TOKEN_EXPIRY_BUFFER_MS = 2 * 60 * 1000;
+
 interface TokenResponse {
   access_token: string;
-  refresh_token: string;
   expires_in: number;
   token_type: string;
 }
@@ -20,52 +23,48 @@ interface TokenResponse {
 export class HalaxyClient {
   private accessToken: string | null = null;
   private tokenExpiry: Date | null = null;
-  private refreshToken: string;
 
   constructor() {
-    this.refreshToken = config.halaxyRefreshToken;
+    // No initialization needed - tokens are fetched on demand
   }
 
   // ============================================================================
-  // Token Management
+  // Token Management (client_credentials flow)
   // ============================================================================
 
   private async ensureValidToken(): Promise<string> {
-    // Check if token is still valid (with 5 min buffer)
-    if (this.accessToken && this.tokenExpiry && this.tokenExpiry > new Date(Date.now() + 5 * 60 * 1000)) {
+    // Check if token is still valid (with buffer)
+    if (this.accessToken && this.tokenExpiry && this.tokenExpiry > new Date()) {
       return this.accessToken;
     }
 
-    console.log('[HalaxyClient] Refreshing access token');
+    console.log('[HalaxyClient] Fetching new access token via client_credentials');
 
-    const response = await fetch(`${config.halaxyApiUrl}/oauth/token`, {
+    const response = await fetch(config.halaxyTokenUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
+        'Accept': 'application/fhir+json',
+        'User-Agent': 'Life-Psychology-Australia (support@life-psychology.com.au)',
       },
-      body: new URLSearchParams({
-        grant_type: 'refresh_token',
+      body: JSON.stringify({
+        grant_type: 'client_credentials',
         client_id: config.halaxyClientId,
         client_secret: config.halaxyClientSecret,
-        refresh_token: this.refreshToken,
       }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`Token refresh failed: ${response.status} - ${error}`);
+      throw new Error(`Token fetch failed: ${response.status} - ${error}`);
     }
 
     const data = await response.json() as TokenResponse;
     this.accessToken = data.access_token;
-    this.tokenExpiry = new Date(Date.now() + data.expires_in * 1000);
-    
-    // Update refresh token if a new one was provided
-    if (data.refresh_token) {
-      this.refreshToken = data.refresh_token;
-    }
+    // Cache with buffer time (tokens valid for ~15 min per Halaxy docs)
+    this.tokenExpiry = new Date(Date.now() + (data.expires_in * 1000) - TOKEN_EXPIRY_BUFFER_MS);
 
-    console.log('[HalaxyClient] Token refreshed successfully');
+    console.log('[HalaxyClient] Access token obtained successfully');
     return this.accessToken;
   }
 
@@ -75,7 +74,7 @@ export class HalaxyClient {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = await this.ensureValidToken();
-    const url = `${config.halaxyFhirUrl}${endpoint}`;
+    const url = `${config.halaxyApiUrl}${endpoint}`;
     const startTime = Date.now();
 
     try {
@@ -85,6 +84,7 @@ export class HalaxyClient {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/fhir+json',
           'Content-Type': 'application/fhir+json',
+          'User-Agent': 'Life-Psychology-Australia (support@life-psychology.com.au)',
           ...options.headers,
         },
       });
@@ -134,7 +134,7 @@ export class HalaxyClient {
 
       // Find next page link
       const nextLink = bundle.link?.find(l => l.relation === 'next');
-      url = nextLink?.url?.replace(config.halaxyFhirUrl, '') || '';
+      url = nextLink?.url?.replace(config.halaxyApiUrl, '') || '';
     }
 
     return results;

@@ -1239,36 +1239,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy Infrastructure (if needed)
-        if: steps.check-creds.outputs.has-azure-creds == 'true'
-        id: infra
-        run: |
-          RG_NAME="rg-lpa-unified"
-          FULL_ENV="${{ needs.determine-environment.outputs.environment }}"
-          
-          # Map full environment name to short name for resource naming
-          case "$FULL_ENV" in
-            production) ENV_SHORT="prod" ;;
-            staging) ENV_SHORT="staging" ;;
-            *) ENV_SHORT="dev" ;;
-          esac
-          
-          # Check if Container Apps environment exists
-          CAE_EXISTS=$(az containerapp env list --resource-group $RG_NAME --query "[?name=='lpa-cae-${ENV_SHORT}'].name" -o tsv 2>/dev/null || echo "")
-          
-          if [ -z "$CAE_EXISTS" ]; then
-            echo "🏗️ Deploying Container Apps infrastructure..."
-            az deployment group create \
-              --resource-group $RG_NAME \
-              --template-file infra/halaxy-sync-worker.bicep \
-              --parameters environment=${{ needs.determine-environment.outputs.environment }} \
-              --parameters imageTag=${{ github.sha }}
-            echo "deployed=true" >> $GITHUB_OUTPUT
-          else
-            echo "✅ Infrastructure already exists"
-            echo "deployed=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Update Container App
         if: steps.check-creds.outputs.has-azure-creds == 'true'
         run: |
@@ -1284,16 +1254,30 @@ jobs:
           APP_NAME="lpa-halaxy-sync-${ENV_SHORT}"
           RG_NAME="rg-lpa-unified"
           
+          # Wait for the container app to exist (Bicep may still be provisioning)
+          echo "⏳ Waiting for container app $APP_NAME to exist..."
+          for i in {1..30}; do
+            if az containerapp show --name "$APP_NAME" --resource-group "$RG_NAME" --query "name" -o tsv 2>/dev/null; then
+              echo "✅ Container app exists"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "❌ Timed out waiting for container app $APP_NAME"
+              exit 1
+            fi
+            echo "   Attempt $i/30 - container app not found, retrying in 10s..."
+            sleep 10
+          done
+          
           # Get ACR info
           ACR_NAME=$(az acr list --resource-group $RG_NAME --query "[0].name" -o tsv)
           ACR_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
           
-          # Update container app with new image
+          # Update container app with new image (fail the job on error)
           az containerapp update \
             --name $APP_NAME \
             --resource-group $RG_NAME \
-            --image "${ACR_SERVER}/halaxy-sync-worker:${{ github.sha }}" \
-            || echo "Container app may not exist yet - will be created by Bicep"
+            --image "${ACR_SERVER}/halaxy-sync-worker:${{ github.sha }}"
 
       - name: Verify Deployment
         if: steps.check-creds.outputs.has-azure-creds == 'true'

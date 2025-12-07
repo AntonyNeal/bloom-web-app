@@ -12,10 +12,9 @@ export interface WorkerConfig {
   
   // Halaxy API
   halaxyApiUrl: string;
-  halaxyFhirUrl: string;
+  halaxyTokenUrl: string;
   halaxyClientId: string;
   halaxyClientSecret: string;
-  halaxyRefreshToken: string;
   halaxyHealthcareServiceId: string;
   
   // Sync Settings
@@ -57,8 +56,7 @@ function isPlaceholder(value: string | undefined | null): boolean {
   return (
     lower.includes('placeholder') ||
     lower.includes('your-client-id') ||
-    lower.includes('your-client-secret') ||
-    lower.includes('your-refresh-token')
+    lower.includes('your-client-secret')
   );
 }
 
@@ -70,12 +68,11 @@ export const config: WorkerConfig = {
   sqlConnectionString: process.env.SQL_CONNECTION_STRING || '',
   cosmosConnectionString: process.env.COSMOS_CONNECTION_STRING || '',
   
-  // Halaxy API
-  halaxyApiUrl: getEnvOrDefault('HALAXY_API_URL', 'https://au-api.halaxy.com/api'),
-  halaxyFhirUrl: getEnvOrDefault('HALAXY_FHIR_URL', 'https://au-api.halaxy.com/fhir'),
+  // Halaxy API (per docs: https://developers.halaxy.com/docs/authentication)
+  halaxyApiUrl: getEnvOrDefault('HALAXY_API_URL', 'https://au-api.halaxy.com/main'),
+  halaxyTokenUrl: getEnvOrDefault('HALAXY_TOKEN_URL', 'https://au-api.halaxy.com/main/oauth/token'),
   halaxyClientId: process.env.HALAXY_CLIENT_ID || '',
   halaxyClientSecret: process.env.HALAXY_CLIENT_SECRET || '',
-  halaxyRefreshToken: process.env.HALAXY_REFRESH_TOKEN || '',
   halaxyHealthcareServiceId: process.env.HALAXY_HEALTHCARE_SERVICE_ID || '',
   
   // Sync Settings
@@ -120,14 +117,10 @@ export function validateConfig(): void {
     missingHalaxySecrets.push('HALAXY_CLIENT_SECRET');
   }
 
-  if (isPlaceholder(config.halaxyRefreshToken)) {
-    missingHalaxySecrets.push('HALAXY_REFRESH_TOKEN');
-  }
-
   if (missingHalaxySecrets.length > 0) {
     errors.push(
       `Halaxy credentials missing or placeholder: ${missingHalaxySecrets.join(', ')}. ` +
-        'Update the corresponding Key Vault secrets (HALAXY-CLIENT-ID, HALAXY-CLIENT-SECRET, HALAXY-REFRESH-TOKEN).'
+        'Update the corresponding Key Vault secrets (HALAXY-CLIENT-ID, HALAXY-CLIENT-SECRET).'
     );
   }
   

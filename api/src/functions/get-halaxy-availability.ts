@@ -83,7 +83,8 @@ async function fetchAvailableSlots(
   const dbPool = await getDbConnection(context);
 
   // Query for available slots from the availability_slots table
-  // Slots must be free, bookable, in the future, and match the requested duration
+  // Slots must be free, bookable, and in the future
+  // Duration filter is optional - if provided, slot must be at least that long
   let query = `
     SELECT 
       a.id,
@@ -100,8 +101,12 @@ async function fetchAvailableSlots(
       AND a.status = 'free'
       AND a.is_bookable = 1
       AND a.slot_start > GETUTCDATE()
-      AND a.duration_minutes >= @duration
   `;
+
+  // Only filter by duration if explicitly requested and > 0
+  if (durationMinutes > 0) {
+    query += ` AND a.duration_minutes >= @duration`;
+  }
 
   const request = dbPool
     .request()
@@ -155,7 +160,8 @@ async function getHalaxyAvailability(
     // Get query parameters
     const start = req.query.get('start');
     const end = req.query.get('end');
-    const duration = parseInt(req.query.get('duration') || '60');
+    // Duration filter is optional - if 0 or not provided, returns all slots
+    const duration = parseInt(req.query.get('duration') || '0');
     const practitioner = req.query.get('practitioner') || undefined;
 
     // Validate required parameters

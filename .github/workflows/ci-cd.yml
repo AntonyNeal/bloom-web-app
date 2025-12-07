@@ -1273,11 +1273,15 @@ jobs:
           ACR_NAME=$(az acr list --resource-group $RG_NAME --query "[0].name" -o tsv)
           ACR_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
           
+          # Use short SHA (7 chars) to match docker/metadata-action tag format
+          SHORT_SHA="${{ github.sha }}"
+          SHORT_SHA="${SHORT_SHA:0:7}"
+          
           # Update container app with new image (fail the job on error)
           az containerapp update \
             --name $APP_NAME \
             --resource-group $RG_NAME \
-            --image "${ACR_SERVER}/halaxy-sync-worker:${{ github.sha }}"
+            --image "${ACR_SERVER}/halaxy-sync-worker:${SHORT_SHA}"
 
       - name: Verify Deployment
         if: steps.check-creds.outputs.has-azure-creds == 'true'

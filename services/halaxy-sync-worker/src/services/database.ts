@@ -124,6 +124,7 @@ export class DatabaseService {
         FROM practitioners
         WHERE status = 'active'
           AND halaxy_practitioner_id IS NOT NULL
+          AND halaxy_practitioner_id LIKE 'PR-%'  -- Only sync clinic practitioners, not referring doctors (EP-)
         ORDER BY last_name, first_name
       `);
 

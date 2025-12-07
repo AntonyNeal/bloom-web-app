@@ -120,17 +120,6 @@ export class HalaxySyncService {
           60 // Default 60 min duration
         );
         console.log(`[SyncService]   Found ${allSlots.length} availability slots from Halaxy`);
-        
-        // Debug: Log first 5 slots to see what Halaxy returns
-        if (allSlots.length > 0) {
-          console.log(`[SyncService]   Sample slots from Halaxy:`);
-          allSlots.slice(0, 5).forEach((slot, i) => {
-            const startUtc = new Date(slot.start);
-            const endUtc = new Date(slot.end);
-            const durationMin = Math.round((endUtc.getTime() - startUtc.getTime()) / 60000);
-            console.log(`[SyncService]     ${i+1}. ${slot.start} - ${slot.end} (${durationMin} min)`);
-          });
-        }
 
         // Filter out weekend slots in AEDT timezone (UTC+11 in summer)
         // Halaxy is Australian, so we must check day of week in local time

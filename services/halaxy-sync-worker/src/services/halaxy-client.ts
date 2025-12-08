@@ -261,18 +261,30 @@ export class HalaxyClient {
       params.set('healthcareService', `HealthcareService/${config.halaxyHealthcareServiceId}`);
     }
 
+    console.log(`[HalaxyClient] Trying $find with params: ${params.toString()}`);
+
     try {
       const bundle = await this.request<FHIRBundle<FHIRSlot>>(
         `/Slot/$find?${params.toString()}`
       );
 
+      console.log(`[HalaxyClient] $find returned bundle with ${bundle.entry?.length || 0} entries`);
+
       if (bundle.entry && bundle.entry.length > 0) {
-        return bundle.entry.map(e => e.resource);
+        // Filter out OperationOutcome resources
+        const validSlots = bundle.entry
+          .map(e => e.resource)
+          .filter(r => r && (r as { resourceType?: string }).resourceType === 'Slot');
+        console.log(`[HalaxyClient] $find returned ${validSlots.length} valid slots`);
+        if (validSlots.length > 0) {
+          return validSlots as FHIRSlot[];
+        }
       }
-      console.warn('[HalaxyClient] $find returned no slots, falling back to standard Slot search');
+      console.warn('[HalaxyClient] $find returned no valid slots, falling back to standard Slot search');
     } catch (error) {
       // Fallback to standard Slot search if $find is not supported
-      console.warn('[HalaxyClient] $find operation failed, falling back to standard search');
+      console.warn(`[HalaxyClient] $find operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.warn('[HalaxyClient] Falling back to standard search');
       return this.getSlotsByPractitioner(practitionerId, startDate, endDate, 'free');
     }
 

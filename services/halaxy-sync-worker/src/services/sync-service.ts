@@ -119,6 +119,10 @@ export class HalaxySyncService {
           appointmentEndDate
         );
         console.log(`[SyncService]   Found ${appointments.length} appointments for slot filtering`);
+        // Debug: Log raw appointment structure to understand field mapping
+        if (appointments.length > 0) {
+          console.log(`[SyncService]   Raw appointment 1: ${JSON.stringify(appointments[0])}`);
+        }
         // Debug: Log appointment details
         appointments.forEach((apt, i) => {
           console.log(`[SyncService]   Appointment ${i+1}: ${apt.start} to ${apt.end} (status: ${apt.status})`);

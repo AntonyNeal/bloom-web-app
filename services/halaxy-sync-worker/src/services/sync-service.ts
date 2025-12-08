@@ -109,6 +109,8 @@ export class HalaxySyncService {
       const appointmentEndDate = new Date();
       appointmentEndDate.setDate(appointmentEndDate.getDate() + 30);
       
+      console.log(`[SyncService]   Querying appointments from ${appointmentStartDate.toISOString()} to ${appointmentEndDate.toISOString()}`);
+      
       let appointments: FHIRAppointment[] = [];
       try {
         appointments = await this.client.getAppointmentsByPractitioner(

@@ -180,10 +180,12 @@ export class HalaxyClient {
     startDate: Date,
     endDate: Date
   ): Promise<FHIRAppointment[]> {
+    // Use Halaxy-specific query parameters per their API docs:
+    // - practitioner: An individual practitioner assigned to an appointment
+    // - date: Appointment date/time (supports FHIR prefixes like ge, lt)
     return this.getAllPages<FHIRAppointment>('/Appointment', {
-      actor: `Practitioner/${practitionerId}`,
+      practitioner: `Practitioner/${practitionerId}`,
       date: `ge${startDate.toISOString().split('T')[0]}`,
-      'date:lt': endDate.toISOString().split('T')[0],
     });
   }
 

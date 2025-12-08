@@ -107,7 +107,7 @@ const UnifiedHeader = () => {
             >
               {/* Optimized hero image with responsive formats */}
               <div
-                className="relative w-full max-w-[600px] mx-auto rounded-2xl shadow-2xl bg-white"
+                className="relative w-full mx-auto"
                 style={{
                   /* Ensure container doesn't limit image height on iOS */
                   overflow: 'visible',
@@ -131,7 +131,7 @@ const UnifiedHeader = () => {
                   <img
                     src="/assets/hero-zoe-main.jpg"
                     alt="Zoe Semmler, Registered Psychologist - warm, professional, and approachable telehealth psychology services in Newcastle and across Australia"
-                    className="w-full h-auto object-contain rounded-2xl"
+                    className="w-full h-auto object-cover rounded-2xl shadow-xl"
                     width="1200"
                     height="1600"
                     loading="eager"
@@ -141,7 +141,6 @@ const UnifiedHeader = () => {
                       display: 'block',
                       maxWidth: '100%',
                       height: 'auto',
-                      aspectRatio: '1200 / 1600',
                     }}
                   />
                 </picture>

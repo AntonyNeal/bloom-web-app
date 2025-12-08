@@ -7,7 +7,7 @@
 
 import * as sql from 'mssql';
 import { DatabaseService } from './database';
-import { HalaxyClient, FHIRSlot, FHIRSlotStatus } from './halaxy-client';
+import { HalaxyClient, FHIRSlot, FHIRSlotStatus, FHIRAppointment } from './halaxy-client';
 import { trackDependency } from '../telemetry';
 
 export interface SyncResult {
@@ -102,14 +102,44 @@ export class HalaxySyncService {
       // 2. Patient sync disabled - not needed at this time
       console.log('[SyncService] Step 2: Skipping patient sync (disabled)');
 
-      // 3. Sync appointments (sessions) - also skip since we don't have clients
-      console.log('[SyncService] Step 3: Skipping appointment sync (requires clients)');
+      // 3. Fetch appointments for slot filtering (not syncing to DB)
+      // We need appointments to subtract booked times from availability slots
+      console.log('[SyncService] Step 3: Fetching appointments for slot filtering');
+      const appointmentStartDate = new Date();
+      const appointmentEndDate = new Date();
+      appointmentEndDate.setDate(appointmentEndDate.getDate() + 30);
+      
+      let appointments: FHIRAppointment[] = [];
+      try {
+        appointments = await this.client.getAppointmentsByPractitioner(
+          halaxyPractitionerId,
+          appointmentStartDate,
+          appointmentEndDate
+        );
+        console.log(`[SyncService]   Found ${appointments.length} appointments for slot filtering`);
+      } catch (aptError) {
+        console.warn('[SyncService]   Could not fetch appointments for slot filtering:', aptError);
+        // Continue without appointment filtering - slots will be stored as-is
+      }
 
       // 4. Sync availability slots
       console.log('[SyncService] Step 4: Syncing availability slots');
-      const slotStartDate = new Date();
+      
+      // Start from midnight AEDT today (not "now") to capture slots that started earlier today
+      // AEDT = UTC+11, so midnight AEDT = 13:00 UTC previous day
+      const now = new Date();
+      const AEDT_OFFSET_HOURS = 11;
+      // Get current date in AEDT
+      const aedtNow = new Date(now.getTime() + AEDT_OFFSET_HOURS * 60 * 60 * 1000);
+      // Set to midnight AEDT
+      aedtNow.setUTCHours(0, 0, 0, 0);
+      // Convert back to UTC
+      const slotStartDate = new Date(aedtNow.getTime() - AEDT_OFFSET_HOURS * 60 * 60 * 1000);
+      
       const slotEndDate = new Date();
       slotEndDate.setDate(slotEndDate.getDate() + 30);
+      
+      console.log(`[SyncService]   Query range: ${slotStartDate.toISOString()} to ${slotEndDate.toISOString()}`);
 
       let slotsSynced = 0;
       try {
@@ -124,7 +154,7 @@ export class HalaxySyncService {
         // Filter out weekend slots in AEDT timezone (UTC+11 in summer)
         // Halaxy is Australian, so we must check day of week in local time
         const AEDT_OFFSET_MS = 11 * 60 * 60 * 1000; // UTC+11 for AEDT (daylight saving)
-        const slots = allSlots.filter((slot) => {
+        const weekdaySlots = allSlots.filter((slot) => {
           const slotDateUtc = new Date(slot.start);
           // Convert UTC to AEDT by adding 11 hours
           const slotDateAedt = new Date(slotDateUtc.getTime() + AEDT_OFFSET_MS);
@@ -135,7 +165,21 @@ export class HalaxySyncService {
           }
           return !isWeekend;
         });
-        console.log(`[SyncService]   Processing ${slots.length} weekday slots (AEDT timezone)`);
+        console.log(`[SyncService]   Processing ${weekdaySlots.length} weekday slots (AEDT timezone)`);
+
+        // Subtract booked appointments from availability slots
+        // This creates slot fragments that represent actually free times
+        const futureAppointments = appointments.filter(apt => {
+          const aptStart = new Date(apt.start || '');
+          return aptStart > now && 
+            // Only consider non-cancelled appointments
+            apt.status !== 'cancelled' && 
+            apt.status !== 'noshow';
+        });
+        console.log(`[SyncService]   Subtracting ${futureAppointments.length} future appointments from slots`);
+        
+        const slots = this.subtractAppointmentsFromSlots(weekdaySlots, futureAppointments);
+        console.log(`[SyncService]   After subtraction: ${slots.length} slot fragments (from ${weekdaySlots.length} original slots)`);
 
         // Clean up old slots before syncing new ones
         await this.cleanupOldSlots(pool, practitioner.id);
@@ -388,6 +432,95 @@ export class HalaxySyncService {
   // ============================================================================
   // Availability Slot Sync
   // ============================================================================
+
+  /**
+   * Subtract booked appointments from availability slots.
+   * This splits large availability blocks into smaller free slots by removing
+   * time periods that have appointments booked.
+   * 
+   * For example, if a slot is 8am-5pm but there's a 10am-11am appointment,
+   * this returns two slots: 8am-10am and 11am-5pm.
+   * 
+   * Generated slot IDs use the format: {originalSlotId}_{fragmentIndex}
+   */
+  private subtractAppointmentsFromSlots(
+    slots: FHIRSlot[],
+    appointments: FHIRAppointment[]
+  ): FHIRSlot[] {
+    const result: FHIRSlot[] = [];
+    
+    for (const slot of slots) {
+      const slotStart = new Date(slot.start);
+      const slotEnd = new Date(slot.end);
+      
+      // Find appointments that overlap with this slot
+      const overlappingApts = appointments.filter(apt => {
+        if (!apt.start || !apt.end) return false;
+        const aptStart = new Date(apt.start);
+        const aptEnd = new Date(apt.end);
+        // Overlap if appointment starts before slot ends AND appointment ends after slot starts
+        return aptStart < slotEnd && aptEnd > slotStart;
+      });
+      
+      if (overlappingApts.length === 0) {
+        // No overlapping appointments, keep the slot as-is
+        result.push(slot);
+        continue;
+      }
+      
+      // Sort appointments by start time
+      overlappingApts.sort((a, b) => new Date(a.start!).getTime() - new Date(b.start!).getTime());
+      
+      // Split the slot around the appointments
+      let currentStart = slotStart;
+      let fragmentIndex = 0;
+      
+      for (const apt of overlappingApts) {
+        const aptStart = new Date(apt.start!);
+        const aptEnd = new Date(apt.end!);
+        
+        // If there's a gap before this appointment, create a free slot
+        if (aptStart > currentStart) {
+          const fragmentSlot: FHIRSlot = {
+            ...slot,
+            id: `${slot.id}_${fragmentIndex}`,
+            start: currentStart.toISOString(),
+            end: aptStart.toISOString(),
+          };
+          
+          // Only add if the fragment is at least 15 minutes (meaningful slot)
+          const fragmentDuration = (aptStart.getTime() - currentStart.getTime()) / (1000 * 60);
+          if (fragmentDuration >= 15) {
+            result.push(fragmentSlot);
+            fragmentIndex++;
+          }
+        }
+        
+        // Move current start to end of appointment
+        if (aptEnd > currentStart) {
+          currentStart = aptEnd;
+        }
+      }
+      
+      // If there's time remaining after all appointments, create a final slot
+      if (currentStart < slotEnd) {
+        const fragmentSlot: FHIRSlot = {
+          ...slot,
+          id: `${slot.id}_${fragmentIndex}`,
+          start: currentStart.toISOString(),
+          end: slotEnd.toISOString(),
+        };
+        
+        // Only add if the fragment is at least 15 minutes
+        const fragmentDuration = (slotEnd.getTime() - currentStart.getTime()) / (1000 * 60);
+        if (fragmentDuration >= 15) {
+          result.push(fragmentSlot);
+        }
+      }
+    }
+    
+    return result;
+  }
 
   /**
    * Clean up old/past availability slots to prevent table bloat

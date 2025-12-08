@@ -388,7 +388,7 @@ interface FHIRPatient {
   birthDate?: string;
 }
 
-interface FHIRAppointment {
+export interface FHIRAppointment {
   resourceType: 'Appointment';
   id: string;
   status: string;

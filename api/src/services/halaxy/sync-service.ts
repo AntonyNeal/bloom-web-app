@@ -303,13 +303,27 @@ export class HalaxySyncService {
           }
           console.log(`[HalaxySyncService] Processing ${weekdaySlots.length} weekday slots`);
           
-          // Reconcile: delete any slots not returned by Halaxy (including weekends)
-          await this.reconcilePractitionerSlots(practitioner.id, weekdaySlots);
+          // Subtract booked appointments from availability slots
+          // Use the appointments already fetched earlier in this sync
+          const futureAppointments = appointments.filter(apt => {
+            const aptStart = new Date(apt.start);
+            return aptStart > now && 
+              // Only consider non-cancelled appointments
+              apt.status !== 'cancelled' && 
+              apt.status !== 'noshow';
+          });
+          console.log(`[HalaxySyncService] Subtracting ${futureAppointments.length} future appointments from slots`);
           
-          // Sync each slot
+          const adjustedSlots = this.subtractAppointmentsFromSlots(weekdaySlots, futureAppointments);
+          console.log(`[HalaxySyncService] After subtraction: ${adjustedSlots.length} slot fragments (from ${weekdaySlots.length} original slots)`);
+          
+          // Reconcile: delete any slots not in our adjusted list
+          await this.reconcilePractitionerSlots(practitioner.id, adjustedSlots);
+          
+          // Sync each adjusted slot
           let successCount = 0;
           let failCount = 0;
-          for (const slot of weekdaySlots) {
+          for (const slot of adjustedSlots) {
             try {
               await this.syncSlot(slot, practitioner.id);
               successCount++;
@@ -794,6 +808,94 @@ export class HalaxySyncService {
   // ===========================================================================
   // Availability Slot Sync
   // ===========================================================================
+
+  /**
+   * Subtract booked appointments from availability slots.
+   * This splits large availability blocks into smaller free slots by removing
+   * time periods that have appointments booked.
+   * 
+   * For example, if a slot is 8am-5pm but there's a 10am-11am appointment,
+   * this returns two slots: 8am-10am and 11am-5pm.
+   * 
+   * Generated slot IDs use the format: {originalSlotId}_{fragmentIndex}
+   */
+  private subtractAppointmentsFromSlots(
+    slots: FHIRSlot[],
+    appointments: FHIRAppointment[]
+  ): FHIRSlot[] {
+    const result: FHIRSlot[] = [];
+    
+    for (const slot of slots) {
+      const slotStart = new Date(slot.start);
+      const slotEnd = new Date(slot.end);
+      
+      // Find appointments that overlap with this slot
+      const overlappingApts = appointments.filter(apt => {
+        const aptStart = new Date(apt.start);
+        const aptEnd = new Date(apt.end);
+        // Overlap if appointment starts before slot ends AND appointment ends after slot starts
+        return aptStart < slotEnd && aptEnd > slotStart;
+      });
+      
+      if (overlappingApts.length === 0) {
+        // No overlapping appointments, keep the slot as-is
+        result.push(slot);
+        continue;
+      }
+      
+      // Sort appointments by start time
+      overlappingApts.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+      
+      // Split the slot around the appointments
+      let currentStart = slotStart;
+      let fragmentIndex = 0;
+      
+      for (const apt of overlappingApts) {
+        const aptStart = new Date(apt.start);
+        const aptEnd = new Date(apt.end);
+        
+        // If there's a gap before this appointment, create a free slot
+        if (aptStart > currentStart) {
+          const fragmentSlot: FHIRSlot = {
+            ...slot,
+            id: `${slot.id}_${fragmentIndex}`,
+            start: currentStart.toISOString(),
+            end: aptStart.toISOString(),
+          };
+          
+          // Only add if the fragment is at least 15 minutes (meaningful slot)
+          const fragmentDuration = (aptStart.getTime() - currentStart.getTime()) / (1000 * 60);
+          if (fragmentDuration >= 15) {
+            result.push(fragmentSlot);
+            fragmentIndex++;
+          }
+        }
+        
+        // Move current start to end of appointment
+        if (aptEnd > currentStart) {
+          currentStart = aptEnd;
+        }
+      }
+      
+      // If there's time remaining after all appointments, create a final slot
+      if (currentStart < slotEnd) {
+        const fragmentSlot: FHIRSlot = {
+          ...slot,
+          id: `${slot.id}_${fragmentIndex}`,
+          start: currentStart.toISOString(),
+          end: slotEnd.toISOString(),
+        };
+        
+        // Only add if the fragment is at least 15 minutes
+        const fragmentDuration = (slotEnd.getTime() - currentStart.getTime()) / (1000 * 60);
+        if (fragmentDuration >= 15) {
+          result.push(fragmentSlot);
+        }
+      }
+    }
+    
+    return result;
+  }
 
   /**
    * Clean up old/past availability slots

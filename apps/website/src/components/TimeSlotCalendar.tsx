@@ -33,6 +33,25 @@ const DISPLAY_START_HOUR = 8;
 const DISPLAY_END_HOUR = 20; // 8 pm
 const SLOT_ROW_HEIGHT_PX = 44;
 
+// Melbourne timezone offset (AEDT = UTC+11)
+const MELBOURNE_OFFSET_HOURS = 11;
+
+/**
+ * Format a date as YYYY-MM-DD in Melbourne timezone
+ * This must match the format used in groupSlotsByDate
+ */
+const formatDateKeyMelbourne = (date: Date): string => {
+  // Create a date representing "midnight" on the given date in Melbourne time
+  // We need to find what UTC time corresponds to midnight Melbourne on this date
+  
+  // For display dates (which are in browser local time), we want to show
+  // slots that occur on that calendar date in Melbourne
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const getWeekStart = (date: Date): Date => {
   const dayOfWeek = date.getDay();
   const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Start on Monday
@@ -189,7 +208,9 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       const dayNumber = date.getDate();
       const month = date.toLocaleDateString('en-AU', { month: 'short' });
 
-      const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      // Format date key as YYYY-MM-DD to match groupSlotsByDate format
+      // Use the calendar date directly (not UTC conversion)
+      const dateKey = formatDateKeyMelbourne(date);
       const daySlotsFromHalaxy = slotsByDate.get(dateKey) || [];
 
       // Only show available slots from Halaxy (no unavailable slots)
@@ -229,6 +250,9 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       )
     : -1;
 
+  // Track if user has manually selected a day (to prevent auto-selection from overriding)
+  const [userSelectedDay, setUserSelectedDay] = useState(false);
+
   useEffect(() => {
     if (selectedDateIndex >= 0) {
       setMobileActiveDayIndex(selectedDateIndex);
@@ -243,11 +267,16 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   useEffect(() => {
     if (selectedDateIndex === -1) {
       setMobileActiveDayIndex(0);
+      setUserSelectedDay(false); // Reset user selection when week changes
     }
   }, [currentWeekStart, selectedDateIndex]);
 
   // Auto-select the first day with availability when the modal opens
+  // Only runs once when slots first load, not on every render
   useEffect(() => {
+    // Skip if user has manually selected a day
+    if (userSelectedDay) return;
+    
     // Only auto-select if no date is currently selected and we have availability
     if (!selectedDate && !loading && availableSlots.length > 0) {
       // Find the first day in the schedule that has available slots
@@ -267,7 +296,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         // not actually select a time slot. The user still needs to pick a specific time.
       }
     }
-  }, [selectedDate, loading, availableSlots.length, weekSchedule]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate, loading, availableSlots.length, userSelectedDay]);
 
   const mobileActiveDay = weekSchedule[mobileActiveDayIndex] || weekSchedule[0];
 
@@ -565,7 +595,11 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                onClick={() => setMobileActiveDayIndex(index)}
+                onClick={() => {
+                  console.log('[TimeSlotCalendar] Day clicked:', index, day.dayName, day.dayNumber);
+                  setUserSelectedDay(true);
+                  setMobileActiveDayIndex(index);
+                }}
                 className={`flex flex-col min-w-[80px] rounded-lg px-2.5 py-2 text-left transition-all ${
                   isActive
                     ? 'text-emerald-800'

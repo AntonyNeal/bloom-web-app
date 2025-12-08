@@ -1,8 +1,19 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useBookingService } from '../hooks/useBookingService';
+import { getNextAvailableSlot } from '../utils/availabilityPreloader';
+import { getTimeUntilAvailability } from '../utils/halaxyAvailability';
 
 const MobileCTABar: React.FC = () => {
   const { isModalOpen, handleBookingClick } = useBookingService();
+  const [availabilityText, setAvailabilityText] = useState('Available soon');
+
+  useEffect(() => {
+    // Get next available slot from cache
+    const nextSlot = getNextAvailableSlot();
+    if (nextSlot) {
+      setAvailabilityText(getTimeUntilAvailability(nextSlot.start));
+    }
+  }, []);
 
   const handleBookingClickEvent = (
     event: React.MouseEvent<HTMLButtonElement>
@@ -27,10 +38,10 @@ const MobileCTABar: React.FC = () => {
           <div className="flex items-center justify-between">
             {/* Social proof + urgency */}
             <div className="flex flex-col">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-gray-700 text-sm font-medium">
-                  Available this week
+                  {availabilityText}
                 </span>
               </div>
             </div>

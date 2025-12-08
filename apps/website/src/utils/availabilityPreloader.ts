@@ -201,3 +201,31 @@ export function clearAvailabilityCache(): void {
 export function isPreloadingAvailability(): boolean {
   return isPreloading;
 }
+
+/**
+ * Get the next available slot from the cache.
+ * Returns the earliest slot that is still in the future.
+ */
+export function getNextAvailableSlot(): AvailableSlot | null {
+  const now = new Date();
+  let earliestSlot: AvailableSlot | null = null;
+  
+  // Iterate through all cached weeks
+  for (const [, cached] of availabilityCache) {
+    if (!isCacheValid(cached)) continue;
+    
+    for (const slot of cached.slots) {
+      const slotTime = new Date(slot.start);
+      
+      // Skip past slots
+      if (slotTime <= now) continue;
+      
+      // Check if this is earlier than current earliest
+      if (!earliestSlot || slotTime < new Date(earliestSlot.start)) {
+        earliestSlot = slot;
+      }
+    }
+  }
+  
+  return earliestSlot;
+}

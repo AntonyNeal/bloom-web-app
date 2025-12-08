@@ -2,14 +2,23 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useBookingService } from '../hooks/useBookingService';
 import { log } from '../utils/logger';
+import { getNextAvailableSlot } from '../utils/availabilityPreloader';
+import { getTimeUntilAvailability } from '../utils/halaxyAvailability';
 
 const UnifiedHeader = () => {
   const { isModalOpen, handleBookingClick } = useBookingService();
+  const [availabilityText, setAvailabilityText] = useState('Available soon');
 
   useEffect(() => {
     log.debug('Component mounted', 'UnifiedHeader', {
       modalState: isModalOpen,
     });
+    
+    // Get next available slot from cache
+    const nextSlot = getNextAvailableSlot();
+    if (nextSlot) {
+      setAvailabilityText(getTimeUntilAvailability(nextSlot.start));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -236,8 +245,8 @@ const UnifiedHeader = () => {
                 {/* Healthcare-specific reassurance */}
                 <div className="bg-green-50 border-2 border-green-300 rounded-lg p-5 text-base shadow-sm max-w-lg w-full">
                   <div className="flex items-center gap-2 text-green-800 font-semibold mb-3">
-                    <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                    <span>Available this week</span>
+                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>{availabilityText}</span>
                   </div>
                   <div className="text-green-700 space-y-2">
                     <div className="flex items-center gap-2">

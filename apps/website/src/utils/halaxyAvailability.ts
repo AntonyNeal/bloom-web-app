@@ -152,13 +152,12 @@ function splitAvailabilityBlock(
     
     // Check if slot is within business hours (Melbourne time)
     const melbourneHour = getMelbourneHour(slotStart);
-    const melbourneEndHour = getMelbourneHour(slotEnd);
     
-    // Check if the slot is within business hours
-    // The slot must START within business hours and END by business close
+    // Check if the slot STARTS within business hours (8am to 6pm inclusive)
+    // A slot starting at 6pm (18:00) is the last valid slot of the day
     const isWithinBusinessHours = 
       melbourneHour >= BUSINESS_START_HOUR && 
-      melbourneEndHour <= BUSINESS_END_HOUR;
+      melbourneHour <= BUSINESS_END_HOUR;
     
     if (isWithinBusinessHours) {
       slots.push({
@@ -312,6 +311,7 @@ export async function fetchAvailableSlots(
 
 /**
  * Group slots by date for calendar display
+ * Uses Melbourne/Sydney timezone for date grouping
  */
 export function groupSlotsByDate(
   slots: AvailableSlot[]
@@ -325,7 +325,15 @@ export function groupSlotsByDate(
       return;
     }
 
-    const date = slot.start.split('T')[0]; // YYYY-MM-DD
+    // Convert UTC to Melbourne time for correct date grouping
+    const utcDate = new Date(slot.start);
+    const melbourneDate = toMelbourneTime(utcDate);
+    
+    // Format as YYYY-MM-DD in Melbourne time
+    const year = melbourneDate.getUTCFullYear();
+    const month = String(melbourneDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(melbourneDate.getUTCDate()).padStart(2, '0');
+    const date = `${year}-${month}-${day}`;
 
     if (!grouped.has(date)) {
       grouped.set(date, []);
@@ -339,11 +347,14 @@ export function groupSlotsByDate(
 
 /**
  * Format time for display (e.g., "9:00 am")
+ * Uses Melbourne/Sydney timezone for correct time display
  */
 export function formatTimeSlot(isoDateTime: string): string {
-  const date = new Date(isoDateTime);
-  let hours = date.getHours();
-  const minutes = date.getMinutes();
+  const utcDate = new Date(isoDateTime);
+  const melbourneDate = toMelbourneTime(utcDate);
+  
+  let hours = melbourneDate.getUTCHours();
+  const minutes = melbourneDate.getUTCMinutes();
   const period = hours >= 12 ? 'pm' : 'am';
 
   if (hours > 12) hours -= 12;
@@ -352,4 +363,52 @@ export function formatTimeSlot(isoDateTime: string): string {
   const minuteStr = minutes === 0 ? '00' : minutes.toString().padStart(2, '0');
 
   return `${hours}:${minuteStr} ${period}`;
+}
+
+/**
+ * Calculate time until next available slot
+ * Returns a human-readable string like "Available in 2 days" or "Available in 5 hours"
+ * Minimum is 3 hours (booking buffer)
+ * 
+ * @param nextSlotStart - ISO datetime string of next available slot
+ * @returns Human-readable availability string
+ */
+export function getTimeUntilAvailability(nextSlotStart: string | null): string {
+  if (!nextSlotStart) {
+    return 'Check availability';
+  }
+
+  const now = new Date();
+  const slotTime = new Date(nextSlotStart);
+  
+  // Calculate difference in milliseconds
+  const diffMs = slotTime.getTime() - now.getTime();
+  
+  // If slot is in the past (shouldn't happen), show generic message
+  if (diffMs <= 0) {
+    return 'Available now';
+  }
+  
+  // Convert to hours
+  const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+  
+  // Minimum is 3 hours (booking buffer)
+  const displayHours = Math.max(diffHours, 3);
+  
+  // Convert to days and remaining hours
+  const days = Math.floor(displayHours / 24);
+  const remainingHours = displayHours % 24;
+  
+  if (days === 0) {
+    // Less than a day - show hours
+    return `Available in ${displayHours} hour${displayHours !== 1 ? 's' : ''}`;
+  } else if (days === 1 && remainingHours === 0) {
+    return 'Available in 1 day';
+  } else if (days === 1) {
+    return `Available in 1 day, ${remainingHours} hour${remainingHours !== 1 ? 's' : ''}`;
+  } else if (remainingHours === 0) {
+    return `Available in ${days} days`;
+  } else {
+    return `Available in ${days} days, ${remainingHours} hour${remainingHours !== 1 ? 's' : ''}`;
+  }
 }

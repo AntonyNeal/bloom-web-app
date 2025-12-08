@@ -117,6 +117,10 @@ export class HalaxySyncService {
           appointmentEndDate
         );
         console.log(`[SyncService]   Found ${appointments.length} appointments for slot filtering`);
+        // Debug: Log appointment details
+        appointments.forEach((apt, i) => {
+          console.log(`[SyncService]   Appointment ${i+1}: ${apt.start} to ${apt.end} (status: ${apt.status})`);
+        });
       } catch (aptError) {
         console.warn('[SyncService]   Could not fetch appointments for slot filtering:', aptError);
         // Continue without appointment filtering - slots will be stored as-is

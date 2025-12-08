@@ -33,9 +33,6 @@ const DISPLAY_START_HOUR = 8;
 const DISPLAY_END_HOUR = 20; // 8 pm
 const SLOT_ROW_HEIGHT_PX = 44;
 
-// Melbourne timezone offset (AEDT = UTC+11)
-const MELBOURNE_OFFSET_HOURS = 11;
-
 /**
  * Format a date as YYYY-MM-DD in Melbourne timezone
  * This must match the format used in groupSlotsByDate

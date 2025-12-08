@@ -129,7 +129,11 @@ export class HalaxyClient {
       const bundle = await this.request<FHIRBundle<T>>(url);
       
       if (bundle.entry) {
-        results.push(...bundle.entry.map(e => e.resource));
+        // Filter out OperationOutcome resources (warnings/errors from the API)
+        const validResources = bundle.entry
+          .map(e => e.resource)
+          .filter(r => r && (r as { resourceType?: string }).resourceType !== 'OperationOutcome');
+        results.push(...validResources);
       }
 
       // Find next page link
@@ -183,10 +187,18 @@ export class HalaxyClient {
     // Use Halaxy-specific query parameters per their API docs:
     // - practitioner: An individual practitioner assigned to an appointment
     // - date: Appointment date/time (supports FHIR prefixes like ge, lt)
-    return this.getAllPages<FHIRAppointment>('/Appointment', {
+    // - status: Filter by appointment status (booked, arrived, fulfilled are active)
+    // Try fetching booked appointments first - these are confirmed bookings
+    console.log(`[HalaxyClient] Fetching appointments for practitioner ${practitionerId}, date >= ${startDate.toISOString().split('T')[0]}`);
+    
+    const appointments = await this.getAllPages<FHIRAppointment>('/Appointment', {
       practitioner: `Practitioner/${practitionerId}`,
       date: `ge${startDate.toISOString().split('T')[0]}`,
+      status: 'booked',
     });
+    
+    console.log(`[HalaxyClient] Found ${appointments.length} booked appointments`);
+    return appointments;
   }
 
   // ============================================================================

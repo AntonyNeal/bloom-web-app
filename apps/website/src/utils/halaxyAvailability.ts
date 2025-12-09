@@ -378,37 +378,24 @@ export function getTimeUntilAvailability(nextSlotStart: string | null): string {
     return 'Check availability';
   }
 
-  const now = new Date();
   const slotTime = new Date(nextSlotStart);
   
-  // Calculate difference in milliseconds
-  const diffMs = slotTime.getTime() - now.getTime();
+  // Format as "Day HH:mm" (e.g., "Tuesday 6:00 pm")
+  const formatter = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    weekday: 'long',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
   
-  // If slot is in the past (shouldn't happen), show generic message
-  if (diffMs <= 0) {
-    return 'Available now';
-  }
+  const parts = formatter.formatToParts(slotTime);
+  const dayName = parts.find(p => p.type === 'weekday')?.value || '';
+  const time = parts
+    .filter(p => ['hour', 'minute', 'dayPeriod'].includes(p.type))
+    .map(p => p.value)
+    .join('');
   
-  // Convert to hours
-  const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
-  
-  // Minimum is 3 hours (booking buffer)
-  const displayHours = Math.max(diffHours, 3);
-  
-  // Convert to days and remaining hours
-  const days = Math.floor(displayHours / 24);
-  const remainingHours = displayHours % 24;
-  
-  if (days === 0) {
-    // Less than a day - show hours
-    return `Available in ${displayHours} hour${displayHours !== 1 ? 's' : ''}`;
-  } else if (days === 1 && remainingHours === 0) {
-    return 'Available in 1 day';
-  } else if (days === 1) {
-    return `Available in 1 day, ${remainingHours} hour${remainingHours !== 1 ? 's' : ''}`;
-  } else if (remainingHours === 0) {
-    return `Available in ${days} days`;
-  } else {
-    return `Available in ${days} days, ${remainingHours} hour${remainingHours !== 1 ? 's' : ''}`;
-  }
+  return `Available ${dayName} ${time}`;
 }
+

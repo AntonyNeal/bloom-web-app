@@ -621,17 +621,22 @@ export class HalaxySyncService {
       const endTimeAU = slotEnd.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
       console.log(`[SyncService]   → Inserting slot: ${slotStart.toISOString().split('T')[0]} ${startTimeAU}–${endTimeAU} (${durationMinutes}min, ID: ${slot.id})`);
 
+      // Slots from $find don't have status field - they are available by definition
+      // Default to 'free' if status is not present
+      const slotStatus = slot.status || 'free';
+      const isBookable = slotStatus === 'free' ? 1 : 0;
+
       await pool.request()
         .input('halaxySlotId', sql.NVarChar, slot.id)
         .input('practitionerId', sql.UniqueIdentifier, practitionerId)
         .input('slotStart', sql.DateTime2, slotStart)
         .input('slotEnd', sql.DateTime2, slotEnd)
         .input('durationMinutes', sql.Int, durationMinutes)
-        .input('status', sql.NVarChar, slot.status)
+        .input('status', sql.NVarChar, slotStatus)
         .input('scheduleId', sql.NVarChar, scheduleId)
         .input('locationType', sql.NVarChar, locationType)
         .input('serviceCategory', sql.NVarChar, serviceCategory)
-        .input('isBookable', sql.Bit, slot.status === 'free' ? 1 : 0)
+        .input('isBookable', sql.Bit, isBookable)
         .query(`
           MERGE INTO availability_slots AS target
           USING (SELECT @halaxySlotId AS halaxy_slot_id) AS source

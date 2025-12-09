@@ -226,11 +226,14 @@ export class HalaxyClient {
     endDate: Date,
     status: FHIRSlotStatus = 'free'
   ): Promise<FHIRSlot[]> {
+    // Halaxy uses the Slot resource to represent individual appointment slots
+    // Use _include to expand related Schedule resources which contain the actual slot times
     return this.getAllPages<FHIRSlot>('/Slot', {
       practitioner: `Practitioner/${practitionerId}`,
       start: `ge${startDate.toISOString()}`,
       end: `le${endDate.toISOString()}`,
       status: status,
+      _include: 'Slot:schedule',
     });
   }
 

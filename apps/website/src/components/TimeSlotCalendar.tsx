@@ -188,6 +188,28 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   }, [currentWeekStart, duration, practitionerId]);
 
   // Generate week schedule from Halaxy availability data
+  const getTimeRangeForDay = (slots: TimeSlot[]): string => {
+    if (slots.length === 0) return '';
+    
+    const times = slots.map(slot => {
+      const hour = parseInt(slot.time.split(':')[0]);
+      return hour;
+    }).sort((a, b) => a - b);
+    
+    const minHour = times[0];
+    const maxHour = times[times.length - 1];
+    
+    const formatter = new Intl.DateTimeFormat('en-AU', {
+      hour: 'numeric',
+      hour12: true,
+    });
+    
+    const minTime = formatter.format(new Date(0, 0, 0, minHour));
+    const maxTime = formatter.format(new Date(0, 0, 0, maxHour));
+    
+    return `${minTime} - ${maxTime}`;
+  };
+
   const generateWeekSchedule = (): DaySchedule[] => {
     const schedule: DaySchedule[] = [];
     const daysToShow = 7;
@@ -226,12 +248,40 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       });
     }
 
-    // Filter out past days but keep all upcoming days (even those with no availability)
+    // Filter out past days
     const upcomingDays = schedule.filter(
       (day) => day.date.getTime() >= today.getTime()
     );
 
-    return upcomingDays;
+    // Ensure Monday is always first (if it exists in upcoming days)
+    const mondayIndex = upcomingDays.findIndex(day => {
+      const dayOfWeek = day.date.getDay();
+      return dayOfWeek === 1; // Monday = 1
+    });
+
+    let result = upcomingDays;
+    
+    // If Monday exists but isn't first, reorder to put it first
+    if (mondayIndex > 0) {
+      const monday = upcomingDays[mondayIndex];
+      result = [monday, ...upcomingDays.slice(0, mondayIndex), ...upcomingDays.slice(mondayIndex + 1)];
+    }
+
+    // Drop days from the end (Friday, Saturday, Sunday) if they have no availabilities
+    // But keep at least Monday and any days with availability
+    while (result.length > 1) {
+      const lastDay = result[result.length - 1];
+      const dayOfWeek = lastDay.date.getDay();
+      
+      // If last day has no slots AND it's Friday/Saturday/Sunday, remove it
+      if (lastDay.slots.length === 0 && (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0)) {
+        result = result.slice(0, -1);
+      } else {
+        break; // Stop if we hit a day with slots or a weekday
+      }
+    }
+
+    return result;
   };
 
   // Helper functions - defined before use
@@ -577,7 +627,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         aria-label="Mobile appointment calendar"
       >
         <div
-          className="-mx-1 flex gap-1.5 overflow-x-auto pb-2 px-1"
+          className="grid gap-1.5 pb-2"
+          style={{ gridTemplateColumns: `repeat(${Math.min(weekSchedule.length, 5)}, 1fr)` }}
           role="tablist"
           aria-label="Select a day"
         >
@@ -585,6 +636,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             const isActive = index === mobileActiveDayIndex;
             const isToday =
               day.date.toDateString() === new Date().toDateString();
+            const hasAvailability = day.slots.length > 0;
 
             return (
               <button
@@ -597,7 +649,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                   setUserSelectedDay(true);
                   setMobileActiveDayIndex(index);
                 }}
-                className={`flex flex-col min-w-[80px] rounded-lg px-2.5 py-2 text-left transition-all ${
+                className={`flex flex-col rounded-lg px-2 py-2 text-left transition-all ${
                   isActive
                     ? 'text-emerald-800'
                     : 'text-slate-600'
@@ -609,18 +661,24 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                   border: isActive ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(226,232,240,0.8)',
                   boxShadow: isActive 
                     ? '0 2px 8px rgba(16,185,129,0.15), inset 0 1px 0 rgba(255,255,255,0.9)'
-                    : '0 1px 2px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.9)'
+                    : '0 1px 2px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.9)',
+                  opacity: hasAvailability ? 1 : 0.6
                 }}
               >
-                <span className="text-[10px] font-semibold uppercase tracking-wide opacity-70">
+                <span className="text-[9px] font-semibold uppercase tracking-wide opacity-70 leading-tight">
                   {day.dayName}
                 </span>
-                <span className="text-base font-bold">
-                  {day.dayNumber} {day.month}
+                <span className="text-sm font-bold leading-tight">
+                  {day.dayNumber}
                 </span>
                 {isToday && (
-                  <span className="text-[10px] font-medium text-amber-600">
+                  <span className="text-[8px] font-medium text-amber-600 leading-tight">
                     Today
+                  </span>
+                )}
+                {hasAvailability && !isToday && (
+                  <span className="text-[8px] font-medium text-emerald-600 leading-tight">
+                    {day.slots.length > 1 ? `${day.slots.length} times` : '1 time'}
                   </span>
                 )}
               </button>
@@ -645,7 +703,9 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     {mobileActiveDay.month}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {mobileActiveDay.slots.length || 'No'} times available
+                    {mobileActiveDay.slots.length > 0 
+                      ? getTimeRangeForDay(mobileActiveDay.slots)
+                      : 'No times available'}
                   </p>
                 </div>
                 <span 

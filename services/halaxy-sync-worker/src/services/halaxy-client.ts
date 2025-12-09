@@ -217,6 +217,63 @@ export class HalaxyClient {
   // ============================================================================
 
   /**
+   * Find available appointments using Halaxy's $find operation
+   * This returns actual individual appointment slots, not schedule templates
+   * 
+   * @param practitionerId - Halaxy practitioner ID
+   * @param startDate - Start of date range
+   * @param endDate - End of date range
+   */
+  async findAvailableAppointments(
+    practitionerId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<FHIRSlot[]> {
+    console.log(`[HalaxyClient] ============= CALLING APPOINTMENT $find =============`);
+    console.log(`[HalaxyClient] findAvailableAppointments - Querying for practitioner: ${practitionerId}`);
+    console.log(`[HalaxyClient] findAvailableAppointments - Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+    
+    try {
+      const appointments = await this.getAllPages<FHIRSlot>('/Appointment/$find', {
+        practitioner: `Practitioner/${practitionerId}`,
+        start: `ge${startDate.toISOString()}`,
+        end: `le${endDate.toISOString()}`,
+      });
+      
+      console.log(`[HalaxyClient] findAvailableAppointments - Found ${appointments.length} available appointment slots`);
+      
+      if (appointments.length > 0) {
+        console.log(`[HalaxyClient] ===== AVAILABLE APPOINTMENTS =====`);
+        const appointmentsByDate: { [key: string]: FHIRSlot[] } = {};
+        appointments.forEach(apt => {
+          const date = apt.start.split('T')[0];
+          if (!appointmentsByDate[date]) appointmentsByDate[date] = [];
+          appointmentsByDate[date].push(apt);
+        });
+        
+        Object.keys(appointmentsByDate).sort().forEach(date => {
+          const dayAppts = appointmentsByDate[date];
+          console.log(`[HalaxyClient] ${date}: ${dayAppts.length} available time(s)`);
+          dayAppts.forEach(apt => {
+            const startTime = new Date(apt.start).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+            const endTime = new Date(apt.end).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+            const durationMin = (new Date(apt.end).getTime() - new Date(apt.start).getTime()) / 60000;
+            console.log(`[HalaxyClient]   - ${startTime} to ${endTime} (${Math.round(durationMin)}min, ID: ${apt.id})`);
+          });
+        });
+        console.log(`[HalaxyClient] =====================================`);
+      }
+      
+      return appointments;
+    } catch (error) {
+      console.error(`[HalaxyClient] findAvailableAppointments failed:`, error);
+      // If $find fails, fall back to empty array and log warning
+      console.warn(`[HalaxyClient] Falling back to empty appointments list`);
+      return [];
+    }
+  }
+
+  /**
    * Get a specific slot by ID
    */
   async getSlot(slotId: string): Promise<FHIRSlot> {

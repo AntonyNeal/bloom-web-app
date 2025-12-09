@@ -264,26 +264,20 @@ export async function fetchAvailableSlots(
           end: entry.resource.end,
         };
         
-        // Calculate block duration to determine if splitting is needed
+        // With Appointment/$find, slots are already granular individual appointment times
+        // No need to split - use slots as-is
         const blockStart = new Date(block.start);
         const blockEnd = new Date(block.end);
         const blockDurationMinutes = (blockEnd.getTime() - blockStart.getTime()) / (1000 * 60);
         
-        if (blockDurationMinutes > params.duration) {
-          // Large block - split into individual slots
-          const splitSlots = splitAvailabilityBlock(block, params.duration);
-          individualSlots.push(...splitSlots);
-        } else {
-          // Small block - use as-is
-          individualSlots.push({
-            start: block.start,
-            end: block.end,
-            duration: params.duration,
-          });
-        }
+        individualSlots.push({
+          start: block.start,
+          end: block.end,
+          duration: blockDurationMinutes,
+        });
       }
       
-      console.log(`[HalaxyAvailability] Split ${data.entry.length} blocks into ${individualSlots.length} individual slots`);
+      console.log(`[HalaxyAvailability] Using ${data.entry.length} individual appointment slots (no splitting needed)`);
 
       // Filter out slots that are before the earliest bookable time
       const bookableSlots = individualSlots.filter((slot) => {

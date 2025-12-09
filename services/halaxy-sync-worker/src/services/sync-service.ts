@@ -102,36 +102,8 @@ export class HalaxySyncService {
       // 2. Patient sync disabled - not needed at this time
       console.log('[SyncService] Step 2: Skipping patient sync (disabled)');
 
-      // 3. Fetch appointments for slot filtering (not syncing to DB)
-      // We need appointments to subtract booked times from availability slots
-      console.log('[SyncService] Step 3: Fetching appointments for slot filtering');
-      const appointmentStartDate = new Date();
-      const appointmentEndDate = new Date();
-      appointmentEndDate.setDate(appointmentEndDate.getDate() + 30);
-      
-      console.log(`[SyncService]   Querying appointments from ${appointmentStartDate.toISOString()} to ${appointmentEndDate.toISOString()}`);
-      
-      let appointments: FHIRAppointment[] = [];
-      try {
-        appointments = await this.client.getAppointmentsByPractitioner(
-          halaxyPractitionerId,
-          appointmentStartDate,
-          appointmentEndDate
-        );
-        console.log(`[SyncService]   ✓ Found ${appointments.length} booked appointments for slot filtering`);
-        // Debug: Log appointment details
-        if (appointments.length > 0) {
-          console.log(`[SyncService]   Appointment details:`);
-          appointments.forEach((apt, i) => {
-            const startTime = new Date(apt.start || '').toLocaleString('en-AU');
-            const endTime = new Date(apt.end || '').toLocaleString('en-AU');
-            console.log(`[SyncService]     ${i+1}. ${startTime} → ${endTime} (status: ${apt.status})`);
-          });
-        }
-      } catch (aptError) {
-        console.warn('[SyncService]   ⚠ Could not fetch appointments for slot filtering:', aptError);
-        // Continue without appointment filtering - slots will be stored as-is
-      }
+      // 3. Appointment fetching no longer needed - $find endpoint handles appointment filtering
+      console.log('[SyncService] Step 3: Skipping appointment fetch (Appointment/$find includes filtering)');
 
       // 4. Sync availability slots
       console.log('[SyncService] ========== STEP 4: SYNCING AVAILABILITY SLOTS ==========');
@@ -154,45 +126,18 @@ export class HalaxySyncService {
 
       let slotsSynced = 0;
       try {
-        console.log(`[SyncService] → Calling HalaxyClient.findAvailableSlots()...`);
-        const allSlots = await this.client.findAvailableSlots(
+        console.log(`[SyncService] → Calling HalaxyClient.findAvailableAppointments()...`);
+        const availableAppointments = await this.client.findAvailableAppointments(
           halaxyPractitionerId,
           slotStartDate,
-          slotEndDate,
-          60 // Default 60 min duration
+          slotEndDate
         );
-        console.log(`[SyncService] ← API returned ${allSlots.length} availability slots`);
+        console.log(`[SyncService] ← API returned ${availableAppointments.length} available appointment slots`);
 
-        // Filter out weekend slots in AEDT timezone (UTC+11 in summer)
-        // Halaxy is Australian, so we must check day of week in local time
-        const AEDT_OFFSET_MS = 11 * 60 * 60 * 1000; // UTC+11 for AEDT (daylight saving)
-        let weekendCount = 0;
-        const weekdaySlots = allSlots.filter((slot) => {
-          const slotDateUtc = new Date(slot.start);
-          // Convert UTC to AEDT by adding 11 hours
-          const slotDateAedt = new Date(slotDateUtc.getTime() + AEDT_OFFSET_MS);
-          const dayOfWeekAedt = slotDateAedt.getUTCDay(); // Use getUTCDay since we manually offset
-          const isWeekend = dayOfWeekAedt === 0 || dayOfWeekAedt === 6;
-          if (isWeekend) {
-            weekendCount++;
-          }
-          return !isWeekend;
-        });
-        console.log(`[SyncService] Weekend filtering: ${weekendCount} weekend slots removed, ${weekdaySlots.length} weekday slots remain`);
-
-        // Subtract booked appointments from availability slots
-        // This creates slot fragments that represent actually free times
-        const futureAppointments = appointments.filter(apt => {
-          const aptStart = new Date(apt.start || '');
-          return aptStart > now && 
-            // Only consider non-cancelled appointments
-            apt.status !== 'cancelled' && 
-            apt.status !== 'noshow';
-        });
-        console.log(`[SyncService] Appointment subtraction: ${futureAppointments.length} future booked appointments to remove`);
+        // No need to filter weekends or subtract appointments - $find returns only actual available slots
+        const slots = availableAppointments;
         
-        const slots = this.subtractAppointmentsFromSlots(weekdaySlots, futureAppointments);
-        console.log(`[SyncService] Subtraction result: ${slots.length} final slots (from ${weekdaySlots.length} input slots)`);
+        console.log(`[SyncService] Final slots to sync: ${slots.length}`);
         
         // Log slot distribution by date
         if (slots.length > 0) {
@@ -202,7 +147,7 @@ export class HalaxySyncService {
             if (!slotsByDate[date]) slotsByDate[date] = [];
             slotsByDate[date].push(slot);
           });
-          console.log(`[SyncService] Slots by date after all filtering:`);
+          console.log(`[SyncService] Slots to sync by date:`);
           Object.keys(slotsByDate).sort().forEach(date => {
             const daySlots = slotsByDate[date];
             console.log(`[SyncService]   ${date}: ${daySlots.length} slot(s)`);

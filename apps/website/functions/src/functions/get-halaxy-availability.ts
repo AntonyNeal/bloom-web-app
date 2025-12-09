@@ -83,7 +83,9 @@ async function fetchAvailableSlots(
   const dbPool = await getDbConnection(context);
 
   // Query for available slots from the availability_slots table
-  // Slots must be free, bookable, in the future, and match the requested duration
+  // Slots must be free, bookable, in the future
+  // Note: With $find endpoint, slots are pre-validated by Halaxy's booking preferences
+  // so we don't filter by duration - return all available slots
   let query = `
     SELECT 
       a.id,
@@ -100,7 +102,6 @@ async function fetchAvailableSlots(
       AND a.status = 'free'
       AND a.is_bookable = 1
       AND a.slot_start > GETUTCDATE()
-      AND a.duration_minutes >= @duration
   `;
 
   const request = dbPool
@@ -120,7 +121,7 @@ async function fetchAvailableSlots(
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     practitionerId,
-    durationMinutes,
+    // Note: durationMinutes parameter is not used in filter since $find already validates
   });
 
   const result = await request.query<AvailabilitySlot>(query);

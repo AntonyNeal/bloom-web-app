@@ -281,7 +281,13 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       }
     }
 
-    return result;
+    // Only show days that have availability - this improves UX by:
+    // - Preventing confusion about unavailable days
+    // - Saving mobile screen space
+    // - Guiding users to bookable times clearly
+    const daysWithAvailability = result.filter(day => day.slots.length > 0);
+
+    return daysWithAvailability;
   };
 
   // Helper functions - defined before use
@@ -636,7 +642,6 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             const isActive = index === mobileActiveDayIndex;
             const isToday =
               day.date.toDateString() === new Date().toDateString();
-            const hasAvailability = day.slots.length > 0;
 
             return (
               <button
@@ -661,8 +666,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                   border: isActive ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(226,232,240,0.8)',
                   boxShadow: isActive 
                     ? '0 2px 8px rgba(16,185,129,0.15), inset 0 1px 0 rgba(255,255,255,0.9)'
-                    : '0 1px 2px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.9)',
-                  opacity: hasAvailability ? 1 : 0.6
+                    : '0 1px 2px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.9)'
                 }}
               >
                 <span className="text-[9px] font-semibold uppercase tracking-wide opacity-70 leading-tight">
@@ -676,7 +680,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     Today
                   </span>
                 )}
-                {hasAvailability && !isToday && (
+                {!isToday && (
                   <span className="text-[8px] font-medium text-emerald-600 leading-tight">
                     {day.slots.length > 1 ? `${day.slots.length} times` : '1 time'}
                   </span>

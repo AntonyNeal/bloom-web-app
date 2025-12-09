@@ -228,13 +228,31 @@ export class HalaxyClient {
   ): Promise<FHIRSlot[]> {
     // Halaxy uses the Slot resource to represent individual appointment slots
     // Use _include to expand related Practitioner resources for complete slot data
-    return this.getAllPages<FHIRSlot>('/Slot', {
+    const queryParams = {
       practitioner: `Practitioner/${practitionerId}`,
       start: `ge${startDate.toISOString()}`,
       end: `le${endDate.toISOString()}`,
       status: status,
       _include: 'Slot:practitioner',
-    });
+    };
+    
+    console.log('[HalaxyClient] getSlotsByPractitioner - Query parameters:', JSON.stringify(queryParams, null, 2));
+    console.log(`[HalaxyClient] getSlotsByPractitioner - Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+    
+    const slots = await this.getAllPages<FHIRSlot>('/Slot', queryParams);
+    
+    console.log(`[HalaxyClient] getSlotsByPractitioner - Returned ${slots.length} total slots from API`);
+    if (slots.length > 0) {
+      console.log(`[HalaxyClient] Sample slots returned:`);
+      slots.slice(0, 3).forEach((slot, i) => {
+        console.log(`[HalaxyClient]   Slot ${i+1}: ID=${slot.id}, start=${slot.start}, end=${slot.end}, status=${slot.status}, duration=${(new Date(slot.end).getTime() - new Date(slot.start).getTime()) / 60000}min`);
+      });
+      if (slots.length > 3) {
+        console.log(`[HalaxyClient]   ... and ${slots.length - 3} more slots`);
+      }
+    }
+    
+    return slots;
   }
 
   /**
@@ -255,7 +273,9 @@ export class HalaxyClient {
   ): Promise<FHIRSlot[]> {
     // Use standard FHIR Slot search with proper date range parameters
     // Halaxy returns individual appointment slots when queried with the right parameters
-    console.log(`[HalaxyClient] Querying available slots for practitioner ${practitionerId}`);
+    console.log(`[HalaxyClient] ============= STARTING SLOT QUERY =============`);
+    console.log(`[HalaxyClient] findAvailableSlots - Querying available slots for practitioner: ${practitionerId}`);
+    console.log(`[HalaxyClient] findAvailableSlots - Duration parameter: ${_duration} minutes`);
     
     const slots = await this.getSlotsByPractitioner(
       practitionerId, 
@@ -264,7 +284,31 @@ export class HalaxyClient {
       'free'
     );
     
-    console.log(`[HalaxyClient] Found ${slots.length} available slots`);
+    console.log(`[HalaxyClient] findAvailableSlots - Found ${slots.length} available slots`);
+    
+    // Debug: Log all slot details
+    if (slots.length > 0) {
+      console.log(`[HalaxyClient] ===== DETAILED SLOT BREAKDOWN =====`);
+      const slotsByDate: { [key: string]: FHIRSlot[] } = {};
+      slots.forEach(slot => {
+        const date = slot.start.split('T')[0];
+        if (!slotsByDate[date]) slotsByDate[date] = [];
+        slotsByDate[date].push(slot);
+      });
+      
+      Object.keys(slotsByDate).sort().forEach(date => {
+        const daySlots = slotsByDate[date];
+        console.log(`[HalaxyClient] ${date}: ${daySlots.length} slots`);
+        daySlots.forEach(slot => {
+          const startTime = new Date(slot.start).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+          const endTime = new Date(slot.end).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+          const durationMin = (new Date(slot.end).getTime() - new Date(slot.start).getTime()) / 60000;
+          console.log(`[HalaxyClient]   - ${startTime} to ${endTime} (${Math.round(durationMin)}min, ID: ${slot.id})`);
+        });
+      });
+      console.log(`[HalaxyClient] ===================================`);
+    }
+    
     return slots;
   }
 

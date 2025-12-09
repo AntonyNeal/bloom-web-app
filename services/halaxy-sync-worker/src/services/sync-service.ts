@@ -118,22 +118,23 @@ export class HalaxySyncService {
           appointmentStartDate,
           appointmentEndDate
         );
-        console.log(`[SyncService]   Found ${appointments.length} appointments for slot filtering`);
-        // Debug: Log raw appointment structure to understand field mapping
-        if (appointments.length > 0) {
-          console.log(`[SyncService]   Raw appointment 1: ${JSON.stringify(appointments[0])}`);
-        }
+        console.log(`[SyncService]   ✓ Found ${appointments.length} booked appointments for slot filtering`);
         // Debug: Log appointment details
-        appointments.forEach((apt, i) => {
-          console.log(`[SyncService]   Appointment ${i+1}: ${apt.start} to ${apt.end} (status: ${apt.status})`);
-        });
+        if (appointments.length > 0) {
+          console.log(`[SyncService]   Appointment details:`);
+          appointments.forEach((apt, i) => {
+            const startTime = new Date(apt.start || '').toLocaleString('en-AU');
+            const endTime = new Date(apt.end || '').toLocaleString('en-AU');
+            console.log(`[SyncService]     ${i+1}. ${startTime} → ${endTime} (status: ${apt.status})`);
+          });
+        }
       } catch (aptError) {
-        console.warn('[SyncService]   Could not fetch appointments for slot filtering:', aptError);
+        console.warn('[SyncService]   ⚠ Could not fetch appointments for slot filtering:', aptError);
         // Continue without appointment filtering - slots will be stored as-is
       }
 
       // 4. Sync availability slots
-      console.log('[SyncService] Step 4: Syncing availability slots');
+      console.log('[SyncService] ========== STEP 4: SYNCING AVAILABILITY SLOTS ==========');
       
       // Start from midnight AEDT today (not "now") to capture slots that started earlier today
       // AEDT = UTC+11, so midnight AEDT = 13:00 UTC previous day
@@ -149,21 +150,23 @@ export class HalaxySyncService {
       const slotEndDate = new Date();
       slotEndDate.setDate(slotEndDate.getDate() + 30);
       
-      console.log(`[SyncService]   Query range: ${slotStartDate.toISOString()} to ${slotEndDate.toISOString()}`);
+      console.log(`[SyncService] Query date range: ${slotStartDate.toISOString()} to ${slotEndDate.toISOString()}`);
 
       let slotsSynced = 0;
       try {
+        console.log(`[SyncService] → Calling HalaxyClient.findAvailableSlots()...`);
         const allSlots = await this.client.findAvailableSlots(
           halaxyPractitionerId,
           slotStartDate,
           slotEndDate,
           60 // Default 60 min duration
         );
-        console.log(`[SyncService]   Found ${allSlots.length} availability slots from Halaxy`);
+        console.log(`[SyncService] ← API returned ${allSlots.length} availability slots`);
 
         // Filter out weekend slots in AEDT timezone (UTC+11 in summer)
         // Halaxy is Australian, so we must check day of week in local time
         const AEDT_OFFSET_MS = 11 * 60 * 60 * 1000; // UTC+11 for AEDT (daylight saving)
+        let weekendCount = 0;
         const weekdaySlots = allSlots.filter((slot) => {
           const slotDateUtc = new Date(slot.start);
           // Convert UTC to AEDT by adding 11 hours
@@ -171,11 +174,11 @@ export class HalaxySyncService {
           const dayOfWeekAedt = slotDateAedt.getUTCDay(); // Use getUTCDay since we manually offset
           const isWeekend = dayOfWeekAedt === 0 || dayOfWeekAedt === 6;
           if (isWeekend) {
-            console.log(`[SyncService]   Filtering weekend slot: ${slot.start} (${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dayOfWeekAedt]} AEDT)`);
+            weekendCount++;
           }
           return !isWeekend;
         });
-        console.log(`[SyncService]   Processing ${weekdaySlots.length} weekday slots (AEDT timezone)`);
+        console.log(`[SyncService] Weekend filtering: ${weekendCount} weekend slots removed, ${weekdaySlots.length} weekday slots remain`);
 
         // Subtract booked appointments from availability slots
         // This creates slot fragments that represent actually free times
@@ -186,23 +189,48 @@ export class HalaxySyncService {
             apt.status !== 'cancelled' && 
             apt.status !== 'noshow';
         });
-        console.log(`[SyncService]   Subtracting ${futureAppointments.length} future appointments from slots`);
+        console.log(`[SyncService] Appointment subtraction: ${futureAppointments.length} future booked appointments to remove`);
         
         const slots = this.subtractAppointmentsFromSlots(weekdaySlots, futureAppointments);
-        console.log(`[SyncService]   After subtraction: ${slots.length} slot fragments (from ${weekdaySlots.length} original slots)`);
+        console.log(`[SyncService] Subtraction result: ${slots.length} final slots (from ${weekdaySlots.length} input slots)`);
+        
+        // Log slot distribution by date
+        if (slots.length > 0) {
+          const slotsByDate: { [key: string]: FHIRSlot[] } = {};
+          slots.forEach(slot => {
+            const date = slot.start.split('T')[0];
+            if (!slotsByDate[date]) slotsByDate[date] = [];
+            slotsByDate[date].push(slot);
+          });
+          console.log(`[SyncService] Slots by date after all filtering:`);
+          Object.keys(slotsByDate).sort().forEach(date => {
+            const daySlots = slotsByDate[date];
+            console.log(`[SyncService]   ${date}: ${daySlots.length} slot(s)`);
+            daySlots.forEach(slot => {
+              const startTime = new Date(slot.start).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+              const endTime = new Date(slot.end).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+              console.log(`[SyncService]     · ${startTime}–${endTime}`);
+            });
+          });
+        }
 
         // Clean up old slots before syncing new ones
+        console.log(`[SyncService] Cleaning up old slots...`);
         await this.cleanupOldSlots(pool, practitioner.id);
 
         // Reconcile database state with fetched slots
+        console.log(`[SyncService] Reconciling database with new slots...`);
         await this.reconcilePractitionerSlots(pool, practitioner.id, slots);
 
-        for (const slot of slots) {
+        console.log(`[SyncService] Starting insertion of ${slots.length} slots into database...`);
+        for (let i = 0; i < slots.length; i++) {
+          const slot = slots[i];
           try {
             await this.syncSlot(pool, slot, practitioner.id);
             slotsSynced++;
             recordsUpdated++;
           } catch (slotError) {
+            console.error(`[SyncService] Error syncing slot ${i+1}/${slots.length}: ${slotError}`);
             errors.push({
               entityType: 'slot',
               entityId: slot.id,
@@ -210,6 +238,7 @@ export class HalaxySyncService {
             });
           }
         }
+        console.log(`[SyncService] ✓ Successfully synced ${slotsSynced} slots to database`);
       } catch (slotsError) {
         console.error('[SyncService] Failed to sync availability slots:', slotsError);
         errors.push({
@@ -231,7 +260,11 @@ export class HalaxySyncService {
         status: errors.length === 0 ? 'success' : 'failure',
       });
 
-      console.log(`[SyncService] Sync completed in ${durationMs}ms`);
+      console.log(`[SyncService] ========== SYNC COMPLETED ==========`);
+      console.log(`[SyncService] Duration: ${durationMs}ms`);
+      console.log(`[SyncService] Slots synced: ${slotsSynced}`);
+      console.log(`[SyncService] Errors: ${errors.length}`);
+      console.log(`[SyncService] Status: ${errors.length === 0 ? '✓ SUCCESS' : '✗ FAILURE'}`);
 
       return {
         success: errors.length === 0,
@@ -637,6 +670,11 @@ export class HalaxySyncService {
       
       // Determine location type from service type or extensions
       const locationType = this.extractLocationType(slot);
+      
+      // Log slot being synced
+      const startTimeAU = slotStart.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+      const endTimeAU = slotEnd.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+      console.log(`[SyncService]   → Inserting slot: ${slotStart.toISOString().split('T')[0]} ${startTimeAU}–${endTimeAU} (${durationMinutes}min, ID: ${slot.id})`);
 
       await pool.request()
         .input('halaxySlotId', sql.NVarChar, slot.id)
@@ -680,9 +718,11 @@ export class HalaxySyncService {
         `);
 
       trackDependency('SQL', 'syncSlot', 'MERGE availability_slots', Date.now() - startTime, true);
+      console.log(`[SyncService]   ✓ Synced (${Date.now() - startTime}ms)`);
 
     } catch (error) {
       trackDependency('SQL', 'syncSlot', 'MERGE availability_slots', Date.now() - startTime, false);
+      console.error(`[SyncService]   ✗ Failed to sync slot ${slot.id}: ${error}`);
       throw error;
     }
   }

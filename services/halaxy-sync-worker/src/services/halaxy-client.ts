@@ -191,14 +191,25 @@ export class HalaxyClient {
     // Try fetching booked appointments first - these are confirmed bookings
     console.log(`[HalaxyClient] Fetching appointments for practitioner ${practitionerId}, date >= ${startDate.toISOString().split('T')[0]}`);
     
-    const appointments = await this.getAllPages<FHIRAppointment>('/Appointment', {
-      practitioner: `Practitioner/${practitionerId}`,
-      date: `ge${startDate.toISOString().split('T')[0]}`,
-      status: 'booked',
-    });
-    
-    console.log(`[HalaxyClient] Found ${appointments.length} booked appointments`);
-    return appointments;
+    try {
+      const appointments = await this.getAllPages<FHIRAppointment>('/Appointment', {
+        practitioner: `Practitioner/${practitionerId}`,
+        date: `ge${startDate.toISOString().split('T')[0]}`,
+        status: 'booked',
+      });
+      
+      console.log(`[HalaxyClient] Found ${appointments.length} booked appointments`);
+      return appointments;
+    } catch (error) {
+      // If appointment endpoint returns 404, the practitioner may not have appointments
+      // Log a warning but don't fail the entire sync
+      if (error instanceof Error && error.message.includes('404')) {
+        console.warn(`[HalaxyClient] Appointment endpoint returned 404 for practitioner ${practitionerId} - treating as no appointments`);
+        return [];
+      }
+      // Re-throw other errors
+      throw error;
+    }
   }
 
   // ============================================================================

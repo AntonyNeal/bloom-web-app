@@ -36,8 +36,8 @@ interface FHIRBundle {
 interface AvailabilitySlot {
   id: string;
   halaxy_slot_id: string;
-  slot_start: Date;
-  slot_end: Date;
+  slot_start_unix: number;
+  slot_end_unix: number;
   status: string;
   practitioner_id?: string;
   duration_minutes: number;
@@ -82,7 +82,7 @@ async function fetchAvailableSlots(
 ): Promise<FHIRSlot[]> {
   const dbPool = await getDbConnection(context);
 
-  // Query for available slots from the availability_slots table
+  // Query for available slots from the availability_slots table using Unix timestamps
   // Slots must be free, bookable, in the future
   // Note: With $find endpoint, slots are pre-validated by Halaxy's booking preferences
   // so we don't filter by duration - return all available slots
@@ -90,24 +90,24 @@ async function fetchAvailableSlots(
     SELECT 
       a.id,
       a.halaxy_slot_id,
-      a.slot_start,
-      a.slot_end,
+      a.slot_start_unix,
+      a.slot_end_unix,
       a.status,
       a.practitioner_id,
       a.duration_minutes,
       a.location_type
     FROM availability_slots a
-    WHERE a.slot_start >= @startDate
-      AND a.slot_end <= @endDate
+    WHERE a.slot_start_unix >= @startDateUnix
+      AND a.slot_end_unix <= @endDateUnix
       AND a.status = 'free'
       AND a.is_bookable = 1
-      AND a.slot_start > GETUTCDATE()
+      AND a.slot_start_unix > DATEDIFF(SECOND, '1970-01-01 00:00:00', GETUTCDATE())
   `;
 
   const request = dbPool
     .request()
-    .input('startDate', sql.DateTime2, startDate)
-    .input('endDate', sql.DateTime2, endDate)
+    .input('startDateUnix', sql.BigInt, Math.floor(startDate.getTime() / 1000))
+    .input('endDateUnix', sql.BigInt, Math.floor(endDate.getTime() / 1000))
     .input('duration', sql.Int, durationMinutes)
     .input('practitionerId', sql.UniqueIdentifier, practitionerId || null);
 
@@ -131,8 +131,8 @@ async function fetchAvailableSlots(
   return result.recordset.map((slot) => ({
     resourceType: 'Slot' as const,
     id: slot.id,
-    start: new Date(slot.slot_start).toISOString(),
-    end: new Date(slot.slot_end).toISOString(),
+    start: new Date(slot.slot_start_unix * 1000).toISOString(),
+    end: new Date(slot.slot_end_unix * 1000).toISOString(),
     status: 'free' as const,
   }));
 }

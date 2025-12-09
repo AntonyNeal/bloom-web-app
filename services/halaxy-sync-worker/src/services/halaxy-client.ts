@@ -235,60 +235,34 @@ export class HalaxyClient {
   }
 
   /**
-   * Search for available slots using the $find operation
-   * This is the preferred method for finding bookable slots
+   * Search for available slots
+   * Queries the Slot resource using standard FHIR search parameters.
+   * Note: Halaxy returns both schedule templates and individual appointment slots.
    * 
    * @param practitionerId - Halaxy practitioner ID
    * @param startDate - Start of date range
    * @param endDate - End of date range
-   * @param duration - Desired appointment duration in minutes
+   * @param duration - Desired appointment duration in minutes (currently unused as Halaxy returns pre-defined slots)
    */
   async findAvailableSlots(
     practitionerId: string,
     startDate: Date,
     endDate: Date,
-    duration: number = 60
+    _duration: number = 60
   ): Promise<FHIRSlot[]> {
-    const params = new URLSearchParams({
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-      duration: duration.toString(),
-      practitioner: `Practitioner/${practitionerId}`,
-      status: 'free',
-    });
-
-    if (config.halaxyHealthcareServiceId) {
-      params.set('healthcareService', `HealthcareService/${config.halaxyHealthcareServiceId}`);
-    }
-
-    console.log(`[HalaxyClient] Trying $find with params: ${params.toString()}`);
-
-    try {
-      const bundle = await this.request<FHIRBundle<FHIRSlot>>(
-        `/Slot/$find?${params.toString()}`
-      );
-
-      console.log(`[HalaxyClient] $find returned bundle with ${bundle.entry?.length || 0} entries`);
-
-      if (bundle.entry && bundle.entry.length > 0) {
-        // Filter out OperationOutcome resources
-        const validSlots = bundle.entry
-          .map(e => e.resource)
-          .filter(r => r && (r as { resourceType?: string }).resourceType === 'Slot');
-        console.log(`[HalaxyClient] $find returned ${validSlots.length} valid slots`);
-        if (validSlots.length > 0) {
-          return validSlots as FHIRSlot[];
-        }
-      }
-      console.warn('[HalaxyClient] $find returned no valid slots, falling back to standard Slot search');
-    } catch (error) {
-      // Fallback to standard Slot search if $find is not supported
-      console.warn(`[HalaxyClient] $find operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      console.warn('[HalaxyClient] Falling back to standard search');
-      return this.getSlotsByPractitioner(practitionerId, startDate, endDate, 'free');
-    }
-
-    return this.getSlotsByPractitioner(practitionerId, startDate, endDate, 'free');
+    // Use standard FHIR Slot search with proper date range parameters
+    // Halaxy returns individual appointment slots when queried with the right parameters
+    console.log(`[HalaxyClient] Querying available slots for practitioner ${practitionerId}`);
+    
+    const slots = await this.getSlotsByPractitioner(
+      practitionerId, 
+      startDate, 
+      endDate, 
+      'free'
+    );
+    
+    console.log(`[HalaxyClient] Found ${slots.length} available slots`);
+    return slots;
   }
 
   /**

@@ -220,25 +220,67 @@ export class HalaxyClient {
    * Find available appointments using Halaxy's $find operation
    * This returns actual individual appointment slots, not schedule templates
    * 
+   * GET /Appointment/$find - generates list of available appointments from Slot Resources
+   * Uses Online booking preferences to ensure times adhere to buffer time, lead time, and advance booking limits
+   * 
    * @param practitionerId - Halaxy practitioner ID
-   * @param startDate - Start of date range
-   * @param endDate - End of date range
+   * @param startDate - Start of date range (ISO 8601)
+   * @param endDate - End of date range (ISO 8601)
+   * @param durationMinutes - Appointment duration in minutes (required by API)
    */
   async findAvailableAppointments(
     practitionerId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
+    durationMinutes: number = 30
   ): Promise<FHIRSlot[]> {
     console.log(`[HalaxyClient] ============= CALLING APPOINTMENT $find =============`);
     console.log(`[HalaxyClient] findAvailableAppointments - Querying for practitioner: ${practitionerId}`);
     console.log(`[HalaxyClient] findAvailableAppointments - Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+    console.log(`[HalaxyClient] findAvailableAppointments - Duration: ${durationMinutes} minutes`);
     
     try {
-      const appointments = await this.getAllPages<FHIRSlot>('/Appointment/$find', {
-        practitioner: `Practitioner/${practitionerId}`,
-        start: `ge${startDate.toISOString()}`,
-        end: `le${endDate.toISOString()}`,
+      const token = await this.ensureValidToken();
+      
+      // Build query parameters as per Halaxy API documentation
+      // Required: start, end, duration
+      // Optional: practitioner, practitioner-role, organization, show, emergency, apply-buffer-time, _sort
+      const params = new URLSearchParams();
+      params.append('practitioner', practitionerId);
+      params.append('start', startDate.toISOString());
+      params.append('end', endDate.toISOString());
+      params.append('duration', `${durationMinutes}`);
+      
+      const url = `${config.halaxyApiUrl}/Appointment/$find?${params.toString()}`;
+      const startTime = Date.now();
+
+      console.log(`[HalaxyClient] GET /Appointment/$find with query params: practitioner=${practitionerId}, start=${startDate.toISOString()}, end=${endDate.toISOString()}, duration=${durationMinutes}`);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/fhir+json',
+          'User-Agent': 'Life-Psychology-Australia (support@life-psychology.com.au)',
+        }
       });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error(`[HalaxyClient] $find operation failed: ${response.status} - ${error}`);
+        throw new Error(`Halaxy $find error: ${response.status} - ${error}`);
+      }
+
+      const bundle = await response.json() as FHIRBundle<FHIRSlot>;
+      trackDependency('HTTP', 'Halaxy FHIR', '/Appointment/$find', Date.now() - startTime, true);
+
+      const appointments: FHIRSlot[] = [];
+      if (bundle.entry) {
+        const validResources = bundle.entry
+          .map(e => e.resource)
+          .filter(r => r && (r as { resourceType?: string }).resourceType !== 'OperationOutcome');
+        appointments.push(...validResources);
+      }
       
       console.log(`[HalaxyClient] findAvailableAppointments - Found ${appointments.length} available appointment slots`);
       
@@ -267,6 +309,7 @@ export class HalaxyClient {
       return appointments;
     } catch (error) {
       console.error(`[HalaxyClient] findAvailableAppointments failed:`, error);
+      trackDependency('HTTP', 'Halaxy FHIR', '/Appointment/$find', 0, false);
       // If $find fails, fall back to empty array and log warning
       console.warn(`[HalaxyClient] Falling back to empty appointments list`);
       return [];

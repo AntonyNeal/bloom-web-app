@@ -13,9 +13,6 @@ import {
 } from '@azure/functions';
 import * as sql from 'mssql';
 
-// Connection pool singleton
-let pool: sql.ConnectionPool | null = null;
-
 interface FHIRSlot {
   resourceType: 'Slot';
   id?: string;

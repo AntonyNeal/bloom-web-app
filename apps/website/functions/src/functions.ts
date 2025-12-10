@@ -15,4 +15,7 @@ import './functions/create-payment-intent';
 // Import Halaxy availability function
 import './functions/get-halaxy-availability';
 
+// Import debug function
+import './functions/debug-slots';
+
 export { app };

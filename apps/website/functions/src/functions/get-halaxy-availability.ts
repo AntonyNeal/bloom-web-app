@@ -42,33 +42,24 @@ interface AvailabilitySlot {
 }
 
 /**
- * Get database connection pool
+ * Get database connection
  */
 async function getDbConnection(
   context: InvocationContext
 ): Promise<sql.ConnectionPool> {
-  // Always create a fresh connection to ensure we get the latest connection string
-  // from environment variables. Connection pools are managed by mssql module.
   const connectionString = process.env.SQL_CONNECTION_STRING;
   if (!connectionString) {
     throw new Error('SQL_CONNECTION_STRING environment variable is not configured');
   }
 
-  context.log('Creating database connection', {
-    hasConnectionString: !!connectionString,
-    connectionStringPreview: connectionString.substring(0, 50) + '...'
-  });
+  context.log('Connecting to database...');
+  const conn = await sql.connect(connectionString);
   
-  const newPool = new sql.ConnectionPool(connectionString);
-  
-  newPool.on('error', (err) => {
+  conn.on('error', (err) => {
     context.error('Database connection error:', err);
   });
 
-  await newPool.connect();
-  context.log('Database connection established');
-  
-  return newPool;
+  return conn;
 }
 
 /**
@@ -128,18 +119,13 @@ async function fetchAvailableSlots(
   context.log(`Found ${result.recordset.length} available slots`);
 
   // Transform to FHIR Slot resources
-  const slots = result.recordset.map((slot) => ({
+  return result.recordset.map((slot) => ({
     resourceType: 'Slot' as const,
     id: slot.id,
     start: new Date(slot.slot_start_unix * 1000).toISOString(),
     end: new Date(slot.slot_end_unix * 1000).toISOString(),
     status: 'free' as const,
   }));
-  
-  // Close connection after query
-  await dbPool.close();
-  
-  return slots;
 }
 
 async function getHalaxyAvailability(

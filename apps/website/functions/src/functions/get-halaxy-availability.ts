@@ -114,7 +114,7 @@ async function fetchAvailableSlots(
     query += ` AND a.practitioner_id = @practitionerId`;
   }
 
-  query += ` ORDER BY a.slot_start`;
+  query += ` ORDER BY a.slot_start_unix`;
 
   context.log('Querying available slots', {
     startDate: startDate.toISOString(),

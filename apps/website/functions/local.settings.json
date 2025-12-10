@@ -2,11 +2,12 @@
   "IsEncrypted": false,
   "Values": {
     "FUNCTIONS_WORKER_RUNTIME": "node",
-    "AzureWebJobsStorage": "",
-    "HALAXY_CLIENT_ID": "",
-    "HALAXY_CLIENT_SECRET": "",
-    "HALAXY_PRACTITIONER_ID": "",
-    "HALAXY_ORGANIZATION_ID": "",
-    "STRIPE_SECRET_KEY": ""
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "HALAXY_CLIENT_ID": "test-client-id",
+    "HALAXY_CLIENT_SECRET": "test-client-secret",
+    "HALAXY_PRACTITIONER_ID": "test-id",
+    "HALAXY_ORGANIZATION_ID": "test-org-id",
+    "STRIPE_SECRET_KEY": "sk_test_local_key_for_development",
+    "SQL_CONNECTION_STRING": "Server=tcp:lpa-sql-server.database.windows.net,1433;Initial Catalog=lpa-bloom-db-dev;Persist Security Info=False;User ID=lpaadmin;Password=BloomPlatform2025!Secure;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
   }
 }

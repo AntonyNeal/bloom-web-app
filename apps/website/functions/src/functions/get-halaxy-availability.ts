@@ -83,7 +83,7 @@ async function fetchAvailableSlots(
   const dbPool = await getDbConnection(context);
 
   // Query for available slots from the availability_slots table using Unix timestamps
-  // Slots must be free, bookable, in the future
+  // Slots must be free, bookable, within the requested date range
   // Note: With $find endpoint, slots are pre-validated by Halaxy's booking preferences
   // so we don't filter by duration - return all available slots
   let query = `
@@ -101,7 +101,6 @@ async function fetchAvailableSlots(
       AND a.slot_end_unix <= @endDateUnix
       AND a.status = 'free'
       AND a.is_bookable = 1
-      AND a.slot_start_unix > DATEDIFF(SECOND, '1970-01-01 00:00:00', GETUTCDATE())
   `;
 
   const request = dbPool

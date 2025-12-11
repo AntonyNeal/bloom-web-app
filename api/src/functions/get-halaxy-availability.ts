@@ -97,8 +97,8 @@ async function fetchAvailableSlots(
       a.duration_minutes,
       a.location_type
     FROM availability_slots a
-    WHERE a.slot_start_unix >= @startDateUnix
-      AND a.slot_end_unix <= @endDateUnix
+    WHERE a.slot_start_unix < @endDateUnix
+      AND a.slot_end_unix > @startDateUnix
       AND a.status = 'free'
       AND a.is_bookable = 1
   `;

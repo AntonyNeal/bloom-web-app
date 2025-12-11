@@ -250,10 +250,11 @@ export class HalaxySyncService {
       }
 
       // 4. Sync availability slots - next 90 days
-      // Only sync slots for actual practitioners (PR- prefix), not employees (EP- prefix)
-      const isPractitioner = halaxyPractitionerId.startsWith('PR-');
+      // Only sync slots for Zoe Semmler (PR-1439411)
+      // Skip slot sync for all other practitioners to avoid unnecessary API calls
+      const isZoe = halaxyPractitionerId === 'PR-1439411';
       
-      if (isPractitioner) {
+      if (isZoe) {
         try {
           // Debug: Log the config being used
           console.log(`[HalaxySyncService] Slot sync: API base URL = ${this.client['config'].apiBaseUrl}`);
@@ -270,17 +271,14 @@ export class HalaxySyncService {
             const endDate = new Date();
             endDate.setDate(endDate.getDate() + 90);
             
-            // Only fetch for Zoe Semmler (PR-1439411) for now
-            // Filter to primary practitioner to avoid overloading with test data
-            const zoeId = 'PR-1439411';
-            console.log(`[HalaxySyncService] Fetching appointments for practitioner ${zoeId} (Zoe Semmler)`);
+            console.log(`[HalaxySyncService] Fetching appointments for practitioner ${halaxyPractitionerId} (Zoe Semmler)`);
             console.log(`[HalaxySyncService] Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
             
             slots = await this.client.findAvailableAppointments(
               startDate,
               endDate,
               60, // 60 minute appointments
-              zoeId
+              halaxyPractitionerId
             );
             console.log(`[HalaxySyncService] findAvailableAppointments returned ${slots.length} slots for Zoe`);
           } catch (fetchError) {

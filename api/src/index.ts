@@ -19,6 +19,7 @@ import './functions/halaxy-sync-timer';
 import './functions/trigger-halaxy-sync';
 import './functions/halaxy-api-discovery';
 import './functions/debug-slots';
+import './functions/fix-unix-timestamps';
 
 export * from './functions/health';
 export * from './functions/applications';

@@ -95,10 +95,13 @@ async function fetchAvailableSlots(
       AND a.is_bookable = 1
   `;
 
+  const startDateUnix = Math.floor(startDate.getTime() / 1000);
+  const endDateUnix = Math.floor(endDate.getTime() / 1000);
+
   const request = dbPool
     .request()
-    .input('startDateUnix', sql.BigInt, Math.floor(startDate.getTime() / 1000))
-    .input('endDateUnix', sql.BigInt, Math.floor(endDate.getTime() / 1000))
+    .input('startDateUnix', sql.BigInt, startDateUnix)
+    .input('endDateUnix', sql.BigInt, endDateUnix)
     .input('duration', sql.Int, durationMinutes)
     .input('practitionerId', sql.UniqueIdentifier, practitionerId || null);
 
@@ -111,9 +114,13 @@ async function fetchAvailableSlots(
   context.log('Querying available slots', {
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
+    startDateUnix,
+    endDateUnix,
     practitionerId,
-    // Note: durationMinutes parameter is not used in filter since $find already validates
+    durationMinutes,
   });
+
+  context.log('Executing SQL query:', query.trim().replace(/\s+/g, ' '));
 
   const result = await request.query<AvailabilitySlot>(query);
   context.log(`Found ${result.recordset.length} available slots`);

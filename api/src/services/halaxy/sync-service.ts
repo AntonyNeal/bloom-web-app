@@ -1041,52 +1041,6 @@ export class HalaxySyncService {
             @serviceCategory, @isBookable, GETUTCDATE(), GETUTCDATE(), GETUTCDATE()
           );
       `);
-                           slot.serviceCategory?.[0]?.coding?.[0]?.display ||
-                           null;
-
-    // Determine location type from service type
-    const locationType = this.extractLocationType(slot);
-
-    await pool.request()
-      .input('halaxySlotId', sql.NVarChar, slot.id)
-      .input('practitionerId', sql.UniqueIdentifier, practitionerId)
-      .input('slotStart', sql.DateTime2, slotStart)
-      .input('slotEnd', sql.DateTime2, slotEnd)
-      .input('durationMinutes', sql.Int, durationMinutes)
-      .input('status', sql.NVarChar, slot.status)
-      .input('scheduleId', sql.NVarChar, scheduleId)
-      .input('locationType', sql.NVarChar, locationType)
-      .input('serviceCategory', sql.NVarChar, serviceCategory)
-      .input('isBookable', sql.Bit, slot.status === 'free' ? 1 : 0)
-      .query(`
-        MERGE INTO availability_slots AS target
-        USING (SELECT @halaxySlotId AS halaxy_slot_id) AS source
-        ON target.halaxy_slot_id = source.halaxy_slot_id
-        WHEN MATCHED THEN
-          UPDATE SET
-            practitioner_id = @practitionerId,
-            slot_start = @slotStart,
-            slot_end = @slotEnd,
-            duration_minutes = @durationMinutes,
-            status = @status,
-            halaxy_schedule_id = @scheduleId,
-            location_type = @locationType,
-            service_category = @serviceCategory,
-            is_bookable = @isBookable,
-            updated_at = GETUTCDATE(),
-            last_synced_at = GETUTCDATE()
-        WHEN NOT MATCHED THEN
-          INSERT (
-            halaxy_slot_id, practitioner_id, slot_start, slot_end,
-            duration_minutes, status, halaxy_schedule_id, location_type,
-            service_category, is_bookable, created_at, updated_at, last_synced_at
-          )
-          VALUES (
-            @halaxySlotId, @practitionerId, @slotStart, @slotEnd,
-            @durationMinutes, @status, @scheduleId, @locationType,
-            @serviceCategory, @isBookable, GETUTCDATE(), GETUTCDATE(), GETUTCDATE()
-          );
-      `);
   }
 
   /**

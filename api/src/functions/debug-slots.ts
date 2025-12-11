@@ -43,15 +43,24 @@ async function debugSlotsHandler(
     const nextLink = paginationLinks.find((l: { relation: string }) => l.relation === 'next');
     const selfLink = paginationLinks.find((l: { relation: string }) => l.relation === 'self');
     
-    // Test 1: Get all slots via client
+    // Test 1: Get available appointments via $find operation
     let allSlots: FHIRSlot[] = [];
     let allSlotsError: string | null = null;
     try {
-      allSlots = await client.getAllSlots();
-      context.log(`getAllSlots returned ${allSlots.length} slots`);
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 90);
+      
+      allSlots = await client.findAvailableAppointments(
+        startDate,
+        endDate,
+        60, // 60 minute duration
+        'PR-1439411' // Zoe's practitioner ID
+      );
+      context.log(`findAvailableAppointments returned ${allSlots.length} slots`);
     } catch (e) {
       allSlotsError = e instanceof Error ? e.message : 'Unknown error';
-      context.error('getAllSlots failed:', e);
+      context.error('findAvailableAppointments failed:', e);
     }
     
     // Sample some slots for inspection

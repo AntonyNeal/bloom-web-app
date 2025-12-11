@@ -75,7 +75,7 @@ async function fixUnixTimestampsHandler(
 
 app.http('fixUnixTimestamps', {
   methods: ['POST'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'maintenance/fix-unix-timestamps',
   handler: fixUnixTimestampsHandler,
 });

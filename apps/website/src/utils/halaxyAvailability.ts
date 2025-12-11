@@ -31,149 +31,6 @@ interface HalaxyFHIRBundle {
   }>;
 }
 
-// Business hours configuration (Melbourne time)
-const BUSINESS_START_HOUR = 8; // 8am
-const BUSINESS_END_HOUR = 18; // 6pm
-const BOOKING_BUFFER_HOURS = 3; // Minimum 3 business hours in advance
-
-// Melbourne timezone offset (AEDT = UTC+11, AEST = UTC+10)
-// Using AEDT for summer months
-const MELBOURNE_OFFSET_HOURS = 11;
-
-/**
- * Convert a UTC date to Melbourne local time
- */
-function toMelbourneTime(utcDate: Date): Date {
-  return new Date(utcDate.getTime() + MELBOURNE_OFFSET_HOURS * 60 * 60 * 1000);
-}
-
-/**
- * Get the hour in Melbourne time from a UTC date
- */
-function getMelbourneHour(utcDate: Date): number {
-  return toMelbourneTime(utcDate).getUTCHours();
-}
-
-/**
- * Check if a given date is a business day (Monday-Friday)
- */
-function isBusinessDay(date: Date): boolean {
-  const day = date.getDay();
-  return day >= 1 && day <= 5; // Monday = 1, Friday = 5
-}
-
-/**
- * Calculate the earliest bookable time (3 business hours from now)
- * Business hours: 8am - 6pm, Monday - Friday
- * 
- * Examples:
- * - 10am Monday → 1pm Monday (same day, +3 hours)
- * - 4pm Monday → 11am Tuesday (next day, since 4pm + 3 = 7pm is after hours)
- * - 5pm Friday → 11am Monday (skips weekend)
- * - 9am Saturday → 11am Monday (starts Monday 8am + 3 hours)
- */
-export function getEarliestBookableTime(): Date {
-  const now = new Date();
-  let remainingHours = BOOKING_BUFFER_HOURS;
-  const result = new Date(now);
-
-  // If we're before business hours on a business day, start at business start
-  if (isBusinessDay(result) && result.getHours() < BUSINESS_START_HOUR) {
-    result.setHours(BUSINESS_START_HOUR, 0, 0, 0);
-  }
-
-  // If we're after business hours or on a weekend, move to next business day start
-  if (!isBusinessDay(result) || result.getHours() >= BUSINESS_END_HOUR) {
-    // Move to next day
-    result.setDate(result.getDate() + 1);
-    result.setHours(BUSINESS_START_HOUR, 0, 0, 0);
-    
-    // Skip weekends
-    while (!isBusinessDay(result)) {
-      result.setDate(result.getDate() + 1);
-    }
-  }
-
-  // Now add the buffer hours, respecting business hours
-  while (remainingHours > 0) {
-    const hoursLeftToday = BUSINESS_END_HOUR - result.getHours();
-    
-    if (remainingHours <= hoursLeftToday) {
-      // Can fit remaining hours in today
-      result.setHours(result.getHours() + remainingHours);
-      remainingHours = 0;
-    } else {
-      // Use up today's hours and move to next business day
-      remainingHours -= hoursLeftToday;
-      result.setDate(result.getDate() + 1);
-      result.setHours(BUSINESS_START_HOUR, 0, 0, 0);
-      
-      // Skip weekends
-      while (!isBusinessDay(result)) {
-        result.setDate(result.getDate() + 1);
-      }
-    }
-  }
-
-  // Round to the next hour for cleaner slot times
-  if (result.getMinutes() > 0) {
-    result.setHours(result.getHours() + 1, 0, 0, 0);
-  }
-
-  return result;
-}
-
-/**
- * Split a large availability block into individual bookable time slots
- * 
- * Halaxy returns availability as large blocks (e.g., 8am-7pm).
- * This function splits them into individual slots based on the requested duration.
- * Only includes slots within business hours (Melbourne time).
- * 
- * @param block - The availability block with start/end times
- * @param durationMinutes - The appointment duration (default 60 minutes)
- * @returns Array of individual bookable time slots
- */
-function splitAvailabilityBlock(
-  block: { start: string; end: string },
-  durationMinutes: number = 60
-): AvailableSlot[] {
-  const slots: AvailableSlot[] = [];
-  
-  const blockStart = new Date(block.start);
-  const blockEnd = new Date(block.end);
-  
-  // Start from the beginning of the block
-  let slotStart = new Date(blockStart);
-  
-  // Generate slots until we run out of availability
-  while (slotStart.getTime() + durationMinutes * 60 * 1000 <= blockEnd.getTime()) {
-    const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60 * 1000);
-    
-    // Check if slot is within business hours (Melbourne time)
-    const melbourneHour = getMelbourneHour(slotStart);
-    
-    // Check if the slot STARTS within business hours (8am to 6pm inclusive)
-    // A slot starting at 6pm (18:00) is the last valid slot of the day
-    const isWithinBusinessHours = 
-      melbourneHour >= BUSINESS_START_HOUR && 
-      melbourneHour <= BUSINESS_END_HOUR;
-    
-    if (isWithinBusinessHours) {
-      slots.push({
-        start: slotStart.toISOString(),
-        end: slotEnd.toISOString(),
-        duration: durationMinutes,
-      });
-    }
-    
-    // Move to next slot (advance by duration)
-    slotStart = new Date(slotStart.getTime() + durationMinutes * 60 * 1000);
-  }
-  
-  return slots;
-}
-
 /**
  * Fetch available appointment slots from Halaxy
  */
@@ -244,56 +101,17 @@ export async function fetchAvailableSlots(
 
     // Parse Halaxy response (FHIR Bundle with Slot resources)
     if (data.resourceType === 'Bundle' && data.entry) {
-      // Get earliest bookable time (3 business hours from now)
-      const earliestBookable = getEarliestBookableTime();
-      
-      console.log('[HalaxyAvailability] Earliest bookable time:', earliestBookable.toLocaleString('en-AU', { timeZone: 'Australia/Melbourne' }));
-      log.debug('Filtering slots by earliest bookable time', 'HalaxyAvailability', {
-        earliestBookable: earliestBookable.toISOString(),
-        totalSlotsFromAPI: data.entry.length,
-      });
-
-      // Split large availability blocks into individual bookable time slots
-      // Halaxy returns availability as large blocks (e.g., 8am-7pm)
-      // We need to split them into individual slots based on appointment duration
-      const individualSlots: AvailableSlot[] = [];
-      
-      for (const entry of data.entry) {
-        const block = {
-          start: entry.resource.start,
-          end: entry.resource.end,
-        };
-        
-        // With Appointment/$find, slots are already granular individual appointment times
-        // No need to split - use slots as-is
-        const blockStart = new Date(block.start);
-        const blockEnd = new Date(block.end);
-        const blockDurationMinutes = (blockEnd.getTime() - blockStart.getTime()) / (1000 * 60);
-        
-        individualSlots.push({
-          start: block.start,
-          end: block.end,
-          duration: blockDurationMinutes,
-        });
-      }
-      
-      console.log(`[HalaxyAvailability] Using ${data.entry.length} individual appointment slots (no splitting needed)`);
-
-      // Filter out slots that are before the earliest bookable time
-      const bookableSlots = individualSlots.filter((slot) => {
-        const slotStart = new Date(slot.start);
-        return slotStart >= earliestBookable;
-      });
-
-      console.log(`[HalaxyAvailability] Filtered ${individualSlots.length - bookableSlots.length} slots before buffer, ${bookableSlots.length} available`);
       log.debug('Received availability slots', 'HalaxyAvailability', {
-        total: bookableSlots.length,
-        filteredOut: individualSlots.length - bookableSlots.length,
-        blocksFromAPI: data.entry.length,
-        afterSplitting: individualSlots.length,
+        total: data.total || data.entry.length,
       });
 
-      return bookableSlots;
+      // Return slots exactly as provided by the API
+      // Backend handles all filtering (buffer time, lead time, etc.)
+      return data.entry.map((entry) => ({
+        start: entry.resource.start,
+        end: entry.resource.end,
+        duration: params.duration,
+      }));
     }
 
     return [];

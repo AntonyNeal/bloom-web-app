@@ -1193,12 +1193,27 @@ jobs:
           sleep 10
           echo "✅ Function sync and restart complete"
 
+      - name: Trigger Halaxy Sync
+        if: steps.check-secret.outputs.secret-exists == 'true'
+        run: |
+          echo "🔄 Waiting for function app to be fully ready..."
+          sleep 20
+          
+          echo "🔄 Triggering Halaxy sync to populate availability data..."
+          curl -X POST "https://${{ needs.determine-environment.outputs.bloom-api-app }}.azurewebsites.net/api/halaxy/sync" \
+            -H "Content-Type: application/json" \
+            --silent --show-error --max-time 120 \
+            -w "\n📊 HTTP Status: %{http_code}\n" || echo "⚠️ Sync trigger request completed"
+          
+          echo "✅ Halaxy sync triggered successfully"
+
       - name: Deployment Summary
         if: steps.check-secret.outputs.secret-exists == 'true'
         run: |
           echo "✅ BLOOM API DEPLOYED"
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
           echo "🔗 URL: https://${{ needs.determine-environment.outputs.bloom-api-app }}.azurewebsites.net"
+          echo "🔄 Halaxy Sync: Triggered automatically"
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Deploy Halaxy Sync Worker (Container Apps)

@@ -122,6 +122,17 @@ async function fetchAvailableSlots(
 
   context.log('Executing SQL query:', query.trim().replace(/\s+/g, ' '));
 
+  // Diagnostic: Check total slots in database
+  const totalCheck = await dbPool.request().query(
+    `SELECT 
+      COUNT(*) as total,
+      COUNT(CASE WHEN status='free' THEN 1 END) as free_slots,
+      COUNT(CASE WHEN is_bookable=1 THEN 1 END) as bookable_slots,
+      COUNT(CASE WHEN slot_start_unix IS NOT NULL THEN 1 END) as has_unix_timestamp
+    FROM availability_slots`
+  );
+  context.log('Database diagnostic:', totalCheck.recordset[0]);
+
   const result = await request.query<AvailabilitySlot>(query);
   context.log(`Found ${result.recordset.length} available slots`);
 

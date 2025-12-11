@@ -255,26 +255,29 @@ export class HalaxySyncService {
       
       if (isPractitioner) {
         try {
-          // Clean up old slots first
-          await this.cleanupOldSlots(practitioner.id);
-          
           // Debug: Log the config being used
           console.log(`[HalaxySyncService] Slot sync: API base URL = ${this.client['config'].apiBaseUrl}`);
           
-          // Fetch ALL slots from Halaxy (without date filter, which may cause issues)
-          // The discovery endpoint confirmed /Slot without params returns 200 slots
+          // CRITICAL: Fetch ALL slots from Halaxy FIRST, before any database operations
+          // This ensures we have complete data before deleting anything
           console.log(`[HalaxySyncService] Fetching slots from Halaxy...`);
           let slots: FHIRSlot[] = [];
           
           try {
-            // First try: get all slots without any filter
+            // Fetch all slots without any filter
             slots = await this.client.getAllSlots();
             console.log(`[HalaxySyncService] getAllSlots returned ${slots.length} slots`);
           } catch (fetchError) {
             console.error(`[HalaxySyncService] getAllSlots failed:`, fetchError);
-            // Also log the exact URL that was tried
             console.error(`[HalaxySyncService] Expected URL: ${this.client['config'].apiBaseUrl}/Slot`);
-            throw fetchError;
+            // CRITICAL: If fetch fails, abort the sync to preserve existing database slots
+            throw new Error(`Failed to fetch slots from Halaxy - aborting sync to preserve existing data: ${getErrorMessage(fetchError)}`);
+          }
+          
+          // Validate we got slots before proceeding with any deletions
+          if (slots.length === 0) {
+            console.warn(`[HalaxySyncService] WARNING: Halaxy API returned 0 slots - skipping sync to preserve existing data`);
+            throw new Error('Halaxy API returned 0 slots - aborting sync to preserve existing database slots');
           }
           
           // Filter to free slots only (bookable)
@@ -316,6 +319,11 @@ export class HalaxySyncService {
           
           const adjustedSlots = this.subtractAppointmentsFromSlots(weekdaySlots, futureAppointments);
           console.log(`[HalaxySyncService] After subtraction: ${adjustedSlots.length} slot fragments (from ${weekdaySlots.length} original slots)`);
+          
+          // NOW that we have all slots loaded in memory and validated, clean up database
+          // This order is CRITICAL - we fetch and validate BEFORE deleting anything
+          console.log(`[HalaxySyncService] Data validated, now cleaning up old database slots...`);
+          await this.cleanupOldSlots(practitioner.id);
           
           // Reconcile: delete any slots not in our adjusted list
           await this.reconcilePractitionerSlots(practitioner.id, adjustedSlots);

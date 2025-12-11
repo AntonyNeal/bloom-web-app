@@ -260,18 +260,34 @@ export class HalaxySyncService {
           
           // CRITICAL: Fetch ALL slots from Halaxy FIRST, before any database operations
           // This ensures we have complete data before deleting anything
-          console.log(`[HalaxySyncService] Fetching slots from Halaxy...`);
+          console.log(`[HalaxySyncService] Fetching available appointments from Halaxy using $find operation...`);
           let slots: FHIRSlot[] = [];
           
           try {
-            // Fetch all slots without any filter
-            slots = await this.client.getAllSlots();
-            console.log(`[HalaxySyncService] getAllSlots returned ${slots.length} slots`);
+            // Use $find operation which respects online booking preferences
+            // Calculate date range: today to 90 days in the future
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() + 90);
+            
+            // Only fetch for Zoe Semmler (PR-1439411) for now
+            // Filter to primary practitioner to avoid overloading with test data
+            const zoeId = 'PR-1439411';
+            console.log(`[HalaxySyncService] Fetching appointments for practitioner ${zoeId} (Zoe Semmler)`);
+            console.log(`[HalaxySyncService] Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+            
+            slots = await this.client.findAvailableAppointments(
+              startDate,
+              endDate,
+              60, // 60 minute appointments
+              zoeId
+            );
+            console.log(`[HalaxySyncService] findAvailableAppointments returned ${slots.length} slots for Zoe`);
           } catch (fetchError) {
-            console.error(`[HalaxySyncService] getAllSlots failed:`, fetchError);
-            console.error(`[HalaxySyncService] Expected URL: ${this.client['config'].apiBaseUrl}/Slot`);
+            console.error(`[HalaxySyncService] findAvailableAppointments failed:`, fetchError);
+            console.error(`[HalaxySyncService] Expected URL: ${this.client['config'].apiBaseUrl}/Appointment/$find`);
             // CRITICAL: If fetch fails, abort the sync to preserve existing database slots
-            throw new Error(`Failed to fetch slots from Halaxy - aborting sync to preserve existing data: ${getErrorMessage(fetchError)}`);
+            throw new Error(`Failed to fetch appointments from Halaxy - aborting sync to preserve existing data: ${getErrorMessage(fetchError)}`);
           }
           
           // Validate we got slots before proceeding with any deletions

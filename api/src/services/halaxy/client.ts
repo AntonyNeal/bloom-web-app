@@ -224,6 +224,50 @@ export class HalaxyClient {
   }
 
   /**
+   * Find available appointments using Halaxy's $find operation
+   * This endpoint respects online booking preferences (buffer time, lead time, advance booking limit)
+   * 
+   * @param startDate - Start of date range
+   * @param endDate - End of date range
+   * @param durationMinutes - Appointment duration in minutes (default: 60)
+   * @param practitionerId - Optional practitioner ID (e.g., 'PR-1439411')
+   * @param practitionerRoleId - Optional practitioner role ID
+   * @param organizationId - Optional organization ID
+   * @returns Available appointment slots respecting booking preferences
+   */
+  async findAvailableAppointments(
+    startDate: Date,
+    endDate: Date,
+    durationMinutes: number = 60,
+    practitionerId?: string,
+    practitionerRoleId?: string,
+    organizationId?: string
+  ): Promise<FHIRSlot[]> {
+    const params: Record<string, string> = {
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      duration: durationMinutes.toString(),
+    };
+
+    if (practitionerId) {
+      params.practitioner = practitionerId;
+    }
+    if (practitionerRoleId) {
+      params['practitioner-role'] = practitionerRoleId;
+    }
+    if (organizationId) {
+      params.organization = organizationId;
+    }
+
+    console.log(`[HalaxyClient] findAvailableAppointments params:`, params);
+    
+    // Use the main API base URL for $find operation
+    const slots = await this.getAllPages<FHIRSlot>('/Appointment/$find', params);
+    console.log(`[HalaxyClient] findAvailableAppointments returned ${slots.length} slots`);
+    return slots;
+  }
+
+  /**
    * Get available slots within a date range (all practitioners)
    * Uses FHIR date prefixes: ge (>=), le (<=), gt (>), lt (<)
    * 
@@ -283,6 +327,61 @@ export class HalaxyClient {
       end: `le${endDate.toISOString()}`,
       status: status,
     });
+  }
+
+  /**
+   * Find available appointments using the $find operation
+   * This endpoint respects Halaxy's online booking preferences (buffer time, lead time, advance booking limit)
+   * 
+   * @param startDate - Start of date range
+   * @param endDate - End of date range
+   * @param durationMinutes - Appointment duration in minutes
+   * @param practitionerId - Optional practitioner ID (e.g., "PR-1439411")
+   * @param practitionerRoleId - Optional practitioner role ID
+   * @param organizationId - Optional organization ID
+   * @param applyBufferTime - Apply buffer time settings (default: false)
+   * @param emergency - Ignore lead time for emergency appointments (default: false)
+   */
+  async findAvailableAppointments(
+    startDate: Date,
+    endDate: Date,
+    durationMinutes: number,
+    practitionerId?: string,
+    practitionerRoleId?: string,
+    organizationId?: string,
+    applyBufferTime: boolean = false,
+    emergency: boolean = false
+  ): Promise<FHIRSlot[]> {
+    const params: Record<string, string> = {
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      duration: durationMinutes.toString(),
+    };
+
+    if (practitionerId) {
+      params.practitioner = practitionerId;
+    }
+    if (practitionerRoleId) {
+      params['practitioner-role'] = practitionerRoleId;
+    }
+    if (organizationId) {
+      params.organization = organizationId;
+    }
+    if (applyBufferTime) {
+      params['apply-buffer-time'] = 'true';
+    }
+    if (emergency) {
+      params.emergency = 'true';
+    }
+
+    console.log(`[HalaxyClient] Finding available appointments with params:`, params);
+    
+    // Use the /Appointment/$find endpoint (main API, not FHIR)
+    const response = await this.request<FHIRBundle<FHIRSlot>>('/Appointment/$find', params);
+    
+    const slots = response.entry?.map(e => e.resource) || [];
+    console.log(`[HalaxyClient] findAvailableAppointments returned ${slots.length} slots`);
+    return slots;
   }
 
   /**

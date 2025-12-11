@@ -36,8 +36,8 @@ interface FHIRBundle {
 interface AvailabilitySlot {
   id: string;
   halaxy_slot_id: string;
-  slot_start: Date;
-  slot_end: Date;
+  slot_start_unix: number;
+  slot_end_unix: number;
   status: string;
   practitioner_id?: string;
   duration_minutes: number;
@@ -90,18 +90,17 @@ async function fetchAvailableSlots(
     SELECT 
       a.id,
       a.halaxy_slot_id,
-      a.slot_start,
-      a.slot_end,
+      a.slot_start_unix,
+      a.slot_end_unix,
       a.status,
       a.practitioner_id,
       a.duration_minutes,
       a.location_type
     FROM availability_slots a
-    WHERE a.slot_start >= @startDate
-      AND a.slot_end <= @endDate
+    WHERE a.slot_start_unix >= @startDateUnix
+      AND a.slot_end_unix <= @endDateUnix
       AND a.status = 'free'
       AND a.is_bookable = 1
-      AND a.slot_end > DATEADD(MINUTE, 60, GETUTCDATE())
   `;
 
   // Only filter by duration if explicitly requested and > 0
@@ -109,10 +108,13 @@ async function fetchAvailableSlots(
     query += ` AND a.duration_minutes >= @duration`;
   }
 
+  const startDateUnix = Math.floor(startDate.getTime() / 1000);
+  const endDateUnix = Math.floor(endDate.getTime() / 1000);
+
   const request = dbPool
     .request()
-    .input('startDate', sql.DateTime2, startDate)
-    .input('endDate', sql.DateTime2, endDate)
+    .input('startDateUnix', sql.BigInt, startDateUnix)
+    .input('endDateUnix', sql.BigInt, endDateUnix)
     .input('duration', sql.Int, durationMinutes)
     .input('practitionerId', sql.UniqueIdentifier, practitionerId || null);
 
@@ -120,14 +122,27 @@ async function fetchAvailableSlots(
     query += ` AND a.practitioner_id = @practitionerId`;
   }
 
-  query += ` ORDER BY a.slot_start`;
+  query += ` ORDER BY a.slot_start_unix`;
 
   context.log('Querying available slots', {
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
+    startDateUnix,
+    endDateUnix,
     practitionerId,
     durationMinutes,
   });
+
+  // Diagnostic: Check total slots in database
+  const totalCheck = await dbPool.request().query(
+    `SELECT 
+      COUNT(*) as total,
+      COUNT(CASE WHEN status='free' THEN 1 END) as free_slots,
+      COUNT(CASE WHEN is_bookable=1 THEN 1 END) as bookable_slots,
+      COUNT(CASE WHEN slot_start_unix IS NOT NULL THEN 1 END) as has_unix_timestamp
+    FROM availability_slots`
+  );
+  context.log('Database diagnostic:', totalCheck.recordset[0]);
 
   const result = await request.query<AvailabilitySlot>(query);
   context.log(`Found ${result.recordset.length} available slots`);
@@ -136,8 +151,8 @@ async function fetchAvailableSlots(
   return result.recordset.map((slot) => ({
     resourceType: 'Slot' as const,
     id: slot.id,
-    start: new Date(slot.slot_start).toISOString(),
-    end: new Date(slot.slot_end).toISOString(),
+    start: new Date(slot.slot_start_unix * 1000).toISOString(),
+    end: new Date(slot.slot_end_unix * 1000).toISOString(),
     status: 'free' as const,
   }));
 }

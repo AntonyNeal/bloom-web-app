@@ -322,7 +322,11 @@ export class HalaxyClient {
     console.log(`[HalaxyClient] Finding available appointments with params:`, params);
     
     // Use the /Appointment/$find endpoint (main API, not FHIR)
-    const response = await this.request<FHIRBundle<FHIRSlot>>('/Appointment/$find', params);
+    // Build URL with query parameters
+    const url = this.buildUrl('/Appointment/$find', params);
+    const response = await this.request<FHIRBundle<FHIRSlot>>(
+      url.replace(this.config.apiBaseUrl, '')
+    );
     
     const slots = response.entry?.map(e => e.resource) || [];
     console.log(`[HalaxyClient] findAvailableAppointments returned ${slots.length} slots`);

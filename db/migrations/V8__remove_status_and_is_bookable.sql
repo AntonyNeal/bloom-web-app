@@ -6,15 +6,46 @@
 -- Date: 2025-12-12
 -- ============================================================================
 
+PRINT 'Starting V8 migration: Remove status and is_bookable columns';
+GO
+
 -- Drop the status index first
-IF EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_availability_slots_status')
+IF EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_availability_slots_status' AND object_id = OBJECT_ID('availability_slots'))
 BEGIN
   DROP INDEX idx_availability_slots_status ON availability_slots;
   PRINT 'Dropped index idx_availability_slots_status';
 END
 GO
 
--- Drop the status column
+-- Drop any default constraints on status column
+DECLARE @ConstraintName NVARCHAR(200);
+SELECT @ConstraintName = name 
+FROM sys.default_constraints 
+WHERE parent_object_id = OBJECT_ID('availability_slots') 
+  AND parent_column_id = (SELECT column_id FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'status');
+
+IF @ConstraintName IS NOT NULL
+BEGIN
+  EXEC('ALTER TABLE availability_slots DROP CONSTRAINT ' + @ConstraintName);
+  PRINT 'Dropped default constraint on status column';
+END
+GO
+
+-- Drop any default constraints on is_bookable column
+DECLARE @ConstraintName2 NVARCHAR(200);
+SELECT @ConstraintName2 = name 
+FROM sys.default_constraints 
+WHERE parent_object_id = OBJECT_ID('availability_slots') 
+  AND parent_column_id = (SELECT column_id FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'is_bookable');
+
+IF @ConstraintName2 IS NOT NULL
+BEGIN
+  EXEC('ALTER TABLE availability_slots DROP CONSTRAINT ' + @ConstraintName2);
+  PRINT 'Dropped default constraint on is_bookable column';
+END
+GO
+
+-- Now drop the status column
 IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'status')
 BEGIN
   ALTER TABLE availability_slots DROP COLUMN status;

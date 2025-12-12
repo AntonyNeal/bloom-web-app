@@ -47,6 +47,31 @@ BEGIN
   PRINT '  ⏭️  Index does not exist, skipping';
 END;
 
+-- Drop statistics on status column
+PRINT '🔍 Checking for statistics on status column...';
+DECLARE @StatusColumnId INT = (SELECT column_id FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'status');
+DECLARE @StatsName NVARCHAR(200);
+DECLARE stats_cursor CURSOR FOR
+SELECT s.name
+FROM sys.stats s
+INNER JOIN sys.stats_columns sc ON s.object_id = sc.object_id AND s.stats_id = sc.stats_id
+WHERE s.object_id = OBJECT_ID('availability_slots')
+  AND sc.column_id = @StatusColumnId;
+
+OPEN stats_cursor;
+FETCH NEXT FROM stats_cursor INTO @StatsName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+  PRINT '  🗑️  Dropping statistic: ' + @StatsName;
+  EXEC('DROP STATISTICS availability_slots.[' + @StatsName + ']');
+  PRINT '  ✅ Dropped statistic: ' + @StatsName;
+  FETCH NEXT FROM stats_cursor INTO @StatsName;
+END;
+
+CLOSE stats_cursor;
+DEALLOCATE stats_cursor;
+
 -- Drop default constraint on status column if it exists
 PRINT '🔍 Checking for default constraint on status column...';
 DECLARE @StatusConstraintName NVARCHAR(200);
@@ -65,6 +90,31 @@ ELSE
 BEGIN
   PRINT '  ⏭️  No default constraint found, skipping';
 END;
+
+-- Drop statistics on is_bookable column
+PRINT '🔍 Checking for statistics on is_bookable column...';
+DECLARE @BookableColumnId INT = (SELECT column_id FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'is_bookable');
+DECLARE @BookableStatsName NVARCHAR(200);
+DECLARE bookable_stats_cursor CURSOR FOR
+SELECT s.name
+FROM sys.stats s
+INNER JOIN sys.stats_columns sc ON s.object_id = sc.object_id AND s.stats_id = sc.stats_id
+WHERE s.object_id = OBJECT_ID('availability_slots')
+  AND sc.column_id = @BookableColumnId;
+
+OPEN bookable_stats_cursor;
+FETCH NEXT FROM bookable_stats_cursor INTO @BookableStatsName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+  PRINT '  🗑️  Dropping statistic: ' + @BookableStatsName;
+  EXEC('DROP STATISTICS availability_slots.[' + @BookableStatsName + ']');
+  PRINT '  ✅ Dropped statistic: ' + @BookableStatsName;
+  FETCH NEXT FROM bookable_stats_cursor INTO @BookableStatsName;
+END;
+
+CLOSE bookable_stats_cursor;
+DEALLOCATE bookable_stats_cursor;
 
 -- Drop default constraint on is_bookable column if it exists
 PRINT '🔍 Checking for default constraint on is_bookable column...';

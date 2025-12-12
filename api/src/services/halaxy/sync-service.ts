@@ -295,7 +295,9 @@ export class HalaxySyncService {
           }
           
           // Filter to free slots only (bookable)
-          const freeSlots = slots.filter(s => s.status === 'free');
+          // Note: /Appointment/$find returns proposed appointments without a status field
+          // These are all implicitly available, so treat missing status as 'free'
+          const freeSlots = slots.filter(s => !s.status || s.status === 'free');
           console.log(`[HalaxySyncService] Filtered to ${freeSlots.length} free slots out of ${slots.length} total`);
           
           // Filter to future slots only

@@ -123,6 +123,11 @@ async function applyMigration(pool, migration) {
     await transaction.begin();
     const request = transaction.request();
     
+    // Capture PRINT statements from SQL
+    request.on('info', (info) => {
+      console.log(`   ${info.message}`);
+    });
+    
     // Execute migration SQL (split by GO statements for batch execution)
     const batches = migration.content
       .split(/^\s*GO\s*$/mi)

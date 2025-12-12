@@ -294,19 +294,15 @@ export class HalaxySyncService {
             throw new Error('Halaxy API returned 0 slots - aborting sync to preserve existing database slots');
           }
           
-          // Filter to free slots only (bookable)
-          // Note: /Appointment/$find returns proposed appointments without a status field
-          // These are all implicitly available, so treat missing status as 'free'
-          const freeSlots = slots.filter(s => !s.status || s.status === 'free');
-          console.log(`[HalaxySyncService] Filtered to ${freeSlots.length} free slots out of ${slots.length} total`);
+          console.log(`[HalaxySyncService] Processing ${slots.length} slots from /Appointment/$find`);
           
           // Filter to future slots only
           const now = new Date();
-          const futureSlots = freeSlots.filter(s => {
+          const futureSlots = slots.filter(s => {
             const slotStart = new Date(s.start);
             return slotStart > now;
           });
-          console.log(`[HalaxySyncService] Filtered to ${futureSlots.length} future free slots`);
+          console.log(`[HalaxySyncService] Filtered to ${futureSlots.length} future slots`);
           
           // Filter out weekend slots (Saturday = 6, Sunday = 0)
           // Bloom only operates Monday-Friday

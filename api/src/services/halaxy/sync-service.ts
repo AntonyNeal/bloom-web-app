@@ -1016,7 +1016,8 @@ export class HalaxySyncService {
       .input('scheduleId', sql.NVarChar, scheduleId)
       .input('locationType', sql.NVarChar, locationType)
       .input('serviceCategory', sql.NVarChar, serviceCategory)
-      .input('isBookable', sql.Bit, slot.status === 'free' ? 1 : 0)
+      // Slots from /Appointment/$find don't have a status field - treat as bookable
+      .input('isBookable', sql.Bit, (!slot.status || slot.status === 'free') ? 1 : 0)
       .query(`
         MERGE INTO availability_slots AS target
         USING (SELECT @halaxySlotId AS halaxy_slot_id) AS source

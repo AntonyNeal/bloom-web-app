@@ -6,60 +6,51 @@
 -- Date: 2025-12-12
 -- ============================================================================
 
-PRINT 'Starting V8 migration: Remove status and is_bookable columns';
-GO
-
--- Drop the status index first
+-- Drop the status index if it exists
 IF EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_availability_slots_status' AND object_id = OBJECT_ID('availability_slots'))
 BEGIN
   DROP INDEX idx_availability_slots_status ON availability_slots;
   PRINT 'Dropped index idx_availability_slots_status';
-END
-GO
+END;
 
--- Drop any default constraints on status column
-DECLARE @ConstraintName NVARCHAR(200);
-SELECT @ConstraintName = name 
-FROM sys.default_constraints 
-WHERE parent_object_id = OBJECT_ID('availability_slots') 
-  AND parent_column_id = (SELECT column_id FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'status');
+-- Drop default constraint on status column if it exists
+DECLARE @StatusConstraintName NVARCHAR(200);
+SELECT @StatusConstraintName = dc.name
+FROM sys.default_constraints dc
+INNER JOIN sys.columns c ON dc.parent_column_id = c.column_id AND dc.parent_object_id = c.object_id
+WHERE c.object_id = OBJECT_ID('availability_slots') AND c.name = 'status';
 
-IF @ConstraintName IS NOT NULL
+IF @StatusConstraintName IS NOT NULL
 BEGIN
-  EXEC('ALTER TABLE availability_slots DROP CONSTRAINT ' + @ConstraintName);
+  EXEC('ALTER TABLE availability_slots DROP CONSTRAINT [' + @StatusConstraintName + ']');
   PRINT 'Dropped default constraint on status column';
-END
-GO
+END;
 
--- Drop any default constraints on is_bookable column
-DECLARE @ConstraintName2 NVARCHAR(200);
-SELECT @ConstraintName2 = name 
-FROM sys.default_constraints 
-WHERE parent_object_id = OBJECT_ID('availability_slots') 
-  AND parent_column_id = (SELECT column_id FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'is_bookable');
+-- Drop default constraint on is_bookable column if it exists
+DECLARE @BookableConstraintName NVARCHAR(200);
+SELECT @BookableConstraintName = dc.name
+FROM sys.default_constraints dc
+INNER JOIN sys.columns c ON dc.parent_column_id = c.column_id AND dc.parent_object_id = c.object_id
+WHERE c.object_id = OBJECT_ID('availability_slots') AND c.name = 'is_bookable';
 
-IF @ConstraintName2 IS NOT NULL
+IF @BookableConstraintName IS NOT NULL
 BEGIN
-  EXEC('ALTER TABLE availability_slots DROP CONSTRAINT ' + @ConstraintName2);
+  EXEC('ALTER TABLE availability_slots DROP CONSTRAINT [' + @BookableConstraintName + ']');
   PRINT 'Dropped default constraint on is_bookable column';
-END
-GO
+END;
 
--- Now drop the status column
+-- Drop the status column
 IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'status')
 BEGIN
   ALTER TABLE availability_slots DROP COLUMN status;
   PRINT 'Dropped column status from availability_slots';
-END
-GO
+END;
 
 -- Drop the is_bookable column
 IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'is_bookable')
 BEGIN
   ALTER TABLE availability_slots DROP COLUMN is_bookable;
   PRINT 'Dropped column is_bookable from availability_slots';
-END
-GO
+END;
 
 PRINT 'Migration V8 completed: Removed status and is_bookable columns';
-GO

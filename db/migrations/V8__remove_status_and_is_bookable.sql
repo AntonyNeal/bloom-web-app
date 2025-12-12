@@ -90,21 +90,53 @@ PRINT '🔍 Searching for ALL objects that reference status column...';
 DECLARE @StatusColumnId INT = (SELECT column_id FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'status');
 IF @StatusColumnId IS NOT NULL
 BEGIN
-  SELECT 
-    'Dependency found: ' + OBJECT_SCHEMA_NAME(referencing_id) + '.' + OBJECT_NAME(referencing_id) + 
-    ' (Type: ' + o.type_desc + ')' AS info
+  DECLARE @depCount INT;
+  DECLARE @depInfo NVARCHAR(MAX) = '';
+  
+  -- Check sql_expression_dependencies
+  SELECT @depCount = COUNT(*), @depInfo = @depInfo + 
+    COALESCE(STRING_AGG(
+      '     - ' + OBJECT_SCHEMA_NAME(referencing_id) + '.' + OBJECT_NAME(referencing_id) + 
+      ' (Type: ' + o.type_desc + ')', CHAR(13) + CHAR(10)
+    ), '')
   FROM sys.sql_expression_dependencies sed
   INNER JOIN sys.objects o ON sed.referencing_id = o.object_id
   WHERE sed.referenced_id = OBJECT_ID('availability_slots')
     AND sed.referenced_minor_id = @StatusColumnId;
+  
+  IF @depCount > 0
+  BEGIN
+    PRINT '   Found ' + CAST(@depCount AS NVARCHAR) + ' dependencies:';
+    PRINT @depInfo;
+  END
+  ELSE
+  BEGIN
+    PRINT '   No dependencies found in sql_expression_dependencies';
+  END;
     
-  -- Also check for computed columns
-  SELECT 
-    'Computed column dependency: ' + c.name AS info
-  FROM sys.columns c
-  WHERE c.object_id = OBJECT_ID('availability_slots')
-    AND c.is_computed = 1
-    AND OBJECT_DEFINITION(c.default_object_id) LIKE '%status%';
+  -- Check for computed columns
+  IF EXISTS (
+    SELECT 1 FROM sys.columns c
+    WHERE c.object_id = OBJECT_ID('availability_slots')
+      AND c.is_computed = 1
+      AND OBJECT_DEFINITION(c.default_object_id) LIKE '%status%'
+  )
+  BEGIN
+    PRINT '   Found computed column dependency!';
+  END;
+  
+  -- Check for statistics
+  DECLARE @statsInfo NVARCHAR(MAX) = '';
+  SELECT @statsInfo = @statsInfo + '     - ' + s.name + CHAR(13) + CHAR(10)
+  FROM sys.stats s
+  INNER JOIN sys.stats_columns sc ON s.object_id = sc.object_id AND s.stats_id = sc.stats_id
+  WHERE s.object_id = OBJECT_ID('availability_slots') AND sc.column_id = @StatusColumnId;
+  
+  IF LEN(@statsInfo) > 0
+  BEGIN
+    PRINT '   Found statistics:';
+    PRINT @statsInfo;
+  END;
 END;
 
 -- Drop the status column

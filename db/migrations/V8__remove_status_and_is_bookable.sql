@@ -85,6 +85,28 @@ BEGIN
   PRINT '  ⏭️  No default constraint found, skipping';
 END;
 
+-- Find and display ALL objects that reference the status column
+PRINT '🔍 Searching for ALL objects that reference status column...';
+DECLARE @StatusColumnId INT = (SELECT column_id FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'status');
+IF @StatusColumnId IS NOT NULL
+BEGIN
+  SELECT 
+    'Dependency found: ' + OBJECT_SCHEMA_NAME(referencing_id) + '.' + OBJECT_NAME(referencing_id) + 
+    ' (Type: ' + o.type_desc + ')' AS info
+  FROM sys.sql_expression_dependencies sed
+  INNER JOIN sys.objects o ON sed.referencing_id = o.object_id
+  WHERE sed.referenced_id = OBJECT_ID('availability_slots')
+    AND sed.referenced_minor_id = @StatusColumnId;
+    
+  -- Also check for computed columns
+  SELECT 
+    'Computed column dependency: ' + c.name AS info
+  FROM sys.columns c
+  WHERE c.object_id = OBJECT_ID('availability_slots')
+    AND c.is_computed = 1
+    AND OBJECT_DEFINITION(c.default_object_id) LIKE '%status%';
+END;
+
 -- Drop the status column
 PRINT '🔍 Checking for status column...';
 IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'status')

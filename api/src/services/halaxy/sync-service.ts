@@ -298,25 +298,14 @@ export class HalaxySyncService {
           
           // Filter to future slots only
           const now = new Date();
-          const futureSlots = slots.filter(s => {
+          const availableSlots = slots.filter(s => {
             const slotStart = new Date(s.start);
             return slotStart > now;
           });
-          console.log(`[HalaxySyncService] Filtered to ${futureSlots.length} future slots`);
+          console.log(`[HalaxySyncService] Processing ${availableSlots.length} future available slots`);
           
-          // Filter out weekend slots (Saturday = 6, Sunday = 0)
-          // Bloom only operates Monday-Friday
-          const weekdaySlots = futureSlots.filter(s => {
-            const slotStart = new Date(s.start);
-            const dayOfWeek = slotStart.getDay();
-            return dayOfWeek !== 0 && dayOfWeek !== 6; // Exclude Sunday (0) and Saturday (6)
-          });
-          
-          const weekendSlotsFiltered = futureSlots.length - weekdaySlots.length;
-          if (weekendSlotsFiltered > 0) {
-            console.log(`[HalaxySyncService] Filtered out ${weekendSlotsFiltered} weekend slots`);
-          }
-          console.log(`[HalaxySyncService] Processing ${weekdaySlots.length} weekday slots`);
+          // Note: No need to filter weekends - /Appointment/$find already respects
+          // the practitioner's working hours and availability preferences set in Halaxy
           
           // Subtract booked appointments from availability slots
           // Use the appointments already fetched earlier in this sync
@@ -329,8 +318,8 @@ export class HalaxySyncService {
           });
           console.log(`[HalaxySyncService] Subtracting ${futureAppointments.length} future appointments from slots`);
           
-          const adjustedSlots = this.subtractAppointmentsFromSlots(weekdaySlots, futureAppointments);
-          console.log(`[HalaxySyncService] After subtraction: ${adjustedSlots.length} slot fragments (from ${weekdaySlots.length} original slots)`);
+          const adjustedSlots = this.subtractAppointmentsFromSlots(availableSlots, futureAppointments);
+          console.log(`[HalaxySyncService] After subtraction: ${adjustedSlots.length} slot fragments (from ${availableSlots.length} original slots)`);
           
           // NOW that we have all slots loaded in memory and validated, clean up database
           // This order is CRITICAL - we fetch and validate BEFORE deleting anything

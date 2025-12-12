@@ -13,6 +13,26 @@ BEGIN
   PRINT 'Dropped index idx_availability_slots_status';
 END;
 
+-- Drop any check constraints that reference status or is_bookable
+DECLARE @CheckConstraintName NVARCHAR(200);
+DECLARE check_cursor CURSOR FOR
+SELECT cc.name
+FROM sys.check_constraints cc
+WHERE cc.parent_object_id = OBJECT_ID('availability_slots');
+
+OPEN check_cursor;
+FETCH NEXT FROM check_cursor INTO @CheckConstraintName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+  EXEC('ALTER TABLE availability_slots DROP CONSTRAINT [' + @CheckConstraintName + ']');
+  PRINT 'Dropped check constraint: ' + @CheckConstraintName;
+  FETCH NEXT FROM check_cursor INTO @CheckConstraintName;
+END;
+
+CLOSE check_cursor;
+DEALLOCATE check_cursor;
+
 -- Drop default constraint on status column if it exists
 DECLARE @StatusConstraintName NVARCHAR(200);
 SELECT @StatusConstraintName = dc.name
@@ -23,7 +43,7 @@ WHERE c.object_id = OBJECT_ID('availability_slots') AND c.name = 'status';
 IF @StatusConstraintName IS NOT NULL
 BEGIN
   EXEC('ALTER TABLE availability_slots DROP CONSTRAINT [' + @StatusConstraintName + ']');
-  PRINT 'Dropped default constraint on status column';
+  PRINT 'Dropped default constraint on status column: ' + @StatusConstraintName;
 END;
 
 -- Drop default constraint on is_bookable column if it exists
@@ -36,7 +56,7 @@ WHERE c.object_id = OBJECT_ID('availability_slots') AND c.name = 'is_bookable';
 IF @BookableConstraintName IS NOT NULL
 BEGIN
   EXEC('ALTER TABLE availability_slots DROP CONSTRAINT [' + @BookableConstraintName + ']');
-  PRINT 'Dropped default constraint on is_bookable column';
+  PRINT 'Dropped default constraint on is_bookable column: ' + @BookableConstraintName;
 END;
 
 -- Drop the status column

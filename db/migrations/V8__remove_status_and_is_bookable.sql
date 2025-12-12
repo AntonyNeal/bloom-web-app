@@ -49,6 +49,34 @@ END;
 
 GO
 
+-- Drop indexes on status column (before statistics)
+PRINT '🔍 Checking for indexes on status column...';
+DECLARE @StatusIndexName NVARCHAR(200);
+DECLARE status_index_cursor CURSOR FOR
+SELECT i.name
+FROM sys.indexes i
+INNER JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+INNER JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+WHERE i.object_id = OBJECT_ID('availability_slots')
+  AND c.name = 'status'
+  AND i.name IS NOT NULL
+  AND i.is_primary_key = 0
+  AND i.is_unique_constraint = 0;
+
+OPEN status_index_cursor;
+FETCH NEXT FROM status_index_cursor INTO @StatusIndexName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+  PRINT '  🗑️  Dropping index: ' + @StatusIndexName;
+  EXEC('DROP INDEX [' + @StatusIndexName + '] ON availability_slots');
+  PRINT '  ✅ Dropped index: ' + @StatusIndexName;
+  FETCH NEXT FROM status_index_cursor INTO @StatusIndexName;
+END;
+
+CLOSE status_index_cursor;
+DEALLOCATE status_index_cursor;
+
 -- Drop statistics on status column
 PRINT '🔍 Checking for statistics on status column...';
 DECLARE @StatusColumnId INT = (SELECT column_id FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'status');
@@ -57,8 +85,10 @@ DECLARE stats_cursor CURSOR FOR
 SELECT s.name
 FROM sys.stats s
 INNER JOIN sys.stats_columns sc ON s.object_id = sc.object_id AND s.stats_id = sc.stats_id
+LEFT JOIN sys.indexes i ON s.object_id = i.object_id AND s.name = i.name
 WHERE s.object_id = OBJECT_ID('availability_slots')
-  AND sc.column_id = @StatusColumnId;
+  AND sc.column_id = @StatusColumnId
+  AND i.index_id IS NULL;  -- Only get statistics, not indexes
 
 OPEN stats_cursor;
 FETCH NEXT FROM stats_cursor INTO @StatsName;
@@ -95,6 +125,34 @@ END;
 
 GO
 
+-- Drop indexes on is_bookable column (before statistics)
+PRINT '🔍 Checking for indexes on is_bookable column...';
+DECLARE @BookableIndexName NVARCHAR(200);
+DECLARE bookable_index_cursor CURSOR FOR
+SELECT i.name
+FROM sys.indexes i
+INNER JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+INNER JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+WHERE i.object_id = OBJECT_ID('availability_slots')
+  AND c.name = 'is_bookable'
+  AND i.name IS NOT NULL
+  AND i.is_primary_key = 0
+  AND i.is_unique_constraint = 0;
+
+OPEN bookable_index_cursor;
+FETCH NEXT FROM bookable_index_cursor INTO @BookableIndexName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+  PRINT '  🗑️  Dropping index: ' + @BookableIndexName;
+  EXEC('DROP INDEX [' + @BookableIndexName + '] ON availability_slots');
+  PRINT '  ✅ Dropped index: ' + @BookableIndexName;
+  FETCH NEXT FROM bookable_index_cursor INTO @BookableIndexName;
+END;
+
+CLOSE bookable_index_cursor;
+DEALLOCATE bookable_index_cursor;
+
 -- Drop statistics on is_bookable column
 PRINT '🔍 Checking for statistics on is_bookable column...';
 DECLARE @BookableColumnId INT = (SELECT column_id FROM sys.columns WHERE object_id = OBJECT_ID('availability_slots') AND name = 'is_bookable');
@@ -103,8 +161,10 @@ DECLARE bookable_stats_cursor CURSOR FOR
 SELECT s.name
 FROM sys.stats s
 INNER JOIN sys.stats_columns sc ON s.object_id = sc.object_id AND s.stats_id = sc.stats_id
+LEFT JOIN sys.indexes i ON s.object_id = i.object_id AND s.name = i.name
 WHERE s.object_id = OBJECT_ID('availability_slots')
-  AND sc.column_id = @BookableColumnId;
+  AND sc.column_id = @BookableColumnId
+  AND i.index_id IS NULL;  -- Only get statistics, not indexes
 
 OPEN bookable_stats_cursor;
 FETCH NEXT FROM bookable_stats_cursor INTO @BookableStatsName;

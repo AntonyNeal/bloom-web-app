@@ -1012,12 +1012,9 @@ export class HalaxySyncService {
       .input('slotStartUnix', sql.BigInt, slotStartUnix)
       .input('slotEndUnix', sql.BigInt, slotEndUnix)
       .input('durationMinutes', sql.Int, durationMinutes)
-      .input('status', sql.NVarChar, slot.status)
       .input('scheduleId', sql.NVarChar, scheduleId)
       .input('locationType', sql.NVarChar, locationType)
       .input('serviceCategory', sql.NVarChar, serviceCategory)
-      // Slots from /Appointment/$find don't have a status field - treat as bookable
-      .input('isBookable', sql.Bit, (!slot.status || slot.status === 'free') ? 1 : 0)
       .query(`
         MERGE INTO availability_slots AS target
         USING (SELECT @halaxySlotId AS halaxy_slot_id) AS source
@@ -1030,25 +1027,23 @@ export class HalaxySyncService {
             slot_start_unix = @slotStartUnix,
             slot_end_unix = @slotEndUnix,
             duration_minutes = @durationMinutes,
-            status = @status,
             halaxy_schedule_id = @scheduleId,
             location_type = @locationType,
             service_category = @serviceCategory,
-            is_bookable = @isBookable,
             updated_at = GETUTCDATE(),
             last_synced_at = GETUTCDATE()
         WHEN NOT MATCHED THEN
           INSERT (
             halaxy_slot_id, practitioner_id, slot_start, slot_end,
             slot_start_unix, slot_end_unix,
-            duration_minutes, status, halaxy_schedule_id, location_type,
-            service_category, is_bookable, created_at, updated_at, last_synced_at
+            duration_minutes, halaxy_schedule_id, location_type,
+            service_category, created_at, updated_at, last_synced_at
           )
           VALUES (
             @halaxySlotId, @practitionerId, @slotStart, @slotEnd,
             @slotStartUnix, @slotEndUnix,
-            @durationMinutes, @status, @scheduleId, @locationType,
-            @serviceCategory, @isBookable, GETUTCDATE(), GETUTCDATE(), GETUTCDATE()
+            @durationMinutes, @scheduleId, @locationType,
+            @serviceCategory, GETUTCDATE(), GETUTCDATE(), GETUTCDATE()
           );
       `);
   }

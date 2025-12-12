@@ -92,15 +92,12 @@ async function fetchAvailableSlots(
       a.halaxy_slot_id,
       a.slot_start_unix,
       a.slot_end_unix,
-      a.status,
       a.practitioner_id,
       a.duration_minutes,
       a.location_type
     FROM availability_slots a
     WHERE a.slot_start_unix < @endDateUnix
       AND a.slot_end_unix > @startDateUnix
-      AND a.status = 'free'
-      AND a.is_bookable = 1
   `;
 
   // Only filter by duration if explicitly requested and > 0

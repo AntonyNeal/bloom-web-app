@@ -230,7 +230,14 @@ async function runMigrations() {
           .filter(batch => batch.trim().length > 0);
         
         for (const batch of batches) {
-          await pool.request().query(batch);
+          const request = pool.request();
+          
+          // Capture PRINT statements and info messages from SQL
+          request.on('info', (info) => {
+            console.log(`   ${info.message}`);
+          });
+          
+          await request.query(batch);
         }
         
         // Record the migration

@@ -134,8 +134,6 @@ async function fetchAvailableSlots(
   const totalCheck = await dbPool.request().query(
     `SELECT 
       COUNT(*) as total,
-      COUNT(CASE WHEN status='free' THEN 1 END) as free_slots,
-      COUNT(CASE WHEN is_bookable=1 THEN 1 END) as bookable_slots,
       COUNT(CASE WHEN slot_start_unix IS NOT NULL THEN 1 END) as has_unix_timestamp
     FROM availability_slots`
   );

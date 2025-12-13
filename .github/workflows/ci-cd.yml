@@ -1339,10 +1339,13 @@ jobs:
           # Execute a command in the container to trigger sync
           # The sync worker doesn't need a manual trigger - it runs on a schedule
           # But we can restart the container app to ensure it picks up the new code immediately
-          az containerapp revision restart \
+          if ! az containerapp revision restart \
             --name $APP_NAME \
             --resource-group $RG_NAME \
-            --revision $(az containerapp revision list --name $APP_NAME --resource-group $RG_NAME --query "[0].name" -o tsv) || true
+            --revision $(az containerapp revision list --name $APP_NAME --resource-group $RG_NAME --query "[0].name" -o tsv); then
+            echo "❌ Failed to restart container app"
+            exit 1
+          fi
           
           echo "✅ Container restarted - sync will run according to schedule (every 15 minutes)"
           echo "📋 To view logs: az containerapp logs show --name $APP_NAME --resource-group $RG_NAME --follow"

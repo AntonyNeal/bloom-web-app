@@ -21,12 +21,12 @@
 name: Release Orchestration
 
 on:
-  # Scheduled triggers (Sydney/AEST timezone = UTC+11, accounting for AEDT)
-  schedule:
-    # Day 9: Auto-merge develop→staging PR at 10pm Sunday AEST (11am UTC Sunday)
-    - cron: '0 11 * * 0'  # Every Sunday at 11:00 UTC (10pm AEST/AEDT)
+  # DISABLED: Scheduled triggers (Sydney/AEST timezone = UTC+11, accounting for AEDT)
+  # schedule:
+  #   # Day 9: Auto-merge develop→staging PR at 10pm Sunday AEST (11am UTC Sunday)
+  #   - cron: '0 11 * * 0'  # Every Sunday at 11:00 UTC (10pm AEST/AEDT)
     
-  # Manual triggers for release operations
+  # Manual triggers only
   workflow_dispatch:
     inputs:
       action:

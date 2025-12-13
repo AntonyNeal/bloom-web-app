@@ -8,12 +8,12 @@
 name: Scheduled Production Release
 
 on:
-  # Saturday at 12am AEST (Friday 1pm UTC) - creates PR for Saturday 1am deployment
+  # DISABLED: Saturday at 12am AEST (Friday 1pm UTC) - creates PR for Saturday 1am deployment
   # This gives time for final review before the 1am deployment window
-  schedule:
-    - cron: '0 13 * * 5'  # Every Friday at 1pm UTC (Saturday 12am AEST)
+  # schedule:
+  #   - cron: '0 13 * * 5'  # Every Friday at 1pm UTC (Saturday 12am AEST)
   
-  # Manual trigger
+  # Manual trigger only
   workflow_dispatch:
     inputs:
       create_pr_only:

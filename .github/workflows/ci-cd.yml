@@ -451,10 +451,10 @@ jobs:
           SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
           DRY_RUN: ${{ github.event.inputs.dry_run_migrations || github.event_name == 'pull_request' }}
         run: |
-          echo "🚀 Running migrations for ${{ needs.determine-environment.outputs.db-environment }}..."
+          echo "🚀 Building database schema for ${{ needs.determine-environment.outputs.db-environment }}..."
           
-          # Use simple migration runner instead of complex DBVC system
-          node run-simple-migrations.js
+          # Build schema from single source of truth
+          node build-schema.js
         continue-on-error: ${{ github.event.inputs.dry_run_migrations == 'true' || github.event_name == 'pull_request' }}
 
       - name: Extended Validation (Staging)

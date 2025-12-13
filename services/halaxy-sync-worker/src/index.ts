@@ -253,7 +253,7 @@ async function runFullSync(): Promise<void> {
       duration,
       totalRecords,
       totalErrors,
-      practitionerCount: practitioners.length,
+      practitionerCount: practitionersSynced,
     });
 
     trackMetric('halaxy_sync_duration_ms', duration);

@@ -4,10 +4,22 @@
 -- WARNING: This will DELETE ALL DATA
 -- ============================================================================
 
--- Drop all existing objects
-PRINT 'Dropping existing objects...';
+-- Drop all foreign key constraints first
+PRINT 'Dropping foreign key constraints...';
+DECLARE @sql NVARCHAR(MAX) = N'';
+SELECT @sql += 'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id)) + '.' + QUOTENAME(OBJECT_NAME(parent_object_id)) + ' DROP CONSTRAINT ' + QUOTENAME(name) + ';'
+FROM sys.foreign_keys;
+EXEC sp_executesql @sql;
+GO
+
+-- Drop all views
+PRINT 'Dropping views...';
 DROP VIEW IF EXISTS vw_all_slots;
 DROP VIEW IF EXISTS vw_available_slots;
+GO
+
+-- Drop all tables
+PRINT 'Dropping tables...';
 DROP TABLE IF EXISTS availability_slots;
 DROP TABLE IF EXISTS appointments;
 DROP TABLE IF EXISTS practitioners;

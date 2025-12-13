@@ -38,7 +38,6 @@ interface AvailabilitySlot {
   halaxy_slot_id: string;
   slot_start_unix: number;
   slot_end_unix: number;
-  status: string;
   practitioner_id?: string;
   duration_minutes: number;
   location_type?: string;
@@ -83,9 +82,6 @@ async function fetchAvailableSlots(
   const dbPool = await getDbConnection(context);
 
   // Query for available slots from the availability_slots table
-  // Slots must be free, bookable, and have remaining bookable time
-  // We check if the slot END is in the future (with buffer for booking lead time)
-  // This allows showing slots that have already started but still have bookable times
   let query = `
     SELECT 
       a.id,

@@ -605,6 +605,10 @@ export class HalaxySyncService {
       const slotEnd = new Date(slot.end);
       const durationMinutes = Math.round((slotEnd.getTime() - slotStart.getTime()) / (1000 * 60));
       
+      // Convert to Unix timestamps (seconds since epoch)
+      const slotStartUnix = Math.floor(slotStart.getTime() / 1000);
+      const slotEndUnix = Math.floor(slotEnd.getTime() / 1000);
+      
       // Extract schedule ID from reference if available
       const scheduleId = slot.schedule?.reference?.replace('Schedule/', '') || null;
       
@@ -629,8 +633,8 @@ export class HalaxySyncService {
       await pool.request()
         .input('halaxySlotId', sql.NVarChar, slot.id)
         .input('practitionerId', sql.UniqueIdentifier, practitionerId)
-        .input('slotStart', sql.DateTime2, slotStart)
-        .input('slotEnd', sql.DateTime2, slotEnd)
+        .input('slotStartUnix', sql.BigInt, slotStartUnix)
+        .input('slotEndUnix', sql.BigInt, slotEndUnix)
         .input('durationMinutes', sql.Int, durationMinutes)
         .input('status', sql.NVarChar, slotStatus)
         .input('scheduleId', sql.NVarChar, scheduleId)
@@ -644,8 +648,8 @@ export class HalaxySyncService {
           WHEN MATCHED THEN
             UPDATE SET
               practitioner_id = @practitionerId,
-              slot_start = @slotStart,
-              slot_end = @slotEnd,
+              slot_start_unix = @slotStartUnix,
+              slot_end_unix = @slotEndUnix,
               duration_minutes = @durationMinutes,
               status = @status,
               halaxy_schedule_id = @scheduleId,
@@ -656,12 +660,12 @@ export class HalaxySyncService {
               last_synced_at = GETUTCDATE()
           WHEN NOT MATCHED THEN
             INSERT (
-              halaxy_slot_id, practitioner_id, slot_start, slot_end, 
+              halaxy_slot_id, practitioner_id, slot_start_unix, slot_end_unix, 
               duration_minutes, status, halaxy_schedule_id, location_type, 
               service_category, is_bookable, created_at, updated_at, last_synced_at
             )
             VALUES (
-              @halaxySlotId, @practitionerId, @slotStart, @slotEnd,
+              @halaxySlotId, @practitionerId, @slotStartUnix, @slotEndUnix,
               @durationMinutes, @status, @scheduleId, @locationType,
               @serviceCategory, @isBookable, GETUTCDATE(), GETUTCDATE(), GETUTCDATE()
             );

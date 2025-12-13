@@ -156,6 +156,14 @@ export class HalaxyClient {
     return this.getAllPages<FHIRPractitioner>('/Practitioner', { active: 'true' });
   }
 
+  async getPractitionersByGivenName(givenName: string): Promise<FHIRPractitioner[]> {
+    console.log(`[HalaxyClient] Searching for practitioners with given name: ${givenName}`);
+    return this.getAllPages<FHIRPractitioner>('/Practitioner', { 
+      given: givenName,
+      active: 'true' 
+    });
+  }
+
   // ============================================================================
   // Patient Endpoints
   // ============================================================================

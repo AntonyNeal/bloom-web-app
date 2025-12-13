@@ -18,6 +18,7 @@
 import * as cron from 'node-cron';
 import * as http from 'http';
 import { HalaxySyncService } from './services/sync-service';
+import { HalaxyClient } from './services/halaxy-client';
 import { DatabaseService } from './services/database';
 import { setupTelemetry, trackEvent, trackMetric, trackException, flush } from './telemetry';
 import { config, validateConfig } from './config';
@@ -141,29 +142,40 @@ async function runFullSync(): Promise<void> {
   }
 
   try {
-    const db = DatabaseService.getInstance();
     const syncService = new HalaxySyncService();
+    const halaxyClient = new HalaxyClient();
 
-    // Get all active practitioners
-    const practitioners = await db.getActivePractitioners();
-    console.log(`[Worker] Found ${practitioners.length} active practitioners to sync`);
+    // Fetch practitioners from Halaxy by given name "Zoe"
+    console.log('[Worker] Fetching practitioners from Halaxy (given name: Zoe)...');
+    const halaxPractitioners = await halaxyClient.getPractitionersByGivenName('Zoe');
+    console.log(`[Worker] Found ${halaxPractitioners.length} practitioners named Zoe in Halaxy`);
+
+    if (halaxPractitioners.length === 0) {
+      console.warn('[Worker] No practitioners found with given name "Zoe" - skipping sync');
+      return;
+    }
 
     let totalRecords = 0;
     let totalErrors = 0;
     let appointmentsSynced = 0;
     let patientsSynced = 0;
-    const practitionersSynced = practitioners.length;
+    const practitionersSynced = halaxPractitioners.length;
 
-    for (const practitioner of practitioners) {
+    for (const halaxyPractitioner of halaxPractitioners) {
       if (isShuttingDown) {
         console.log('[Worker] Shutdown requested - stopping sync');
         break;
       }
 
       try {
-        console.log(`[Worker] Syncing practitioner: ${practitioner.id} (Halaxy: ${practitioner.halaxyPractitionerId})`);
+        const practitionerId = halaxyPractitioner.id;
+        const practitionerName = halaxyPractitioner.name?.[0] 
+          ? `${halaxyPractitioner.name[0].given?.join(' ')} ${halaxyPractitioner.name[0].family}`
+          : practitionerId;
         
-        const result = await syncService.fullSync(practitioner.halaxyPractitionerId);
+        console.log(`[Worker] Syncing practitioner: ${practitionerName} (Halaxy ID: ${practitionerId})`);
+        
+        const result = await syncService.fullSync(practitionerId);
         
         totalRecords += result.recordsUpdated + result.recordsCreated;
         totalErrors += result.errors.length;
@@ -177,13 +189,13 @@ async function runFullSync(): Promise<void> {
         }
 
         trackMetric('halaxy_practitioner_sync_duration_ms', result.durationMs, {
-          practitionerId: practitioner.id,
+          practitionerId: practitionerId,
         });
 
       } catch (error) {
         totalErrors++;
-        console.error(`[Worker]   ✗ Error syncing practitioner ${practitioner.id}:`, error);
-        trackException(error as Error, { practitionerId: practitioner.id });
+        console.error(`[Worker]   ✗ Error syncing practitioner ${halaxyPractitioner.id}:`, error);
+        trackException(error as Error, { practitionerId: halaxyPractitioner.id });
       }
     }
 

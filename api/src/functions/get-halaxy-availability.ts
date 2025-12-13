@@ -76,7 +76,6 @@ async function fetchAvailableSlots(
   startDate: Date,
   endDate: Date,
   practitionerId: string | undefined,
-  durationMinutes: number,
   context: InvocationContext
 ): Promise<FHIRSlot[]> {
   const dbPool = await getDbConnection(context);
@@ -96,11 +95,6 @@ async function fetchAvailableSlots(
       AND a.slot_end_unix > @startDateUnix
   `;
 
-  // Only filter by duration if explicitly requested and > 0
-  if (durationMinutes > 0) {
-    query += ` AND a.duration_minutes >= @duration`;
-  }
-
   const startDateUnix = Math.floor(startDate.getTime() / 1000);
   const endDateUnix = Math.floor(endDate.getTime() / 1000);
 
@@ -108,7 +102,6 @@ async function fetchAvailableSlots(
     .request()
     .input('startDateUnix', sql.BigInt, startDateUnix)
     .input('endDateUnix', sql.BigInt, endDateUnix)
-    .input('duration', sql.Int, durationMinutes)
     .input('practitionerId', sql.UniqueIdentifier, practitionerId || null);
 
   if (practitionerId) {
@@ -123,7 +116,6 @@ async function fetchAvailableSlots(
     startDateUnix,
     endDateUnix,
     practitionerId,
-    durationMinutes,
   });
 
   // Diagnostic: Check total slots in database
@@ -165,39 +157,35 @@ async function getHalaxyAvailability(
 
   try {
     // Get query parameters
-    const start = req.query.get('start');
-    const end = req.query.get('end');
-    // Duration filter is optional - if 0 or not provided, returns all slots
-    const duration = parseInt(req.query.get('duration') || '0');
-    const practitioner = req.query.get('practitioner') || undefined;
+    const from = req.query.get('from');
+    const to = req.query.get('to');
+    const practitionerId = req.query.get('practitionerId') || undefined;
 
     // Validate required parameters
-    if (!start || !end) {
+    if (!from || !to) {
       return {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         jsonBody: {
-          error: 'Missing required parameters: start and end',
+          error: 'Missing required parameters: from and to',
         },
       };
     }
 
-    const startDate = new Date(start);
-    const endDate = new Date(end);
+    const startDate = new Date(from);
+    const endDate = new Date(to);
 
     context.log('Fetching availability from database', {
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-      duration,
-      practitioner,
+      from: startDate.toISOString(),
+      to: endDate.toISOString(),
+      practitionerId,
     });
 
     // Fetch available slots from database
     const slots = await fetchAvailableSlots(
       startDate,
       endDate,
-      practitioner,
-      duration,
+      practitionerId,
       context
     );
 

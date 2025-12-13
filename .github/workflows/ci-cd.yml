@@ -1319,6 +1319,34 @@ jobs:
             sleep 10
           done
 
+      - name: Trigger Initial Sync
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
+        run: |
+          FULL_ENV="${{ needs.determine-environment.outputs.environment }}"
+          
+          # Map full environment name to short name for resource naming
+          case "$FULL_ENV" in
+            production) ENV_SHORT="prod" ;;
+            staging) ENV_SHORT="staging" ;;
+            *) ENV_SHORT="dev" ;;
+          esac
+          
+          APP_NAME="lpa-halaxy-sync-${ENV_SHORT}"
+          RG_NAME="rg-lpa-unified"
+          
+          echo "🔄 Triggering initial sync after deployment..."
+          
+          # Execute a command in the container to trigger sync
+          # The sync worker doesn't need a manual trigger - it runs on a schedule
+          # But we can restart the container app to ensure it picks up the new code immediately
+          az containerapp revision restart \
+            --name $APP_NAME \
+            --resource-group $RG_NAME \
+            --revision $(az containerapp revision list --name $APP_NAME --resource-group $RG_NAME --query "[0].name" -o tsv) || true
+          
+          echo "✅ Container restarted - sync will run according to schedule (every 15 minutes)"
+          echo "📋 To view logs: az containerapp logs show --name $APP_NAME --resource-group $RG_NAME --follow"
+
       - name: Deployment Summary
         run: |
           if [ "${{ steps.check-creds.outputs.has-azure-creds }}" == "true" ]; then

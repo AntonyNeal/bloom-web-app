@@ -1002,11 +1002,10 @@ jobs:
   deploy-bloom-frontend:
     name: 🚀 Deploy Bloom Frontend
     runs-on: ubuntu-latest
-    needs: [determine-environment, build-bloom-frontend, run-migrations]
+    needs: [determine-environment, build-bloom-frontend]
     if: |
       always() &&
-      needs.build-bloom-frontend.result == 'success' &&
-      (needs.run-migrations.result == 'success' || needs.run-migrations.result == 'skipped')
+      needs.build-bloom-frontend.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -1047,7 +1046,7 @@ jobs:
   deploy-website-frontend:
     name: 🚀 Deploy Website Frontend
     runs-on: ubuntu-latest
-    needs: [determine-environment, build-website-frontend, run-migrations]
+    needs: [determine-environment, build-website-frontend]
     if: |
       always() &&
       needs.build-website-frontend.result == 'success' &&
@@ -1086,12 +1085,11 @@ jobs:
   deploy-website-api:
     name: 🚀 Deploy Website API
     runs-on: ubuntu-latest
-    needs: [determine-environment, build-website-api, run-migrations]
+    needs: [determine-environment, build-website-api]
     if: |
       always() &&
       needs.build-website-api.result == 'success' &&
-      needs.determine-environment.outputs.should-deploy == 'true' &&
-      (needs.run-migrations.result == 'success' || needs.run-migrations.result == 'skipped')
+      needs.determine-environment.outputs.should-deploy == 'true'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - name: Download Artifacts
@@ -1136,11 +1134,10 @@ jobs:
   deploy-bloom-api:
     name: 🚀 Deploy Bloom API
     runs-on: ubuntu-latest
-    needs: [determine-environment, build-bloom-api, run-migrations]
+    needs: [determine-environment, build-bloom-api]
     if: |
       always() &&
-      needs.build-bloom-api.result == 'success' &&
-      (needs.run-migrations.result == 'success' || needs.run-migrations.result == 'skipped')
+      needs.build-bloom-api.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     permissions:
       id-token: write
@@ -1222,11 +1219,10 @@ jobs:
   deploy-halaxy-worker:
     name: 🐳 Deploy Halaxy Sync Worker
     runs-on: ubuntu-latest
-    needs: [determine-environment, build-halaxy-worker, run-migrations]
+    needs: [determine-environment, build-halaxy-worker]
     if: |
       always() &&
-      needs.build-halaxy-worker.result == 'success' &&
-      (needs.run-migrations.result == 'success' || needs.run-migrations.result == 'skipped')
+      needs.build-halaxy-worker.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4

@@ -1334,11 +1334,9 @@ jobs:
           APP_NAME="lpa-halaxy-sync-${ENV_SHORT}"
           RG_NAME="rg-lpa-unified"
           
-          echo "🔄 Triggering initial sync after deployment..."
+          echo "🔄 Restarting container to trigger sync..."
           
-          # Execute a command in the container to trigger sync
-          # The sync worker doesn't need a manual trigger - it runs on a schedule
-          # But we can restart the container app to ensure it picks up the new code immediately
+          # Restart the container app
           if ! az containerapp revision restart \
             --name $APP_NAME \
             --resource-group $RG_NAME \
@@ -1347,8 +1345,55 @@ jobs:
             exit 1
           fi
           
-          echo "✅ Container restarted - sync will run according to schedule (every 15 minutes)"
-          echo "📋 To view logs: az containerapp logs show --name $APP_NAME --resource-group $RG_NAME --follow"
+          echo "⏳ Waiting for sync to complete (timeout: 5 minutes)..."
+          
+          # Wait and check logs for sync completion or failure
+          TIMEOUT=300  # 5 minutes
+          ELAPSED=0
+          SYNC_SUCCESS=false
+          
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            # Get recent logs (last 2 minutes worth)
+            LOGS=$(az containerapp logs show \
+              --name $APP_NAME \
+              --resource-group $RG_NAME \
+              --tail 100 \
+              --follow false 2>&1 || echo "")
+            
+            # Check for sync completion
+            if echo "$LOGS" | grep -q "\[Worker\] Sync completed"; then
+              echo "✅ Sync completed successfully"
+              SYNC_SUCCESS=true
+              break
+            fi
+            
+            # Check for sync failure
+            if echo "$LOGS" | grep -q "\[Worker\] ✗ Full sync failed"; then
+              echo "❌ Sync failed - check container logs:"
+              echo "$LOGS"
+              exit 1
+            fi
+            
+            # Check for authentication errors
+            if echo "$LOGS" | grep -q "401\|403\|Token fetch failed"; then
+              echo "❌ Authentication error - check Halaxy credentials"
+              echo "$LOGS"
+              exit 1
+            fi
+            
+            echo "  Waiting... ($ELAPSED/$TIMEOUT seconds)"
+            sleep 10
+            ELAPSED=$((ELAPSED + 10))
+          done
+          
+          if [ "$SYNC_SUCCESS" = false ]; then
+            echo "❌ Sync did not complete within timeout"
+            echo "📋 Recent logs:"
+            az containerapp logs show --name $APP_NAME --resource-group $RG_NAME --tail 50
+            exit 1
+          fi
+          
+          echo "📋 To view full logs: az containerapp logs show --name $APP_NAME --resource-group $RG_NAME --follow"
 
       - name: Deployment Summary
         run: |

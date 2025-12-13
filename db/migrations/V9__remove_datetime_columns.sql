@@ -5,12 +5,22 @@
 -- Date: 2025-12-14
 -- ============================================================================
 
--- Ensure Unix timestamps are populated before dropping DATETIME2 columns
-UPDATE availability_slots
-SET 
-  slot_start_unix = DATEDIFF_BIG(SECOND, '1970-01-01', slot_start),
-  slot_end_unix = DATEDIFF_BIG(SECOND, '1970-01-01', slot_end)
-WHERE slot_start_unix IS NULL AND slot_start IS NOT NULL;
+-- Check if DATETIME2 columns exist before trying to use them
+IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='availability_slots' AND COLUMN_NAME='slot_start')
+BEGIN
+  -- Ensure Unix timestamps are populated before dropping DATETIME2 columns
+  UPDATE availability_slots
+  SET 
+    slot_start_unix = DATEDIFF_BIG(SECOND, '1970-01-01', slot_start),
+    slot_end_unix = DATEDIFF_BIG(SECOND, '1970-01-01', slot_end)
+  WHERE slot_start_unix IS NULL AND slot_start IS NOT NULL;
+  
+  PRINT 'Populated Unix timestamps from DATETIME2 columns';
+END
+ELSE
+BEGIN
+  PRINT 'DATETIME2 columns already removed, skipping backfill';
+END
 GO
 
 -- Drop dependent views first
@@ -29,11 +39,19 @@ BEGIN
 END
 GO
 
--- Drop the redundant DATETIME2 columns
-ALTER TABLE availability_slots DROP COLUMN slot_start;
+-- Drop the redundant DATETIME2 columns if they exist
+IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='availability_slots' AND COLUMN_NAME='slot_start')
+BEGIN
+  ALTER TABLE availability_slots DROP COLUMN slot_start;
+  PRINT 'Dropped column slot_start';
+END
 GO
 
-ALTER TABLE availability_slots DROP COLUMN slot_end;
+IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='availability_slots' AND COLUMN_NAME='slot_end')
+BEGIN
+  ALTER TABLE availability_slots DROP COLUMN slot_end;
+  PRINT 'Dropped column slot_end';
+END
 GO
 
 -- Make Unix timestamp columns NOT NULL

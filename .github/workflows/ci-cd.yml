@@ -1050,8 +1050,7 @@ jobs:
     if: |
       always() &&
       needs.build-website-frontend.result == 'success' &&
-      needs.determine-environment.outputs.should-deploy == 'true' &&
-      (needs.run-migrations.result == 'success' || needs.run-migrations.result == 'skipped')
+      needs.determine-environment.outputs.should-deploy == 'true'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4

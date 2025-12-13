@@ -123,7 +123,7 @@ export async function fetchAvailableSlots(
 
 /**
  * Group slots by date for calendar display
- * Uses Melbourne/Sydney timezone for date grouping
+ * Uses user's local timezone for date grouping
  */
 export function groupSlotsByDate(
   slots: AvailableSlot[]
@@ -137,14 +137,13 @@ export function groupSlotsByDate(
       return;
     }
 
-    // Convert UTC to Melbourne time for correct date grouping
-    const utcDate = new Date(slot.start);
-    const melbourneDate = toMelbourneTime(utcDate);
+    // Use local timezone for correct date grouping
+    const localDate = new Date(slot.start);
     
-    // Format as YYYY-MM-DD in Melbourne time
-    const year = melbourneDate.getUTCFullYear();
-    const month = String(melbourneDate.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(melbourneDate.getUTCDate()).padStart(2, '0');
+    // Format as YYYY-MM-DD in local timezone
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const day = String(localDate.getDate()).padStart(2, '0');
     const date = `${year}-${month}-${day}`;
 
     if (!grouped.has(date)) {
@@ -159,14 +158,13 @@ export function groupSlotsByDate(
 
 /**
  * Format time for display (e.g., "9:00 am")
- * Uses Melbourne/Sydney timezone for correct time display
+ * Uses user's local timezone for correct time display
  */
 export function formatTimeSlot(isoDateTime: string): string {
-  const utcDate = new Date(isoDateTime);
-  const melbourneDate = toMelbourneTime(utcDate);
+  const localDate = new Date(isoDateTime);
   
-  let hours = melbourneDate.getUTCHours();
-  const minutes = melbourneDate.getUTCMinutes();
+  let hours = localDate.getHours();
+  const minutes = localDate.getMinutes();
   const period = hours >= 12 ? 'pm' : 'am';
 
   if (hours > 12) hours -= 12;

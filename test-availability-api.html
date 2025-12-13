@@ -84,10 +84,6 @@
             <input type="date" id="endDate">
         </div>
         <div>
-            <label>Practitioner ID (optional):</label>
-            <input type="text" id="practitionerId" placeholder="Leave empty for all">
-        </div>
-        <div>
             <button onclick="testAPI()">🔍 Fetch Availability</button>
             <button onclick="testDatabase()">💾 Query Database Direct</button>
         </div>
@@ -113,16 +109,11 @@
             const apiUrl = document.getElementById('apiUrl').value;
             const startDate = new Date(document.getElementById('startDate').value);
             const endDate = new Date(document.getElementById('endDate').value);
-            const practitionerId = document.getElementById('practitionerId').value;
 
             const params = new URLSearchParams({
                 from: startDate.toISOString().split('T')[0],
                 to: endDate.toISOString().split('T')[0]
             });
-
-            if (practitionerId) {
-                params.append('practitioner', practitionerId);
-            }
 
             const url = `${apiUrl}?${params.toString()}`;
 

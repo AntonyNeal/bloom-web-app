@@ -75,7 +75,6 @@ async function getDbConnection(
 async function fetchAvailableSlots(
   startDate: Date,
   endDate: Date,
-  practitionerId: string | undefined,
   context: InvocationContext
 ): Promise<FHIRSlot[]> {
   const dbPool = await getDbConnection(context);
@@ -101,12 +100,7 @@ async function fetchAvailableSlots(
   const request = dbPool
     .request()
     .input('startDateUnix', sql.BigInt, startDateUnix)
-    .input('endDateUnix', sql.BigInt, endDateUnix)
-    .input('practitionerId', sql.UniqueIdentifier, practitionerId || null);
-
-  if (practitionerId) {
-    query += ` AND a.practitioner_id = @practitionerId`;
-  }
+    .input('endDateUnix', sql.BigInt, endDateUnix);
 
   query += ` ORDER BY a.slot_start_unix`;
 
@@ -115,7 +109,6 @@ async function fetchAvailableSlots(
     endDate: endDate.toISOString(),
     startDateUnix,
     endDateUnix,
-    practitionerId,
   });
 
   // Diagnostic: Check total slots in database
@@ -159,7 +152,6 @@ async function getHalaxyAvailability(
     // Get query parameters
     const from = req.query.get('from');
     const to = req.query.get('to');
-    const practitionerId = req.query.get('practitionerId') || undefined;
 
     // Validate required parameters
     if (!from || !to) {
@@ -178,14 +170,12 @@ async function getHalaxyAvailability(
     context.log('Fetching availability from database', {
       from: startDate.toISOString(),
       to: endDate.toISOString(),
-      practitionerId,
     });
 
     // Fetch available slots from database
     const slots = await fetchAvailableSlots(
       startDate,
       endDate,
-      practitionerId,
       context
     );
 

@@ -126,8 +126,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           </svg>
         </button>
 
-        {/* Booking form */}
-        <div className="p-3 sm:p-4 pt-10 sm:pt-4 h-full sm:h-auto overflow-y-auto">
+        {/* Booking form - constrained to modal height */}
+        <div className="p-3 sm:p-4 pt-10 sm:pt-4 h-full overflow-y-auto">
           <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
         </div>
       </div>

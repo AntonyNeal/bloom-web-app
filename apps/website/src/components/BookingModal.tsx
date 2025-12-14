@@ -82,7 +82,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       {/* Modal panel - HEAVY steel & glass aesthetic */}
       <div
         ref={modalContentRef}
-        className="relative z-10 w-full h-full sm:h-auto sm:max-h-[95vh] max-w-4xl overflow-y-auto rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-4 border-slate-300"
+        className="relative z-10 w-full h-full sm:h-auto sm:max-h-[90vh] max-w-2xl overflow-y-auto rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-2 border-slate-300"
         style={{
           boxShadow: `
             0 0 0 1px rgba(148, 163, 184, 0.4),
@@ -127,7 +127,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </button>
 
         {/* Booking form */}
-        <div className="p-4 sm:p-8 pt-10 sm:pt-8">
+        <div className="p-4 sm:p-6 pt-10 sm:pt-6">
           <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
         </div>
       </div>

@@ -440,21 +440,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="max-w-4xl w-full mx-auto">
-      {/* Header - Heavy, substantial */}
-      <div className="mb-6 sm:mb-8">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+    <div className="max-w-2xl w-full mx-auto">
+      {/* Header */}
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
           Book Your Appointment
         </h2>
-        <p className="text-slate-500 mt-2 text-base font-medium">
+        <p className="text-slate-500 mt-1 text-sm font-medium">
           Schedule a telehealth session with Zoe Semmler
         </p>
       </div>
 
-      {/* Progress indicator - Steel bar design */}
+      {/* Progress indicator - Compact steel bar design */}
       {step !== 'success' && step !== 'error' && (
-        <div className="mb-8 p-4 sm:p-5 rounded-xl bg-gradient-to-b from-slate-100 to-slate-50 border-2 border-slate-200" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.05)' }}>
-          <div className="grid grid-cols-5 gap-1 sm:gap-2">
+        <div className="mb-6 p-3 sm:p-4 rounded-lg bg-gradient-to-b from-slate-100 to-slate-50 border border-slate-200" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)' }}>
+          <div className="grid grid-cols-5 gap-1">
             {[
               { num: 1, label: 'Details', key: 'details' },
               { num: 2, label: 'Time', key: 'datetime' },
@@ -471,26 +471,26 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               return (
                 <div key={key} className="text-center">
                   <div
-                    className={`mx-auto w-7 h-7 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-xs sm:text-base font-bold mb-1.5 sm:mb-2 border-2 transition-all ${
+                    className={`mx-auto w-6 h-6 sm:w-8 sm:h-8 rounded-md flex items-center justify-center text-xs sm:text-sm font-bold mb-1 border transition-all ${
                       isActive
                         ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-emerald-400 shadow-lg'
                         : isPast
                           ? 'bg-gradient-to-b from-emerald-100 to-emerald-50 text-emerald-600 border-emerald-300'
                           : 'bg-gradient-to-b from-white to-slate-100 text-slate-400 border-slate-300'
                     }`}
-                    style={isActive ? { boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)' } : {}}
+                    style={isActive ? { boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255,255,255,0.3)' } : {}}
                   >
                     {isPast ? '✓' : num}
                   </div>
-                  <div className={`text-[10px] sm:text-sm font-semibold ${isActive ? 'text-emerald-600' : isPast ? 'text-emerald-500' : 'text-slate-400'}`}>
+                  <div className={`text-[9px] sm:text-xs font-semibold ${isActive ? 'text-emerald-600' : isPast ? 'text-emerald-500' : 'text-slate-400'}`}>
                     {label}
                   </div>
                 </div>
               );
             })}
           </div>
-          {/* Heavy progress bar */}
-          <div className="mt-4 h-2.5 bg-slate-200 rounded-full overflow-hidden border border-slate-300" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)' }}>
+          {/* Progress bar */}
+          <div className="mt-3 h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.08)' }}>
             <div
               className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 rounded-full transition-all duration-500 ease-out"
               style={{

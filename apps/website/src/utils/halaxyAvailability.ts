@@ -2,7 +2,7 @@ import { log } from './logger';
 
 /**
  * Halaxy Availability Service
- * Fetches real available appointment slots from Halaxy API
+ * Fetches real available appointment slots directly from Halaxy's public booking API (v2)
  */
 
 export interface AvailableSlot {
@@ -19,104 +19,115 @@ export interface AvailabilityParams {
   organizationId?: string;
 }
 
-interface HalaxyFHIRBundle {
-  resourceType: string;
-  total?: number;
-  entry?: Array<{
-    resource: {
-      start: string;
-      end: string;
-      status?: string;
-    };
-  }>;
+// Halaxy public booking API v2 response types
+interface HalaxyTimeslot {
+  dateTimeKey: string; // e.g., "20251215-080000"
+  day: string; // e.g., "2025-12-15"
+  startDateUserTime: string; // ISO 8601 with timezone
+  timeLabel: string; // e.g., "8:00 am"
+  timeSection: string; // "morning" | "afternoon" | "evening"
+  userTimezone: string;
+  status?: string; // e.g., "notice-required"
 }
 
+interface HalaxyAvailabilityResponse {
+  _metadata: {
+    totalCount: number;
+  };
+  data: {
+    clinics: Record<string, string>;
+    practitioners: Record<string, string>;
+    preferences: {
+      timeslotStrategy: string;
+      unavailableText: string;
+      noticeDuration: number;
+    };
+    timeslots: Record<string, HalaxyTimeslot[]>;
+  };
+}
+
+// Default Halaxy IDs for Life Psychology Australia
+const DEFAULT_PRACTITIONER_ID = '1304541'; // Zoe Semmler
+const DEFAULT_CLINIC_ID = '1023041'; // Life Psychology Australia
+const DEFAULT_FEE_ID = '9381231'; // Standard session fee
+
 /**
- * Fetch available appointment slots from Halaxy
+ * Fetch available appointment slots directly from Halaxy's public booking API
  */
 export async function fetchAvailableSlots(
   params: AvailabilityParams
 ): Promise<AvailableSlot[]> {
   try {
-    const configuredUrl =
-      import.meta.env['VITE_AVAILABILITY_FUNCTION_URL'] ||
-      import.meta.env['VITE_HALAXY_AVAILABILITY_FUNCTION_URL'];
-
-    const azureFunctionsBase =
-      import.meta.env['VITE_AZURE_FUNCTION_URL'] ||
-      import.meta.env['VITE_AZURE_FUNCTIONS_URL'];
-
-    const defaultUrl = azureFunctionsBase
-      ? `${azureFunctionsBase.replace(/\/$/, '')}/api/halaxy/availability`
-      : undefined;
-
-    const functionUrl = configuredUrl || defaultUrl;
-
-    if (!functionUrl) {
-      log.warn(
-        'Availability function URL not configured; set VITE_AVAILABILITY_FUNCTION_URL or VITE_AZURE_FUNCTION_URL',
-        'HalaxyAvailability'
-      );
-      return [];
-    }
+    const practitionerId = params.practitionerId || DEFAULT_PRACTITIONER_ID;
+    const clinicId = params.organizationId || DEFAULT_CLINIC_ID;
+    
+    // Format dates as YYYY-MM-DD for Halaxy API
+    const dateFrom = params.startDate.toISOString().split('T')[0];
+    const dateTo = params.endDate.toISOString().split('T')[0];
 
     const queryParams = new URLSearchParams({
-      start: params.startDate.toISOString(),
-      end: params.endDate.toISOString(),
+      practitioner: practitionerId,
+      clinic: clinicId,
+      dateFrom,
+      dateTo,
       duration: params.duration.toString(),
-      show: 'first-available',
+      fee: DEFAULT_FEE_ID,
     });
 
-    if (params.practitionerId) {
-      queryParams.append('practitioner', params.practitionerId);
-    }
+    const endpoint = `https://www.halaxy.com/api/v2/open/booking/timeslot/availability?${queryParams.toString()}`;
 
-    if (params.organizationId) {
-      queryParams.append('organization', params.organizationId);
-    }
-
-    // Build the URL - functionUrl may be relative (/api/...) or absolute
-    const endpoint = `${functionUrl}?${queryParams.toString()}`;
-
-    log.debug('Fetching availability', 'HalaxyAvailability', { endpoint });
+    log.debug('Fetching availability from Halaxy v2 API', 'HalaxyAvailability', { endpoint });
 
     const response = await fetch(endpoint, {
       method: 'GET',
       headers: {
-        Accept: 'application/fhir+json',
+        Accept: 'application/json',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         Pragma: 'no-cache',
       },
     });
 
     if (!response.ok) {
-      log.error('Failed to fetch availability', 'HalaxyAvailability', {
+      log.error('Failed to fetch availability from Halaxy', 'HalaxyAvailability', {
         status: response.status,
         statusText: response.statusText,
       });
       return [];
     }
 
-    const data: HalaxyFHIRBundle = await response.json();
+    const data: HalaxyAvailabilityResponse = await response.json();
 
-    // Parse Halaxy response (FHIR Bundle with Slot resources)
-    if (data.resourceType === 'Bundle' && data.entry) {
-      log.debug('Received availability slots', 'HalaxyAvailability', {
-        total: data.total || data.entry.length,
+    // Convert Halaxy timeslots to our AvailableSlot format
+    const slots: AvailableSlot[] = [];
+
+    if (data.data?.timeslots) {
+      Object.entries(data.data.timeslots).forEach(([_date, daySlots]) => {
+        daySlots.forEach((slot) => {
+          // Skip slots that require notice (too soon to book)
+          if (slot.status === 'notice-required') {
+            return;
+          }
+
+          // Parse the startDateUserTime and calculate end time
+          const startTime = new Date(slot.startDateUserTime);
+          const endTime = new Date(startTime.getTime() + params.duration * 60 * 1000);
+
+          slots.push({
+            start: startTime.toISOString(),
+            end: endTime.toISOString(),
+            duration: params.duration,
+          });
+        });
       });
-
-      // Return slots exactly as provided by the API
-      // Backend handles all filtering (buffer time, lead time, etc.)
-      return data.entry.map((entry) => ({
-        start: entry.resource.start,
-        end: entry.resource.end,
-        duration: params.duration,
-      }));
     }
 
-    return [];
+    log.debug('Received availability slots from Halaxy', 'HalaxyAvailability', {
+      total: slots.length,
+    });
+
+    return slots;
   } catch (error) {
-    log.error('Error fetching slots', 'HalaxyAvailability', error);
+    log.error('Error fetching slots from Halaxy', 'HalaxyAvailability', error);
     return [];
   }
 }

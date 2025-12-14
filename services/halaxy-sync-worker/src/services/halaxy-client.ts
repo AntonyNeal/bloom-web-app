@@ -40,18 +40,18 @@ export class HalaxyClient {
 
     console.log('[HalaxyClient] Fetching new access token via client_credentials');
 
+    // Halaxy uses HTTP Basic Auth with client credentials for OAuth token endpoint
+    const credentials = Buffer.from(`${config.halaxyClientId}:${config.halaxyClientSecret}`).toString('base64');
+
     const response = await fetch(config.halaxyTokenUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/fhir+json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${credentials}`,
+        'Accept': 'application/json',
         'User-Agent': 'Life-Psychology-Australia (support@life-psychology.com.au)',
       },
-      body: JSON.stringify({
-        grant_type: 'client_credentials',
-        client_id: config.halaxyClientId,
-        client_secret: config.halaxyClientSecret,
-      }),
+      body: 'grant_type=client_credentials',
     });
 
     if (!response.ok) {

@@ -3,12 +3,21 @@
  * 
  * This is a wrapper around the core sync logic that can run
  * independently of Azure Functions.
+ * 
+ * NOTE: As of Dec 2024, availability slot sync has been disabled.
+ * The website now fetches availability directly from Halaxy's public API
+ * at request time (via the get-halaxy-availability Azure Function).
+ * 
+ * This service is now a placeholder for future sync operations.
  */
 
 import * as sql from 'mssql';
 import { DatabaseService } from './database';
-import { HalaxyClient, FHIRSlot, FHIRSlotStatus, FHIRAppointment } from './halaxy-client';
+import { HalaxyClient, FHIRSlot, FHIRAppointment } from './halaxy-client';
 import { trackDependency } from '../telemetry';
+
+// Note: FHIRSlot and FHIRAppointment are imported for the disabled availability sync methods
+// They can be removed entirely if those methods are deleted
 
 export interface SyncResult {
   success: boolean;
@@ -78,6 +87,15 @@ export class HalaxySyncService {
 
   /**
    * Perform full sync for a practitioner
+   * 
+   * NOTE: Availability slot sync has been disabled as of Dec 2024.
+   * The website now fetches availability directly from Halaxy's public API
+   * at request time (via the get-halaxy-availability Azure Function).
+   * 
+   * This service is now a placeholder for future sync operations such as:
+   * - Patient data sync
+   * - Appointment history sync
+   * - Other Halaxy data that should be cached in our database
    */
   async fullSync(halaxyPractitionerId: string): Promise<SyncResult> {
     const startTime = Date.now();
@@ -86,7 +104,7 @@ export class HalaxySyncService {
     let recordsUpdated = 0;
     const recordsDeleted = 0;
 
-    console.log(`[SyncService] Starting full sync for practitioner: ${halaxyPractitionerId}`);
+    console.log(`[SyncService] Starting sync for practitioner: ${halaxyPractitionerId}`);
 
     try {
       const pool = await this.db.getSqlPool();
@@ -102,96 +120,13 @@ export class HalaxySyncService {
       // 2. Patient sync disabled - not needed at this time
       console.log('[SyncService] Step 2: Skipping patient sync (disabled)');
 
-      // 3. Appointment fetching no longer needed - $find endpoint handles appointment filtering
-      console.log('[SyncService] Step 3: Skipping appointment fetch (Appointment/$find includes filtering)');
+      // 3. Appointment sync disabled - not needed at this time
+      console.log('[SyncService] Step 3: Skipping appointment sync (disabled)');
 
-      // 4. Sync availability slots
-      console.log('[SyncService] ========== STEP 4: SYNCING AVAILABILITY SLOTS ==========');
-      
-      // Start from midnight AEDT today (not "now") to capture slots that started earlier today
-      // AEDT = UTC+11, so midnight AEDT = 13:00 UTC previous day
-      const now = new Date();
-      const AEDT_OFFSET_HOURS = 11;
-      // Get current date in AEDT
-      const aedtNow = new Date(now.getTime() + AEDT_OFFSET_HOURS * 60 * 60 * 1000);
-      // Set to midnight AEDT
-      aedtNow.setUTCHours(0, 0, 0, 0);
-      // Convert back to UTC
-      const slotStartDate = new Date(aedtNow.getTime() - AEDT_OFFSET_HOURS * 60 * 60 * 1000);
-      
-      const slotEndDate = new Date();
-      slotEndDate.setDate(slotEndDate.getDate() + 30);
-      
-      console.log(`[SyncService] Query date range: ${slotStartDate.toISOString()} to ${slotEndDate.toISOString()}`);
-
-      let slotsSynced = 0;
-      try {
-        console.log(`[SyncService] → Calling HalaxyClient.findAvailableAppointments()...`);
-        const availableAppointments = await this.client.findAvailableAppointments(
-          halaxyPractitionerId,
-          slotStartDate,
-          slotEndDate
-        );
-        console.log(`[SyncService] ← API returned ${availableAppointments.length} available appointment slots`);
-
-        // No need to filter weekends or subtract appointments - $find returns only actual available slots
-        const slots = availableAppointments;
-        
-        console.log(`[SyncService] Final slots to sync: ${slots.length}`);
-        
-        // Log slot distribution by date
-        if (slots.length > 0) {
-          const slotsByDate: { [key: string]: FHIRSlot[] } = {};
-          slots.forEach(slot => {
-            const date = slot.start.split('T')[0];
-            if (!slotsByDate[date]) slotsByDate[date] = [];
-            slotsByDate[date].push(slot);
-          });
-          console.log(`[SyncService] Slots to sync by date:`);
-          Object.keys(slotsByDate).sort().forEach(date => {
-            const daySlots = slotsByDate[date];
-            console.log(`[SyncService]   ${date}: ${daySlots.length} slot(s)`);
-            daySlots.forEach(slot => {
-              const startTime = new Date(slot.start).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
-              const endTime = new Date(slot.end).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
-              console.log(`[SyncService]     · ${startTime}–${endTime}`);
-            });
-          });
-        }
-
-        // Clean up old slots before syncing new ones
-        console.log(`[SyncService] Cleaning up old slots...`);
-        await this.cleanupOldSlots(pool, practitioner.id);
-
-        // Reconcile database state with fetched slots
-        console.log(`[SyncService] Reconciling database with new slots...`);
-        await this.reconcilePractitionerSlots(pool, practitioner.id, slots);
-
-        console.log(`[SyncService] Starting insertion of ${slots.length} slots into database...`);
-        for (let i = 0; i < slots.length; i++) {
-          const slot = slots[i];
-          try {
-            await this.syncSlot(pool, slot, practitioner.id);
-            slotsSynced++;
-            recordsUpdated++;
-          } catch (slotError) {
-            console.error(`[SyncService] Error syncing slot ${i+1}/${slots.length}: ${slotError}`);
-            errors.push({
-              entityType: 'slot',
-              entityId: slot.id,
-              message: slotError instanceof Error ? slotError.message : 'Unknown error',
-            });
-          }
-        }
-        console.log(`[SyncService] ✓ Successfully synced ${slotsSynced} slots to database`);
-      } catch (slotsError) {
-        console.error('[SyncService] Failed to sync availability slots:', slotsError);
-        errors.push({
-          entityType: 'slots',
-          entityId: halaxyPractitionerId,
-          message: slotsError instanceof Error ? slotsError.message : 'Unknown error syncing slots',
-        });
-      }
+      // 4. Availability slot sync DISABLED
+      // Availability is now fetched directly from Halaxy's public API at request time
+      // via the get-halaxy-availability Azure Function. No need to sync to database.
+      console.log('[SyncService] Step 4: Skipping availability sync (now using Halaxy public API directly)');
 
       // 5. Log sync completion
       const durationMs = Date.now() - startTime;
@@ -207,7 +142,7 @@ export class HalaxySyncService {
 
       console.log(`[SyncService] ========== SYNC COMPLETED ==========`);
       console.log(`[SyncService] Duration: ${durationMs}ms`);
-      console.log(`[SyncService] Slots synced: ${slotsSynced}`);
+      console.log(`[SyncService] Records updated: ${recordsUpdated}`);
       console.log(`[SyncService] Errors: ${errors.length}`);
       console.log(`[SyncService] Status: ${errors.length === 0 ? '✓ SUCCESS' : '✗ FAILURE'}`);
 
@@ -218,12 +153,12 @@ export class HalaxySyncService {
         recordsDeleted,
         errors,
         durationMs,
-        slotsSynced,
+        slotsSynced: 0,
       };
 
     } catch (error) {
       const durationMs = Date.now() - startTime;
-      console.error('[SyncService] Full sync failed:', error);
+      console.error('[SyncService] Sync failed:', error);
 
       return {
         success: false,
@@ -418,7 +353,9 @@ export class HalaxySyncService {
   }
 
   // ============================================================================
-  // Availability Slot Sync
+  // Availability Slot Sync - DISABLED
+  // These methods are retained for future use but are not currently called.
+  // Availability is now fetched directly from Halaxy's public API at request time.
   // ============================================================================
 
   /**
@@ -430,6 +367,8 @@ export class HalaxySyncService {
    * this returns two slots: 8am-10am and 11am-5pm.
    * 
    * Generated slot IDs use the format: {originalSlotId}_{fragmentIndex}
+   * 
+   * @deprecated This method is no longer used as availability is fetched directly from Halaxy
    */
   private subtractAppointmentsFromSlots(
     slots: FHIRSlot[],

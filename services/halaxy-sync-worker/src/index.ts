@@ -1,29 +1,26 @@
 /**
  * Halaxy Sync Worker - Main Entry Point
  * 
- * Azure Container Apps worker for real-time database synchronization
- * between Halaxy Practice Management System and Bloom platform.
+ * Azure Container Apps worker - PLACEHOLDER
  * 
- * Features:
- * - Scheduled full sync every 15 minutes
- * - Real-time updates via SignalR
- * - Redis cache invalidation for instant UI updates
- * - Service Bus queue processing for ordered sync
- * - No timeout limitations (unlike Azure Functions)
- * - Graceful shutdown handling
- * - Health check endpoint
- * - Application Insights telemetry
+ * NOTE: As of Dec 2024, all sync operations are disabled.
+ * The website now fetches data directly from Halaxy's public APIs at request time.
+ * 
+ * This worker is retained as infrastructure for:
+ * - Health check endpoint (for container orchestration)
+ * - Future sync operations if needed
+ * - Real-time update infrastructure (SignalR, Redis, Service Bus)
+ * 
+ * No Halaxy API calls are made by this worker.
  */
 
 import * as cron from 'node-cron';
 import * as http from 'http';
-import { HalaxySyncService } from './services/sync-service';
-import { HalaxyClient } from './services/halaxy-client';
 import { DatabaseService } from './services/database';
-import { setupTelemetry, trackEvent, trackMetric, trackException, flush } from './telemetry';
+import { setupTelemetry, trackEvent, flush } from './telemetry';
 import { config, validateConfig } from './config';
-import { getCacheService, closeCacheService, CacheKeys, CacheService } from './services/redis-cache';
-import { getBroadcastService, closeBroadcastService, BroadcastEvents, BroadcastService, SyncCompletedPayload, SyncFailedPayload } from './services/signalr-broadcast';
+import { getCacheService, closeCacheService, CacheService } from './services/redis-cache';
+import { getBroadcastService, closeBroadcastService, BroadcastService } from './services/signalr-broadcast';
 import { getServiceBusConsumer, closeServiceBusConsumer, ServiceBusConsumer, SyncMessage } from './services/service-bus-consumer';
 
 // ============================================================================
@@ -109,9 +106,20 @@ function startHealthServer(): http.Server {
 }
 
 // ============================================================================
-// Sync Logic
+// Sync Logic - PLACEHOLDER (No-Op)
 // ============================================================================
 
+/**
+ * PLACEHOLDER - All sync operations have been disabled as of Dec 2024.
+ * 
+ * The website now fetches data directly from Halaxy's public APIs at request time:
+ * - Availability: Fetched via Azure Function calling Halaxy public v2 API
+ * - Practitioner profile: Not currently needed
+ * - Patient data: Not currently needed  
+ * - Appointments: Not currently needed
+ * 
+ * This worker is retained as infrastructure for future sync operations if needed.
+ */
 async function runFullSync(): Promise<void> {
   if (isShuttingDown) {
     console.log('[Worker] Skipping sync - shutting down');
@@ -125,159 +133,33 @@ async function runFullSync(): Promise<void> {
 
   isSyncing = true;
   const startTime = Date.now();
-  const syncId = crypto.randomUUID();
+  const syncId = `noop-${Date.now()}`;
 
   console.log('[Worker] ═══════════════════════════════════════════════════════════');
-  console.log('[Worker] Starting scheduled full sync');
+  console.log('[Worker] Sync triggered (NO-OP MODE)');
   console.log(`[Worker] Sync ID: ${syncId}`);
   console.log(`[Worker] Time: ${new Date().toISOString()}`);
+  console.log('[Worker] NOTE: All sync operations are currently disabled');
+  console.log('[Worker] Data is fetched directly from Halaxy public APIs at request time');
   console.log('[Worker] ═══════════════════════════════════════════════════════════');
 
-  // Broadcast sync started
-  if (broadcastService) {
-    await broadcastService.broadcast(BroadcastEvents.SYNC_STARTED, {
-      syncId,
-      timestamp: new Date().toISOString(),
-    });
-  }
+  const duration = Date.now() - startTime;
+  lastSyncTime = new Date();
+  lastSyncStatus = 'success';
+  syncCount++;
 
-  try {
-    const syncService = new HalaxySyncService();
-    const halaxyClient = new HalaxyClient();
+  console.log('[Worker] ───────────────────────────────────────────────────────────');
+  console.log(`[Worker] Sync completed in ${duration}ms`);
+  console.log('[Worker] Status: SUCCESS (placeholder - no operations performed)');
+  console.log('[Worker] ═══════════════════════════════════════════════════════════');
 
-    // Fetch practitioners from Halaxy by given name "Zoe"
-    console.log('[Worker] Fetching practitioners from Halaxy (given name: Zoe)...');
-    const halaxPractitioners = await halaxyClient.getPractitionersByGivenName('Zoe');
-    console.log(`[Worker] Found ${halaxPractitioners.length} practitioners named Zoe in Halaxy`);
+  trackEvent('halaxy_sync_noop', {
+    syncId,
+    duration,
+    environment: config.environment,
+  });
 
-    if (halaxPractitioners.length === 0) {
-      console.warn('[Worker] No practitioners found with given name "Zoe" - skipping sync');
-      return;
-    }
-
-    let totalRecords = 0;
-    let totalErrors = 0;
-    let appointmentsSynced = 0;
-    let patientsSynced = 0;
-    const practitionersSynced = halaxPractitioners.length;
-
-    for (const halaxyPractitioner of halaxPractitioners) {
-      if (isShuttingDown) {
-        console.log('[Worker] Shutdown requested - stopping sync');
-        break;
-      }
-
-      try {
-        const practitionerId = halaxyPractitioner.id;
-        const practitionerName = halaxyPractitioner.name?.[0] 
-          ? `${halaxyPractitioner.name[0].given?.join(' ')} ${halaxyPractitioner.name[0].family}`
-          : practitionerId;
-        
-        console.log(`[Worker] Syncing practitioner: ${practitionerName} (Halaxy ID: ${practitionerId})`);
-        
-        const result = await syncService.fullSync(practitionerId);
-        
-        totalRecords += result.recordsUpdated + result.recordsCreated;
-        totalErrors += result.errors.length;
-        appointmentsSynced += result.appointmentsSynced || 0;
-        patientsSynced += result.patientsSynced || 0;
-
-        console.log(`[Worker]   ✓ Synced: ${result.recordsUpdated} updated, ${result.recordsCreated} created`);
-        
-        if (result.errors.length > 0) {
-          console.log(`[Worker]   ⚠ ${result.errors.length} errors occurred`);
-        }
-
-        trackMetric('halaxy_practitioner_sync_duration_ms', result.durationMs, {
-          practitionerId: practitionerId,
-        });
-
-      } catch (error) {
-        totalErrors++;
-        console.error(`[Worker]   ✗ Error syncing practitioner ${halaxyPractitioner.id}:`, error);
-        trackException(error as Error, { practitionerId: halaxyPractitioner.id });
-      }
-    }
-
-    const duration = Date.now() - startTime;
-    lastSyncTime = new Date();
-    lastSyncStatus = totalErrors === 0 ? 'success' : 'failure';
-    syncCount++;
-
-    if (totalErrors > 0) {
-      errorCount++;
-    }
-
-    // Invalidate Redis cache - force clients to fetch fresh data
-    if (cacheService && cacheService.isConnected()) {
-      console.log('[Worker] Invalidating Redis cache...');
-      await Promise.all([
-        cacheService.invalidatePattern(`${CacheKeys.DASHBOARD_METRICS}*`),
-        cacheService.invalidatePattern(`${CacheKeys.APPOINTMENTS}*`),
-        cacheService.invalidatePattern(`${CacheKeys.PATIENTS}*`),
-        cacheService.invalidatePattern(`${CacheKeys.PRACTITIONERS}*`),
-      ]);
-      // Update sync state in cache
-      await cacheService.set(CacheKeys.SYNC_LAST_RUN, {
-        syncId,
-        timestamp: new Date().toISOString(),
-        duration,
-        recordsProcessed: totalRecords,
-        status: lastSyncStatus,
-      });
-      console.log('[Worker] ✓ Cache invalidated');
-    }
-
-    // Broadcast sync completed - clients will refresh their data
-    if (broadcastService) {
-      const payload: SyncCompletedPayload = {
-        syncId,
-        timestamp: new Date().toISOString(),
-        appointmentsSynced,
-        patientsSynced,
-        practitionersSynced,
-        durationMs: duration,
-      };
-      await broadcastService.broadcast(BroadcastEvents.SYNC_COMPLETED, payload);
-      await broadcastService.broadcast(BroadcastEvents.DASHBOARD_REFRESH, { syncId });
-      console.log('[Worker] ✓ Real-time update broadcast');
-    }
-
-    console.log('[Worker] ───────────────────────────────────────────────────────────');
-    console.log(`[Worker] Sync completed in ${duration}ms`);
-    console.log(`[Worker] Total records processed: ${totalRecords}`);
-    console.log(`[Worker] Total errors: ${totalErrors}`);
-    console.log('[Worker] ═══════════════════════════════════════════════════════════');
-
-    trackEvent('halaxy_full_sync_completed', {
-      duration,
-      totalRecords,
-      totalErrors,
-      practitionerCount: practitionersSynced,
-    });
-
-    trackMetric('halaxy_sync_duration_ms', duration);
-    trackMetric('halaxy_sync_records_processed', totalRecords);
-
-  } catch (error) {
-    errorCount++;
-    lastSyncStatus = 'failure';
-    console.error('[Worker] ✗ Full sync failed:', error);
-    trackException(error as Error, { operation: 'full_sync' });
-    
-    // Broadcast sync failure
-    if (broadcastService) {
-      const payload: SyncFailedPayload = {
-        syncId,
-        timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error',
-        willRetry: true,
-      };
-      await broadcastService.broadcast(BroadcastEvents.SYNC_FAILED, payload);
-    }
-  } finally {
-    isSyncing = false;
-  }
+  isSyncing = false;
 }
 
 // ============================================================================

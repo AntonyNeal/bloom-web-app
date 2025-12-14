@@ -7,18 +7,28 @@ import { getTimeUntilAvailability } from '../utils/halaxyAvailability';
 
 const UnifiedHeader = () => {
   const { isModalOpen, handleBookingClick } = useBookingService();
-  const [availabilityText, setAvailabilityText] = useState('Available soon');
+  const [availabilityText, setAvailabilityText] = useState('Loading...');
 
   useEffect(() => {
     log.debug('Component mounted', 'UnifiedHeader', {
       modalState: isModalOpen,
     });
     
-    // Get next available slot from cache
-    const nextSlot = getNextAvailableSlot();
-    if (nextSlot) {
-      setAvailabilityText(getTimeUntilAvailability(nextSlot.start));
-    }
+    const updateAvailability = () => {
+      const nextSlot = getNextAvailableSlot();
+      if (nextSlot) {
+        setAvailabilityText(getTimeUntilAvailability(nextSlot.start));
+      } else {
+        setAvailabilityText('Check availability');
+      }
+    };
+    
+    // Check immediately in case cache is already populated
+    updateAvailability();
+    
+    // Listen for when availability is loaded
+    window.addEventListener('availabilityLoaded', updateAvailability);
+    return () => window.removeEventListener('availabilityLoaded', updateAvailability);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

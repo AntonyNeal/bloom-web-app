@@ -105,6 +105,9 @@ export async function preloadAvailability(): Promise<void> {
 
       console.log('[AvailabilityPreloader] ✅ Phase 1 complete - initial availability ready');
       
+      // Dispatch event so UI components can update
+      window.dispatchEvent(new CustomEvent('availabilityLoaded'));
+      
       // Phase 2: Continue loading remaining weeks in background
       if (!isBackgroundLoading) {
         isBackgroundLoading = true;

@@ -1,18 +1,29 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBookingService } from '../hooks/useBookingService';
 import { getNextAvailableSlot } from '../utils/availabilityPreloader';
 import { getTimeUntilAvailability } from '../utils/halaxyAvailability';
 
 const MobileCTABar: React.FC = () => {
   const { isModalOpen, handleBookingClick } = useBookingService();
+  const [availabilityText, setAvailabilityText] = useState('Loading...');
   
-  // Calculate availability text from cache (no setState needed)
-  const availabilityText = useMemo(() => {
-    const nextSlot = getNextAvailableSlot();
-    if (nextSlot) {
-      return getTimeUntilAvailability(nextSlot.start);
-    }
-    return 'Available soon';
+  // Update availability text when cache is populated
+  useEffect(() => {
+    const updateAvailability = () => {
+      const nextSlot = getNextAvailableSlot();
+      if (nextSlot) {
+        setAvailabilityText(getTimeUntilAvailability(nextSlot.start));
+      } else {
+        setAvailabilityText('Check availability');
+      }
+    };
+    
+    // Check immediately in case cache is already populated
+    updateAvailability();
+    
+    // Listen for when availability is loaded
+    window.addEventListener('availabilityLoaded', updateAvailability);
+    return () => window.removeEventListener('availabilityLoaded', updateAvailability);
   }, []);
 
   const handleBookingClickEvent = (

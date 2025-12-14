@@ -82,7 +82,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       {/* Modal panel - HEAVY steel & glass aesthetic */}
       <div
         ref={modalContentRef}
-        className="relative z-10 w-full h-full sm:h-auto sm:max-h-[92vh] max-w-xl overflow-y-auto rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-2 border-slate-300"
+        className="relative z-10 w-full h-full sm:h-auto sm:max-h-[92vh] max-w-lg overflow-y-auto rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-2 border-slate-300"
         style={{
           boxShadow: `
             0 0 0 1px rgba(148, 163, 184, 0.4),

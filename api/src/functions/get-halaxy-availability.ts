@@ -1,9 +1,8 @@
 /**
  * Halaxy Availability Function
  *
- * Fetches available appointment slots from the Azure SQL database.
- * Queries the availability_slots table for free slots.
- * Returns FHIR Bundle with Slot resources for the booking calendar.
+ * Fetches available appointment slots directly from Halaxy's public booking API (v2).
+ * This bypasses FHIR complexity and returns real-time availability.
  */
 import {
   app,
@@ -11,17 +10,44 @@ import {
   HttpResponseInit,
   InvocationContext,
 } from '@azure/functions';
-import * as sql from 'mssql';
 
-// Connection pool singleton
-let pool: sql.ConnectionPool | null = null;
+// Default Halaxy IDs for Life Psychology Australia
+const DEFAULT_PRACTITIONER_ID = '1304541'; // Zoe Semmler
+const DEFAULT_CLINIC_ID = '1023041'; // Life Psychology Australia
+const DEFAULT_FEE_ID = '9381231'; // Standard session fee
+
+interface HalaxyTimeslot {
+  dateTimeKey: string;
+  day: string;
+  startDateUserTime: string;
+  timeLabel: string;
+  timeSection: string;
+  userTimezone: string;
+  status?: string;
+}
+
+interface HalaxyAvailabilityResponse {
+  _metadata: {
+    totalCount: number;
+  };
+  data: {
+    clinics: Record<string, string>;
+    practitioners: Record<string, string>;
+    preferences: {
+      timeslotStrategy: string;
+      unavailableText: string;
+      noticeDuration: number;
+    };
+    timeslots: Record<string, HalaxyTimeslot[]>;
+  };
+}
 
 interface FHIRSlot {
   resourceType: 'Slot';
-  id?: string;
+  id: string;
   start: string;
   end: string;
-  status: 'free' | 'busy' | 'busy-unavailable' | 'busy-tentative';
+  status: 'free';
 }
 
 interface FHIRBundle {
@@ -33,104 +59,77 @@ interface FHIRBundle {
   }>;
 }
 
-interface AvailabilitySlot {
-  id: string;
-  halaxy_slot_id: string;
-  slot_start_unix: number;
-  slot_end_unix: number;
-  practitioner_id?: string;
-  duration_minutes: number;
-  location_type?: string;
-}
-
 /**
- * Get database connection pool
+ * Fetch availability from Halaxy's public booking API
  */
-async function getDbConnection(
-  context: InvocationContext
-): Promise<sql.ConnectionPool> {
-  if (pool && pool.connected) {
-    return pool;
-  }
-
-  const connectionString = process.env.SQL_CONNECTION_STRING;
-  if (!connectionString) {
-    throw new Error('SQL_CONNECTION_STRING environment variable is not configured');
-  }
-
-  context.log('Connecting to database...');
-  pool = await sql.connect(connectionString);
-
-  pool.on('error', (err) => {
-    context.error('Database pool error:', err);
-    pool = null;
-  });
-
-  return pool;
-}
-
-/**
- * Fetch available slots from the database
- */
-async function fetchAvailableSlots(
+async function fetchHalaxyAvailability(
   startDate: Date,
   endDate: Date,
+  duration: number,
   context: InvocationContext
 ): Promise<FHIRSlot[]> {
-  const dbPool = await getDbConnection(context);
+  const dateFrom = startDate.toISOString().split('T')[0];
+  const dateTo = endDate.toISOString().split('T')[0];
 
-  // Query for available slots from the availability_slots table
-  let query = `
-    SELECT 
-      a.id,
-      a.halaxy_slot_id,
-      a.slot_start_unix,
-      a.slot_end_unix,
-      a.practitioner_id,
-      a.duration_minutes,
-      a.location_type
-    FROM availability_slots a
-    WHERE a.slot_start_unix < @endDateUnix
-      AND a.slot_end_unix > @startDateUnix
-  `;
-
-  const startDateUnix = Math.floor(startDate.getTime() / 1000);
-  const endDateUnix = Math.floor(endDate.getTime() / 1000);
-
-  const request = dbPool
-    .request()
-    .input('startDateUnix', sql.BigInt, startDateUnix)
-    .input('endDateUnix', sql.BigInt, endDateUnix);
-
-  query += ` ORDER BY a.slot_start_unix`;
-
-  context.log('Querying available slots', {
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    startDateUnix,
-    endDateUnix,
+  const queryParams = new URLSearchParams({
+    practitioner: DEFAULT_PRACTITIONER_ID,
+    clinic: DEFAULT_CLINIC_ID,
+    dateFrom,
+    dateTo,
+    duration: duration.toString(),
+    fee: DEFAULT_FEE_ID,
   });
 
-  // Diagnostic: Check total slots in database
-  const totalCheck = await dbPool.request().query(
-    `SELECT 
-      COUNT(*) as total,
-      COUNT(CASE WHEN slot_start_unix IS NOT NULL THEN 1 END) as has_unix_timestamp
-    FROM availability_slots`
-  );
-  context.log('Database diagnostic:', totalCheck.recordset[0]);
+  const url = `https://www.halaxy.com/api/v2/open/booking/timeslot/availability?${queryParams.toString()}`;
 
-  const result = await request.query<AvailabilitySlot>(query);
-  context.log(`Found ${result.recordset.length} available slots`);
+  context.log('Fetching from Halaxy public API:', url);
 
-  // Transform to FHIR Slot resources
-  return result.recordset.map((slot) => ({
-    resourceType: 'Slot' as const,
-    id: slot.id,
-    start: new Date(slot.slot_start_unix * 1000).toISOString(),
-    end: new Date(slot.slot_end_unix * 1000).toISOString(),
-    status: 'free' as const,
-  }));
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': 'Life-Psychology-Australia (support@life-psychology.com.au)',
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    context.error(`Halaxy API error: ${response.status} - ${errorText}`);
+    throw new Error(`Halaxy API returned ${response.status}`);
+  }
+
+  const data: HalaxyAvailabilityResponse = await response.json();
+
+  context.log(`Halaxy returned ${data._metadata?.totalCount || 0} days of availability`);
+
+  // Convert Halaxy timeslots to FHIR Slot format
+  const slots: FHIRSlot[] = [];
+
+  if (data.data?.timeslots) {
+    Object.entries(data.data.timeslots).forEach(([_date, daySlots]) => {
+      daySlots.forEach((slot, index) => {
+        // Skip slots that require notice (too soon to book)
+        if (slot.status === 'notice-required') {
+          return;
+        }
+
+        // Parse the startDateUserTime and calculate end time
+        const startTime = new Date(slot.startDateUserTime);
+        const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
+
+        slots.push({
+          resourceType: 'Slot',
+          id: `halaxy-${slot.dateTimeKey}-${index}`,
+          start: startTime.toISOString(),
+          end: endTime.toISOString(),
+          status: 'free',
+        });
+      });
+    });
+  }
+
+  context.log(`Converted to ${slots.length} FHIR slots`);
+  return slots;
 }
 
 async function getHalaxyAvailability(
@@ -152,6 +151,7 @@ async function getHalaxyAvailability(
     // Get query parameters
     const from = req.query.get('from');
     const to = req.query.get('to');
+    const duration = parseInt(req.query.get('duration') || '60', 10);
 
     // Validate required parameters
     if (!from || !to) {
@@ -167,17 +167,14 @@ async function getHalaxyAvailability(
     const startDate = new Date(from);
     const endDate = new Date(to);
 
-    context.log('Fetching availability from database', {
+    context.log('Fetching availability', {
       from: startDate.toISOString(),
       to: endDate.toISOString(),
+      duration,
     });
 
-    // Fetch available slots from database
-    const slots = await fetchAvailableSlots(
-      startDate,
-      endDate,
-      context
-    );
+    // Fetch from Halaxy's public API
+    const slots = await fetchHalaxyAvailability(startDate, endDate, duration, context);
 
     const availability: FHIRBundle = {
       resourceType: 'Bundle',

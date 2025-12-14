@@ -32,7 +32,7 @@ let isSyncing = false;
 let lastSyncTime: Date | null = null;
 let lastSyncStatus: 'success' | 'failure' | 'never' = 'never';
 let syncCount = 0;
-let errorCount = 0;
+const errorCount = 0; // No-op sync never has errors
 
 // Services (initialized in main)
 let cacheService: CacheService | null = null;

@@ -125,27 +125,21 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Amount Display */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-700 font-medium">Session Fee:</span>
-          <span className="text-2xl font-bold text-blue-600">
-            ${amount.toFixed(2)} AUD
-          </span>
-        </div>
-        <p className="text-sm text-gray-600 mt-2">
-          Secure payment processed by Stripe
-        </p>
-      </div>
-
       {/* Card Element */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
           Card Details
         </label>
+        <p className="text-xs text-gray-500 mb-2">
+          Enter your card number, expiry date, security code (CVV), and postcode for verification.
+        </p>
         <div className="border border-gray-300 rounded-md p-3 bg-white">
           <CardElement options={cardElementOptions} />
         </div>
+        {/* Test mode hint */}
+        <p className="text-xs text-gray-400 mt-2">
+          Test mode: Use card <span className="font-mono bg-gray-100 px-1 rounded">4242 4242 4242 4242</span>, any future date, any CVC
+        </p>
       </div>
 
       {/* Error Message */}

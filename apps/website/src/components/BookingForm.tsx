@@ -513,12 +513,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 1: Patient Details */}
       {step === 'details' && (
-        <div className="space-y-5 sm:space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label
                 htmlFor="firstName-input"
-                className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
+                className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wide"
               >
                 First Name{' '}
                 <span className="text-red-500" aria-label="required">
@@ -530,8 +530,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['firstName'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
-                style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+                className={`w-full px-3 py-2.5 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['firstName'] ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'}`}
+                style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                 placeholder="John"
                 aria-required="true"
                 aria-invalid={!!errors['firstName']}
@@ -552,7 +552,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <div>
               <label
                 htmlFor="lastName-input"
-                className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
+                className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wide"
               >
                 Last Name{' '}
                 <span className="text-red-500" aria-label="required">
@@ -564,8 +564,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['lastName'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
-                style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+                className={`w-full px-3 py-2.5 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['lastName'] ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'}`}
+                style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                 placeholder="Smith"
                 aria-required="true"
                 aria-invalid={!!errors['lastName']}
@@ -588,7 +588,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <div>
             <label
               htmlFor="email-input"
-              className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
+              className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wide"
             >
               Email{' '}
               <span className="text-red-500" aria-label="required">
@@ -600,8 +600,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['email'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
-              style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+              className={`w-full px-3 py-2.5 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'}`}
+              style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
               placeholder="john.smith@example.com"
               aria-required="true"
               aria-invalid={!!errors['email']}
@@ -619,13 +619,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
+            <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wide">
               Date of Birth
               <span className="text-red-500 ml-1" aria-label="required">
                 *
               </span>
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               <div>
                 <label htmlFor="dob-day" className="sr-only">
                   Day
@@ -634,8 +634,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-day"
                   value={dateOfBirth.split('/')[0] || ''}
                   onChange={(e) => handleDayChange(e.target.value)}
-                  className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['dateOfBirth'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
-                  style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+                  className={`w-full px-2 py-2.5 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'}`}
+                  style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   aria-label="Day of birth"
                   aria-required="true"
                   aria-invalid={!!errors['dateOfBirth']}
@@ -659,8 +659,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-month"
                   value={dateOfBirth.split('/')[1] || ''}
                   onChange={(e) => handleMonthChange(e.target.value)}
-                  className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['dateOfBirth'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
-                  style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+                  className={`w-full px-2 py-2.5 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'}`}
+                  style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   aria-label="Month of birth"
                   aria-required="true"
                   aria-invalid={!!errors['dateOfBirth']}
@@ -691,8 +691,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-year"
                   value={dateOfBirth.split('/')[2] || ''}
                   onChange={(e) => handleYearChange(e.target.value)}
-                  className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['dateOfBirth'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
-                  style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+                  className={`w-full px-2 py-2.5 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'}`}
+                  style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   aria-label="Year of birth"
                   aria-required="true"
                   aria-invalid={!!errors['dateOfBirth']}
@@ -739,7 +739,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 {errors['dateOfBirth']}
               </p>
             )}
-            <p className="mt-2 text-sm text-slate-500 font-medium">
+            <p className="mt-1 text-xs text-slate-500">
               Required - helps us provide age-appropriate care
             </p>
           </div>
@@ -747,17 +747,17 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <div>
             <label
               htmlFor="phone-input"
-              className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
+              className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wide"
             >
-              Phone <span className="font-normal normal-case text-slate-400">(optional - for SMS reminders)</span>
+              Phone <span className="font-normal normal-case text-slate-400 text-xs">(optional)</span>
             </label>
             <input
               id="phone-input"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className={`w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 ${errors['phone'] ? 'border-red-400 focus:border-red-500 focus:ring-3 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100'}`}
-              style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+              className={`w-full px-3 py-2.5 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100' : 'border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'}`}
+              style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
               placeholder="0400 000 000"
               aria-invalid={!!errors['phone']}
               aria-describedby={errors['phone'] ? 'phone-error' : undefined}
@@ -776,7 +776,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <div>
             <label
               htmlFor="gender-select"
-              className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide"
+              className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wide"
             >
               Gender
             </label>
@@ -784,8 +784,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               id="gender-select"
               value={gender}
               onChange={(e) => setGender(e.target.value as typeof gender)}
-              className="w-full px-4 py-3.5 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border-2 border-slate-300 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100"
-              style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+              className="w-full px-3 py-2.5 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
             >
               <option value="unknown">Prefer not to say</option>
               <option value="male">Male</option>
@@ -801,13 +801,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </select>
           </div>
 
-          {/* Action buttons - HEAVY, substantial feel */}
-          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6 sm:pt-8 mt-2 border-t-2 border-slate-200">
+          {/* Action buttons */}
+          <div className="flex flex-col sm:flex-row justify-between gap-3 pt-4 mt-2 border-t border-slate-200">
             <button
               type="button"
               onClick={onCancel}
-              className="px-8 py-4 text-base font-bold rounded-lg text-slate-600 bg-gradient-to-b from-white to-slate-100 border-2 border-slate-300 hover:border-slate-400 hover:from-slate-50 hover:to-slate-150 focus:outline-none focus:ring-3 focus:ring-slate-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
-              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
+              className="px-6 py-2.5 text-sm font-bold rounded-lg text-slate-600 bg-gradient-to-b from-white to-slate-100 border border-slate-300 hover:border-slate-400 hover:from-slate-50 hover:to-slate-150 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1 transition-all active:scale-[0.98]"
+              style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9)' }}
             >
               Cancel
             </button>
@@ -815,7 +815,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleDetailsNext}
               disabled={!isDetailsStepValid()}
-              className={`px-10 py-4 text-base font-bold rounded-lg transition-all duration-200 focus:outline-none focus:ring-3 focus:ring-offset-2 border-2 ${
+              className={`px-8 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 border ${
                 isDetailsStepValid()
                   ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 focus:ring-emerald-300 cursor-pointer active:scale-[0.98]'
                   : 'bg-gradient-to-b from-slate-200 to-slate-300 text-slate-500 border-slate-300 cursor-not-allowed'

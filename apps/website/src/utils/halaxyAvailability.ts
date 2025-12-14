@@ -196,10 +196,10 @@ export function getTimeUntilAvailability(nextSlotStart: string | null): string {
   });
   
   const timeParts = timeFormatter.formatToParts(slotTime);
-  const time = timeParts
-    .filter(p => ['hour', 'minute', 'dayPeriod'].includes(p.type))
-    .map(p => p.value)
-    .join('');
+  const hour = timeParts.find(p => p.type === 'hour')?.value || '';
+  const minute = timeParts.find(p => p.type === 'minute')?.value || '';
+  const dayPeriod = timeParts.find(p => p.type === 'dayPeriod')?.value || '';
+  const time = `${hour}:${minute} ${dayPeriod}`;
   
   if (isToday) {
     return `Available today ${time}`;

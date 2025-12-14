@@ -73,16 +73,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       role="dialog"
       aria-modal="true"
     >
-      {/* Background overlay - deep, rich backdrop */}
+      {/* Background overlay - instant appearance, no transitions */}
       <div
-        className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 bg-opacity-95 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 bg-opacity-95 backdrop-blur-sm"
         onClick={onClose}
       ></div>
 
-      {/* Modal panel - HEAVY steel & glass aesthetic */}
+      {/* Modal panel - HEAVY steel & glass aesthetic, fixed size */}
       <div
         ref={modalContentRef}
-        className="relative z-10 w-full h-full sm:h-auto sm:max-h-[98vh] max-w-xl overflow-hidden rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-2 border-slate-300"
+        className="relative z-10 w-full h-full sm:h-[600px] sm:max-h-[98vh] max-w-xl overflow-hidden rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-2 border-slate-300"
         style={{
           boxShadow: `
             0 0 0 1px rgba(148, 163, 184, 0.4),
@@ -100,7 +100,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         {/* Close button - heavy, tactile feel */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 sm:top-5 sm:right-5 text-slate-500 hover:text-slate-700 bg-gradient-to-b from-white to-slate-100 rounded-lg p-2.5 transition-all z-20 border-2 border-slate-300 hover:border-slate-400 active:scale-95"
+          className="absolute top-3 right-3 sm:top-5 sm:right-5 text-slate-500 hover:text-slate-700 bg-gradient-to-b from-white to-slate-100 rounded-lg p-2.5 z-20 border-2 border-slate-300 hover:border-slate-400"
           style={{
             boxShadow: `
               0 2px 4px rgba(0,0,0,0.1),

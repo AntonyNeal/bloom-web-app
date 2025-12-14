@@ -440,20 +440,20 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="max-w-lg w-full mx-auto">
+    <div className="max-w-xl w-full mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
+      <div className="mb-3">
+        <h2 className="text-xl font-bold text-slate-800 tracking-tight">
           Book Your Appointment
         </h2>
-        <p className="text-slate-500 mt-1.5 text-base font-medium">
+        <p className="text-slate-500 mt-0.5 text-sm font-medium">
           Schedule a telehealth session with Zoe Semmler
         </p>
       </div>
 
       {/* Progress indicator - Compact steel bar design */}
       {step !== 'success' && step !== 'error' && (
-        <div className="mb-6 p-3 sm:p-4 rounded-lg bg-gradient-to-b from-slate-100 to-slate-50 border border-slate-200" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)' }}>
+        <div className="mb-4 p-2 sm:p-3 rounded-lg bg-gradient-to-b from-slate-100 to-slate-50 border border-slate-200" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)' }}>
           <div className="grid grid-cols-5 gap-1">
             {[
               { num: 1, label: 'Details', key: 'details' },
@@ -471,7 +471,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               return (
                 <div key={key} className="text-center">
                   <div
-                    className={`mx-auto w-6 h-6 sm:w-8 sm:h-8 rounded-md flex items-center justify-center text-xs sm:text-sm font-bold mb-1 border transition-all ${
+                    className={`mx-auto w-5 h-5 sm:w-6 sm:h-6 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-bold mb-0.5 border transition-all ${
                       isActive
                         ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-emerald-400 shadow-lg'
                         : isPast
@@ -482,7 +482,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   >
                     {isPast ? '✓' : num}
                   </div>
-                  <div className={`text-[9px] sm:text-xs font-semibold ${isActive ? 'text-emerald-600' : isPast ? 'text-emerald-500' : 'text-slate-400'}`}>
+                  <div className={`text-[8px] sm:text-[10px] font-semibold ${isActive ? 'text-emerald-600' : isPast ? 'text-emerald-500' : 'text-slate-400'}`}>
                     {label}
                   </div>
                 </div>
@@ -490,7 +490,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             })}
           </div>
           {/* Progress bar */}
-          <div className="mt-3 h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.08)' }}>
+          <div className="mt-2 h-1.5 bg-slate-200 rounded-full overflow-hidden border border-slate-300" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.08)' }}>
             <div
               className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 rounded-full transition-all duration-500 ease-out"
               style={{
@@ -831,10 +831,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 2: Date & Time - Glass & Steel Composition */}
       {step === 'datetime' && (
-        <div className="space-y-5">
+        <div className="space-y-3">
           {/* Calendar Section - Clean white panel with subtle steel edge */}
           <div 
-            className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5"
+            className="rounded-xl border border-slate-200/80 bg-white p-3 sm:p-4"
             style={{
               boxShadow: `
                 0 1px 3px rgba(0,0,0,0.04),
@@ -843,11 +843,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               `
             }}
           >
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-slate-700">
+            <div className="mb-3">
+              <h3 className="text-base font-bold text-slate-700">
                 Select a Date & Time <span className="text-red-500">*</span>
               </h3>
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Choose an available slot that works for you
               </p>
             </div>
@@ -872,14 +872,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           {/* Action buttons - Polished steel finish */}
-          <div className="flex flex-col sm:flex-row justify-between gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row justify-between gap-2 pt-1">
             <button
               type="button"
               onClick={() => {
                 setStep('details');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-              className="px-6 py-3.5 text-sm font-bold rounded-lg text-slate-600 border border-slate-300 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-1 transition-all active:scale-[0.98]"
+              className="px-5 py-2.5 text-sm font-bold rounded-lg text-slate-600 border border-slate-300 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-1 transition-all active:scale-[0.98]"
               style={{ 
                 background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9)' 

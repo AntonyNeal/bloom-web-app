@@ -29,9 +29,7 @@ interface TimeSlotCalendarProps {
   practitionerId?: string; // Optional: filter by specific practitioner
 }
 
-const DISPLAY_START_HOUR = 8;
-const DISPLAY_END_HOUR = 20; // 8 pm
-const SLOT_ROW_HEIGHT_PX = 44;
+const SLOT_ROW_HEIGHT_PX = 34; // Compact height for grid view
 
 /**
  * Format a date as YYYY-MM-DD in Melbourne timezone
@@ -296,7 +294,6 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   };
 
   const weekSchedule = generateWeekSchedule();
-  const gridColumnTemplate = `repeat(${Math.max(weekSchedule.length, 1)}, minmax(0, 1fr))`;
   const selectedDateIndex = selectedDate
     ? weekSchedule.findIndex(
         (day) => formatDateForValue(day.date) === selectedDate
@@ -354,22 +351,6 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
 
   const mobileActiveDay = weekSchedule[mobileActiveDayIndex] || weekSchedule[0];
 
-  // Ensure consistent column heights by anchoring to a full 8am-8pm window
-  const slotsPerHour = Math.max(
-    1,
-    Math.ceil(60 / Math.max(duration, 1))
-  );
-  const minDisplayRows = Math.max(
-    1,
-    (DISPLAY_END_HOUR - DISPLAY_START_HOUR) * slotsPerHour
-  );
-
-  // Calculate the maximum number of slots across all days for consistent height
-  const maxSlotsInWeek = Math.max(
-    minDisplayRows,
-    ...weekSchedule.map((day) => day.slots.length)
-  );
-
   // Format date range display (e.g., "09 Nov - 15 Nov")
   const getWeekDateRange = (): string => {
     const endDate = new Date(currentWeekStart);
@@ -424,38 +405,25 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     slotIndex: number
   ) => {
     const isSelected = isSlotSelected(day, slot);
-    const isWholeHour = slot.time.includes(':00 ');
 
     return (
       <button
         key={`${formatDateForValue(day.date)}-${slot.isoDateTime}-${slotIndex}`}
         type="button"
         onClick={() => handleSlotClick(day, slot)}
-        className="w-full text-xs py-2.5 transition-all duration-150 font-medium relative focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-inset focus:z-20 touch-manipulation min-h-[40px]"
+        className={`w-full h-full flex items-center justify-center transition-all duration-150 font-semibold text-[11px] focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:z-20 touch-manipulation rounded-md mx-0.5 ${
+          isSelected 
+            ? 'bg-emerald-600 text-white shadow-md' 
+            : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800'
+        }`}
         style={{
-          background: isSelected 
-            ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-            : 'linear-gradient(180deg, rgba(236,253,245,0.7) 0%, rgba(209,250,229,0.5) 100%)',
-          color: isSelected ? '#ffffff' : '#047857',
-          borderBottom: '1px solid rgba(226,232,240,0.3)',
-          boxShadow: isSelected 
-            ? 'inset 0 1px 0 rgba(255,255,255,0.2), 0 2px 4px rgba(16,185,129,0.2)'
-            : 'inset 0 1px 0 rgba(255,255,255,0.8)'
+          minHeight: '28px',
+          maxWidth: 'calc(100% - 4px)'
         }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${isSelected ? ' (selected)' : ''}`}
         aria-pressed={isSelected}
       >
-        <div className="flex items-center justify-center px-2">
-          {isWholeHour ? (
-            <span className={`${isSelected ? 'font-bold' : 'font-semibold'}`}>{slot.time}</span>
-          ) : (
-            <div className="flex items-center gap-1 w-full justify-center">
-              <span className="text-[10px] opacity-70">
-                {slot.time.split(' ')[0]}
-              </span>
-            </div>
-          )}
-        </div>
+        {slot.time}
       </button>
     );
   };
@@ -726,8 +694,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                 </span>
               </div>
 
-              <div 
-                className="max-h-[350px] overflow-y-auto rounded-lg"
+                <div 
+                className="rounded-lg"
                 style={{
                   border: '1px solid rgba(226,232,240,0.5)',
                   background: 'rgba(255,255,255,0.6)'
@@ -789,16 +757,20 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             </div>
           )}
 
+          {/* Day headers */}
           <div
             className="grid gap-0"
             style={{ 
-              gridTemplateColumns: gridColumnTemplate,
-              background: 'linear-gradient(180deg, rgba(248,250,252,0.95) 0%, rgba(241,245,249,0.8) 100%)',
+              gridTemplateColumns: `60px repeat(${weekSchedule.length}, minmax(0, 1fr))`,
+              background: 'linear-gradient(180deg, rgba(248,250,252,0.98) 0%, rgba(241,245,249,0.95) 100%)',
               borderBottom: '1px solid rgba(226,232,240,0.6)'
             }}
             role="row"
             aria-label="Days of the week"
           >
+            {/* Empty corner cell for time column */}
+            <div className="py-2 px-1" />
+            
             {weekSchedule.map((day, dayIndex) => {
               const isToday =
                 day.date.toDateString() === new Date().toDateString();
@@ -806,21 +778,20 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
               return (
                 <div
                   key={dayIndex}
-                  className="text-center p-2 sm:p-2.5"
+                  className="text-center py-2 px-1"
                   style={{
-                    borderRight: dayIndex < weekSchedule.length - 1 ? '1px solid rgba(226,232,240,0.4)' : 'none',
                     background: isToday 
-                      ? 'linear-gradient(135deg, rgba(254,243,199,0.6) 0%, rgba(253,230,138,0.4) 100%)'
+                      ? 'linear-gradient(135deg, rgba(254,243,199,0.5) 0%, rgba(253,230,138,0.3) 100%)'
                       : 'transparent'
                   }}
                   role="columnheader"
                   aria-label={`${day.dayName} ${day.dayNumber} ${day.month}${isToday ? ' (Today)' : ''}`}
                 >
-                  <div className="text-[10px] font-semibold uppercase text-slate-500 tracking-wide">
+                  <div className="text-[10px] font-semibold uppercase text-slate-400 tracking-wide">
                     {day.dayName}
                   </div>
                   <div
-                    className={`text-sm font-bold ${isToday ? 'text-amber-700' : 'text-slate-700'}`}
+                    className={`text-base font-bold ${isToday ? 'text-amber-600' : 'text-slate-700'}`}
                   >
                     {day.dayNumber}
                   </div>
@@ -831,39 +802,80 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             })}
           </div>
 
-          <div
-            className="grid gap-0"
-            style={{ gridTemplateColumns: gridColumnTemplate }}
-            role="grid"
-            aria-label="Available appointment time slots"
-          >
-            {weekSchedule.map((day, dayIndex) => (
-              <div
-                key={dayIndex}
-                className="flex flex-col"
-                style={{
-                  borderRight: dayIndex < weekSchedule.length - 1 ? '1px solid rgba(226,232,240,0.4)' : 'none',
-                  minHeight: `${maxSlotsInWeek * SLOT_ROW_HEIGHT_PX}px`
-                }}
-                role="gridcell"
-              >
-                <div className="flex flex-1 flex-col">
-                  {day.slots.length === 0 ? (
-                    <div
-                      className="p-3 text-center text-xs text-slate-400 flex-1 flex items-center justify-center"
-                      role="status"
-                    >
-                      No availability
+          {/* Time slots grid - aligned by time across all days */}
+          {(() => {
+            // Collect all unique times across all days and sort them
+            const allTimesSet = new Set<string>();
+            weekSchedule.forEach(day => {
+              day.slots.forEach(slot => {
+                allTimesSet.add(slot.time);
+              });
+            });
+            const allTimes = Array.from(allTimesSet).sort((a, b) => {
+              // Parse times like "8:00 am" or "6:00 pm" for comparison
+              const parseTime = (t: string) => {
+                const [time, period] = t.split(' ');
+                const [hours, minutes] = time.split(':').map(Number);
+                let hour = hours;
+                if (period.toLowerCase() === 'pm' && hour !== 12) hour += 12;
+                if (period.toLowerCase() === 'am' && hour === 12) hour = 0;
+                return hour * 60 + minutes;
+              };
+              return parseTime(a) - parseTime(b);
+            });
+
+            // Create a lookup for each day's slots by time
+            const slotsByDayAndTime = new Map<number, Map<string, TimeSlot>>();
+            weekSchedule.forEach((day, dayIndex) => {
+              const daySlots = new Map<string, TimeSlot>();
+              day.slots.forEach(slot => {
+                daySlots.set(slot.time, slot);
+              });
+              slotsByDayAndTime.set(dayIndex, daySlots);
+            });
+
+            // Grid with time labels on left
+            const gridCols = `60px repeat(${weekSchedule.length}, minmax(0, 1fr))`;
+
+            return (
+              <div role="grid" aria-label="Available appointment time slots" className="bg-white">
+                {allTimes.map((time, rowIndex) => (
+                  <div
+                    key={time}
+                    className={`grid items-center ${rowIndex % 2 === 0 ? 'bg-slate-50/50' : 'bg-white'}`}
+                    style={{ 
+                      gridTemplateColumns: gridCols,
+                      minHeight: `${SLOT_ROW_HEIGHT_PX}px`
+                    }}
+                    role="row"
+                  >
+                    {/* Time label */}
+                    <div className="text-[10px] font-medium text-slate-400 text-right pr-3 py-1">
+                      {time}
                     </div>
-                  ) : (
-                    day.slots.map((slot, slotIndex) =>
-                      renderSlotButton(day, slot, slotIndex)
-                    )
-                  )}
-                </div>
+                    
+                    {/* Day columns */}
+                    {weekSchedule.map((day, dayIndex) => {
+                      const daySlots = slotsByDayAndTime.get(dayIndex);
+                      const slot = daySlots?.get(time);
+                      
+                      return (
+                        <div
+                          key={`${dayIndex}-${time}`}
+                          className="flex items-center justify-center py-0.5 px-0.5"
+                          role="gridcell"
+                        >
+                          {slot ? (
+                            renderSlotButton(day, slot, rowIndex)
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       </div>
       )}

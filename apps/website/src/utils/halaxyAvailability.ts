@@ -174,22 +174,43 @@ export function getTimeUntilAvailability(nextSlotStart: string | null): string {
   }
 
   const slotTime = new Date(nextSlotStart);
+  const now = new Date();
   
-  // Format as "Day HH:mm" (e.g., "Tuesday 6:00 pm")
-  const formatter = new Intl.DateTimeFormat('en-AU', {
+  // Check if the slot is today (in Melbourne timezone)
+  const dateFormatter = new Intl.DateTimeFormat('en-AU', {
     timeZone: 'Australia/Melbourne',
-    weekday: 'long',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const slotDateStr = dateFormatter.format(slotTime);
+  const todayDateStr = dateFormatter.format(now);
+  const isToday = slotDateStr === todayDateStr;
+  
+  // Format time part
+  const timeFormatter = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
   });
   
-  const parts = formatter.formatToParts(slotTime);
-  const dayName = parts.find(p => p.type === 'weekday')?.value || '';
-  const time = parts
+  const timeParts = timeFormatter.formatToParts(slotTime);
+  const time = timeParts
     .filter(p => ['hour', 'minute', 'dayPeriod'].includes(p.type))
     .map(p => p.value)
     .join('');
+  
+  if (isToday) {
+    return `Available today ${time}`;
+  }
+  
+  // Get day name for non-today slots
+  const dayFormatter = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    weekday: 'long',
+  });
+  const dayName = dayFormatter.format(slotTime);
   
   return `Available ${dayName} ${time}`;
 }

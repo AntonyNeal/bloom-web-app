@@ -113,14 +113,27 @@ async function fetchHalaxyAvailability(
           return;
         }
 
-        // Parse the startDateUserTime and calculate end time
-        const startTime = new Date(slot.startDateUserTime);
-        const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
+        // Parse dateTimeKey (e.g., "20251215-080000") which is in clinic's local time (Sydney)
+        // Format: YYYYMMDD-HHMMSS
+        const dateTimeKey = slot.dateTimeKey;
+        const year = parseInt(dateTimeKey.substring(0, 4), 10);
+        const month = parseInt(dateTimeKey.substring(4, 6), 10) - 1; // JS months are 0-indexed
+        const day = parseInt(dateTimeKey.substring(6, 8), 10);
+        const hour = parseInt(dateTimeKey.substring(9, 11), 10);
+        const minute = parseInt(dateTimeKey.substring(11, 13), 10);
+
+        // Create date in Sydney timezone and convert to UTC
+        // Sydney is UTC+11 in December (AEDT)
+        const sydneyOffsetMinutes = -11 * 60; // UTC+11 means subtract 11 hours to get UTC
+        const localDate = new Date(Date.UTC(year, month, day, hour, minute, 0, 0));
+        const utcDate = new Date(localDate.getTime() + sydneyOffsetMinutes * 60 * 1000);
+        
+        const endTime = new Date(utcDate.getTime() + duration * 60 * 1000);
 
         slots.push({
           resourceType: 'Slot',
           id: `halaxy-${slot.dateTimeKey}-${index}`,
-          start: startTime.toISOString(),
+          start: utcDate.toISOString(),
           end: endTime.toISOString(),
           status: 'free',
         });

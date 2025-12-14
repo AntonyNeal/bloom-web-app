@@ -7,7 +7,7 @@ import { getTimeUntilAvailability } from '../utils/halaxyAvailability';
 
 const UnifiedHeader = () => {
   const { isModalOpen, handleBookingClick } = useBookingService();
-  const [availabilityText, setAvailabilityText] = useState('Loading...');
+  const [availabilityText, setAvailabilityText] = useState<string | null>(null);
 
   useEffect(() => {
     log.debug('Component mounted', 'UnifiedHeader', {
@@ -18,9 +18,8 @@ const UnifiedHeader = () => {
       const nextSlot = getNextAvailableSlot();
       if (nextSlot) {
         setAvailabilityText(getTimeUntilAvailability(nextSlot.start));
-      } else {
-        setAvailabilityText('Check availability');
       }
+      // Don't show anything if no slot available yet
     };
     
     // Check immediately in case cache is already populated
@@ -253,10 +252,12 @@ const UnifiedHeader = () => {
 
                 {/* Healthcare-specific reassurance */}
                 <div className="bg-green-50 border-2 border-green-300 rounded-lg p-5 text-base shadow-sm max-w-lg w-full">
-                  <div className="flex items-center gap-2 text-green-800 font-semibold mb-3">
-                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-                    <span>{availabilityText}</span>
-                  </div>
+                  {availabilityText && (
+                    <div className="flex items-center gap-2 text-green-800 font-semibold mb-3">
+                      <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                      <span>{availabilityText}</span>
+                    </div>
+                  )}
                   <div className="text-green-700 space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">✓</span>

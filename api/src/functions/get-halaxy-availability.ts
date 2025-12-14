@@ -113,6 +113,12 @@ async function fetchHalaxyAvailability(
           return;
         }
 
+        // Skip slots without dateTimeKey
+        if (!slot.dateTimeKey || slot.dateTimeKey.length < 13) {
+          context.warn(`Skipping slot without valid dateTimeKey:`, slot);
+          return;
+        }
+
         // Parse dateTimeKey (e.g., "20251215-080000") which is in clinic's local time (Sydney)
         // Format: YYYYMMDD-HHMMSS
         const dateTimeKey = slot.dateTimeKey;

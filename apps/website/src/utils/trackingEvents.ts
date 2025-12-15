@@ -333,10 +333,13 @@ export const fireServicePageConversion = (): boolean => {
  * Fire About Page View conversion ($3)
  */
 export const fireAboutPageConversion = (): boolean => {
-  return fireMicroConversion('about_page', {
+  console.log('[TrackingEvents] 🎯 Attempting to fire About page conversion');
+  const result = fireMicroConversion('about_page', {
     page_path: window.location.pathname,
     page_title: document.title,
   });
+  console.log('[TrackingEvents] About page conversion result:', result);
+  return result;
 };
 
 /**

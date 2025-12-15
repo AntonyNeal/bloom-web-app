@@ -79,10 +79,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         onClick={onClose}
       ></div>
 
-      {/* Modal panel - HEAVY steel & glass aesthetic, fixed size */}
+      {/* Modal panel - HEAVY steel & glass aesthetic, auto height */}
       <div
         ref={modalContentRef}
-        className="relative z-10 w-full h-full sm:h-[600px] sm:max-h-[98vh] max-w-xl overflow-hidden rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-2 border-slate-300"
+        className="relative z-10 w-full h-full sm:h-auto sm:max-h-[95vh] max-w-xl overflow-hidden rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-2 border-slate-300"
         style={{
           boxShadow: `
             0 0 0 1px rgba(148, 163, 184, 0.4),
@@ -126,8 +126,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           </svg>
         </button>
 
-        {/* Booking form - constrained to modal height */}
-        <div className="p-3 sm:p-4 pt-10 sm:pt-4 h-full overflow-y-auto">
+        {/* Booking form - no scrolling, full content visible */}
+        <div className="p-3 sm:p-4 pt-10 sm:pt-4">
           <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
         </div>
       </div>

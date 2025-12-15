@@ -679,6 +679,7 @@ jobs:
           echo "✅ Build complete"
         env:
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
           VITE_FUNCTIONS_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
           VITE_AZURE_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
           VITE_AVAILABILITY_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/halaxy/availability

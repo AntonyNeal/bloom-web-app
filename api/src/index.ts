@@ -20,6 +20,8 @@ import './functions/trigger-halaxy-sync';
 import './functions/halaxy-api-discovery';
 import './functions/debug-slots';
 import './functions/fix-unix-timestamps';
+import './functions/send-verification-code';
+import './functions/verify-code';
 
 export * from './functions/health';
 export * from './functions/applications';

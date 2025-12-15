@@ -63,7 +63,7 @@ const Pricing = () => {
     {
       value: 'medicare',
       label: 'Medicare (with GP referral)',
-      description: 'Just get a GP referral - up to $96.65 rebate',
+      description: 'Just get a GP referral - up to $98.95 rebate',
       badge: 'Medicare rebate',
     },
     {
@@ -171,7 +171,7 @@ const Pricing = () => {
         };
       }
 
-      const medicareRebate = 96.65; // Registered Psychologist rebate (Item 80010)
+      const medicareRebate = 98.95; // Registered Psychologist rebate (Item 80010)
       const outOfPocket = basePrice - medicareRebate;
       return {
         outOfPocket,
@@ -242,7 +242,7 @@ const Pricing = () => {
     {
       question: 'How much will I actually pay with Medicare?',
       answer:
-        "With a valid GP Mental Health Care Plan, you'll receive a Medicare rebate of $96.65 per session (Registered Psychologist rate - Item 80010) for individual therapy sessions. This means you'll pay $153.35 out-of-pocket for a $250 session. Note: Medicare only covers individual psychology sessions, not couples therapy.",
+        "With a valid GP Mental Health Care Plan, you'll receive a Medicare rebate of $98.95 per session (Registered Psychologist rate - Item 80010) for individual therapy sessions. This means you'll pay $151.05 out-of-pocket for a $250 session. Note: Medicare only covers individual psychology sessions, not couples therapy.",
     },
     {
       question: 'Can I claim on private health insurance?',
@@ -252,7 +252,7 @@ const Pricing = () => {
     {
       question: 'What funding options are available?',
       answer:
-        'Medicare rebates can reduce costs significantly for individual sessions (A$153.35 out-of-pocket with GP referral), self/plan-managed NDIS participants may have full funding available, and some private health insurance policies provide rebates. All fees are payable at the time of service.',
+        'Medicare rebates can reduce costs significantly for individual sessions (A$151.05 out-of-pocket with GP referral), self/plan-managed NDIS participants may have full funding available, and some private health insurance policies provide rebates. All fees are payable at the time of service.',
     },
     {
       question: 'How do NDIS payments work?',
@@ -280,7 +280,7 @@ const Pricing = () => {
         </title>
         <meta
           name="description"
-          content="Psychology session fees and funding options. Medicare rebates up to $96.65, NDIS $233, private health insurance. Transparent pricing for therapy sessions."
+          content="Psychology session fees and funding options. Medicare rebates up to $98.95, NDIS $233, private health insurance. Transparent pricing for therapy sessions."
         />
         <meta
           name="keywords"
@@ -297,7 +297,7 @@ const Pricing = () => {
         />
         <meta
           property="og:description"
-          content="Psychology sessions $250. Medicare rebate $96.65 (Item 80010). Gap payment $153.35. NDIS $232.99 fully funded."
+          content="Psychology sessions $250. Medicare rebate $98.95 (Item 80010). Gap payment $151.05. NDIS $232.99 fully funded."
         />
         <meta
           property="og:image"
@@ -314,7 +314,7 @@ const Pricing = () => {
         />
         <meta
           name="twitter:description"
-          content="Psychology $250. Medicare rebate $96.65. Gap payment $153.35. NDIS fully funded."
+          content="Psychology $250. Medicare rebate $98.95. Gap payment $151.05. NDIS fully funded."
         />
       </Helmet>
 
@@ -334,7 +334,7 @@ const Pricing = () => {
               <span className="text-blue-100">When You Need It Most</span>
             </h1>
             <p className="text-xl lg:text-2xl mb-6 text-blue-100">
-              From <span className="text-white font-bold">$153.35</span>{' '}
+              From <span className="text-white font-bold">$151.05</span>{' '}
               out-of-pocket with Medicare rebates
             </p>
             <p className="text-lg mb-8 text-blue-50">
@@ -646,7 +646,7 @@ const Pricing = () => {
                           <li>
                             • Alternative approach: Book individual sessions for
                             each partner separately. Individual psychology
-                            sessions are Medicare eligible (A$153.35 per session
+                            sessions are Medicare eligible (A$151.05 per session
                             with GP referral), allowing both partners to work on
                             personal issues that benefit the relationship. You
                             can add couples sessions as needed to complement the
@@ -779,7 +779,7 @@ const Pricing = () => {
                 </div>
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li>• Same session as individual psychology</li>
-                  <li>• Medicare rebate of A$96.65 applies</li>
+                  <li>• Medicare rebate of A$98.95 applies</li>
                   <li>• Requires valid GP Mental Health Plan</li>
                   <li>• Up to 10 sessions per calendar year</li>
                 </ul>
@@ -853,7 +853,7 @@ const Pricing = () => {
                     Medicare Benefits
                   </h3>
                   <div className="text-2xl font-bold text-blue-600 mb-2">
-                    A$96.65 rebate
+                    A$98.95 rebate
                   </div>
                   <p className="text-sm text-gray-500">
                     Registered Psychologist rebate (Item 80010)
@@ -866,8 +866,8 @@ const Pricing = () => {
                   <li>• Rebate paid directly to Medicare account</li>
                 </ul>
                 <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                  <strong>Your cost:</strong> A$250.00 - A$96.65 ={' '}
-                  <strong>A$153.35</strong>
+                  <strong>Your cost:</strong> A$250.00 - A$98.95 ={' '}
+                  <strong>A$151.05</strong>
                 </div>
               </div>
 

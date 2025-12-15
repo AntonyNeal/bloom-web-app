@@ -144,7 +144,7 @@ const IndividualTherapy = () => {
             </p>
             <div className="flex flex-wrap justify-center gap-3 mb-8">
               <span className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-                Medicare rebates available (up to $145.25 per session with a
+                Medicare rebates available (up to $98.95 per session with a
                 Mental Health Care Plan)
               </span>
               <span className="bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium">

@@ -1255,7 +1255,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                     </div>
                     <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-2.5">
                       <div className="mb-0.5 text-emerald-600 text-[10px]">Rebate</div>
-                      <div className="text-lg font-bold text-emerald-600">−$145.25</div>
+                      <div className="text-lg font-bold text-emerald-600">−$98.95</div>
                     </div>
                     <div 
                       className="rounded-lg border border-emerald-400 p-2.5 text-white"
@@ -1265,7 +1265,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                       }}
                     >
                       <div className="mb-0.5 text-emerald-100 text-[10px]">Your Gap</div>
-                      <div className="text-lg font-bold">$104.75</div>
+                      <div className="text-lg font-bold">$151.05</div>
                     </div>
                   </div>
                   <p className="text-[11px] text-slate-500 text-center">
@@ -1287,7 +1287,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 }}
               >
                 💡 Medicare rebates available for eligible appointments ($250 −
-                $145.25 rebate = $104.75 gap)
+                $98.95 rebate = $151.05 gap)
               </p>
             )}
           </div>

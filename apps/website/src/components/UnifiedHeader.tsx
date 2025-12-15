@@ -309,6 +309,4 @@ const UnifiedHeader = () => {
   );
 };
 
-console.log('[UnifiedHeader] Component defined and exported');
-
 export default UnifiedHeader;

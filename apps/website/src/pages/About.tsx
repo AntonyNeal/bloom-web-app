@@ -10,8 +10,6 @@ const About = () => {
     // Initialize about page tracking with unified tracker (matches Pricing.tsx pattern)
     tracker.trackAboutPage();
     console.log('🔵 [About] tracker.trackAboutPage() called');
-
-    // All tracking now handled by UnifiedTracker
   }, []);
 
   return (

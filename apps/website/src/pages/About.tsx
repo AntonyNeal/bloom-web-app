@@ -6,10 +6,8 @@ import { trackBookNowClick } from '../tracking';
 const About = () => {
   const { openBookingModal } = useBooking('about_page');
   useEffect(() => {
-    console.log('🔵 [About] Page loaded - calling tracker.trackAboutPage()');
     // Initialize about page tracking with unified tracker (matches Pricing.tsx pattern)
     tracker.trackAboutPage();
-    console.log('🔵 [About] tracker.trackAboutPage() called');
   }, []);
 
   return (

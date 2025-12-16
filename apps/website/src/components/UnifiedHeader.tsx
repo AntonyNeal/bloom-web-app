@@ -94,7 +94,7 @@ const UnifiedHeader = () => {
 
       {/* Main header section - min-height set to prevent CLS */}
       <section
-        className="pt-2 pb-8 sm:pt-3 sm:pb-12 lg:pt-4 lg:pb-16 bg-gradient-to-br from-blue-50/30 to-white relative overflow-hidden hero-section"
+        className="pt-3 pb-8 sm:pt-4 sm:pb-12 lg:pt-6 lg:pb-16 bg-gradient-to-br from-blue-50/30 to-white relative overflow-hidden hero-section"
         aria-label="Life Psychology Australia header"
         style={{ minHeight: '80vh' }}
       >
@@ -114,16 +114,16 @@ const UnifiedHeader = () => {
                 WebkitOverflowScrolling: 'touch',
               }}
             >
-              {/* Optimized hero image with responsive formats - 56% larger */}
+              {/* Optimized hero image with responsive formats - 65% larger */}
               <div
                 className="relative mx-auto"
                 style={{
                   /* Ensure container doesn't limit image height on iOS */
                   overflow: 'visible',
                   minHeight: 'fit-content',
-                  width: '156%',
-                  maxWidth: '156%',
-                  marginLeft: '-28%',
+                  width: '165%',
+                  maxWidth: '165%',
+                  marginLeft: '-32.5%',
                 }}
               >
                 {/* Hero image optimized for performance with WebP and responsive sizing */}

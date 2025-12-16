@@ -46,17 +46,17 @@ const MobileCTABar: React.FC = () => {
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white shadow-lg border-t border-gray-200">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
-            {/* Social proof + urgency - only show when data is loaded */}
-            {availabilityText && (
-              <div className="flex flex-col">
+            {/* Social proof + urgency - always render container to prevent CLS */}
+            <div className="flex flex-col min-w-[120px]" style={{ minHeight: '24px' }}>
+              {availabilityText && (
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span className="text-gray-700 text-sm font-medium">
                     {availabilityText}
                   </span>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Primary CTA */}
             <button

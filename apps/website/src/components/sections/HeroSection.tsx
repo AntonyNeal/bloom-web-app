@@ -44,15 +44,16 @@ const HeroSection = ({
       <div className="absolute bottom-40 left-0 w-80 h-80 bg-purple-100/10 rounded-full blur-3xl -z-10"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          {/* Image hfeufeulfjifwehfwefewuo;test*/}
+          {/* Image - with aspect-ratio to prevent CLS */}
           <div className="order-2 lg:order-1">
-            <div className="relative">
+            <div className="relative" style={{ aspectRatio: '4/3', maxWidth: '400px', margin: '0 auto' }}>
               <img
                 src={imageSrc}
                 alt={imageAlt}
-                className="w-full h-auto rounded-lg shadow-2xl max-w-md mx-auto lg:mx-0"
+                className="w-full h-full object-cover rounded-lg shadow-2xl"
                 loading="eager"
                 decoding="async"
+                fetchPriority="high"
                 width="400"
                 height="300"
               />

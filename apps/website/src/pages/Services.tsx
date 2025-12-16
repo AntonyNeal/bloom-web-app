@@ -340,15 +340,6 @@ const Services = () => {
                   ))}
                 </div>
 
-                {/* Pricing */}
-                {service.price && (
-                  <div className="mb-4">
-                    <span className="inline-block bg-blue-600 text-white text-sm font-semibold px-3 py-1 rounded-full">
-                      {service.price}
-                    </span>
-                  </div>
-                )}
-
                 {/* Learn More Indicator */}
                 <div className="text-blue-600 text-sm font-medium inline-flex items-center group-hover:translate-x-1 group-hover:text-blue-700 transition-all duration-200">
                   Learn more

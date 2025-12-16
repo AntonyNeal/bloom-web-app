@@ -1,5 +1,46 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BookingForm } from './BookingForm';
+
+// Skeleton loading component for seamless modal open
+const BookingFormSkeleton: React.FC = () => (
+  <div className="max-w-xl w-full mx-auto animate-pulse">
+    {/* Header skeleton */}
+    <div className="mb-4">
+      <div className="h-6 bg-slate-200 rounded w-3/4 mb-2"></div>
+      <div className="h-4 bg-slate-100 rounded w-1/2"></div>
+    </div>
+    
+    {/* Progress bar skeleton */}
+    <div className="mb-4 p-3 rounded-lg bg-slate-100">
+      <div className="grid grid-cols-5 gap-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="text-center">
+            <div className="mx-auto w-5 h-5 rounded-md bg-slate-200 mb-1"></div>
+            <div className="h-2 bg-slate-200 rounded w-12 mx-auto"></div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 h-1.5 bg-slate-200 rounded-full"></div>
+    </div>
+    
+    {/* Form fields skeleton */}
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="h-12 bg-slate-200 rounded-lg"></div>
+        <div className="h-12 bg-slate-200 rounded-lg"></div>
+      </div>
+      <div className="h-12 bg-slate-200 rounded-lg"></div>
+      <div className="h-12 bg-slate-200 rounded-lg"></div>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="h-12 bg-slate-200 rounded-lg"></div>
+        <div className="h-12 bg-slate-200 rounded-lg"></div>
+        <div className="h-12 bg-slate-200 rounded-lg"></div>
+      </div>
+      <div className="h-12 bg-slate-200 rounded-lg"></div>
+      <div className="h-12 bg-slate-200 rounded-lg mt-4"></div>
+    </div>
+  </div>
+);
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -12,6 +53,24 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 }) => {
   console.log('[BookingModal] Rendered with isOpen:', isOpen);
   const modalContentRef = useRef<HTMLDivElement>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Handle animation states when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      // Start animation immediately
+      setIsAnimating(true);
+      // Delay showing the actual form to allow skeleton to display briefly
+      const timer = setTimeout(() => {
+        setIsReady(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setIsReady(false);
+      setIsAnimating(false);
+    }
+  }, [isOpen]);
 
   // Prevent body scroll and hide mobile CTA when modal is open
   useEffect(() => {
@@ -68,21 +127,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-4"
+      className={`fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-4 transition-opacity duration-200 ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
     >
-      {/* Background overlay - frosted glass effect */}
+      {/* Background overlay - frosted glass effect with fade animation */}
       <div
-        className="fixed inset-0 backdrop-blur-md bg-slate-900/30"
+        className={`fixed inset-0 backdrop-blur-md bg-slate-900/30 transition-opacity duration-200 ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       ></div>
 
       {/* Modal panel - HEAVY steel & glass aesthetic, responsive to screen size */}
       <div
         ref={modalContentRef}
-        className="relative z-10 w-full h-full sm:h-auto sm:max-h-[95vh] md:max-h-[92vh] lg:max-h-[95vh] max-w-[100vw] sm:max-w-[85vw] md:max-w-[70vw] lg:max-w-xl overflow-hidden rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-[3px] border-slate-300/40 flex flex-col"
+        className={`relative z-10 w-full h-full sm:h-auto sm:max-h-[95vh] md:max-h-[92vh] lg:max-h-[95vh] max-w-[100vw] sm:max-w-[85vw] md:max-w-[70vw] lg:max-w-xl overflow-hidden rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         style={{
           boxShadow: `
             0 0 0 6px rgba(255, 255, 255, 0.15),
@@ -132,10 +191,27 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </button>
 
         {/* Booking form - responsive padding based on screen size */}
-        <div className="p-[1.2vh] sm:p-[1.5vh] md:p-[2vh] pt-10 sm:pt-4">
-          <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
+        <div className="p-[1.2vh] sm:p-[1.5vh] md:p-[2vh] pt-10 sm:pt-4 overflow-y-auto flex-1">
+          {isReady ? (
+            <div className="animate-fadeIn">
+              <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
+            </div>
+          ) : (
+            <BookingFormSkeleton />
+          )}
         </div>
       </div>
+      
+      {/* Fade-in animation styles */}
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.15s ease-out;
+        }
+      `}</style>
     </div>
   );
 };

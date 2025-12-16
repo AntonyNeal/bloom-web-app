@@ -54,21 +54,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   console.log('[BookingModal] Rendered with isOpen:', isOpen);
   const modalContentRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Derive animation state from isOpen - no need for separate state
+  const isAnimating = isOpen;
 
-  // Handle animation states when modal opens/closes
+  // Handle form ready state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      // Start animation immediately
-      setIsAnimating(true);
       // Delay showing the actual form to allow skeleton to display briefly
       const timer = setTimeout(() => {
         setIsReady(true);
       }, 100);
-      return () => clearTimeout(timer);
-    } else {
-      setIsReady(false);
-      setIsAnimating(false);
+      return () => {
+        clearTimeout(timer);
+        setIsReady(false);
+      };
     }
   }, [isOpen]);
 

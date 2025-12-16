@@ -172,13 +172,13 @@ const UnifiedHeader = () => {
               </p>
 
               {/* More comprehensive, focused messaging */}
-              <div className="text-gray-700 mb-6 space-y-4">
-                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-blue-100 text-center">
+              <div className="text-gray-700 mb-6 space-y-3">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-blue-100 text-center">
                   <p className="text-lg sm:text-xl font-medium text-gray-800 mb-2">
                     <strong>Zoe Semmler</strong> — Registered Psychologist,
                     Newcastle
                   </p>
-                  <p className="text-base sm:text-lg text-gray-600 mb-3">
+                  <p className="text-sm sm:text-base text-gray-600 mb-3">
                     Supporting you through anxiety, depression, relationship
                     challenges, and personal growth with warm, evidence-based
                     therapy.
@@ -196,45 +196,11 @@ const UnifiedHeader = () => {
                   </div>
                 </div>
 
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-left list-none p-0 m-0">
-                  <li className="flex items-center gap-2">
-                    <span
-                      className="w-2 h-2 bg-blue-500 rounded-full inline-block"
-                      aria-hidden="true"
-                    ></span>
-                    <span>Individual therapy</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span
-                      className="w-2 h-2 bg-blue-500 rounded-full inline-block"
-                      aria-hidden="true"
-                    ></span>
-                    <span>Couples counselling</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span
-                      className="w-2 h-2 bg-blue-500 rounded-full inline-block"
-                      aria-hidden="true"
-                    ></span>
-                    <span>Neurodiversity support</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span
-                      className="w-2 h-2 bg-blue-500 rounded-full inline-block"
-                      aria-hidden="true"
-                    ></span>
-                    <span>Evening & weekend appointments</span>
-                  </li>
-                </ul>
-
                 {/* Healthcare social proof */}
-                <div className="border-t pt-3 mt-3 text-xs text-gray-600">
+                <div className="text-xs text-gray-600 text-center">
                   <p className="italic">
                     "Taking the first step can feel overwhelming. I'm here to
                     make therapy feel safe and supportive from day one."
-                  </p>
-                  <p className="mt-1 font-medium">
-                    — Zoe Semmler, Registered Psychologist
                   </p>
                 </div>
               </div>

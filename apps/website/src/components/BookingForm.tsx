@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { halaxyClient, HalaxyClient } from '../utils/halaxyClient';
 import { TimeSlotCalendar } from './TimeSlotCalendar';
-import { StripePayment } from './StripePayment';
+
+// Lazy load StripePayment to reduce initial bundle size (~240KB savings)
+const StripePayment = lazy(() => import('./StripePayment').then(m => ({ default: m.StripePayment })));
+
 import {
   trackBookingStart,
   trackDetailsComplete,
@@ -1458,34 +1461,42 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </div>
           </div>
 
-          <StripePayment
-            amount={
-              appointmentType === 'couples-session'
-                ? 300
-                : appointmentType === 'ndis-psychology-session'
-                  ? 232.99
-                  : 250
-            }
-            customerEmail={email}
-            customerName={`${firstName} ${lastName}`}
-            onSuccess={(paymentIntentId) => {
-              console.log('[BookingForm] Payment successful:', paymentIntentId);
-              
-              // Track payment completion and booking confirmation
-              trackBookingConfirmed({
-                booking_value: appointmentType === 'couples-session' ? 300 : 
-                               appointmentType === 'ndis-psychology-session' ? 232.99 : 250,
-                appointment_type: appointmentType,
-              });
-              
-              setStep('confirm');
-              window.dispatchEvent(new CustomEvent('bookingStepChanged'));
-            }}
-            onCancel={() => {
-              setStep('session');
-              window.dispatchEvent(new CustomEvent('bookingStepChanged'));
-            }}
-          />
+          <Suspense fallback={
+            <div className="animate-pulse space-y-4 p-4">
+              <div className="h-12 bg-slate-200 rounded-lg"></div>
+              <div className="h-12 bg-slate-200 rounded-lg"></div>
+              <div className="h-10 bg-blue-200 rounded-lg w-32"></div>
+            </div>
+          }>
+            <StripePayment
+              amount={
+                appointmentType === 'couples-session'
+                  ? 300
+                  : appointmentType === 'ndis-psychology-session'
+                    ? 232.99
+                    : 250
+              }
+              customerEmail={email}
+              customerName={`${firstName} ${lastName}`}
+              onSuccess={(paymentIntentId) => {
+                console.log('[BookingForm] Payment successful:', paymentIntentId);
+                
+                // Track payment completion and booking confirmation
+                trackBookingConfirmed({
+                  booking_value: appointmentType === 'couples-session' ? 300 : 
+                                 appointmentType === 'ndis-psychology-session' ? 232.99 : 250,
+                  appointment_type: appointmentType,
+                });
+                
+                setStep('confirm');
+                window.dispatchEvent(new CustomEvent('bookingStepChanged'));
+              }}
+              onCancel={() => {
+                setStep('session');
+                window.dispatchEvent(new CustomEvent('bookingStepChanged'));
+              }}
+            />
+          </Suspense>
         </div>
       )}
 

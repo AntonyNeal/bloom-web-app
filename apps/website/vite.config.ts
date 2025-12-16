@@ -39,6 +39,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
+          // Stripe - separate chunk, lazy loaded only when needed for payment
+          if (
+            id.includes('@stripe/react-stripe-js') ||
+            id.includes('@stripe/stripe-js')
+          ) {
+            return 'stripe';
+          }
           // Core React ecosystem - load together to prevent createContext issues
           // Include ALL packages that depend on React to avoid createContext errors
           if (
@@ -48,8 +55,6 @@ export default defineConfig({
             id.includes('node_modules/react-helmet-async') ||
             id.includes('node_modules/scheduler/') ||
             id.includes('node_modules/prop-types/') ||
-            id.includes('@stripe/react-stripe-js') ||
-            id.includes('@stripe/stripe-js') ||
             id.includes('node_modules/@headlessui') ||
             id.includes('node_modules/@heroicons') ||
             id.includes('node_modules/lucide-react')

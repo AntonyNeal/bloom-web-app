@@ -15,7 +15,7 @@ import {
 } from './components/ABTestProvider';
 import { trackScrollDepth } from './utils/trackingEvents';
 import { trackPageView } from './utils/applicationInsights';
-import { initHighIntentTimer } from './utils/microConversions';
+// Note: High Intent timer is initialized by UnifiedTracker singleton when any page tracking is called
 // Lazy load ChatAssistant since it's conditionally rendered
 // const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
 import './App.css';
@@ -66,8 +66,8 @@ function App() {
   // const [isChatOpen, setIsChatOpen] = useState(false);
   const { pathname } = useLocation();
   useEffect(() => {
-    // Initialize High Intent timer for micro-conversions
-    initHighIntentTimer();
+    // Note: High Intent timer is auto-initialized by UnifiedTracker singleton
+    // when any page calls tracker.trackXxxPage() - no manual init needed here
 
     // Scroll depth tracking
     let lastScrollPercent = 0;

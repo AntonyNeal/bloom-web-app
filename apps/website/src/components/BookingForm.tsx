@@ -322,28 +322,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           is_returning_user: !!localStorage.getItem('lpa_user_details'),
         });
 
-        // Send SMS verification code via Azure Communication Services
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071';
-        const response = await fetch(`${apiUrl}/api/send-verification-code`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phoneNumber: phone }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => null);
-          throw new Error(errorData?.error || 'Failed to send verification code');
-        }
-
-        const data = await response.json();
-        
-        if (!data.success) {
-          throw new Error(data.error || 'Failed to send verification code');
-        }
-
-        // Store verification ID and proceed to verification step
-        setVerificationId(data.verificationId);
-        setStep('verify');
+        // Skip SMS verification - go directly to datetime selection
+        // Phone verification can be re-enabled later when SMS provider is configured
+        setStep('datetime');
 
         // Scroll modal to top when changing steps
         window.dispatchEvent(new CustomEvent('bookingStepChanged'));

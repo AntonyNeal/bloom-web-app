@@ -54,9 +54,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   console.log('[BookingModal] Rendered with isOpen:', isOpen);
   const modalContentRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
-  
-  // Derive animation state from isOpen - no need for separate state
-  const isAnimating = isOpen;
 
   // Handle form ready state when modal opens/closes
   useEffect(() => {
@@ -113,12 +110,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     };
   }, []);
 
-  if (!isOpen) {
-    console.log('[BookingModal] Not rendering - isOpen is false');
-    return null;
-  }
-
-  console.log('[BookingModal] Rendering modal content');
+  // Always render the modal but hide it with CSS when not open
+  // This keeps it in memory for instant display
+  console.log('[BookingModal] Rendering modal, isOpen:', isOpen);
 
   const handleSuccess = (appointmentId: string) => {
     console.log('[BookingModal] Booking successful:', appointmentId);
@@ -127,21 +121,22 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-4 transition-opacity duration-200 ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
+      className={`fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-4 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
+      aria-hidden={!isOpen}
     >
       {/* Background overlay - frosted glass effect with fade animation */}
       <div
-        className={`fixed inset-0 backdrop-blur-md bg-slate-900/30 transition-opacity duration-200 ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
+        className={`fixed inset-0 backdrop-blur-md bg-slate-900/30 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       ></div>
 
       {/* Modal panel - HEAVY steel & glass aesthetic, responsive to screen size */}
       <div
         ref={modalContentRef}
-        className={`relative z-10 w-full h-full sm:h-auto sm:max-h-[95vh] md:max-h-[92vh] lg:max-h-[95vh] max-w-[100vw] sm:max-w-[85vw] md:max-w-[70vw] lg:max-w-xl overflow-hidden rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+        className={`relative z-10 w-full h-full sm:h-auto sm:max-h-[95vh] md:max-h-[92vh] lg:max-h-[95vh] max-w-[100vw] sm:max-w-[85vw] md:max-w-[70vw] lg:max-w-xl overflow-hidden rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         style={{
           boxShadow: `
             0 0 0 6px rgba(255, 255, 255, 0.15),

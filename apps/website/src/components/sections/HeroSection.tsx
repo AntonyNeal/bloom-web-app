@@ -33,7 +33,7 @@ const HeroSection = ({
 }: HeroSectionProps) => {
   return (
     <section
-      className="py-12 sm:py-16 lg:py-24 bg-gradient-to-br from-blue-50/30 to-white relative overflow-hidden"
+      className="py-8 sm:py-10 lg:py-16 bg-gradient-to-br from-blue-50/30 to-white relative overflow-hidden"
       style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239CA3AF' fill-opacity='0.03'%3E%3Ccircle cx='1' cy='1' r='1'/%3E%3C/g%3E%3C/svg%3E")`,
       }}
@@ -46,7 +46,7 @@ const HeroSection = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Image - with aspect-ratio to prevent CLS */}
           <div className="order-2 lg:order-1">
-            <div className="relative" style={{ aspectRatio: '4/3', maxWidth: '400px', margin: '0 auto' }}>
+            <div className="relative" style={{ aspectRatio: '4/3', maxWidth: '500px', margin: '0 auto' }}>
               <img
                 src={imageSrc}
                 alt={imageAlt}
@@ -54,8 +54,8 @@ const HeroSection = ({
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
-                width="400"
-                height="300"
+                width="500"
+                height="375"
               />
               <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/10 rounded-lg"></div>
             </div>

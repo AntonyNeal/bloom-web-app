@@ -37,8 +37,11 @@ interface TestResult {
   };
 }
 
-// Use Azure Function App directly (CORS now enabled)
-// const AZURE_FUNCTION_URL = 'https://fnt42kldozqahcu.azurewebsites.net/api/ab-test/results';
+// Azure Function URL for A/B test results (now using SQL backend)
+const getAzureFunctionUrl = () => {
+  // Use environment variable or fall back to dev
+  return import.meta.env.VITE_AZURE_FUNCTION_URL || 'https://bloom-functions-dev.azurewebsites.net';
+};
 
 export function ABTestDashboard() {
   const navigate = useNavigate();
@@ -60,64 +63,43 @@ export function ABTestDashboard() {
     setLoading(true);
     setError(null);
     try {
-      // Use mock data for the one real test until API is fixed
-      // Test started Oct 30, 2025 (last tracking event date from Cosmos DB)
-      const testStartDate = new Date('2025-10-30T00:48:58.371Z');
-      const today = new Date();
-      const daysRunning = Math.floor((today.getTime() - testStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      const baseUrl = getAzureFunctionUrl();
       
-      // Calculate sample size needed for statistical significance
-      // Using minimum detectable effect (MDE) of 20%, baseline conversion ~10%, 95% confidence, 80% power
-      const totalAllocations = 20; // 13 + 7 from mock data
-      const sampleSizeNeeded = 385; // Per variant for 95% confidence, 80% power, 20% MDE
-      const totalSampleNeeded = sampleSizeNeeded * 2; // Two variants
-      
-      // Calculate visitor rate and estimate completion
-      const visitorsPerDay = totalAllocations / daysRunning;
-      const remainingAllocations = Math.max(0, totalSampleNeeded - totalAllocations);
-      const daysRemaining = visitorsPerDay > 0 
-        ? Math.ceil(remainingAllocations / visitorsPerDay)
-        : 999;
-      const expectedDurationDays = daysRunning + daysRemaining;
-      const progressPercentage = Math.min(100, Math.round((totalAllocations / totalSampleNeeded) * 100));
+      // Fetch the homepage header test results from SQL-backed API
+      const response = await fetch(`${baseUrl}/api/ab-test/results/homepage-header-test`, {
+        headers: { 'Accept': 'application/json' },
+      });
 
-      const mockResults = [
-        {
-          testName: 'homepage-header-test',
-          variants: {
-            'minimal': { allocations: 13, conversions: 1, conversionRate: 0.0769 },
-            'healthcare-optimized': { allocations: 7, conversions: 1, conversionRate: 0.1429 }
-          },
-          statisticalSignificance: {
-            zScore: 0.469,
-            pValue: 0.639,
-            isSignificant: false,
-            confidenceLevel: 'Not significant'
-          },
-          improvement: {
-            percentage: 85.71,
-            winner: 'healthcare-optimized'
-          },
-          duration: {
-            startedAt: testStartDate.toISOString(),
-            daysRunning,
-            daysRemaining,
-            expectedDurationDays,
-            progressPercentage,
-            status: progressPercentage >= 100 ? 'Complete' : 'Running'
-          }
+      if (!response.ok) {
+        if (response.status === 404) {
+          // No data yet - show helpful message
+          setTests([]);
+          setError('No test data available yet. A/B test events will appear here once users visit the site.');
+          setLastUpdated(new Date());
+          return;
         }
-      ];
-
-      setTests(mockResults);
-      setLastUpdated(new Date());
-
-      if (mockResults.length === 0) {
-        setError('No test data available yet. Tests are being collected.');
+        throw new Error(`API returned ${response.status}: ${response.statusText}`);
       }
+
+      const testResult = await response.json();
+      
+      // Transform API response to match dashboard format
+      const formattedResult: TestResult = {
+        testName: testResult.testName,
+        displayLabel: 'Homepage Header Test',
+        description: 'Testing healthcare-optimized vs minimal header design',
+        variants: testResult.variants,
+        statisticalSignificance: testResult.statisticalSignificance,
+        improvement: testResult.improvement,
+        duration: testResult.duration,
+      };
+
+      setTests([formattedResult]);
+      setLastUpdated(new Date());
+      setError(null);
     } catch (err) {
+      console.error('Error fetching A/B test results:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch test results');
-      console.error('Error fetching tests:', err);
     } finally {
       setLoading(false);
     }

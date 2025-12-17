@@ -53,7 +53,6 @@ const About = () => {
             description:
               'Professional psychology services in Newcastle and Greater Hunter region, specializing in anxiety, depression, couples therapy, neurodiversity support, and NDIS services.',
             url: 'https://lifepsychology.com.au',
-            telephone: '+61-XXX-XXX-XXX',
             address: {
               '@type': 'PostalAddress',
               addressLocality: 'Newcastle',

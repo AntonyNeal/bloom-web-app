@@ -111,7 +111,6 @@ const Home = () => {
           "name": "Life Psychology Australia",
           "description": "Professional counselling and psychology services in Newcastle NSW",
           "url": "${getEnvVar('VITE_BASE_URL')}",
-          "telephone": "+61-XXX-XXX-XXX",
           "address": {
             "@type": "PostalAddress",
             "addressLocality": "Newcastle",

@@ -31,6 +31,15 @@ interface TimeSlotCalendarProps {
 
 const SLOT_ROW_HEIGHT_PX = 34; // Compact height for grid view
 
+// Fixed hours to always display (8am to 6pm)
+const BUSINESS_HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+
+const formatHourLabel = (hour: number): string => {
+  if (hour === 12) return '12:00 pm';
+  if (hour > 12) return `${hour - 12}:00 pm`;
+  return `${hour}:00 am`;
+};
+
 /**
  * Format a date as YYYY-MM-DD in Melbourne timezone
  * This must match the format used in groupSlotsByDate
@@ -469,9 +478,9 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full flex-1 flex flex-col min-h-0">
       {/* Navigation - Refined steel finish */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
           <button
             onClick={previousWeek}
@@ -731,13 +740,13 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       {/* Desktop calendar grid - Clean glass finish */}
       {weekSchedule.length > 0 && (
       <div
-        className="hidden lg:block"
+        className="hidden lg:flex lg:flex-col flex-1 min-h-0"
         role="region"
         aria-labelledby="calendar-month-label"
         aria-label="Weekly appointment calendar"
       >
         <div 
-          className="rounded-lg overflow-hidden relative"
+          className="rounded-lg overflow-hidden relative flex-1 flex flex-col"
           style={{
             border: '1px solid rgba(226,232,240,0.8)',
             background: 'rgba(255,255,255,0.98)',
@@ -766,7 +775,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           <div
             className="grid gap-0"
             style={{ 
-              gridTemplateColumns: `60px repeat(${weekSchedule.length}, minmax(0, 1fr))`,
+              gridTemplateColumns: `50px repeat(${Math.max(weekSchedule.length, 5)}, minmax(0, 1fr))`,
               background: 'linear-gradient(180deg, rgba(248,250,252,0.98) 0%, rgba(241,245,249,0.95) 100%)',
               borderBottom: '1px solid rgba(226,232,240,0.6)'
             }}
@@ -774,7 +783,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             aria-label="Days of the week"
           >
             {/* Empty corner cell for time column */}
-            <div className="py-2 px-1" />
+            <div className="py-1.5 px-1" />
             
             {weekSchedule.map((day, dayIndex) => {
               const isToday =
@@ -783,7 +792,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
               return (
                 <div
                   key={dayIndex}
-                  className="text-center py-2 px-1"
+                  className="text-center py-1.5 px-1"
                   style={{
                     background: isToday 
                       ? 'linear-gradient(135deg, rgba(254,243,199,0.5) 0%, rgba(253,230,138,0.3) 100%)'
@@ -792,92 +801,101 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                   role="columnheader"
                   aria-label={`${day.dayName} ${day.dayNumber} ${day.month}${isToday ? ' (Today)' : ''}`}
                 >
-                  <div className="text-[10px] font-semibold uppercase text-slate-400 tracking-wide">
+                  <div className="text-[9px] sm:text-[10px] font-semibold uppercase text-slate-400 tracking-wide">
                     {day.dayName}
                   </div>
                   <div
-                    className={`text-base font-bold ${isToday ? 'text-amber-600' : 'text-slate-700'}`}
+                    className={`text-sm sm:text-base font-bold ${isToday ? 'text-amber-600' : 'text-slate-700'}`}
                   >
                     {day.dayNumber}
                   </div>
-                  <div className="text-[10px] text-slate-400">{day.month}</div>
+                  <div className="text-[9px] sm:text-[10px] text-slate-400">{day.month}</div>
                   {isToday && <span className="sr-only">Today</span>}
                 </div>
               );
             })}
+            
+            {/* Empty header cells if fewer than 5 days */}
+            {weekSchedule.length < 5 && Array.from({ length: 5 - weekSchedule.length }).map((_, i) => (
+              <div key={`empty-header-${i}`} className="text-center py-1.5 px-1" role="columnheader" />
+            ))}
           </div>
 
-          {/* Time slots grid - aligned by time across all days */}
+          {/* Time slots grid - fixed rows for all business hours (8am-6pm) */}
           {(() => {
-            // Collect all unique times across all days and sort them
-            const allTimesSet = new Set<string>();
-            weekSchedule.forEach(day => {
+            // Create a lookup for each day's slots by hour
+            const slotsByDayAndHour = new Map<number, Map<number, TimeSlot>>();
+            weekSchedule.forEach((day, dayIndex) => {
+              const daySlots = new Map<number, TimeSlot>();
               day.slots.forEach(slot => {
-                allTimesSet.add(slot.time);
-              });
-            });
-            const allTimes = Array.from(allTimesSet).sort((a, b) => {
-              // Parse times like "8:00 am" or "6:00 pm" for comparison
-              const parseTime = (t: string) => {
-                const [time, period] = t.split(' ');
-                const [hours, minutes] = time.split(':').map(Number);
+                // Parse the time to get the hour
+                const [time, period] = slot.time.split(' ');
+                const [hours] = time.split(':').map(Number);
                 let hour = hours;
                 if (period.toLowerCase() === 'pm' && hour !== 12) hour += 12;
                 if (period.toLowerCase() === 'am' && hour === 12) hour = 0;
-                return hour * 60 + minutes;
-              };
-              return parseTime(a) - parseTime(b);
-            });
-
-            // Create a lookup for each day's slots by time
-            const slotsByDayAndTime = new Map<number, Map<string, TimeSlot>>();
-            weekSchedule.forEach((day, dayIndex) => {
-              const daySlots = new Map<string, TimeSlot>();
-              day.slots.forEach(slot => {
-                daySlots.set(slot.time, slot);
+                daySlots.set(hour, slot);
               });
-              slotsByDayAndTime.set(dayIndex, daySlots);
+              slotsByDayAndHour.set(dayIndex, daySlots);
             });
 
             // Grid with time labels on left
-            const gridCols = `60px repeat(${weekSchedule.length}, minmax(0, 1fr))`;
+            const gridCols = `50px repeat(${Math.max(weekSchedule.length, 5)}, minmax(0, 1fr))`;
 
             return (
-              <div role="grid" aria-label="Available appointment time slots" className="bg-white">
-                {allTimes.map((time, rowIndex) => (
-                  <div
-                    key={time}
-                    className={`grid items-center ${rowIndex % 2 === 0 ? 'bg-slate-50/50' : 'bg-white'}`}
-                    style={{ 
-                      gridTemplateColumns: gridCols,
-                      minHeight: `${SLOT_ROW_HEIGHT_PX}px`
-                    }}
-                    role="row"
-                  >
-                    {/* Time label */}
-                    <div className="text-[10px] font-medium text-slate-400 text-right pr-3 py-1">
-                      {time}
-                    </div>
-                    
-                    {/* Day columns */}
-                    {weekSchedule.map((day, dayIndex) => {
-                      const daySlots = slotsByDayAndTime.get(dayIndex);
-                      const slot = daySlots?.get(time);
+              <div 
+                role="grid" 
+                aria-label="Available appointment time slots" 
+                className="bg-white flex-1 flex flex-col"
+              >
+                {BUSINESS_HOURS.map((hour, rowIndex) => {
+                  const timeLabel = formatHourLabel(hour);
+                  return (
+                    <div
+                      key={hour}
+                      className={`grid items-center flex-1 ${rowIndex % 2 === 0 ? 'bg-slate-50/50' : 'bg-white'}`}
+                      style={{ 
+                        gridTemplateColumns: gridCols,
+                        minHeight: '2.5vh'
+                      }}
+                      role="row"
+                    >
+                      {/* Time label */}
+                      <div className="text-[10px] sm:text-xs font-medium text-slate-400 text-right pr-2 py-0.5">
+                        {timeLabel}
+                      </div>
                       
-                      return (
-                        <div
-                          key={`${dayIndex}-${time}`}
-                          className="flex items-center justify-center py-0.5 px-0.5"
-                          role="gridcell"
-                        >
-                          {slot ? (
-                            renderSlotButton(day, slot, rowIndex)
-                          ) : null}
+                      {/* Day columns */}
+                      {weekSchedule.map((day, dayIndex) => {
+                        const daySlots = slotsByDayAndHour.get(dayIndex);
+                        const slot = daySlots?.get(hour);
+                        
+                        return (
+                          <div
+                            key={`${dayIndex}-${hour}`}
+                            className="flex items-center justify-center py-0.5 px-0.5 h-full"
+                            role="gridcell"
+                          >
+                            {slot ? (
+                              renderSlotButton(day, slot, rowIndex)
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <span className="text-slate-200 text-[10px]">—</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Empty cells if fewer than 5 days */}
+                      {weekSchedule.length < 5 && Array.from({ length: 5 - weekSchedule.length }).map((_, i) => (
+                        <div key={`empty-${i}`} className="flex items-center justify-center py-0.5 px-0.5" role="gridcell">
+                          <span className="text-slate-200 text-[10px]">—</span>
                         </div>
-                      );
-                    })}
-                  </div>
-                ))}
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
             );
           })()}

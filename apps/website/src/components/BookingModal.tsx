@@ -133,10 +133,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         onClick={onClose}
       ></div>
 
-      {/* Modal panel - HEAVY steel & glass aesthetic, responsive to screen size */}
+      {/* Modal panel - responsive to viewport, no scroll */}
       <div
         ref={modalContentRef}
-        className={`relative z-10 w-full h-full sm:h-auto sm:max-h-[95vh] md:max-h-[92vh] lg:max-h-[95vh] max-w-[100vw] sm:max-w-[85vw] md:max-w-[70vw] lg:max-w-xl overflow-hidden rounded-none sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-0 sm:border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+        className={`relative z-10 w-[95vw] h-[90vh] sm:w-[90vw] sm:h-[88vh] md:w-[85vw] md:h-[85vh] lg:w-[80vw] lg:h-[85vh] lg:max-w-4xl overflow-hidden rounded-xl bg-gradient-to-b from-slate-50 to-white border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         style={{
           boxShadow: `
             0 0 0 6px rgba(255, 255, 255, 0.15),
@@ -185,15 +185,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           </svg>
         </button>
 
-        {/* Booking form - responsive padding based on screen size */}
-        <div className="p-[1.2vh] sm:p-[1.5vh] md:p-[2vh] pt-10 sm:pt-4 overflow-y-auto flex-1">
+        {/* Booking form - fills available space, no scroll */}
+        <div className="p-3 sm:p-4 md:p-5 pt-10 sm:pt-4 flex-1 flex flex-col min-h-0">
           {isReady ? (
-            <div className="animate-fadeIn">
+            <div className="animate-fadeIn flex-1 flex flex-col min-h-0">
               <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
             </div>
           ) : (
             <BookingFormSkeleton />
-          )}
+          )}}
         </div>
       </div>
       

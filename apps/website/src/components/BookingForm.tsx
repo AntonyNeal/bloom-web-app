@@ -1055,10 +1055,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 2: Date & Time - Glass & Steel Composition */}
       {step === 'datetime' && (
-        <div className="space-y-3">
+        <div className="flex flex-col flex-1 min-h-0 gap-3">
           {/* Calendar Section - Clean white panel with subtle steel edge */}
           <div 
-            className="rounded-xl border border-slate-200/80 bg-white p-3 sm:p-4"
+            className="rounded-xl border border-slate-200/80 bg-white p-3 sm:p-4 flex-1 flex flex-col min-h-0"
             style={{
               boxShadow: `
                 0 1px 3px rgba(0,0,0,0.04),
@@ -1067,7 +1067,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               `
             }}
           >
-            <div className="mb-3">
+            <div className="mb-2 flex-shrink-0">
               <h3 className="text-base font-bold text-slate-700">
                 Select a Date & Time <span className="text-red-500">*</span>
               </h3>
@@ -1075,28 +1075,30 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 Choose an available slot that works for you
               </p>
             </div>
-            <TimeSlotCalendar
-              onSelectSlot={(date, time) => {
-                setAppointmentDate(date);
-                setAppointmentTime(time);
-                const newErrors = { ...errors };
-                delete newErrors['appointmentDate'];
-                delete newErrors['appointmentTime'];
-                setErrors(newErrors);
-              }}
-              selectedDate={appointmentDate}
-              selectedTime={appointmentTime}
-              duration={60}
-            />
+            <div className="flex-1 flex flex-col min-h-0">
+              <TimeSlotCalendar
+                onSelectSlot={(date, time) => {
+                  setAppointmentDate(date);
+                  setAppointmentTime(time);
+                  const newErrors = { ...errors };
+                  delete newErrors['appointmentDate'];
+                  delete newErrors['appointmentTime'];
+                  setErrors(newErrors);
+                }}
+                selectedDate={appointmentDate}
+                selectedTime={appointmentTime}
+                duration={60}
+              />
+            </div>
             {(errors['appointmentDate'] || errors['appointmentTime']) && (
-              <p className="text-red-500 text-sm mt-3 font-medium">
+              <p className="text-red-500 text-sm mt-2 font-medium flex-shrink-0">
                 {errors['appointmentDate'] || errors['appointmentTime']}
               </p>
             )}
           </div>
 
           {/* Action buttons - Polished steel finish */}
-          <div className="flex flex-col sm:flex-row justify-between gap-2 pt-1">
+          <div className="flex flex-col sm:flex-row justify-between gap-2 flex-shrink-0">
             <button
               type="button"
               onClick={() => {

@@ -1013,41 +1013,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 3: Session Type & Notes */}
       {step === 'session' && (
-        <div className="flex flex-col flex-1 min-h-0 gap-3">
-          {/* Session Details - Frosted glass panel */}
-          <div 
-            className="rounded-xl p-4 sm:p-5 border border-slate-200/60 relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(145deg, rgba(248,250,252,0.97) 0%, rgba(241,245,249,0.92) 100%)',
-              backdropFilter: 'blur(12px)',
-              boxShadow: `
-                0 1px 2px rgba(0,0,0,0.03),
-                0 4px 16px rgba(0,0,0,0.04),
-                inset 0 1px 0 rgba(255,255,255,0.95),
-                inset 0 -1px 0 rgba(148,163,184,0.08)
-              `
-            }}
-          >
-            {/* Subtle steel accent line at top */}
-            <div 
-              className="absolute top-0 left-4 right-4 h-px"
-              style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(148,163,184,0.25) 30%, rgba(203,213,225,0.4) 50%, rgba(148,163,184,0.25) 70%, transparent 100%)'
-              }}
-            />
-            
-            <div className="flex items-center gap-2 mb-4">
-              <span 
-                className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border"
-                style={{
-                  background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
-                  borderColor: 'rgba(148,163,184,0.4)',
-                  color: '#64748b',
-                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8)'
-                }}
-              >1</span>
-              <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">Appointment type <span className="text-red-500">*</span></span>
-            </div>
+        <div className="flex flex-col flex-1 min-h-0 gap-4">
+          {/* Appointment Type Section */}
+          <div>
+            <label
+              htmlFor="appointmentType-select"
+              className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide"
+            >
+              Appointment Type <span className="text-red-500">*</span>
+            </label>
 
             <select
               id="appointmentType-select"
@@ -1058,8 +1032,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   setMedicareSelectedThisSession(true);
                 }
               }}
-              className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['appointmentType'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50'}`}
-              style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)' }}
+              className={`w-full px-3 py-2 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['appointmentType'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
               aria-required="true"
               aria-invalid={!!errors['appointmentType']}
               aria-describedby={
@@ -1085,7 +1058,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             {errors['appointmentType'] && (
               <p
                 id="appointmentType-error"
-                className="text-red-500 text-sm mt-1 font-medium"
+                className="text-red-500 text-xs mt-1 font-medium"
                 role="alert"
               >
                 {errors['appointmentType']}
@@ -1094,39 +1067,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
             {appointmentType === 'medicare-psychologist-session' &&
               medicareSelectedThisSession && (
-                <div 
-                  className="mt-4 space-y-3 rounded-xl border border-emerald-200/80 p-4"
-                  style={{ 
-                    background: 'linear-gradient(135deg, rgba(236,253,245,0.9) 0%, rgba(255,255,255,0.95) 100%)',
-                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.08)' 
-                  }}
-                >
-                  <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                    <span aria-hidden="true">💚</span>
-                    Medicare Cost Breakdown
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 text-center text-xs font-semibold text-slate-600">
-                    <div className="rounded-lg border border-slate-200 bg-white p-2.5" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)' }}>
-                      <div className="mb-0.5 text-slate-500 text-[10px]">Session Fee</div>
-                      <div className="text-lg font-bold text-slate-800">$250</div>
-                    </div>
-                    <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-2.5">
-                      <div className="mb-0.5 text-emerald-600 text-[10px]">Rebate</div>
-                      <div className="text-lg font-bold text-emerald-600">−$98.95</div>
-                    </div>
-                    <div 
-                      className="rounded-lg border border-emerald-400 p-2.5 text-white"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)' 
-                      }}
-                    >
-                      <div className="mb-0.5 text-emerald-100 text-[10px]">Your Gap</div>
-                      <div className="text-lg font-bold">$151.05</div>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-slate-500 text-center">
-                    Requires a valid GP Mental Health Treatment Plan
+                <div className="mt-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                  <p className="text-xs text-emerald-700 font-medium">
+                    💚 Medicare: $250 − $98.95 rebate = <strong>$151.05 gap</strong>
+                    <span className="block text-emerald-600 mt-1 font-normal">Requires a valid GP Mental Health Treatment Plan</span>
                   </p>
                 </div>
               )}
@@ -1137,103 +1081,52 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             ) && (
               <p
                 id="appointmentType-hint"
-                className="mt-3 rounded-lg border border-slate-200/80 px-4 py-3 text-sm text-slate-600"
-                style={{ 
-                  background: 'linear-gradient(135deg, rgba(248,250,252,0.8) 0%, rgba(241,245,249,0.6) 100%)',
-                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' 
-                }}
+                className="mt-2 text-xs text-slate-500 px-1"
               >
-                💡 Medicare rebates available for eligible appointments ($250 −
-                $98.95 rebate = $151.05 gap)
+                💡 Medicare rebates available for eligible appointments ($250 − $98.95 rebate = $151.05 gap)
               </p>
             )}
           </div>
 
-          {/* Notes Section - Separate glass panel */}
-          <div 
-            className="rounded-xl p-4 sm:p-5 border border-slate-200/60 relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(145deg, rgba(248,250,252,0.97) 0%, rgba(241,245,249,0.92) 100%)',
-              backdropFilter: 'blur(12px)',
-              boxShadow: `
-                0 1px 2px rgba(0,0,0,0.03),
-                0 4px 16px rgba(0,0,0,0.04),
-                inset 0 1px 0 rgba(255,255,255,0.95),
-                inset 0 -1px 0 rgba(148,163,184,0.08)
-              `
-            }}
-          >
-            {/* Subtle steel accent line at top */}
-            <div 
-              className="absolute top-0 left-4 right-4 h-px"
-              style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(148,163,184,0.25) 30%, rgba(203,213,225,0.4) 50%, rgba(148,163,184,0.25) 70%, transparent 100%)'
-              }}
-            />
-            
-            <div className="flex items-center gap-2 mb-4">
-              <span 
-                className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border"
-                style={{
-                  background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
-                  borderColor: 'rgba(148,163,184,0.4)',
-                  color: '#64748b',
-                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8)'
-                }}
-              >2</span>
-              <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">Notes <span className="font-normal normal-case text-slate-400">(optional)</span></span>
-            </div>
-
-            <div 
-              className="mb-3 flex items-center gap-3 rounded-lg border border-slate-200/80 p-3"
-              style={{ 
-                background: 'linear-gradient(135deg, rgba(248,250,252,0.6) 0%, rgba(255,255,255,0.8) 100%)',
-                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' 
-              }}
+          {/* Notes Section */}
+          <div>
+            <label
+              htmlFor="notes-textarea"
+              className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide"
             >
+              Notes <span className="font-normal normal-case text-slate-400">(optional)</span>
+            </label>
+
+            <div className="mb-2 flex items-center gap-2">
               <input
                 type="checkbox"
                 id="first-session-toggle"
                 checked={isFirstSession}
                 onChange={(e) => setIsFirstSession(e.target.checked)}
-                className="h-5 w-5 cursor-pointer rounded border-slate-300 text-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:ring-offset-1"
+                className="h-4 w-4 cursor-pointer rounded border-slate-300 text-emerald-600 focus:ring-1 focus:ring-emerald-200"
                 aria-describedby="first-session-hint"
               />
               <label
                 htmlFor="first-session-toggle"
-                className="text-sm font-medium text-slate-600 cursor-pointer"
+                className="text-sm text-slate-600 cursor-pointer"
               >
                 👋 This is my first session with Zoe
               </label>
             </div>
 
             {isFirstSession && (
-              <details
-                open
-                className="mb-3 rounded-lg border border-slate-200/80 bg-slate-50/80 p-3 text-sm text-slate-600"
-              >
-                <summary className="mb-2 cursor-pointer font-semibold text-slate-700">
-                  What should I include?
-                </summary>
-                <ul className="list-disc space-y-1 pl-5 text-sm">
-                  <li>What brings you to therapy and your goals</li>
-                  <li>Any previous therapy experience</li>
-                  <li>Current challenges or symptoms</li>
-                  <li>How you prefer sessions to run</li>
-                </ul>
-                <p className="mt-2 text-xs text-slate-500">
-                  Keep it brief—Zoe will explore everything in session, this just gives her a heads‑up.
-                </p>
-              </details>
+              <div className="mb-2 p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                <p className="font-medium text-slate-700 mb-1">What to include:</p>
+                <p>Your goals, previous therapy experience, current challenges, and session preferences.</p>
+              </div>
             )}
 
             <textarea
               id="notes-textarea"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={isFirstSession ? 4 : 2}
-              className="w-full rounded-lg border border-slate-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50 focus:outline-none transition-all bg-white"
-              style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)' }}
+              rows={isFirstSession ? 3 : 2}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100 focus:outline-none transition-all bg-white"
               placeholder={
                 isFirstSession
                   ? 'Share the top things Zoe should know before your first session...'
@@ -1242,19 +1135,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             />
           </div>
 
-          {/* Action buttons - Polished steel finish */}
-          <div className="flex flex-col sm:flex-row justify-between gap-2 flex-shrink-0 pt-2">
+          {/* Action buttons */}
+          <div className="flex justify-between items-center gap-3 flex-shrink-0 pt-2 mt-auto">
             <button
               type="button"
               onClick={() => {
                 setStep('datetime');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-              className="px-6 py-3.5 text-sm font-bold rounded-lg text-slate-600 border border-slate-300 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-1 transition-all active:scale-[0.98]"
-              style={{ 
-                background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9)' 
-              }}
+              className="px-4 py-2 text-xs font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
             >
               ← Back
             </button>
@@ -1262,24 +1151,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleSessionNext}
               disabled={!isSessionStepValid()}
-              className={`px-8 py-3.5 text-sm font-bold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+              className={`px-5 py-2 text-xs font-semibold rounded-md transition-all ${
                 isSessionStepValid()
-                  ? 'text-white border border-emerald-400 focus:ring-emerald-300 cursor-pointer active:scale-[0.98]'
-                  : 'text-slate-400 border border-slate-200 cursor-not-allowed'
+                  ? 'text-white bg-emerald-500 hover:bg-emerald-600 cursor-pointer'
+                  : 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
               }`}
-              style={isSessionStepValid() 
-                ? { 
-                    background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
-                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255,255,255,0.2)' 
-                  } 
-                : { 
-                    background: 'linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%)',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' 
-                  }
-              }
               aria-disabled={!isSessionStepValid()}
             >
-              Continue {isSessionStepValid() && '→'}
+              Continue →
             </button>
           </div>
         </div>
@@ -1288,38 +1167,33 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       {/* Step 4: Payment */}
       {step === 'payment' && (
         <div className="flex flex-col flex-1 min-h-0 gap-4">
-          <div className="rounded-xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 to-white p-6 sm:p-8" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}>
-            <div className="text-base text-slate-700 space-y-3">
-              <div className="flex justify-between items-center py-2 border-b border-slate-200">
-                <span className="font-semibold text-slate-600">Appointment Type</span>
-                <span className="font-bold text-slate-800">
-                  {appointmentType === 'psychologist-session'
-                    ? 'Psychologist Session'
-                    : appointmentType === 'medicare-psychologist-session'
-                      ? 'Medicare Psychologist Session'
-                      : appointmentType === 'couples-session'
-                        ? 'Couples Session'
-                        : 'NDIS Psychology Session'}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="font-semibold text-slate-600">Amount Due</span>
-                <span className="text-2xl font-extrabold text-emerald-600">
-                  {appointmentType === 'couples-session'
-                    ? '$300.00'
-                    : appointmentType === 'ndis-psychology-session'
-                      ? '$232.99'
-                      : '$250.00'}
-                </span>
-              </div>
+          {/* Order Summary */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-slate-600">
+                {appointmentType === 'psychologist-session'
+                  ? 'Psychologist Session'
+                  : appointmentType === 'medicare-psychologist-session'
+                    ? 'Medicare Psychologist Session'
+                    : appointmentType === 'couples-session'
+                      ? 'Couples Session'
+                      : 'NDIS Psychology Session'}
+                <span className="text-slate-400 ml-1">(60 mins)</span>
+              </span>
+              <span className="text-lg font-bold text-slate-800">
+                {appointmentType === 'couples-session'
+                  ? '$300.00'
+                  : appointmentType === 'ndis-psychology-session'
+                    ? '$232.99'
+                    : '$250.00'}
+              </span>
             </div>
           </div>
 
           <Suspense fallback={
-            <div className="animate-pulse space-y-4 p-4">
-              <div className="h-12 bg-slate-200 rounded-lg"></div>
-              <div className="h-12 bg-slate-200 rounded-lg"></div>
-              <div className="h-10 bg-blue-200 rounded-lg w-32"></div>
+            <div className="animate-pulse space-y-3">
+              <div className="h-10 bg-slate-100 rounded-lg"></div>
+              <div className="h-10 bg-slate-100 rounded-lg"></div>
             </div>
           }>
             <StripePayment
@@ -1356,71 +1230,118 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 5: Confirmation */}
       {step === 'confirm' && (
-        <div className="flex flex-col flex-1 min-h-0 gap-3">
-          <div className="rounded-xl border-2 border-emerald-300 bg-gradient-to-b from-emerald-50 to-white p-6 sm:p-8" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(16, 185, 129, 0.15)' }}>
-            <h3 className="text-lg font-extrabold text-slate-800 mb-5 uppercase tracking-wide">
-              Confirm Your Booking
-            </h3>
-
-            <div className="space-y-3 text-base">
-              <div className="flex flex-col sm:flex-row sm:gap-2 py-2 border-b border-emerald-200">
-                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
-                  Patient
-                </span>
-                <span className="text-slate-800 font-medium">
-                  {firstName} {lastName}
-                </span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:gap-2 py-2 border-b border-emerald-200">
-                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
-                  Email
-                </span>
-                <span className="text-slate-800 font-medium">{email}</span>
-              </div>
-              {phone && (
-                <div className="flex flex-col sm:flex-row sm:gap-2 py-2 border-b border-emerald-200">
-                  <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
-                    Phone
-                  </span>
-                  <span className="text-slate-800 font-medium">{phone}</span>
-                </div>
-              )}
-              <div className="flex flex-col sm:flex-row sm:gap-2 py-2 border-b border-emerald-200">
-                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
-                  Appointment
-                </span>
-                <span className="text-slate-800 font-medium">
-                  {appointmentType
-                    .split('-')
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ')}
-                </span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:gap-2 py-2">
-                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
-                  Date & Time
-                </span>
-                <span className="text-slate-800 font-semibold">{formatDateForDisplay()}</span>
-              </div>
-              {notes && (
-                <div className="flex flex-col sm:flex-row sm:gap-2 pt-3 mt-2 border-t-2 border-emerald-200">
-                  <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
-                    Notes
-                  </span>
-                  <span className="text-slate-700 font-medium">{notes}</span>
-                </div>
-              )}
+        <div className="flex flex-col flex-1 min-h-0 gap-4">
+          {/* Success Header */}
+          <div className="text-center pb-2">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-500 mb-3" style={{ boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)' }}>
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
             </div>
+            <h3 className="text-xl font-bold text-slate-800">Payment Successful!</h3>
+            <p className="text-sm text-slate-500 mt-1">Please confirm your booking details below</p>
           </div>
 
-          {/* Action buttons - HEAVY styling */}
-          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
+          {/* Booking Details Card */}
+          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+            {/* Card Header */}
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-3">
+              <h4 className="text-white font-semibold text-sm tracking-wide">Booking Summary</h4>
+            </div>
+            
+            {/* Card Content */}
+            <div className="divide-y divide-slate-100">
+              <div className="flex items-center px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 mr-4">
+                  <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Patient</p>
+                  <p className="text-sm font-semibold text-slate-800 truncate">{firstName} {lastName}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-purple-50 mr-4">
+                  <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Email</p>
+                  <p className="text-sm font-semibold text-slate-800 truncate">{email}</p>
+                </div>
+              </div>
+              
+              {phone && (
+                <div className="flex items-center px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-green-50 mr-4">
+                    <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Phone</p>
+                    <p className="text-sm font-semibold text-slate-800">{phone}</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex items-center px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-50 mr-4">
+                  <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Session Type</p>
+                  <p className="text-sm font-semibold text-slate-800">
+                    {appointmentType
+                      .split('-')
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(' ')}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center px-5 py-3.5 bg-emerald-50/50">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 mr-4">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide">Date & Time</p>
+                  <p className="text-sm font-bold text-emerald-700">{formatDateForDisplay()}</p>
+                </div>
+              </div>
+            </div>
+            
+            {notes && (
+              <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">Additional Notes</p>
+                <p className="text-sm text-slate-600">{notes}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Info Banner */}
+          <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-blue-50 border border-blue-100">
+            <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-xs text-blue-700">A confirmation email will be sent to <span className="font-semibold">{email}</span> with your appointment details.</p>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-col sm:flex-row justify-between gap-3 pt-2">
             <button
               type="button"
               onClick={() => setStep('payment')}
               disabled={loading}
-              className="px-5 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 text-xs sm:text-sm md:text-base font-bold rounded-lg text-slate-600 bg-gradient-to-b from-white to-slate-100 border-2 border-slate-300 hover:border-slate-400 disabled:opacity-50 focus:outline-none focus:ring-3 focus:ring-slate-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
-              style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
+              className="px-5 py-2.5 text-sm font-semibold rounded-lg text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all"
             >
               ← Back
             </button>
@@ -1428,13 +1349,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleSubmit}
               disabled={loading}
-              className="px-6 sm:px-8 md:px-10 py-2 sm:py-3 md:py-4 text-xs sm:text-sm md:text-base font-bold rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-2 border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-50 focus:outline-none focus:ring-3 focus:ring-emerald-300 focus:ring-offset-2 flex items-center justify-center transition-all active:scale-[0.98]"
-              style={{ boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
+              className="px-8 py-2.5 text-sm font-semibold rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-2 flex items-center justify-center transition-all"
+              style={{ boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)' }}
             >
               {loading ? (
                 <>
                   <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -1453,7 +1374,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Booking...
+                  Confirming...
                 </>
               ) : (
                 'Confirm Booking →'

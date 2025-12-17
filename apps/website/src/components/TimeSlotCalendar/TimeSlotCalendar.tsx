@@ -47,6 +47,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(minWeekStart);
   const [mobileActiveDayIndex, setMobileActiveDayIndex] = useState(0);
   const [userSelectedDay, setUserSelectedDay] = useState(false);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [monthPickerDate, setMonthPickerDate] = useState<Date>(() => new Date());
 
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -248,11 +250,65 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     setCurrentWeekStart(newStart);
   };
 
-  const goToFirstAvailableWeek = () => {
-    // Always search forward when user clicks Find - reset search state and go to next week
-    setSearchedWeeksWithNoSlots(new Set());
-    setIsSearchingForAvailability(true);
-    nextWeek();
+  const toggleMonthPicker = () => {
+    setMonthPickerDate(new Date(currentWeekStart));
+    setShowMonthPicker(!showMonthPicker);
+  };
+
+  const goToDate = (date: Date) => {
+    const weekStart = getWeekStart(date);
+    // Don't allow going to past weeks
+    if (weekStart.getTime() < minWeekStart.getTime()) {
+      setCurrentWeekStart(minWeekStart);
+    } else {
+      setCurrentWeekStart(weekStart);
+    }
+    setShowMonthPicker(false);
+  };
+
+  const previousMonth = () => {
+    const newDate = new Date(monthPickerDate);
+    newDate.setMonth(newDate.getMonth() - 1);
+    // Don't go before current month
+    const today = new Date();
+    if (newDate.getFullYear() < today.getFullYear() || 
+        (newDate.getFullYear() === today.getFullYear() && newDate.getMonth() < today.getMonth())) {
+      return;
+    }
+    setMonthPickerDate(newDate);
+  };
+
+  const nextMonth = () => {
+    const newDate = new Date(monthPickerDate);
+    newDate.setMonth(newDate.getMonth() + 1);
+    setMonthPickerDate(newDate);
+  };
+
+  // Generate calendar days for month picker
+  const getMonthCalendarDays = () => {
+    const year = monthPickerDate.getFullYear();
+    const month = monthPickerDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    
+    // Get the day of week for the first day (0 = Sunday, adjust to Monday start)
+    let startDayOfWeek = firstDay.getDay() - 1;
+    if (startDayOfWeek < 0) startDayOfWeek = 6;
+    
+    const days: (Date | null)[] = [];
+    
+    // Add empty slots for days before the first of the month
+    for (let i = 0; i < startDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add all days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i));
+    }
+    
+    return days;
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -335,7 +391,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   // Render
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="w-full flex-1 flex flex-col min-h-0">
+    <div className="w-full flex-1 flex flex-col min-h-0 relative">
       {/* Navigation - Compact */}
       <div className="mb-1 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-1">
@@ -367,9 +423,12 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         </div>
 
         <button
-          onClick={goToFirstAvailableWeek}
-          className="text-emerald-600 hover:text-emerald-700 font-medium text-[10px] flex items-center gap-0.5 transition-colors"
-          aria-label="Find first available week"
+          onClick={toggleMonthPicker}
+          className={`font-medium text-[10px] flex items-center gap-0.5 transition-colors ${
+            showMonthPicker ? 'text-emerald-700' : 'text-emerald-600 hover:text-emerald-700'
+          }`}
+          aria-label="Open month picker"
+          aria-expanded={showMonthPicker}
         >
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -379,9 +438,95 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          Find
+          {showMonthPicker ? 'Close' : 'Month'}
         </button>
       </div>
+
+      {/* Month Picker Overlay */}
+      {showMonthPicker && (
+        <>
+          {/* Backdrop to close on click outside */}
+          <div 
+            className="fixed inset-0 z-20" 
+            onClick={() => setShowMonthPicker(false)}
+            aria-hidden="true"
+          />
+          <div 
+            className="absolute top-8 right-0 z-30 bg-white rounded-lg shadow-lg border border-slate-200 p-3 w-64"
+            role="dialog"
+            aria-label="Month picker"
+          >
+          {/* Month Navigation */}
+          <div className="flex items-center justify-between mb-2">
+            <button
+              onClick={previousMonth}
+              className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-100 transition-colors"
+              aria-label="Previous month"
+            >
+              <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span className="text-sm font-semibold text-slate-700">
+              {monthPickerDate.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })}
+            </span>
+            <button
+              onClick={nextMonth}
+              className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-100 transition-colors"
+              aria-label="Next month"
+            >
+              <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Day Headers */}
+          <div className="grid grid-cols-7 gap-0.5 mb-1">
+            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
+              <div key={i} className="text-[10px] font-semibold text-slate-400 text-center py-1">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-0.5">
+            {getMonthCalendarDays().map((date, i) => {
+              if (!date) {
+                return <div key={`empty-${i}`} className="w-8 h-8" />;
+              }
+              
+              const todayDate = new Date();
+              todayDate.setHours(0, 0, 0, 0);
+              const isPast = date.getTime() < todayDate.getTime();
+              const isCurrentDay = date.toDateString() === todayDate.toDateString();
+              const isInCurrentWeek = date >= currentWeekStart && 
+                date < new Date(currentWeekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+              
+              return (
+                <button
+                  key={date.toISOString()}
+                  onClick={() => !isPast && goToDate(date)}
+                  disabled={isPast}
+                  className={`w-8 h-8 text-xs rounded flex items-center justify-center transition-all ${
+                    isPast
+                      ? 'text-slate-300 cursor-not-allowed'
+                      : isInCurrentWeek
+                        ? 'bg-emerald-100 text-emerald-700 font-semibold'
+                        : isCurrentDay
+                          ? 'bg-amber-100 text-amber-700 font-semibold'
+                          : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  {date.getDate()}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        </>
+      )}
 
       {/* Error Message */}
       {error && (

@@ -1,11 +1,12 @@
 import {
   CardElement,
   Elements,
+  PaymentRequestButtonElement,
   useElements,
   useStripe,
 } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import React, { useState } from 'react';
+import { loadStripe, PaymentRequest } from '@stripe/stripe-js';
+import React, { useEffect, useState } from 'react';
 import { apiService } from '../services/ApiService';
 import { log } from '../utils/logger';
 
@@ -34,6 +35,105 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null);
+  const [canMakePayment, setCanMakePayment] = useState(false);
+
+  // Set up Payment Request for Google Pay / Apple Pay
+  useEffect(() => {
+    if (!stripe) return;
+
+    const pr = stripe.paymentRequest({
+      country: 'AU',
+      currency: 'aud',
+      total: {
+        label: 'Bloom Psychology Appointment',
+        amount: Math.round(amount * 100),
+      },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    // Check if Google Pay / Apple Pay is available
+    pr.canMakePayment().then((result) => {
+      log.info('canMakePayment result', 'StripePayment', { result, available: !!result });
+      if (result) {
+        setPaymentRequest(pr);
+        setCanMakePayment(true);
+        log.info('Google Pay / Apple Pay available', 'StripePayment', result);
+      } else {
+        log.info('Google Pay / Apple Pay NOT available - ensure cards are saved in browser and Google Pay is enabled in Stripe Dashboard', 'StripePayment');
+      }
+    }).catch((err) => {
+      log.error('canMakePayment error', 'StripePayment', err);
+    });
+
+    // Handle payment method from Google Pay / Apple Pay
+    pr.on('paymentmethod', async (event) => {
+      setLoading(true);
+      setError('');
+
+      try {
+        // Create payment intent on backend
+        const response = await apiService.post<{ clientSecret: string }>(
+          '/api/create-payment-intent',
+          {
+            amount: Math.round(amount * 100),
+            currency: 'aud',
+            customerEmail: event.payerEmail || customerEmail,
+            customerName: event.payerName || customerName,
+          }
+        );
+
+        if (!response.success) {
+          event.complete('fail');
+          throw new Error('Failed to create payment intent');
+        }
+
+        const { clientSecret } = response.data;
+
+        // Confirm the payment with the payment method from Google Pay / Apple Pay
+        const { error: confirmError, paymentIntent } =
+          await stripe.confirmCardPayment(
+            clientSecret,
+            { payment_method: event.paymentMethod.id },
+            { handleActions: false }
+          );
+
+        if (confirmError) {
+          event.complete('fail');
+          setError(confirmError.message || 'Payment failed');
+          setLoading(false);
+          return;
+        }
+
+        event.complete('success');
+
+        if (paymentIntent?.status === 'requires_action') {
+          // Handle 3D Secure authentication if needed
+          const { error: actionError, paymentIntent: confirmedIntent } =
+            await stripe.confirmCardPayment(clientSecret);
+          
+          if (actionError) {
+            setError(actionError.message || 'Authentication failed');
+            setLoading(false);
+            return;
+          }
+
+          if (confirmedIntent?.status === 'succeeded') {
+            onSuccess(confirmedIntent.id);
+          }
+        } else if (paymentIntent?.status === 'succeeded') {
+          onSuccess(paymentIntent.id);
+        }
+      } catch (err) {
+        event.complete('fail');
+        setError(
+          err instanceof Error ? err.message : 'An unexpected error occurred'
+        );
+        setLoading(false);
+      }
+    });
+  }, [stripe, amount, customerEmail, customerName, onSuccess]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -53,12 +153,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
       // Create payment intent on your backend
       // This should call your Azure Function that creates a Stripe payment intent
-      const baseUrl =
-        import.meta.env['VITE_FUNCTIONS_URL'] ||
-        import.meta.env['VITE_AZURE_FUNCTION_URL'] ||
-        '';
       const response = await apiService.post<{ clientSecret: string }>(
-        `${baseUrl}/create-payment-intent`,
+        '/api/create-payment-intent',
         {
           amount: Math.round(amount * 100), // Convert to cents
           currency: 'aud',
@@ -121,67 +217,87 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         color: '#9e2146',
       },
     },
+    hidePostalCode: true,
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Google Pay / Apple Pay Button */}
+      {canMakePayment && paymentRequest && (
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+            Express Checkout
+          </label>
+          <div className="mb-2">
+            <PaymentRequestButtonElement
+              options={{
+                paymentRequest,
+                style: {
+                  paymentRequestButton: {
+                    type: 'default',
+                    theme: 'dark',
+                    height: '44px',
+                  },
+                },
+              }}
+            />
+          </div>
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="px-3 bg-white text-slate-400">or pay with card</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Card Element */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
           Card Details
         </label>
-        <p className="text-xs text-gray-500 mb-2">
-          Enter your card number, expiry date, security code (CVV), and postcode for verification.
-        </p>
-        <div className="border border-gray-300 rounded-md p-3 bg-white">
+        <div className="border border-slate-200 rounded-lg p-3 bg-white focus-within:border-emerald-400 focus-within:ring-1 focus-within:ring-emerald-100 transition-all">
           <CardElement options={cardElementOptions} />
         </div>
         {/* Test mode hint */}
-        <p className="text-xs text-gray-400 mt-2">
-          Test mode: Use card <span className="font-mono bg-gray-100 px-1 rounded">4242 4242 4242 4242</span>, any future date, any CVC
+        <p className="text-[10px] text-slate-400 mt-1.5">
+          Test mode: <span className="font-mono">4242 4242 4242 4242</span>, any future date, any CVC
         </p>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
           <p className="text-red-600 text-sm">{error}</p>
         </div>
       )}
 
       {/* Medicare/NDIS Info */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <h4 className="font-semibold text-green-800 mb-2">
-          💡 Rebate Information
-        </h4>
-        <ul className="text-green-700 text-sm space-y-1">
-          <li>• Medicare rebates available with valid GP Mental Health Plan</li>
-          <li>
-            • NDIS participants: This fee can be claimed through your plan
-          </li>
-          <li>• Receipt provided immediately after payment for claiming</li>
-        </ul>
+      <div className="text-xs text-slate-500 p-3 bg-slate-50 rounded-lg border border-slate-100">
+        <p>💡 Medicare rebates available with valid GP Mental Health Plan. Receipt provided immediately.</p>
       </div>
 
       {/* Buttons */}
-      <div className="flex gap-4">
+      <div className="flex justify-between items-center gap-3 pt-2">
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          className="px-4 py-2 text-xs font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
           disabled={loading}
         >
-          Back
+          ← Back
         </button>
         <button
           type="submit"
           disabled={!stripe || loading}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-5 py-2 text-xs font-semibold rounded-md text-white bg-emerald-500 hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <span className="flex items-center justify-center">
               <svg
-                className="animate-spin h-5 w-5 mr-2"
+                className="animate-spin h-4 w-4 mr-1.5"
                 viewBox="0 0 24 24"
                 fill="none"
               >
@@ -202,21 +318,21 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               Processing...
             </span>
           ) : (
-            `Pay $${amount.toFixed(2)}`
+            `Pay $${amount.toFixed(2)} →`
           )}
         </button>
       </div>
 
       {/* Security Badge */}
-      <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
+        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
           <path
             fillRule="evenodd"
             d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
             clipRule="evenodd"
           />
         </svg>
-        <span>Secured by Stripe • PCI DSS Compliant</span>
+        <span>Secured by Stripe</span>
       </div>
     </form>
   );

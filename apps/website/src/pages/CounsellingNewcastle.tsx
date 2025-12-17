@@ -161,7 +161,7 @@ const CounsellingNewcastle = () => {
                       Individual Sessions: $250
                     </p>
                     <p className="text-gray-600">
-                      Medicare rebate: $116.50 (gap $133.50)
+                      Medicare rebate: $98.95 (gap $151.05)
                     </p>
                   </div>
                   <div>
@@ -169,7 +169,7 @@ const CounsellingNewcastle = () => {
                       Couples Sessions: $300
                     </p>
                     <p className="text-gray-600">
-                      Medicare rebate: $139.20 (gap $160.80)
+                      No Medicare rebate (private pay)
                     </p>
                   </div>
                 </div>

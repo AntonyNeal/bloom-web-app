@@ -26,13 +26,6 @@ export const mainNavigation: NavigationItem[] = [
   { name: 'Services', path: '/services' },
   { name: 'How to Book', path: '/appointments' },
   { name: 'Fees & Funding', path: '/pricing' },
-  {
-    name: 'Assessment',
-    path: '/assessment',
-    variant: 'feature',
-    requiresFeatureFlag: 'VITE_ASSESSMENT_ENABLED',
-    icon: '📊',
-  },
 ];
 
 /**

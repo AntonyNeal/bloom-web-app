@@ -378,7 +378,7 @@ const Services = () => {
                 A$232.99-A$300.00
               </div>
               <div className="text-lg text-slate-700">
-                per 50-60 minute session
+                per session
               </div>
             </div>
 
@@ -389,7 +389,7 @@ const Services = () => {
                   Medicare Rebates
                 </h3>
                 <p className="text-slate-700 text-sm">
-                  Up to $139.25 back per session for eligible mental health
+                  Up to $98.95 back per session for eligible mental health
                   services
                 </p>
               </div>
@@ -480,7 +480,7 @@ const Services = () => {
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600 mb-4">
               <span className="flex items-center">
                 <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                Medicare rebates up to $139.25
+                Medicare rebates up to $98.95
               </span>
               <span className="flex items-center">
                 <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>

@@ -22,6 +22,8 @@ const Pricing = () => {
     if (calculatorElement) {
       calculatorElement.scrollIntoView({ behavior: 'smooth' });
     }
+    // Open step 1 directly
+    setCalculatorStep(1);
   };
 
   const handleBookingClick = (location: string = 'pricing_calculator') => {
@@ -50,12 +52,6 @@ const Pricing = () => {
       label: 'NDIS Session',
       price: 'A$232.99',
       description: 'Self/plan-managed participants only',
-    },
-    {
-      value: 'supervision',
-      label: 'Professional Supervision',
-      price: 'A$250.00',
-      description: 'For psychology professionals only - not therapy',
     },
   ];
 
@@ -813,25 +809,6 @@ const Pricing = () => {
                   <li>
                     • <strong>NOT a therapy session for personal issues</strong>
                   </li>
-                </ul>
-              </div>
-
-              {/* Online Consultation */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                <div className="mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Online Consultation
-                  </h3>
-                  <div className="text-2xl font-bold text-gray-600 mb-2">
-                    Various
-                  </div>
-                  <p className="text-sm text-gray-500">Flexible duration</p>
-                </div>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li>• All sessions conducted via secure telehealth</li>
-                  <li>• Same therapeutic effectiveness as in-person</li>
-                  <li>• Accessible from anywhere in Australia</li>
-                  <li>• Pricing depends on session type selected</li>
                 </ul>
               </div>
             </div>

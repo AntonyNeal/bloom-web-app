@@ -65,12 +65,6 @@ const CouplesTherapy = () => {
         'Considering separation, navigating divorce, or deciding whether to stay together.',
       icon: '🛤️',
     },
-    {
-      title: 'Different Love Languages',
-      description:
-        "Understanding each other's love languages and meeting emotional needs effectively.",
-      icon: '🌹',
-    },
   ];
 
   const faqs = [

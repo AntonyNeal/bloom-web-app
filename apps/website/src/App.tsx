@@ -16,20 +16,8 @@ import {
 import { trackScrollDepth } from './utils/trackingEvents';
 import { trackPageView } from './utils/applicationInsights';
 // Note: High Intent timer is initialized by UnifiedTracker singleton when any page tracking is called
-// Lazy load ChatAssistant since it's conditionally rendered
-// const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
 import './App.css';
 
-// Extend Window interface for our custom properties
-declare global {
-  interface Window {
-    VITE_ASSESSMENT_ENABLED?: string;
-    VITE_CHAT_ENABLED?: string;
-    __ENV_VARS__?: Record<string, string>;
-  }
-}
-
-import { getEnvVar, getEnvBool } from './utils/env';
 import { injectGoogleAdsTag } from './utils/googleAds';
 import { conversionManager } from './tracking';
 // Lazy load all pages for better performance
@@ -51,19 +39,9 @@ const CounsellingNewcastle = lazy(() => import('./pages/CounsellingNewcastle'));
 const BookingSuccess = lazy(() => import('./pages/BookingSuccess'));
 const TestConversions = lazy(() => import('./pages/TestConversions'));
 const JoinUs = lazy(() => import('./pages/JoinUs'));
-// const Assessment = lazy(async () => {
-//   try {
-//     const module = await import('./pages/Assessment');
-//     return module;
-//   } catch (error) {
-//     console.error('[ERROR] Failed to load Assessment component:', error);
-//     throw error;
-//   }
-// });
 import { log } from './utils/logger';
 
 function App() {
-  // const [isChatOpen, setIsChatOpen] = useState(false);
   const { pathname } = useLocation();
   useEffect(() => {
     // Note: High Intent timer is auto-initialized by UnifiedTracker singleton
@@ -172,13 +150,8 @@ function App() {
       }
     })();
 
-    // Listen for chat toggle events from buttons
-    // const handleToggleChat = () => setIsChatOpen((prev) => !prev);
-    // window.addEventListener('toggleChat', handleToggleChat);
-
     return () => {
       // No cleanup needed for requestIdleCallback
-      // window.removeEventListener('toggleChat', handleToggleChat);
     };
   }, []);
   return (
@@ -231,100 +204,6 @@ function App() {
                 }
               />
             )}
-            {/* Temporary debug route - always available */}
-            <Route
-              path="/debug"
-              element={
-                <div style={{ padding: '20px', fontFamily: 'monospace' }}>
-                  <h1>Debug Information</h1>
-                  <h2>Environment Variables:</h2>
-                  <pre>
-                    {JSON.stringify(
-                      {
-                        'import.meta.env.VITE_ASSESSMENT_ENABLED': import.meta
-                          .env.VITE_ASSESSMENT_ENABLED,
-                        'window.VITE_ASSESSMENT_ENABLED':
-                          window.VITE_ASSESSMENT_ENABLED,
-                        'window.__ENV_VARS__': window.__ENV_VARS__,
-                        'getEnvBool result': getEnvBool(
-                          'VITE_ASSESSMENT_ENABLED'
-                        ),
-                        'getEnvVar result': getEnvVar(
-                          'VITE_ASSESSMENT_ENABLED'
-                        ),
-                      },
-                      null,
-                      2
-                    )}
-                  </pre>
-                  <h2>Runtime Config Test:</h2>
-                  <button
-                    onClick={() => {
-                      fetch('/runtime-config.json')
-                        .then((r) => r.json())
-                        .then((data) => {
-                          console.log('Runtime config:', data);
-                          alert('Check console for runtime config');
-                        })
-                        .catch((err) =>
-                          console.error('Error fetching config:', err)
-                        );
-                    }}
-                  >
-                    Test Runtime Config Fetch
-                  </button>
-                </div>
-              }
-            />
-
-            {/* Conditionally show assessment route based on env var */}
-            {/* {(() => {
-            console.log('🔍 ===========================================');
-            console.log('🔍 APP COMPONENT - ASSESSMENT ROUTE DEBUG');
-            console.log('🔍 ===========================================');
-            console.log('🔍 Timestamp:', new Date().toISOString());
-            console.log('🔍 Component: App.tsx (Route rendering)');
-            console.log('🔍 Current pathname:', pathname);
-
-            // Log all environment sources
-            console.log('📦 Build-time env (import.meta.env):');
-            console.log(
-              '   - VITE_ASSESSMENT_ENABLED:',
-              import.meta.env.VITE_ASSESSMENT_ENABLED
-            );
-
-            console.log('🌐 Global window variables:');
-            console.log(
-              '   - window.VITE_ASSESSMENT_ENABLED:',
-              window.VITE_ASSESSMENT_ENABLED
-            );
-            console.log('   - window.__ENV_VARS__:', window.__ENV_VARS__);
-
-            console.log('🔧 Utility function results:');
-            const assessmentEnabled = getEnvBool('VITE_ASSESSMENT_ENABLED');
-            console.log(
-              '   - getEnvBool(VITE_ASSESSMENT_ENABLED):',
-              assessmentEnabled
-            );
-            console.log(
-              '   - getEnvVar(VITE_ASSESSMENT_ENABLED):',
-              getEnvVar('VITE_ASSESSMENT_ENABLED')
-            );
-
-            console.log('🎯 Final decision:');
-            console.log('   - assessmentEnabled:', assessmentEnabled);
-            console.log(
-              '   - Will render assessment route:',
-              assessmentEnabled ? 'YES' : 'NO'
-            );
-
-            console.log('🔍 ===========================================');
-
-            console.log('[RENDER] Assessment route check:', assessmentEnabled);
-            return assessmentEnabled ? (
-              <Route path="/assessment" element={<Assessment />} />
-            ) : null;
-          })()} */}
           </Routes>
         </Suspense>
         <Footer />
@@ -332,48 +211,6 @@ function App() {
         {/* Mobile-only sticky CTA bar */}
         <MobileCTABar />
         <GlobalBookingModal />
-        {/* {(() => {
-        console.log('💬 ===========================================');
-        console.log('💬 APP COMPONENT - CHAT COMPONENT DEBUG');
-        console.log('💬 ===========================================');
-        console.log('💬 Timestamp:', new Date().toISOString());
-
-        console.log('📦 Build-time env (import.meta.env):');
-        console.log(
-          '   - VITE_CHAT_ENABLED:',
-          import.meta.env.VITE_CHAT_ENABLED
-        );
-
-        console.log('🌐 Global window variables:');
-        console.log('   - window.VITE_CHAT_ENABLED:', window.VITE_CHAT_ENABLED);
-
-        console.log('🔧 Utility function results:');
-        const chatEnabled = getEnvBool('VITE_CHAT_ENABLED');
-        console.log('   - getEnvBool(VITE_CHAT_ENABLED):', chatEnabled);
-        console.log(
-          '   - getEnvVar(VITE_CHAT_ENABLED):',
-          getEnvVar('VITE_CHAT_ENABLED')
-        );
-
-        console.log('🎯 Final decision:');
-        console.log('   - chatEnabled:', chatEnabled);
-        console.log(
-          '   - Will render chat component:',
-          chatEnabled ? 'YES' : 'NO'
-        );
-
-        console.log('💬 ===========================================');
-
-        console.log('[RENDER] Chat component check:', chatEnabled);
-        return chatEnabled ? (
-          <Suspense fallback={null}>
-            <ChatAssistant
-              isOpen={isChatOpen}
-              onToggle={() => setIsChatOpen((prev) => !prev)}
-            />
-          </Suspense>
-        ) : null;
-      })()} */}
       </ABTestProvider>
     </ErrorBoundary>
   );

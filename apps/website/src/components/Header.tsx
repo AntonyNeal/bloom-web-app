@@ -1,26 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { getEnvBool } from '../utils/env';
 import { trackBookNowClick } from '../tracking';
 import { useBooking } from '../hooks/useBooking';
-
-// Extend Window interface for our custom properties
-declare global {
-  interface Window {
-    VITE_ASSESSMENT_ENABLED?: string;
-    VITE_CHAT_ENABLED?: string;
-    __ENV_VARS__?: Record<string, string>;
-  }
-}
 
 const Header = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { openBookingModal } = useBooking('header');
-
-  // Feature switches default to false unless explicitly set to 'true'
-  const isAssessmentEnabled = getEnvBool('VITE_ASSESSMENT_ENABLED');
-  const isChatEnabled = getEnvBool('VITE_CHAT_ENABLED');
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -28,9 +14,6 @@ const Header = () => {
     { name: 'Services', path: '/services' },
     { name: 'How to Book', path: '/appointments' },
     { name: 'Fees & Funding', path: '/pricing' },
-    ...(isAssessmentEnabled
-      ? [{ name: 'Assessment', path: '/assessment' }]
-      : []),
   ];
 
   const isActive = (path: string) => {
@@ -87,15 +70,9 @@ const Header = () => {
                   key={item.name}
                   to={item.path}
                   className={`px-3 py-2 rounded-md text-sm font-semibold transition-all duration-200 ${
-                    item.name === 'Assessment'
-                      ? // Special styling for Assessment
-                        isActive(item.path)
-                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white border-b-2 border-purple-600 shadow-md'
-                        : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 shadow-md hover:shadow-lg transform hover:scale-105'
-                      : // Regular styling for other items
-                        isActive(item.path)
-                        ? 'text-blue-600 border-b-2 border-blue-600'
-                        : 'text-gray-700 hover:text-blue-600'
+                    isActive(item.path)
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-700 hover:text-blue-600'
                   }`}
                   onClick={() => {
                     // Track page navigation
@@ -121,13 +98,7 @@ const Header = () => {
                     }, 100);
                   }}
                 >
-                  {item.name === 'Assessment' && (
-                    <span className="inline-flex items-center gap-1">
-                      <span className="text-xs">📊</span>
-                      <span>{item.name}</span>
-                    </span>
-                  )}
-                  {item.name !== 'Assessment' && item.name}
+                  {item.name}
                 </Link>
               ))}
 
@@ -155,22 +126,6 @@ const Header = () => {
                   <span>Book Now</span>
                 </span>
               </button>
-
-              {/* Need Help Button - Only show if chat is enabled */}
-              {isChatEnabled && (
-                <button
-                  onClick={() =>
-                    window.dispatchEvent(new CustomEvent('toggleChat'))
-                  }
-                  className="ml-3 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 border border-emerald-500/20"
-                  aria-label="Need help? Chat with us"
-                >
-                  <span className="flex items-center gap-1">
-                    <span className="text-sm">💬</span>
-                    <span>Help</span>
-                  </span>
-                </button>
-              )}
             </nav>
 
             {/* Mobile Header - Always visible Book Now + Menu Button */}
@@ -199,22 +154,6 @@ const Header = () => {
                   <span>Book</span>
                 </span>
               </button>
-
-              {/* Mobile Need Help Button - Only show if chat is enabled */}
-              {isChatEnabled && (
-                <button
-                  onClick={() =>
-                    window.dispatchEvent(new CustomEvent('toggleChat'))
-                  }
-                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200 border border-emerald-500/20"
-                  aria-label="Need help? Chat with us"
-                >
-                  <span className="flex items-center gap-1">
-                    <span className="text-sm">💬</span>
-                    <span>Help</span>
-                  </span>
-                </button>
-              )}
 
               {/* Mobile menu button */}
               <button

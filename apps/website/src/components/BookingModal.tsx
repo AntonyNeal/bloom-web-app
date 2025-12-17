@@ -193,7 +193,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             </div>
           ) : (
             <BookingFormSkeleton />
-          )}}
+          )}
         </div>
       </div>
       

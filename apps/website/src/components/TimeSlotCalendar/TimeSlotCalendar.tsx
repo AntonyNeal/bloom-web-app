@@ -249,7 +249,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   };
 
   const goToFirstAvailableWeek = () => {
-    if (weekSchedule.some((day) => day.slots.length > 0)) return;
+    // Always search forward when user clicks Find - reset search state and go to next week
     setSearchedWeeksWithNoSlots(new Set());
     setIsSearchingForAvailability(true);
     nextWeek();

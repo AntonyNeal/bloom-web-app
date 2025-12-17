@@ -19,6 +19,7 @@ export type FunnelStage =
 export type BookingStep = 
   | 'start'
   | 'details' 
+  | 'verify'
   | 'datetime' 
   | 'session'
   | 'payment' 

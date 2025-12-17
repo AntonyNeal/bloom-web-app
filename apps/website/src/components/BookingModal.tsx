@@ -133,10 +133,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         onClick={onClose}
       ></div>
 
-      {/* Modal panel - responsive to viewport, no scroll */}
+      {/* Modal panel - fills viewport, uses dvh for mobile browser chrome */}
       <div
         ref={modalContentRef}
-        className={`relative z-10 w-[95vw] h-[90vh] sm:w-[90vw] sm:h-[88vh] md:w-[85vw] md:h-[85vh] lg:w-[80vw] lg:h-[85vh] lg:max-w-4xl overflow-hidden rounded-xl bg-gradient-to-b from-slate-50 to-white border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+        className={`relative z-10 w-dvw h-dvh sm:w-[92vw] sm:h-[92vh] sm:max-h-[92vh] md:max-w-4xl overflow-hidden sm:rounded-xl bg-gradient-to-b from-slate-50 to-white sm:border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         style={{
           boxShadow: `
             0 0 0 6px rgba(255, 255, 255, 0.15),

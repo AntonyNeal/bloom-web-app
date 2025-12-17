@@ -562,21 +562,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="max-w-xl w-full mx-auto h-full flex flex-col">
-      {/* Header */}
-      <div className="mb-[0.5vh] sm:mb-[0.75vh]">
-        <h2 className="text-[clamp(0.875rem,2vh,1.25rem)] font-semibold text-slate-800 tracking-tight">
+    <div className="w-full h-full flex flex-col min-h-0">
+      {/* Header - fixed size */}
+      <div className="flex-shrink-0 mb-1">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-800 tracking-tight">
           Book Your Appointment
         </h2>
-        <p className="text-slate-500 mt-0 text-xs font-medium">
+        <p className="text-slate-500 text-xs font-medium">
           Schedule a telehealth session with Zoe Semmler
         </p>
       </div>
 
-      {/* Progress indicator - Compact steel bar design, responsive */}
+      {/* Progress indicator - fixed size */}
       {step !== 'success' && step !== 'error' && (
-        <div className="mb-[0.75vh] p-[0.5vh] rounded-lg bg-gradient-to-b from-slate-100 to-slate-50 border border-slate-200" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)' }}>
-          <div className="grid grid-cols-5 gap-[0.5vh]">
+        <div className="flex-shrink-0 mb-2 p-1.5 rounded-lg bg-gradient-to-b from-slate-100 to-slate-50 border border-slate-200" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)' }}>
+          <div className="grid grid-cols-5 gap-1">
             {[
               { num: 1, label: 'Details', key: 'details' },
               { num: 2, label: 'Time', key: 'datetime' },
@@ -604,7 +604,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   >
                     {isPast ? '✓' : num}
                   </div>
-                  <div className={`text-[7px] sm:text-[9px] font-semibold ${isActive ? 'text-emerald-600' : isPast ? 'text-emerald-500' : 'text-slate-400'}`}>
+                  <div className={`text-[8px] sm:text-[9px] font-semibold ${isActive ? 'text-emerald-600' : isPast ? 'text-emerald-500' : 'text-slate-400'}`}>
                     {label}
                   </div>
                 </div>
@@ -612,7 +612,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             })}
           </div>
           {/* Progress bar */}
-          <div className="mt-2 h-1.5 bg-slate-200 rounded-full overflow-hidden border border-slate-300" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.08)' }}>
+          <div className="mt-1 h-1 bg-slate-200 rounded-full overflow-hidden border border-slate-300" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.08)' }}>
             <div
               className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 rounded-full transition-all duration-500 ease-out"
               style={{
@@ -635,314 +635,242 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         </div>
       )}
 
-      {/* Step 1: Patient Details */}
+      {/* Step 1: Patient Details - flex to fill available space */}
       {step === 'details' && (
-        <div className="space-y-[1vh]" onKeyDown={(e) => {
+        <div className="flex-1 flex flex-col min-h-0" onKeyDown={(e) => {
           if (e.key === 'Enter' && isDetailsStepValid() && !loading) {
             e.preventDefault();
             handleDetailsNext();
           }
         }}>
-          <div className="grid grid-cols-1 gap-[1vh]">
-            <div>
-              <label
-                htmlFor="firstName-input"
-                className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-600 mb-[0.25vh] tracking-wide"
-              >
-                First Name{' '}
-                <span className="text-red-500" aria-label="required">
-                  *
-                </span>
-              </label>
-              <input
-                id="firstName-input"
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className={`w-full px-[0.75vh] py-[0.54vh] text-[clamp(0.75rem,1.5vh,0.875rem)] font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['firstName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
-                style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
-                placeholder="John"
-                aria-required="true"
-                aria-invalid={!!errors['firstName']}
-                aria-describedby={
-                  errors['firstName'] ? 'firstName-error' : undefined
-                }
-              />
-              {errors['firstName'] && (
-                <p
-                  id="firstName-error"
-                  className="text-red-500 text-sm mt-1 font-medium"
-                  role="alert"
-                >
-                  {errors['firstName']}
-                </p>
-              )}
-            </div>
-            <div>
-              <label
-                htmlFor="lastName-input"
-                className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-600 mb-[0.25vh] tracking-wide"
-              >
-                Last Name{' '}
-                <span className="text-red-500" aria-label="required">
-                  *
-                </span>
-              </label>
-              <input
-                id="lastName-input"
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className={`w-full px-[0.75vh] py-[0.54vh] text-[clamp(0.75rem,1.5vh,0.875rem)] font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['lastName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
-                style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
-                placeholder="Smith"
-                aria-required="true"
-                aria-invalid={!!errors['lastName']}
-                aria-describedby={
-                  errors['lastName'] ? 'lastName-error' : undefined
-                }
-              />
-              {errors['lastName'] && (
-                <p
-                  id="lastName-error"
-                  className="text-red-500 text-sm mt-1 font-medium"
-                  role="alert"
-                >
-                  {errors['lastName']}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="email-input"
-              className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-600 mb-[0.25vh] tracking-wide"
-            >
-              Email{' '}
-              <span className="text-red-500" aria-label="required">
-                *
-              </span>
-            </label>
-            <div className="relative">
-              <input
-                id="email-input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`w-full px-[0.75vh] py-[0.54vh] text-[clamp(0.75rem,1.5vh,0.875rem)] font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
-                style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
-                placeholder="john.smith@example.com"
-                aria-required="true"
-                aria-invalid={!!errors['email']}
-                aria-describedby={errors['email'] ? 'email-error' : undefined}
-              />
-              {email && email.includes('@') && email.includes('.') && !errors['email'] && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600 font-bold">✓</span>
-              )}
-            </div>
-            {errors['email'] && (
-              <p
-                id="email-error"
-                className="text-red-500 text-sm mt-1 font-medium"
-                role="alert"
-              >
-                {errors['email']}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-600 mb-[0.25vh] tracking-wide">
-              Date of Birth
-              <span className="text-red-500 ml-1" aria-label="required">
-                *
-              </span>
-            </label>
-            <div className="grid grid-cols-3 gap-[1vh]">
+          <div className="flex-1 flex flex-col gap-1.5 min-h-0">
+            {/* Name row - side by side */}
+            <div className="grid grid-cols-2 gap-2 flex-shrink-0">
               <div>
-                <label htmlFor="dob-day" className="sr-only">
-                  Day
+                <label
+                  htmlFor="firstName-input"
+                  className="block text-xs font-semibold text-slate-600 mb-0.5 tracking-wide"
+                >
+                  First Name{' '}
+                  <span className="text-red-500" aria-label="required">
+                    *
+                  </span>
                 </label>
+                <input
+                  id="firstName-input"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className={`w-full px-2 py-1.5 text-sm font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['firstName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
+                  style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
+                  placeholder="John"
+                  aria-required="true"
+                  aria-invalid={!!errors['firstName']}
+                  aria-describedby={
+                    errors['firstName'] ? 'firstName-error' : undefined
+                  }
+                />
+                {errors['firstName'] && (
+                  <p
+                    id="firstName-error"
+                    className="text-red-500 text-xs mt-0.5 font-medium"
+                    role="alert"
+                  >
+                    {errors['firstName']}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label
+                  htmlFor="lastName-input"
+                  className="block text-xs font-semibold text-slate-600 mb-0.5 tracking-wide"
+                >
+                  Last Name{' '}
+                  <span className="text-red-500" aria-label="required">
+                    *
+                  </span>
+                </label>
+                <input
+                  id="lastName-input"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className={`w-full px-2 py-1.5 text-sm font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['lastName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
+                  style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
+                  placeholder="Smith"
+                  aria-required="true"
+                  aria-invalid={!!errors['lastName']}
+                  aria-describedby={
+                    errors['lastName'] ? 'lastName-error' : undefined
+                  }
+                />
+                {errors['lastName'] && (
+                  <p
+                    id="lastName-error"
+                    className="text-red-500 text-xs mt-0.5 font-medium"
+                    role="alert"
+                  >
+                    {errors['lastName']}
+                  </p>
+                )}
+              </div>
+            </div>
+
+          {/* Email and Phone row - side by side on larger screens */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-shrink-0">
+            <div>
+              <label
+                htmlFor="email-input"
+                className="block text-xs font-semibold text-slate-600 mb-0.5 tracking-wide"
+              >
+                Email{' '}
+                <span className="text-red-500" aria-label="required">
+                  *
+                </span>
+              </label>
+              <div className="relative">
+                <input
+                  id="email-input"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full px-2 py-1.5 text-sm font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
+                  style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
+                  placeholder="john@example.com"
+                  aria-required="true"
+                  aria-invalid={!!errors['email']}
+                  aria-describedby={errors['email'] ? 'email-error' : undefined}
+                />
+                {email && email.includes('@') && email.includes('.') && !errors['email'] && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600 font-bold">✓</span>
+                )}
+              </div>
+              {errors['email'] && (
+                <p id="email-error" className="text-red-500 text-xs mt-0.5 font-medium" role="alert">{errors['email']}</p>
+              )}
+            </div>
+            <div>
+              <label
+                htmlFor="phone-input"
+                className="block text-xs font-semibold text-slate-600 mb-0.5 tracking-wide"
+              >
+                Phone{' '}
+                <span className="text-red-500" aria-label="required">
+                  *
+                </span>
+              </label>
+              <input
+                id="phone-input"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className={`w-full px-2 py-1.5 text-sm font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
+                style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
+                placeholder="0412 345 678"
+                aria-required="true"
+                aria-invalid={!!errors['phone']}
+                aria-describedby={errors['phone'] ? 'phone-error' : undefined}
+              />
+              {errors['phone'] && (
+                <p id="phone-error" className="text-red-500 text-xs mt-0.5 font-medium" role="alert">{errors['phone']}</p>
+              )}
+            </div>
+          </div>
+
+          {/* DOB and Gender row - side by side on larger screens */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-shrink-0">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-0.5 tracking-wide">
+                Date of Birth <span className="text-red-500" aria-label="required">*</span>
+              </label>
+              <div className="grid grid-cols-3 gap-1">
                 <select
                   id="dob-day"
                   value={dateOfBirth.split('/')[0] || ''}
                   onChange={(e) => handleDayChange(e.target.value)}
-                  className={`w-full px-[0.75vh] py-[0.54vh] text-[clamp(0.75rem,1.5vh,0.875rem)] font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
-                  style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
+                  className={`w-full px-1 py-1.5 text-sm font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-emerald-400'}`}
                   aria-label="Day of birth"
-                  aria-required="true"
-                  aria-invalid={!!errors['dateOfBirth']}
-                  aria-describedby={
-                    errors['dateOfBirth'] ? 'dob-error' : undefined
-                  }
                 >
                   <option value="">Day</option>
                   {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                    <option key={day} value={day.toString().padStart(2, '0')}>
-                      {day}
-                    </option>
+                    <option key={day} value={day.toString().padStart(2, '0')}>{day}</option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label htmlFor="dob-month" className="sr-only">
-                  Month
-                </label>
                 <select
                   id="dob-month"
                   value={dateOfBirth.split('/')[1] || ''}
                   onChange={(e) => handleMonthChange(e.target.value)}
-                  className={`w-full px-[0.75vh] py-[0.54vh] text-[clamp(0.75rem,1.5vh,0.875rem)] font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
-                  style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
+                  className={`w-full px-1 py-1.5 text-sm font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-emerald-400'}`}
                   aria-label="Month of birth"
-                  aria-required="true"
-                  aria-invalid={!!errors['dateOfBirth']}
-                  aria-describedby={
-                    errors['dateOfBirth'] ? 'dob-error' : undefined
-                  }
                 >
-                  <option value="">Month</option>
-                  <option value="01">January</option>
-                  <option value="02">February</option>
-                  <option value="03">March</option>
-                  <option value="04">April</option>
+                  <option value="">Mon</option>
+                  <option value="01">Jan</option>
+                  <option value="02">Feb</option>
+                  <option value="03">Mar</option>
+                  <option value="04">Apr</option>
                   <option value="05">May</option>
-                  <option value="06">June</option>
-                  <option value="07">July</option>
-                  <option value="08">August</option>
-                  <option value="09">September</option>
-                  <option value="10">October</option>
-                  <option value="11">November</option>
-                  <option value="12">December</option>
+                  <option value="06">Jun</option>
+                  <option value="07">Jul</option>
+                  <option value="08">Aug</option>
+                  <option value="09">Sep</option>
+                  <option value="10">Oct</option>
+                  <option value="11">Nov</option>
+                  <option value="12">Dec</option>
                 </select>
-              </div>
-              <div>
-                <label htmlFor="dob-year" className="sr-only">
-                  Year
-                </label>
                 <select
                   id="dob-year"
                   value={dateOfBirth.split('/')[2] || ''}
                   onChange={(e) => handleYearChange(e.target.value)}
-                  className={`w-full px-[0.75vh] py-[0.54vh] text-[clamp(0.75rem,1.5vh,0.875rem)] font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
-                  style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
+                  className={`w-full px-1 py-1.5 text-sm font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-emerald-400'}`}
                   aria-label="Year of birth"
-                  aria-required="true"
-                  aria-invalid={!!errors['dateOfBirth']}
-                  aria-describedby={
-                    errors['dateOfBirth'] ? 'dob-error' : undefined
-                  }
                 >
                   <option value="">Year</option>
-                  {/* Current year back to 100 years ago (age 0-100) */}
-                  {Array.from({ length: 101 }, (_, i) => 2025 - i).map(
-                    (year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    )
-                  )}
+                  {Array.from({ length: 101 }, (_, i) => 2025 - i).map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
                 </select>
               </div>
+              {errors['dateOfBirth'] && (
+                <p id="dob-error" className="text-red-600 text-xs mt-0.5" role="alert">{errors['dateOfBirth']}</p>
+              )}
             </div>
-            {dobWarning && (
-              <div className="mt-[0.75vh] p-[0.75vh] bg-blue-50 border-2 border-blue-300 rounded-lg">
-                <div className="flex items-start gap-[0.5vh]">
-                  <span
-                    className="text-3xl flex-shrink-0"
-                    role="img"
-                    aria-label="waving hand"
-                  >
-                    👋
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium text-blue-900 leading-relaxed">
-                      {dobWarning}
-                    </p>
-                  </div>
-                </div>
+            <div>
+              <label htmlFor="gender-select" className="block text-xs font-semibold text-slate-600 mb-0.5 tracking-wide">
+                Gender
+              </label>
+              <select
+                id="gender-select"
+                value={gender}
+                onChange={(e) => setGender(e.target.value as typeof gender)}
+                className="w-full px-2 py-1.5 text-sm font-normal bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-emerald-400"
+              >
+                <option value="unknown">Prefer not to say</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="non-binary">Non-binary</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          {/* DOB Warning */}
+          {dobWarning && (
+            <div className="p-1.5 bg-blue-50 border border-blue-200 rounded-lg flex-shrink-0">
+              <div className="flex items-start gap-1">
+                <span className="text-lg flex-shrink-0" role="img" aria-label="info">👋</span>
+                <p className="text-xs font-medium text-blue-900">{dobWarning}</p>
               </div>
-            )}
-            {errors['dateOfBirth'] && (
-              <p
-                id="dob-error"
-                className="text-red-600 text-sm mt-2"
-                role="alert"
-              >
-                {errors['dateOfBirth']}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="phone-input"
-              className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-600 mb-[0.25vh] tracking-wide"
-            >
-              Phone{' '}
-              <span className="text-red-500" aria-label="required">
-                *
-              </span>
-            </label>
-            <input
-              id="phone-input"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className={`w-full px-[0.75vh] py-[0.54vh] text-[clamp(0.75rem,1.5vh,0.875rem)] font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
-              style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
-              placeholder="0412 345 678"
-              aria-invalid={!!errors['phone']}
-              aria-describedby={errors['phone'] ? 'phone-error' : undefined}
-              aria-required="true"
-            />
-            {errors['phone'] && (
-              <p
-                id="phone-error"
-                className="text-red-500 text-sm mt-1 font-medium"
-                role="alert"
-              >
-                {errors['phone']}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="gender-select"
-              className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-600 mb-[0.25vh] tracking-wide"
-            >
-              Gender
-            </label>
-            <select
-              id="gender-select"
-              value={gender}
-              onChange={(e) => setGender(e.target.value as typeof gender)}
-              className="w-full px-[0.75vh] py-[0.54vh] text-[clamp(0.75rem,1.5vh,0.875rem)] font-normal bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100"
-              style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
-            >
-              <option value="unknown">Prefer not to say</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="non-binary">Non-binary</option>
-              <option value="genderqueer">Genderqueer</option>
-              <option value="genderfluid">Genderfluid</option>
-              <option value="agender">Agender</option>
-              <option value="transgender-male">Transgender Male</option>
-              <option value="transgender-female">Transgender Female</option>
-              <option value="two-spirit">Two-Spirit</option>
-              <option value="other">Other</option>
-            </select>
+            </div>
+          )}
           </div>
 
           {/* Action buttons */}
-          <div className="flex justify-center gap-[1vh] pt-[1vh] mt-[0.5vh] border-t border-slate-100">
+          <div className="flex justify-center gap-2 pt-2 border-t border-slate-100 flex-shrink-0">
             <button
               type="button"
               onClick={handleDetailsNext}
               disabled={!isDetailsStepValid()}
-              className={`px-[2vh] py-[0.75vh] text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-offset-1 border ${
+              className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-offset-1 border ${
                 isDetailsStepValid()
                   ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 focus:ring-emerald-300 cursor-pointer active:scale-[0.98]'
                   : 'bg-gradient-to-b from-slate-200 to-slate-300 text-slate-500 border-slate-300 cursor-not-allowed'
@@ -1142,7 +1070,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 3: Session Type & Notes */}
       {step === 'session' && (
-        <div className="space-y-5">
+        <div className="flex flex-col flex-1 min-h-0 gap-3">
           {/* Session Details - Frosted glass panel */}
           <div 
             className="rounded-xl p-4 sm:p-5 border border-slate-200/60 relative overflow-hidden"
@@ -1372,7 +1300,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           {/* Action buttons - Polished steel finish */}
-          <div className="flex flex-col sm:flex-row justify-between gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row justify-between gap-2 flex-shrink-0 pt-2">
             <button
               type="button"
               onClick={() => {
@@ -1416,7 +1344,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 4: Payment */}
       {step === 'payment' && (
-        <div className="space-y-8">
+        <div className="flex flex-col flex-1 min-h-0 gap-4">
           <div className="rounded-xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 to-white p-6 sm:p-8" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}>
             <div className="text-base text-slate-700 space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-slate-200">
@@ -1485,7 +1413,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 5: Confirmation */}
       {step === 'confirm' && (
-        <div className="space-y-6">
+        <div className="flex flex-col flex-1 min-h-0 gap-3">
           <div className="rounded-xl border-2 border-emerald-300 bg-gradient-to-b from-emerald-50 to-white p-6 sm:p-8" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(16, 185, 129, 0.15)' }}>
             <h3 className="text-lg font-extrabold text-slate-800 mb-5 uppercase tracking-wide">
               Confirm Your Booking

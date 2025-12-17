@@ -289,7 +289,7 @@ const Pricing = () => {
         />
         <meta
           property="og:url"
-          content="https://lifepsychology.com.au/pricing"
+          content="https://www.life-psychology.com.au/pricing"
         />
         <meta property="og:type" content="website" />
         <meta
@@ -302,12 +302,12 @@ const Pricing = () => {
         />
         <meta
           property="og:image"
-          content="https://lifepsychology.com.au/og-image.svg"
+          content="https://www.life-psychology.com.au/og-image.svg"
         />
         <meta name="twitter:card" content="summary_large_image" />
         <meta
           name="twitter:image"
-          content="https://lifepsychology.com.au/og-image.svg"
+          content="https://www.life-psychology.com.au/og-image.svg"
         />
         <meta
           name="twitter:title"

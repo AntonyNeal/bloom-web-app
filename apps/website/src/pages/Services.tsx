@@ -89,7 +89,7 @@ const Services = () => {
           name="keywords"
           content="psychology services Newcastle, therapy Newcastle, mental health services Newcastle, counselling Newcastle, telehealth psychology, Zoe Semmler"
         />
-        <link rel="canonical" href="https://lifepsychology.com.au/services" />
+        <link rel="canonical" href="https://www.life-psychology.com.au/services" />
         <meta
           property="og:title"
           content="Psychology Services Newcastle | Anxiety, Depression & Couples Therapy"
@@ -100,7 +100,7 @@ const Services = () => {
         />
         <meta
           property="og:url"
-          content="https://lifepsychology.com.au/services"
+          content="https://www.life-psychology.com.au/services"
         />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />

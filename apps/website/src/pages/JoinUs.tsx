@@ -31,7 +31,7 @@ export default function JoinUs() {
           name="keywords"
           content="psychologist jobs Newcastle, telehealth psychology career, psychology practice opportunities, AHPRA registered psychologist positions"
         />
-        <link rel="canonical" href="https://lifepsychology.com.au/join-us" />
+        <link rel="canonical" href="https://www.life-psychology.com.au/join-us" />
         <meta
           property="og:title"
           content="Join Our Team | Psychologists Wanted Newcastle"
@@ -42,7 +42,7 @@ export default function JoinUs() {
         />
         <meta
           property="og:url"
-          content="https://lifepsychology.com.au/join-us"
+          content="https://www.life-psychology.com.au/join-us"
         />
         <meta property="og:type" content="website" />
       </Helmet>

@@ -88,7 +88,7 @@ const Contact = () => {
                     <div>
                       <p className="font-medium">Email</p>
                       <p className="text-gray-600">
-                        info@lifepsychology.com.au
+                        info@life-psychology.com.au
                       </p>
                     </div>
                   </div>

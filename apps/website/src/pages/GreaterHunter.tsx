@@ -27,7 +27,7 @@ const GreaterHunter = () => {
         />
         <link
           rel="canonical"
-          href="https://lifepsychology.com.au/greater-hunter"
+          href="https://www.life-psychology.com.au/greater-hunter"
         />
         <meta
           property="og:title"
@@ -39,7 +39,7 @@ const GreaterHunter = () => {
         />
         <meta
           property="og:url"
-          content="https://lifepsychology.com.au/greater-hunter"
+          content="https://www.life-psychology.com.au/greater-hunter"
         />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />

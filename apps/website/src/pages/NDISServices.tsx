@@ -27,7 +27,7 @@ const NDISServices = () => {
         />
         <link
           rel="canonical"
-          href="https://lifepsychology.com.au/ndis-services"
+          href="https://www.life-psychology.com.au/ndis-services"
         />
         <meta
           property="og:title"
@@ -39,7 +39,7 @@ const NDISServices = () => {
         />
         <meta
           property="og:url"
-          content="https://lifepsychology.com.au/ndis-services"
+          content="https://www.life-psychology.com.au/ndis-services"
         />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />

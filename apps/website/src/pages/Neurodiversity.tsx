@@ -71,7 +71,7 @@ const Neurodiversity = () => {
         />
         <link
           rel="canonical"
-          href="https://lifepsychology.com.au/neurodiversity"
+          href="https://www.life-psychology.com.au/neurodiversity"
         />
         <meta
           property="og:title"
@@ -83,7 +83,7 @@ const Neurodiversity = () => {
         />
         <meta
           property="og:url"
-          content="https://lifepsychology.com.au/neurodiversity"
+          content="https://www.life-psychology.com.au/neurodiversity"
         />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />

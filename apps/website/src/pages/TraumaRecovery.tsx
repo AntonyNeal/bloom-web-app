@@ -71,7 +71,7 @@ const TraumaRecovery = () => {
         />
         <link
           rel="canonical"
-          href="https://lifepsychology.com.au/trauma-recovery"
+          href="https://www.life-psychology.com.au/trauma-recovery"
         />
         <meta
           property="og:title"
@@ -83,7 +83,7 @@ const TraumaRecovery = () => {
         />
         <meta
           property="og:url"
-          content="https://lifepsychology.com.au/trauma-recovery"
+          content="https://www.life-psychology.com.au/trauma-recovery"
         />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />

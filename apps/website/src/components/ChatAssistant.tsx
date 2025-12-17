@@ -78,7 +78,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ isOpen, onToggle }) => {
       console.error('Chatbot error:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I apologize, but I'm having trouble responding right now. Please contact us at info@lifepsychology.com.au for assistance.",
+        text: "I apologize, but I'm having trouble responding right now. Please contact us at info@life-psychology.com.au for assistance.",
         sender: 'bot',
         timestamp: new Date(),
       };

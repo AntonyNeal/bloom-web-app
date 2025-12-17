@@ -25,7 +25,7 @@ const About = () => {
           name="keywords"
           content="Zoe Semmler psychologist, registered psychologist Newcastle, psychology services Newcastle, telehealth psychologist, Greater Hunter psychologist"
         />
-        <link rel="canonical" href="https://lifepsychology.com.au/about" />
+        <link rel="canonical" href="https://www.life-psychology.com.au/about" />
         <meta
           property="og:title"
           content="About Zoe Semmler | Registered Psychologist Newcastle"
@@ -34,7 +34,7 @@ const About = () => {
           property="og:description"
           content="Meet Zoe Semmler, registered psychologist in Newcastle NSW. Professional support for anxiety, depression, couples therapy, neurodiversity, and NDIS services."
         />
-        <meta property="og:url" content="https://lifepsychology.com.au/about" />
+        <meta property="og:url" content="https://www.life-psychology.com.au/about" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta
@@ -52,7 +52,7 @@ const About = () => {
             name: 'Life Psychology Australia',
             description:
               'Professional psychology services in Newcastle and Greater Hunter region, specializing in anxiety, depression, couples therapy, neurodiversity support, and NDIS services.',
-            url: 'https://lifepsychology.com.au',
+            url: 'https://www.life-psychology.com.au',
             address: {
               '@type': 'PostalAddress',
               addressLocality: 'Newcastle',

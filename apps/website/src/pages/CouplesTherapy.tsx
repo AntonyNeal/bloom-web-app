@@ -135,7 +135,7 @@ const CouplesTherapy = () => {
         />
         <link
           rel="canonical"
-          href="https://lifepsychology.com.au/couples-therapy"
+          href="https://www.life-psychology.com.au/couples-therapy"
         />
         <meta
           property="og:title"
@@ -147,7 +147,7 @@ const CouplesTherapy = () => {
         />
         <meta
           property="og:url"
-          content="https://lifepsychology.com.au/couples-therapy"
+          content="https://www.life-psychology.com.au/couples-therapy"
         />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />

@@ -121,7 +121,7 @@ const AnxietyDepression = () => {
         />
         <link
           rel="canonical"
-          href="https://lifepsychology.com.au/anxiety-depression"
+          href="https://www.life-psychology.com.au/anxiety-depression"
         />
         <meta
           property="og:title"
@@ -133,7 +133,7 @@ const AnxietyDepression = () => {
         />
         <meta
           property="og:url"
-          content="https://lifepsychology.com.au/anxiety-depression"
+          content="https://www.life-psychology.com.au/anxiety-depression"
         />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />

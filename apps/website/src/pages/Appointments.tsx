@@ -122,7 +122,7 @@ const Appointments = () => {
         />
         <link
           rel="canonical"
-          href="https://lifepsychology.com.au/appointments"
+          href="https://www.life-psychology.com.au/appointments"
         />
       </Helmet>
 

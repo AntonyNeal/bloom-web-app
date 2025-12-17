@@ -17,7 +17,7 @@ const Privacy = () => {
           name="keywords"
           content="privacy policy psychology, telehealth privacy, mental health privacy, psychologist privacy policy, data protection psychology"
         />
-        <link rel="canonical" href="https://lifepsychology.com.au/privacy" />
+        <link rel="canonical" href="https://www.life-psychology.com.au/privacy" />
         <meta
           property="og:title"
           content="Privacy Policy | Life Psychology Australia"
@@ -28,7 +28,7 @@ const Privacy = () => {
         />
         <meta
           property="og:url"
-          content="https://lifepsychology.com.au/privacy"
+          content="https://www.life-psychology.com.au/privacy"
         />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />

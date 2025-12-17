@@ -310,7 +310,7 @@ Use Australian English. Be supportive but brief.`,
         return 'The chatbot is not configured with a valid OpenAI API key. Please contact the administrator to set up the API key for AI-powered responses.';
       }
 
-      return "I apologize, but I'm having trouble connecting right now. Please visit lifepsychology.com.au or email info@lifepsychology.com.au for assistance.";
+      return "I apologize, but I'm having trouble connecting right now. Please visit lifepsychology.com.au or email info@life-psychology.com.au for assistance.";
     }
   }
 

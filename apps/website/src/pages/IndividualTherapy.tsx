@@ -104,7 +104,7 @@ const IndividualTherapy = () => {
         />
         <link
           rel="canonical"
-          href="https://lifepsychology.com.au/individual-therapy"
+          href="https://www.life-psychology.com.au/individual-therapy"
         />
         <meta
           property="og:title"
@@ -116,7 +116,7 @@ const IndividualTherapy = () => {
         />
         <meta
           property="og:url"
-          content="https://lifepsychology.com.au/individual-therapy"
+          content="https://www.life-psychology.com.au/individual-therapy"
         />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />

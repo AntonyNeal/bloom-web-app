@@ -196,7 +196,7 @@ const FAQ = () => {
           name="keywords"
           content="psychology FAQ Newcastle, therapy questions, Medicare rebates, telehealth FAQ, NDIS psychology questions, booking psychology appointment"
         />
-        <link rel="canonical" href="https://lifepsychology.com.au/faq" />
+        <link rel="canonical" href="https://www.life-psychology.com.au/faq" />
         <meta
           property="og:title"
           content="Psychology FAQ | Common Questions About Therapy Services Newcastle"
@@ -205,7 +205,7 @@ const FAQ = () => {
           property="og:description"
           content="Frequently asked questions about psychology services in Newcastle NSW. Learn about booking, Medicare rebates, telehealth sessions, NDIS services, and what to expect from therapy."
         />
-        <meta property="og:url" content="https://lifepsychology.com.au/faq" />
+        <meta property="og:url" content="https://www.life-psychology.com.au/faq" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta

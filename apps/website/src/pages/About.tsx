@@ -164,7 +164,7 @@ const About = () => {
                 <p>
                   My journey into psychology began with a deep desire to help
                   people find their way through life's most challenging moments.
-                  After completing my Master of Psychology and working in
+                  After completing my Master of Clinical Psychology and working in
                   various settings, I established Life Psychology Australia to
                   make quality mental health care more accessible to everyone. I
                   believe that when we address our mental health with intention
@@ -304,7 +304,7 @@ const About = () => {
                   <span className="text-green-500 mr-3 mt-1">✓</span>
                   <div>
                     <div className="font-semibold text-gray-900">
-                      Master of Psychology
+                      Master of Clinical Psychology
                     </div>
                     <div className="text-gray-600 text-sm">
                       Advanced training and practice

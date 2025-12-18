@@ -563,19 +563,19 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
   return (
     <div className="w-full h-full flex flex-col min-h-0">
-      {/* Header with integrated progress - compact on mobile */}
+      {/* Header with integrated progress */}
       {step !== 'success' && step !== 'error' && (
-        <div className="flex-shrink-0 mb-2 sm:mb-4 flex items-center justify-between">
+        <div className="flex-shrink-0 mb-3 sm:mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-sm sm:text-lg font-semibold text-slate-800 tracking-tight leading-tight">
+            <h2 className="text-base sm:text-lg font-semibold text-slate-800 tracking-tight leading-tight">
               Book Your Appointment
             </h2>
-            <p className="text-slate-400 text-[10px] sm:text-xs leading-tight">
+            <p className="text-slate-500 text-xs sm:text-sm leading-tight">
               Telehealth with Zoe Semmler
             </p>
           </div>
           
-          {/* Progress indicator - right aligned, more compact on mobile */}
+          {/* Progress indicator - right aligned */}
           <div className="flex items-center gap-0.5">
             {[
               { num: 1, key: 'details' },
@@ -592,7 +592,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               return (
                 <React.Fragment key={key}>
                   <div
-                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-[11px] font-semibold transition-all ${
+                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold transition-all ${
                       isActive
                         ? 'bg-blue-500 text-white shadow-sm'
                         : isPast
@@ -602,7 +602,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   >
                     {isPast ? '✓' : num}
                   </div>
-                  {index < 4 && <div className={`w-3 sm:w-6 h-0.5 ${isPast || isActive ? 'bg-blue-300' : 'bg-slate-200'}`} />}
+                  {index < 4 && <div className={`w-4 sm:w-6 h-0.5 ${isPast || isActive ? 'bg-blue-300' : 'bg-slate-200'}`} />}
                 </React.Fragment>
               );
             })}
@@ -618,13 +618,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             handleDetailsNext();
           }
         }}>
-          <div className="flex flex-col gap-2.5 sm:gap-4 md:gap-5 sm:flex-1 sm:justify-center">
+          <div className="flex flex-col gap-3.5 sm:gap-4 md:gap-5 sm:flex-1 sm:justify-center">
             {/* Name row - side by side */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-4">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
               <div>
                 <label
                   htmlFor="firstName-input"
-                  className="block text-[11px] sm:text-sm font-semibold text-slate-600 mb-0.5 tracking-wide"
+                  className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 tracking-wide"
                 >
                   First Name{' '}
                   <span className="text-red-500" aria-label="required">
@@ -636,7 +636,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className={`w-full px-2 sm:px-3 py-2 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['firstName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
+                  className={`w-full px-3 py-2.5 sm:py-3 text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['firstName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
                   style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   placeholder="John"
                   aria-required="true"
@@ -658,7 +658,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               <div>
                 <label
                   htmlFor="lastName-input"
-                  className="block text-[11px] sm:text-sm font-semibold text-slate-600 mb-0.5 tracking-wide"
+                  className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 tracking-wide"
                 >
                   Last Name{' '}
                   <span className="text-red-500" aria-label="required">
@@ -670,7 +670,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className={`w-full px-2 sm:px-3 py-2 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['lastName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
+                  className={`w-full px-3 py-2.5 sm:py-3 text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['lastName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
                   style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   placeholder="Smith"
                   aria-required="true"
@@ -692,11 +692,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </div>
 
           {/* Email and Phone row - side by side on larger screens */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
             <div>
               <label
                 htmlFor="email-input"
-                className="block text-[11px] sm:text-sm font-semibold text-slate-600 mb-0.5 tracking-wide"
+                className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 tracking-wide"
               >
                 Email{' '}
                 <span className="text-red-500" aria-label="required">
@@ -709,7 +709,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full px-2 sm:px-3 py-2 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
+                  className={`w-full px-3 py-2.5 sm:py-3 text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
                   style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   placeholder="john@example.com"
                   aria-required="true"
@@ -727,7 +727,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <div>
               <label
                 htmlFor="phone-input"
-                className="block text-[11px] sm:text-sm font-semibold text-slate-600 mb-0.5 tracking-wide"
+                className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 tracking-wide"
               >
                 Phone{' '}
                 <span className="text-red-500" aria-label="required">
@@ -739,7 +739,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className={`w-full px-2 sm:px-3 py-2 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
+                className={`w-full px-3 py-2.5 sm:py-3 text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
                 style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                 placeholder="0412 345 678"
                 aria-required="true"
@@ -753,17 +753,17 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           {/* DOB and Gender row - side by side on larger screens */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
             <div>
-              <label className="block text-[11px] sm:text-sm font-semibold text-slate-600 mb-0.5 tracking-wide">
+              <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 tracking-wide">
                 Date of Birth <span className="text-red-500" aria-label="required">*</span>
               </label>
-              <div className="grid grid-cols-3 gap-1 sm:gap-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 <select
                   id="dob-day"
                   value={dateOfBirth.split('/')[0] || ''}
                   onChange={(e) => handleDayChange(e.target.value)}
-                  className={`w-full px-1 sm:px-2 py-2 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`w-full px-2 py-2.5 sm:py-3 text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   aria-label="Day of birth"
                 >
                   <option value="">Day</option>
@@ -775,7 +775,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-month"
                   value={dateOfBirth.split('/')[1] || ''}
                   onChange={(e) => handleMonthChange(e.target.value)}
-                  className={`w-full px-1 sm:px-2 py-2 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`w-full px-2 py-2.5 sm:py-3 text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   aria-label="Month of birth"
                 >
                   <option value="">Mon</option>
@@ -796,7 +796,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-year"
                   value={dateOfBirth.split('/')[2] || ''}
                   onChange={(e) => handleYearChange(e.target.value)}
-                  className={`w-full px-1 sm:px-2 py-2 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`w-full px-2 py-2.5 sm:py-3 text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   aria-label="Year of birth"
                 >
                   <option value="">Year</option>
@@ -810,14 +810,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               )}
             </div>
             <div>
-              <label htmlFor="gender-select" className="block text-[11px] sm:text-sm font-semibold text-slate-600 mb-0.5 tracking-wide">
+              <label htmlFor="gender-select" className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 tracking-wide">
                 Gender
               </label>
               <select
                 id="gender-select"
                 value={gender}
                 onChange={(e) => setGender(e.target.value as typeof gender)}
-                className="w-full px-2 sm:px-3 py-2 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400"
+                className="w-full px-3 py-2.5 sm:py-3 text-base font-normal bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400"
               >
                 <option value="unknown">Prefer not to say</option>
                 <option value="male">Male</option>
@@ -1012,12 +1012,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 3: Session Type & Notes */}
       {step === 'session' && (
-        <div className="flex flex-col flex-1 min-h-0 gap-3 sm:gap-4">
+        <div className="flex flex-col flex-1 min-h-0 gap-4 sm:gap-5">
           {/* Appointment Type Section */}
           <div>
             <label
               htmlFor="appointmentType-select"
-              className="block text-[10px] sm:text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide"
+              className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 uppercase tracking-wide"
             >
               Appointment Type <span className="text-red-500">*</span>
             </label>
@@ -1031,7 +1031,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   setMedicareSelectedThisSession(true);
                 }
               }}
-              className={`w-full px-2 sm:px-3 py-2 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['appointmentType'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
+              className={`w-full px-3 py-2.5 sm:py-3 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['appointmentType'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
               aria-required="true"
               aria-invalid={!!errors['appointmentType']}
               aria-describedby={
@@ -1066,8 +1066,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
             {appointmentType === 'medicare-psychologist-session' &&
               medicareSelectedThisSession && (
-                <div className="mt-2 p-2 rounded-lg bg-blue-50 border border-blue-200">
-                  <p className="text-[11px] text-blue-700 font-medium">
+                <div className="mt-2.5 p-2.5 rounded-lg bg-blue-50 border border-blue-200">
+                  <p className="text-sm text-blue-700 font-medium">
                     💡 Medicare rebates available for eligible appointments ($250 − $98.95 rebate = $151.05 gap)
                   </p>
                 </div>
@@ -1079,7 +1079,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             ) && (
               <p
                 id="appointmentType-hint"
-                className="mt-1.5 text-[11px] text-slate-500 px-1"
+                className="mt-2 text-sm text-slate-500 px-1"
               >
                 💡 Medicare rebates available for eligible appointments ($250 − $98.95 rebate = $151.05 gap)
               </p>
@@ -1090,30 +1090,30 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <div>
             <label
               htmlFor="notes-textarea"
-              className="block text-[10px] sm:text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide"
+              className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 uppercase tracking-wide"
             >
               Notes <span className="font-normal normal-case text-slate-400">(optional)</span>
             </label>
 
-            <div className="mb-1.5 flex items-center gap-2">
+            <div className="mb-2 flex items-center gap-2.5">
               <input
                 type="checkbox"
                 id="first-session-toggle"
                 checked={isFirstSession}
                 onChange={(e) => setIsFirstSession(e.target.checked)}
-                className="h-4 w-4 cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-1 focus:ring-blue-200"
+                className="h-5 w-5 cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-1 focus:ring-blue-200"
                 aria-describedby="first-session-hint"
               />
               <label
                 htmlFor="first-session-toggle"
-                className="text-xs text-slate-600 cursor-pointer"
+                className="text-sm text-slate-700 cursor-pointer"
               >
                 👋 This is my first session with Zoe
               </label>
             </div>
 
             {isFirstSession && (
-              <div className="mb-1.5 p-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-600">
+              <div className="mb-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm text-slate-600">
                 <p className="font-medium text-slate-700 mb-0.5">What to include:</p>
                 <p>Your goals, previous therapy experience, current challenges, and session preferences.</p>
               </div>
@@ -1124,7 +1124,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={isFirstSession ? 4 : 3}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition-all bg-white resize-none"
+              className="w-full rounded-lg border border-slate-200 px-3 py-3 text-base focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition-all bg-white resize-none"
               placeholder={
                 isFirstSession
                   ? 'Share the top things Zoe should know before your first session...'

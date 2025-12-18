@@ -322,12 +322,12 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         key={`${formatDateKey(day.date)}-${slot.isoDateTime}-${slotIndex}`}
         type="button"
         onClick={() => handleSlotClick(day, slot)}
-        className={`w-full flex items-center justify-center transition-all duration-150 font-medium text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-400 focus:z-20 touch-manipulation rounded ${
+        className={`w-full flex items-center justify-center transition-all duration-150 font-medium text-sm lg:text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-400 focus:z-20 touch-manipulation rounded ${
           selected
             ? 'bg-blue-500 text-white'
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
         }`}
-        style={{ minHeight: '20px', margin: '0 2px' }}
+        style={{ minHeight: '36px', margin: '0 2px' }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
         aria-pressed={selected}
       >
@@ -392,31 +392,31 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div className="w-full flex-1 flex flex-col min-h-0 relative">
-      {/* Navigation - Ultra Compact on mobile */}
-      <div className="mb-1 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-0.5 sm:gap-1">
+      {/* Navigation - Larger on mobile for readability */}
+      <div className="mb-2 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1">
           <button
             onClick={previousWeek}
             disabled={loading || currentWeekStart.getTime() <= minWeekStart.getTime()}
-            className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
+            className="w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
             aria-label="Previous week"
           >
-            <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 sm:w-3 sm:h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
-          <span className="text-[11px] sm:text-xs font-semibold text-slate-700 min-w-[80px] sm:min-w-[100px] text-center">
+          <span className="text-sm sm:text-xs font-semibold text-slate-700 min-w-[100px] sm:min-w-[100px] text-center">
             {getWeekDateRange(currentWeekStart)}
           </span>
 
           <button
             onClick={nextWeek}
             disabled={loading}
-            className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
+            className="w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
             aria-label="Next week"
           >
-            <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 sm:w-3 sm:h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -424,13 +424,13 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
 
         <button
           onClick={toggleMonthPicker}
-          className={`font-medium text-[10px] flex items-center gap-0.5 transition-colors ${
+          className={`font-medium text-xs flex items-center gap-1 transition-colors ${
             showMonthPicker ? 'text-blue-700' : 'text-blue-600 hover:text-blue-700'
           }`}
           aria-label="Open month picker"
           aria-expanded={showMonthPicker}
         >
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-4 h-4 sm:w-3 sm:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -575,9 +575,9 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
 
       {/* Mobile Calendar - only shows days with availability */}
       {mobileWeekSchedule.length > 0 && (
-        <div className="lg:hidden space-y-2" role="region" aria-label="Mobile appointment calendar">
+        <div className="lg:hidden space-y-3" role="region" aria-label="Mobile appointment calendar">
           <div
-            className="grid gap-1 pb-1"
+            className="grid gap-1.5 pb-1"
             style={{ gridTemplateColumns: `repeat(${Math.min(mobileWeekSchedule.length, 5)}, 1fr)` }}
             role="tablist"
           >
@@ -595,7 +595,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     setUserSelectedDay(true);
                     setMobileActiveDayIndex(index);
                   }}
-                  className={`flex flex-col rounded-md px-1.5 py-1.5 text-left transition-all ${
+                  className={`flex flex-col rounded-lg px-2 py-2 text-left transition-all ${
                     isActive ? 'text-blue-800' : 'text-slate-600'
                   }`}
                   style={{
@@ -605,14 +605,14 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     border: isActive ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(226,232,240,0.8)',
                   }}
                 >
-                  <span className="text-[8px] font-semibold uppercase tracking-wide opacity-70 leading-none">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide opacity-70 leading-none">
                     {day.dayName}
                   </span>
-                  <span className="text-xs font-bold leading-tight">{day.dayNumber}</span>
+                  <span className="text-base font-bold leading-tight">{day.dayNumber}</span>
                   {dayIsToday ? (
-                    <span className="text-[7px] font-medium text-amber-600 leading-none">Today</span>
+                    <span className="text-[9px] font-medium text-amber-600 leading-none">Today</span>
                   ) : (
-                    <span className="text-[7px] font-medium text-blue-600 leading-none">
+                    <span className="text-[9px] font-medium text-blue-600 leading-none">
                       {day.slots.length > 1 ? `${day.slots.length} times` : '1 time'}
                     </span>
                   )}
@@ -622,25 +622,25 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           </div>
 
           <div
-            className="rounded-lg p-2"
+            className="rounded-xl p-3"
             style={{
               background: 'linear-gradient(145deg, rgba(248,250,252,0.95) 0%, rgba(255,255,255,0.98) 100%)',
               border: '1px solid rgba(226,232,240,0.6)',
             }}
           >
             {mobileActiveDay ? (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold text-slate-700">
+                    <p className="text-sm font-semibold text-slate-700">
                       {mobileActiveDay.dayName}, {mobileActiveDay.dayNumber} {mobileActiveDay.month}
                     </p>
-                    <p className="text-[10px] text-slate-500">
+                    <p className="text-xs text-slate-500">
                       {mobileActiveDay.slots.length > 0 ? getTimeRangeForDay(mobileActiveDay.slots) : 'No times available'}
                     </p>
                   </div>
                   <span
-                    className="rounded-full px-2 py-0.5 text-[9px] font-medium"
+                    className="rounded-full px-2.5 py-1 text-xs font-medium"
                     style={{
                       background:
                         mobileActiveDay.slots.length > 0

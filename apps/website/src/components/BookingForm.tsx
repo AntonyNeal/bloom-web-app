@@ -565,24 +565,26 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     <div className="w-full h-full flex flex-col min-h-0">
       {/* Header with integrated progress */}
       {step !== 'success' && step !== 'error' && (
-        <div className="flex-shrink-0 mb-3 sm:mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-base sm:text-lg font-semibold text-slate-800 tracking-tight leading-tight">
-              Book Your Appointment
-            </h2>
-            <p className="text-slate-500 text-xs sm:text-sm leading-tight">
-              Telehealth with Zoe Semmler
-            </p>
+        <div className="flex-shrink-0 mb-4 sm:mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-base sm:text-lg font-semibold text-slate-800 tracking-tight leading-tight">
+                Book Your Appointment
+              </h2>
+              <p className="text-slate-500 text-xs sm:text-sm leading-tight">
+                Telehealth with Zoe Semmler
+              </p>
+            </div>
           </div>
           
-          {/* Progress indicator - right aligned */}
-          <div className="flex items-center gap-0.5">
+          {/* Progress indicator - full width, larger steps */}
+          <div className="flex items-center justify-between">
             {[
-              { num: 1, key: 'details' },
-              { num: 2, key: 'datetime' },
-              { num: 3, key: 'session' },
-              { num: 4, key: 'payment' },
-            ].map(({ num, key }, index) => {
+              { num: 1, key: 'details', label: 'Details' },
+              { num: 2, key: 'datetime', label: 'Date' },
+              { num: 3, key: 'session', label: 'Session' },
+              { num: 4, key: 'payment', label: 'Payment' },
+            ].map(({ num, key, label }, index) => {
               const isActive = step === key || (key === 'datetime' && step === 'verify');
               const isPast = 
                 (key === 'details' && ['verify', 'datetime', 'session', 'payment', 'success'].includes(step)) ||
@@ -591,18 +593,27 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 (key === 'payment' && step === 'success');
               return (
                 <React.Fragment key={key}>
-                  <div
-                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold transition-all ${
-                      isActive
-                        ? 'bg-blue-500 text-white shadow-sm'
-                        : isPast
-                          ? 'bg-blue-100 text-blue-600'
-                          : 'bg-slate-100 text-slate-400'
-                    }`}
-                  >
-                    {isPast ? '✓' : num}
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all ${
+                        isActive
+                          ? 'bg-blue-500 text-white shadow-md'
+                          : isPast
+                            ? 'bg-green-500 text-white'
+                            : 'bg-slate-200 text-slate-500'
+                      }`}
+                    >
+                      {isPast ? '✓' : num}
+                    </div>
+                    <span className={`text-[10px] sm:text-xs mt-1 font-medium ${
+                      isActive ? 'text-blue-600' : isPast ? 'text-green-600' : 'text-slate-400'
+                    }`}>
+                      {label}
+                    </span>
                   </div>
-                  {index < 4 && <div className={`w-4 sm:w-6 h-0.5 ${isPast || isActive ? 'bg-blue-300' : 'bg-slate-200'}`} />}
+                  {index < 3 && (
+                    <div className={`flex-1 h-1 mx-1 sm:mx-2 rounded-full ${isPast ? 'bg-green-400' : isActive ? 'bg-blue-300' : 'bg-slate-200'}`} />
+                  )}
                 </React.Fragment>
               );
             })}

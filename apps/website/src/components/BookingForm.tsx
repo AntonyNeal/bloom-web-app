@@ -226,7 +226,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       newErrors['email'] = 'Please enter a valid email address';
     }
 
-    if (phone && !HalaxyClient.validatePhone(phone)) {
+    if (!phone.trim()) {
+      newErrors['phone'] = 'Phone number is required';
+    } else if (!HalaxyClient.validatePhone(phone)) {
       newErrors['phone'] = 'Please enter a valid Australian phone number';
     }
 
@@ -248,7 +250,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       lastName.trim() !== '' &&
       email.trim() !== '' &&
       HalaxyClient.validateEmail(email) &&
-      (!phone || HalaxyClient.validatePhone(phone)) &&
+      phone.trim() !== '' &&
+      HalaxyClient.validatePhone(phone) &&
       dobParts.length === 3 &&
       (dobParts[0] ?? '') !== '' &&
       (dobParts[1] ?? '') !== '' &&

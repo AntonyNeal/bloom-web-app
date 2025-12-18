@@ -4,14 +4,14 @@ import { tracker } from '../utils/UnifiedTracker';
 import { apiService } from '../services/ApiService';
 import { log } from '../utils/logger';
 
-// Homepage A/B testing configuration
+// Homepage A/B testing configuration - Photo comparison test
 const HOMEPAGE_TEST_CONFIG: TestConfig = {
-  name: 'Homepage Header Optimization',
-  description: 'Healthcare-optimized vs Minimal header design',
-  variants: ['healthcare-optimized', 'minimal'],
+  name: 'Homepage Hero Photo Test',
+  description: 'Testing current hero photo vs standing professional photo',
+  variants: ['photo-current', 'photo-standing'],
   weights: [50, 50], // 50/50 split for fair testing
   hypothesis:
-    'Healthcare-optimized version will increase conversions by 15-25%',
+    'Standing professional photo will increase trust and conversions',
 };
 
 interface ABTestProviderProps {

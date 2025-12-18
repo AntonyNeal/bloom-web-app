@@ -5,9 +5,16 @@ import { log } from '../utils/logger';
 import { getNextAvailableSlot } from '../utils/availabilityPreloader';
 import { getTimeUntilAvailability } from '../utils/halaxyAvailability';
 
-const UnifiedHeader = () => {
+interface UnifiedHeaderProps {
+  heroPhoto?: string;
+}
+
+const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeaderProps) => {
   const { isModalOpen, handleBookingClick } = useBookingService();
   const [availabilityText, setAvailabilityText] = useState<string | null>(null);
+  
+  // Determine webp version of the photo
+  const heroPhotoWebp = heroPhoto.replace('.jpg', '.webp');
 
   useEffect(() => {
     log.debug('Component mounted', 'UnifiedHeader', {
@@ -37,18 +44,22 @@ const UnifiedHeader = () => {
     });
   }, [isModalOpen]);
 
+  // Determine variant name for tracking
+  const variantName = heroPhoto.includes('standing') ? 'photo-standing' : 'photo-current';
+
   const handleBookAppointment = (
     event: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
   ) => {
     log.info('Book appointment clicked', 'UnifiedHeader', {
       eventType: event.type,
+      heroPhoto,
     });
     event.preventDefault();
 
     handleBookingClick(event, {
       buttonLocation: 'unified_header_cta',
       pageSection: 'hero',
-      variant: 'healthcare-optimized',
+      variant: variantName,
     });
   };
 
@@ -110,15 +121,15 @@ const UnifiedHeader = () => {
                 <div className="relative overflow-hidden rounded-2xl shadow-xl" style={{ aspectRatio: '3/4' }}>
                   <picture>
                     <source
-                      srcSet="/assets/hero-zoe-main.webp"
+                      srcSet={heroPhotoWebp}
                       type="image/webp"
                     />
                     <source
-                      srcSet="/assets/hero-zoe-main.jpg"
+                      srcSet={heroPhoto}
                       type="image/jpeg"
                     />
                     <img
-                      src="/assets/hero-zoe-main.jpg"
+                      src={heroPhoto}
                       alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
                       className="w-full h-full object-cover object-top"
                       loading="eager"
@@ -129,11 +140,11 @@ const UnifiedHeader = () => {
                       }}
                     />
                   </picture>
-                </div>
-                {/* Floating credential badge */}
-                <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
-                  <p className="text-xs font-semibold text-slate-700">Registered Psychologist</p>
-                  <p className="text-[10px] text-slate-500">Newcastle, NSW</p>
+                  {/* Floating credential badge - inside container so it stays attached */}
+                  <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
+                    <p className="text-xs font-semibold text-slate-700">Registered Psychologist</p>
+                    <p className="text-[10px] text-slate-500">Newcastle, NSW</p>
+                  </div>
                 </div>
               </div>
             </div>

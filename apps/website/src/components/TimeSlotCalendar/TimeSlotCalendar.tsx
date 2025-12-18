@@ -658,7 +658,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                 </div>
 
                 <div
-                  className="rounded-md max-h-[220px] overflow-y-auto"
+                  className="rounded-md"
                   style={{ border: '1px solid rgba(226,232,240,0.5)', background: 'rgba(255,255,255,0.6)' }}
                 >
                   {/* Show all business hours 8am-6pm */}

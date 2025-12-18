@@ -40,14 +40,16 @@ interface JourneyStage {
     items: string[];
   }[];
   timeframe?: string;
+  step?: number;
 }
 
 const journeyStages: JourneyStage[] = [
   {
     id: 'apply',
-    title: 'Apply',
-    subtitle: 'Quick qualification check',
+    title: 'Plant Your Seed',
+    subtitle: '5-minute application',
     icon: '🌱',
+    step: 1,
     color: bloomColors.eucalyptusSage,
     flowerType: 'tier1',
     timeframe: '5 mins',
@@ -73,11 +75,12 @@ const journeyStages: JourneyStage[] = [
   },
   {
     id: 'onboard',
-    title: 'Get Set Up',
-    subtitle: 'We handle the admin',
+    title: 'Take Root',
+    subtitle: 'We set you up',
     icon: '🌿',
+    step: 2,
     color: bloomColors.softFern,
-    flowerType: 'tier2',
+    flowerType: 'tier1',
     timeframe: '1-2 weeks',
     details: [
       {
@@ -102,11 +105,12 @@ const journeyStages: JourneyStage[] = [
   },
   {
     id: 'practice',
-    title: 'See Clients',
-    subtitle: 'Telehealth through Bloom',
+    title: 'Start Growing',
+    subtitle: 'See clients your way',
     icon: '🌸',
+    step: 3,
     color: bloomColors.softTerracotta,
-    flowerType: 'tier3',
+    flowerType: 'tier2',
     timeframe: 'Ongoing',
     details: [
       {
@@ -131,11 +135,12 @@ const journeyStages: JourneyStage[] = [
   },
   {
     id: 'earn',
-    title: 'Get Paid',
+    title: 'Flourish',
     subtitle: 'Keep 80% of what you bill',
-    icon: '💰',
+    icon: '🌻',
+    step: 4,
     color: bloomColors.honeyAmber,
-    flowerType: 'tier1',
+    flowerType: 'tier2',
     timeframe: 'Monthly',
     details: [
       {
@@ -158,71 +163,14 @@ const journeyStages: JourneyStage[] = [
     ],
   },
   {
-    id: 'marketing',
-    title: 'Marketing',
-    subtitle: 'We fill your calendar',
-    icon: '📣',
-    color: bloomColors.softFern,
+    id: 'grow',
+    title: 'Reach New Heights',
+    subtitle: 'Professional development',
+    icon: '🌳',
+    step: 5,
+    color: bloomColors.clayTerracotta,
     flowerType: 'tier3',
     timeframe: 'Ongoing',
-    details: [
-      {
-        title: 'We Bring You New Clients',
-        items: [
-          'Google Ads campaigns managed for you',
-          'Search-optimized practitioner profiles',
-          'New clients matched to your availability',
-          'See exactly where your clients come from',
-        ],
-      },
-      {
-        title: 'Build Your Brand',
-        items: [
-          'Social media tools & templates',
-          'Maintain your own professional presence',
-          'Client acquisition insights & analytics',
-          'Referral tracking dashboard',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'financial',
-    title: 'Set Your Rate',
-    subtitle: 'Plan your financial year',
-    icon: '📊',
-    color: bloomColors.softTerracotta,
-    flowerType: 'tier1',
-    timeframe: 'Yearly',
-    details: [
-      {
-        title: 'Session Rates',
-        items: [
-          '$250 per session (you keep $200)',
-          '$280 per session (you keep $224)',
-          '$310 per session (you keep $248)',
-          '$340 per session (you keep $272)',
-        ],
-      },
-      {
-        title: 'Annual Goal Setting',
-        items: [
-          'Set your financial goals each year',
-          'No upper limit on your earnings',
-          'Bloom provides advice to help you get there',
-          'Support and guidance throughout the year',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'grow',
-    title: 'Develop',
-    subtitle: 'Professional growth support',
-    icon: '🌳',
-    color: bloomColors.clayTerracotta,
-    flowerType: 'tier2',
-    timeframe: 'Year-round',
     details: [
       {
         title: 'Professional Development',
@@ -234,48 +182,41 @@ const journeyStages: JourneyStage[] = [
         ],
       },
       {
-        title: 'Community',
+        title: 'Marketing Support',
         items: [
-          'Connected practitioner network',
-          'Shape Bloom\'s direction',
+          'Google Ads campaigns managed for you',
+          'Search-optimised practitioner profiles',
+          'New clients matched to your availability',
         ],
       },
     ],
   },
   {
-    id: 'security',
-    title: 'Security & Privacy',
-    subtitle: 'Your trust is our priority',
-    icon: '🔒',
-    color: bloomColors.eucalyptusSage,
-    flowerType: 'tier2',
+    id: 'community',
+    title: 'Thrive Together',
+    subtitle: 'Join our garden',
+    icon: '🌺',
+    step: 6,
+    color: bloomColors.softTerracotta,
+    flowerType: 'tier3',
     timeframe: 'Always',
     details: [
       {
-        title: 'Regulatory Compliance',
+        title: 'A Supportive Community',
         items: [
-          'Fully compliant with federal and state telehealth legislation',
-          'Meets all medical record storage requirements',
-          'Adheres to guidelines from all relevant peak bodies',
-          'Regular compliance audits and updates',
+          'Connected network of like-minded practitioners',
+          'Peer support and consultation',
+          'Shape Bloom\'s direction together',
+          'Celebrate each other\'s growth',
         ],
       },
       {
-        title: 'Data Protection',
+        title: 'You\'re Never Alone',
         items: [
-          'Microsoft Azure enterprise-grade security',
-          'Bank-level encryption for all data',
-          'Australian data sovereignty - your data stays here',
-          'Industry-leading security best practices',
-        ],
-      },
-      {
-        title: 'Our Commitment',
-        items: [
-          'We take clinician and client privacy seriously',
-          'Innovative technology with uncompromising security',
-          'Transparent about how we protect your information',
-          'Dedicated to maintaining the highest standards',
+          'Fast, personal tech support when you need it',
+          'Regular check-ins and guidance',
+          'A place where you truly belong',
+          'Growing stronger together',
         ],
       },
     ],

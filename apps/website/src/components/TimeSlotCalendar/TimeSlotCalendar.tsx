@@ -344,13 +344,14 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       <div
         role="grid"
         aria-label="Available appointment time slots"
-        className="bg-white flex-1 flex flex-col"
+        className="bg-white flex-1 overflow-y-auto"
+        style={{ minHeight: '0' }}
       >
         {BUSINESS_HOURS.map((hour, rowIndex) => (
           <div
             key={hour}
-            className={`grid items-center border-b border-slate-100 last:border-b-0 flex-1 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
-            style={{ gridTemplateColumns: gridCols, minHeight: '28px' }}
+            className={`grid items-center border-b border-slate-100 last:border-b-0 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
+            style={{ gridTemplateColumns: gridCols, height: '32px' }}
             role="row"
           >
             <div className="text-[10px] font-medium text-slate-400 text-right pr-1.5">
@@ -702,7 +703,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           aria-label="Weekly appointment calendar"
         >
           <div
-            className="rounded-lg overflow-hidden relative flex-1 flex flex-col"
+            className="rounded-lg overflow-hidden relative flex-1 flex flex-col min-h-0"
             style={{
               border: '1px solid rgba(226,232,240,0.8)',
               background: 'rgba(255,255,255,0.98)',

@@ -1,19 +1,12 @@
 /**
  * Bloom Journey Infographic
  * 
- * An interactive, multidirectional infographic showing the complete
- * practitioner experience at Bloom - from application to daily operations.
- * 
- * Features:
- * - Clickable journey stages that expand with details
- * - Animated connections between stages
- * - Mobile-responsive design
- * - Framer Motion animations
+ * A clean, spacious infographic showing the practitioner journey at Bloom.
+ * Uses factual labels with subtle visual growth decoration.
  */
 
 import { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Tier1Flower, Tier2Flower, Tier3Flower } from '@/components/flowers';
 
 // Bloom design system colors
 const bloomColors = {
@@ -27,210 +20,158 @@ const bloomColors = {
   paperWhite: '#FEFDFB',
 };
 
-// Journey stage data
+// Journey stages - factual, clear labels
 interface JourneyStage {
   id: string;
   title: string;
   subtitle: string;
   icon: string;
   color: string;
-  flowerType: 'tier1' | 'tier2' | 'tier3';
-  details: {
-    title: string;
-    items: string[];
-  }[];
-  timeframe?: string;
-  step?: number;
+  timeframe: string;
+  details: string[];
 }
 
 const journeyStages: JourneyStage[] = [
   {
     id: 'apply',
-    title: 'Plant Your Seed',
-    subtitle: '5-minute application',
-    icon: '🌱',
-    step: 1,
+    title: 'Apply Online',
+    subtitle: 'Quick eligibility check',
+    icon: '📝',
     color: bloomColors.eucalyptusSage,
-    flowerType: 'tier1',
-    timeframe: '5 mins',
+    timeframe: '5 minutes',
     details: [
-      {
-        title: 'Who We\'re Looking For',
-        items: [
-          'Experienced, well-qualified clinicians',
-          'Honest practitioners who value integrity',
-          'Comfortable with simple online tools',
-          'Community-minded—culture matters here',
-        ],
-      },
-      {
-        title: 'Qualifications',
-        items: [
-          'Clinical Psychologists (AHPRA registered)',
-          'Registered Psychologist with 8+ years experience',
-          'PhD in Psychology with registration',
-        ],
-      },
+      'Clinical Psychologists (AHPRA registered)',
+      'Registered Psychologists with 8+ years',
+      'PhD in Psychology with registration',
+      'Community-minded practitioners',
     ],
   },
   {
     id: 'onboard',
-    title: 'Take Root',
-    subtitle: 'We set you up',
-    icon: '🌿',
-    step: 2,
+    title: 'Get Set Up',
+    subtitle: 'We handle the admin',
+    icon: '⚙️',
     color: bloomColors.softFern,
-    flowerType: 'tier1',
     timeframe: '1-2 weeks',
     details: [
-      {
-        title: 'Practice Setup',
-        items: [
-          'Your own Bloom practice portal',
-          'Telehealth video capability',
-          'Calendar & availability system',
-          'Billing & Medicare integration',
-        ],
-      },
-      {
-        title: 'Bloom Integration',
-        items: [
-          'Bring your existing clients with you',
-          'Professional profile on our site',
-          '@life-psychology.com.au email',
-          'Fast, personal tech support when you need it',
-        ],
-      },
+      'Your own Bloom practice portal',
+      'Telehealth & calendar system',
+      'Medicare billing integration',
+      '@life-psychology.com.au email',
     ],
   },
   {
-    id: 'practice',
-    title: 'Start Growing',
-    subtitle: 'See clients your way',
-    icon: '🌸',
-    step: 3,
+    id: 'telehealth',
+    title: 'Telehealth',
+    subtitle: 'See clients from anywhere',
+    icon: '💻',
     color: bloomColors.softTerracotta,
-    flowerType: 'tier2',
-    timeframe: 'Ongoing',
+    timeframe: 'Your schedule',
     details: [
-      {
-        title: 'Telehealth Practice',
-        items: [
-          'All sessions through Bloom are via telehealth',
-          'Keep seeing face-to-face clients elsewhere',
-          'Bloom fits around your existing practice',
-          'Work from home or anywhere with internet',
-        ],
-      },
-      {
-        title: 'Bloom Dashboard',
-        items: [
-          'Smart notes & session prep tools',
-          'Secure video consultations',
-          'Insights & connections to reach your goals',
-          'Built for community collaboration',
-        ],
-      },
+      'Secure HD video consultations',
+      'Work from home or anywhere',
+      'Fits around existing practice',
+      'Smart notes & session tools',
     ],
   },
   {
-    id: 'earn',
-    title: 'Flourish',
-    subtitle: 'Keep 80% of what you bill',
-    icon: '🌻',
-    step: 4,
+    id: 'clients',
+    title: 'Client Matching',
+    subtitle: 'We fill your calendar',
+    icon: '👥',
     color: bloomColors.honeyAmber,
-    flowerType: 'tier2',
-    timeframe: 'Monthly',
+    timeframe: 'Ongoing',
     details: [
-      {
-        title: 'Earnings',
-        items: [
-          '$250 session = $200 to you',
-          'No billing targets or quotas',
-          'Paid monthly to your account',
-          'No tax or super withholding',
-        ],
-      },
-      {
-        title: 'Transparent Fees',
-        items: [
-          'Simple 80/20 split - you keep 80%',
-          'No hidden costs or lock-ins',
-          'No long-term contracts required',
-        ],
-      },
+      'Google Ads managed for you',
+      'SEO-optimised profile page',
+      'Matched to your availability',
+      'See where clients find you',
     ],
   },
   {
-    id: 'grow',
-    title: 'Reach New Heights',
-    subtitle: 'Professional development',
-    icon: '🌳',
-    step: 5,
-    color: bloomColors.clayTerracotta,
-    flowerType: 'tier3',
-    timeframe: 'Ongoing',
+    id: 'earnings',
+    title: 'Earnings',
+    subtitle: 'Keep 80% of what you bill',
+    icon: '💵',
+    color: bloomColors.eucalyptusSage,
+    timeframe: 'Paid monthly',
     details: [
-      {
-        title: 'Professional Development',
-        items: [
-          'Supervision access',
-          'Peer consultation groups',
-          'Training workshops',
-          'Professional development tracking',
-        ],
-      },
-      {
-        title: 'Marketing Support',
-        items: [
-          'Google Ads campaigns managed for you',
-          'Search-optimised practitioner profiles',
-          'New clients matched to your availability',
-        ],
-      },
+      '$250 session = $200 to you',
+      'No billing targets or quotas',
+      'Direct deposit monthly',
+      'Transparent fee structure',
+    ],
+  },
+  {
+    id: 'rates',
+    title: 'Set Your Rate',
+    subtitle: '$250-$340 per session',
+    icon: '📊',
+    color: bloomColors.softFern,
+    timeframe: 'You decide',
+    details: [
+      '$250/session → keep $200',
+      '$280/session → keep $224',
+      '$310/session → keep $248',
+      '$340/session → keep $272',
+    ],
+  },
+  {
+    id: 'development',
+    title: 'Development',
+    subtitle: 'Professional growth',
+    icon: '📚',
+    color: bloomColors.clayTerracotta,
+    timeframe: 'Year-round',
+    details: [
+      'Supervision access',
+      'Peer consultation groups',
+      'Training workshops',
+      'CPD tracking',
     ],
   },
   {
     id: 'community',
-    title: 'Thrive Together',
-    subtitle: 'Join our garden',
-    icon: '🌺',
-    step: 6,
+    title: 'Community',
+    subtitle: 'Never practice alone',
+    icon: '🤝',
     color: bloomColors.softTerracotta,
-    flowerType: 'tier3',
     timeframe: 'Always',
     details: [
-      {
-        title: 'A Supportive Community',
-        items: [
-          'Connected network of like-minded practitioners',
-          'Peer support and consultation',
-          'Shape Bloom\'s direction together',
-          'Celebrate each other\'s growth',
-        ],
-      },
-      {
-        title: 'You\'re Never Alone',
-        items: [
-          'Fast, personal tech support when you need it',
-          'Regular check-ins and guidance',
-          'A place where you truly belong',
-          'Growing stronger together',
-        ],
-      },
+      'Connected practitioner network',
+      'Peer support & collaboration',
+      'Shape Bloom\'s direction',
+      'Fast, personal tech support',
     ],
   },
-];
-
-// Feature highlights for the center
-const featureHighlights = [
-  { icon: '📱', label: 'Telehealth', description: 'See clients from anywhere' },
-  { icon: '📊', label: 'Dashboard', description: 'Your practice at a glance' },
-  { icon: '📣', label: 'Marketing', description: 'We fill your calendar' },
-  { icon: '💰', label: 'Your Rate', description: '$250-$340 per session' },
-  { icon: '⏰', label: 'Flexible Hours', description: 'Mornings, evenings, weekends' },
-  { icon: '📈', label: 'Client Insights', description: 'See where clients find you' },
+  {
+    id: 'flexibility',
+    title: 'Flexibility',
+    subtitle: 'Work on your terms',
+    icon: '🕐',
+    color: bloomColors.honeyAmber,
+    timeframe: 'Your choice',
+    details: [
+      'No minimum hours required',
+      'Mornings, evenings, weekends',
+      'Pause or leave anytime',
+      'No long-term contracts',
+    ],
+  },
+  {
+    id: 'security',
+    title: 'Security',
+    subtitle: 'Enterprise-grade protection',
+    icon: '🔒',
+    color: bloomColors.eucalyptusSage,
+    timeframe: 'Always',
+    details: [
+      'Microsoft Azure security',
+      'Bank-level encryption',
+      'Australian data sovereignty',
+      'Full regulatory compliance',
+    ],
+  },
 ];
 
 interface Props {
@@ -238,427 +179,296 @@ interface Props {
   onApplyClick: () => void;
 }
 
+// Decorative growing dots - subtle visual growth metaphor
+const GrowingDots = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px 0' }}>
+    {[8, 10, 12, 14, 12, 10, 8].map((size, i) => (
+      <motion.div
+        key={i}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 0.4 + (i === 3 ? 0.3 : 0) }}
+        transition={{ delay: i * 0.1, duration: 0.3 }}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          background: i <= 3 
+            ? `linear-gradient(135deg, ${bloomColors.eucalyptusSage}, ${bloomColors.softFern})`
+            : `linear-gradient(135deg, ${bloomColors.softFern}, ${bloomColors.softTerracotta})`,
+        }}
+      />
+    ))}
+  </div>
+);
+
 export function BloomJourneyInfographic({ isMobile, onApplyClick }: Props) {
-  const [activeStage, setActiveStage] = useState<string | null>(null);
-  const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
+  const [expandedStage, setExpandedStage] = useState<string | null>('apply');
   const prefersReducedMotion = useReducedMotion();
 
-  const FlowerComponent = ({ type, isActive }: { type: 'tier1' | 'tier2' | 'tier3'; isActive: boolean }) => {
-    const props = { isChecked: isActive, isMobile, shouldReduceMotion: prefersReducedMotion ?? false };
-    switch (type) {
-      case 'tier1': return <Tier1Flower {...props} />;
-      case 'tier2': return <Tier2Flower {...props} />;
-      case 'tier3': return <Tier3Flower {...props} />;
-    }
+  const handleStageClick = (stageId: string) => {
+    setExpandedStage(expandedStage === stageId ? null : stageId);
   };
 
   return (
-    <div style={{ padding: isMobile ? '40px 16px' : '60px 24px', maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ padding: isMobile ? '32px 16px' : '48px 24px', maxWidth: '1100px', margin: '0 auto' }}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        style={{ textAlign: 'center', marginBottom: isMobile ? '40px' : '60px' }}
+        transition={{ duration: 0.5 }}
+        style={{ textAlign: 'center', marginBottom: isMobile ? '32px' : '48px' }}
       >
         <h2
           style={{
-            fontSize: isMobile ? '28px' : '40px',
+            fontSize: isMobile ? '26px' : '36px',
             fontWeight: 700,
-            background: `linear-gradient(135deg, ${bloomColors.eucalyptusSage} 0%, ${bloomColors.softTerracotta} 100%)`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            marginBottom: '16px',
+            color: bloomColors.eucalyptusSage,
+            marginBottom: '12px',
             letterSpacing: '-0.02em',
           }}
         >
-          Your Journey with Bloom
+          How It Works
         </h2>
         <p
           style={{
-            fontSize: isMobile ? '16px' : '18px',
-            color: '#4A4A4A',
-            maxWidth: '600px',
-            margin: '0 auto',
-            lineHeight: 1.6,
+            fontSize: isMobile ? '15px' : '17px',
+            color: '#666',
+            maxWidth: '500px',
+            margin: '0 auto 8px',
+            lineHeight: 1.5,
           }}
         >
-          Click each stage to explore what your experience looks like
+          Tap any card to see more details
         </p>
+        {/* Subtle growth decoration */}
+        <GrowingDots />
       </motion.div>
 
-      {/* Journey Timeline - Horizontal on desktop, vertical on mobile */}
+      {/* Journey Grid - 2 columns on mobile, 5 columns on desktop */}
       <div
         style={{
-          display: 'flex',
-          flexDirection: isMobile ? 'column' : 'row',
-          justifyContent: 'center',
-          alignItems: isMobile ? 'stretch' : 'flex-start',
-          gap: isMobile ? '16px' : '8px',
-          marginBottom: '48px',
-          position: 'relative',
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
+          gap: isMobile ? '12px' : '16px',
+          marginBottom: '40px',
         }}
       >
-        {/* Connection Line */}
-        {!isMobile && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '40px',
-              left: '10%',
-              right: '10%',
-              height: '3px',
-              background: `linear-gradient(90deg, ${bloomColors.eucalyptusSage}40, ${bloomColors.softTerracotta}40)`,
-              borderRadius: '2px',
-              zIndex: 0,
-            }}
-          />
-        )}
-
-        {journeyStages.map((stage, index) => (
-          <motion.div
-            key={stage.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            style={{
-              flex: isMobile ? 'none' : 1,
-              maxWidth: isMobile ? '100%' : '200px',
-              zIndex: activeStage === stage.id ? 10 : 1,
-            }}
-          >
-            {/* Stage Card */}
-            <motion.button
-              onClick={() => setActiveStage(activeStage === stage.id ? null : stage.id)}
-              whileHover={{ scale: 1.02, y: -4 }}
-              whileTap={{ scale: 0.98 }}
+        {journeyStages.map((stage, index) => {
+          const isExpanded = expandedStage === stage.id;
+          
+          return (
+            <motion.div
+              key={stage.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.05 }}
               style={{
-                width: '100%',
-                padding: isMobile ? '20px' : '24px 16px',
-                background: activeStage === stage.id
-                  ? `linear-gradient(135deg, ${stage.color}15, ${stage.color}08)`
-                  : 'rgba(255, 255, 255, 0.9)',
-                border: `2px solid ${activeStage === stage.id ? stage.color : stage.color + '30'}`,
-                borderRadius: '16px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: activeStage === stage.id
-                  ? `0 8px 24px ${stage.color}25`
-                  : '0 4px 12px rgba(0,0,0,0.05)',
-                display: 'flex',
-                flexDirection: isMobile ? 'row' : 'column',
-                alignItems: 'center',
-                gap: isMobile ? '16px' : '12px',
-                textAlign: isMobile ? 'left' : 'center',
+                gridColumn: isExpanded && !isMobile ? 'span 2' : 'span 1',
+                gridRow: isExpanded && !isMobile ? 'span 2' : 'span 1',
               }}
             >
-              {/* Icon with Flower */}
-              <div
+              <motion.button
+                onClick={() => handleStageClick(stage.id)}
+                whileHover={prefersReducedMotion ? {} : { scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
                 style={{
+                  width: '100%',
+                  height: '100%',
+                  minHeight: isExpanded ? (isMobile ? 'auto' : '280px') : (isMobile ? '120px' : '140px'),
+                  padding: isMobile ? '16px 12px' : '20px 16px',
+                  background: isExpanded
+                    ? `linear-gradient(145deg, ${stage.color}12, white)`
+                    : 'white',
+                  border: `2px solid ${isExpanded ? stage.color : '#e5e7eb'}`,
+                  borderRadius: '16px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: isExpanded
+                    ? `0 12px 32px ${stage.color}20, 0 4px 12px rgba(0,0,0,0.08)`
+                    : '0 2px 8px rgba(0,0,0,0.04)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: isExpanded ? 'flex-start' : 'center',
+                  justifyContent: 'flex-start',
+                  textAlign: isExpanded ? 'left' : 'center',
                   position: 'relative',
-                  width: isMobile ? '48px' : '64px',
-                  height: isMobile ? '48px' : '64px',
-                  flexShrink: 0,
+                  overflow: 'hidden',
                 }}
               >
+                {/* Expand indicator */}
                 <div
                   style={{
                     position: 'absolute',
-                    inset: 0,
+                    top: '8px',
+                    right: '8px',
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    background: isExpanded ? stage.color : '#f1f5f9',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: isMobile ? '28px' : '36px',
-                    zIndex: 1,
+                    fontSize: '12px',
+                    color: isExpanded ? 'white' : '#94a3b8',
+                    transition: 'all 0.3s',
+                  }}
+                >
+                  {isExpanded ? '−' : '+'}
+                </div>
+
+                {/* Icon */}
+                <div
+                  style={{
+                    fontSize: isMobile ? '32px' : '40px',
+                    marginBottom: '8px',
+                    filter: isExpanded ? 'none' : 'grayscale(20%)',
+                    transition: 'filter 0.3s',
                   }}
                 >
                   {stage.icon}
                 </div>
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: '-8px',
-                    right: '-8px',
-                    width: '28px',
-                    height: '28px',
-                    opacity: activeStage === stage.id ? 1 : 0.5,
-                    transition: 'opacity 0.3s',
-                  }}
-                >
-                  <FlowerComponent type={stage.flowerType} isActive={activeStage === stage.id} />
-                </div>
-              </div>
 
-              <div style={{ flex: 1 }}>
+                {/* Title & Subtitle */}
                 <h3
                   style={{
-                    fontSize: isMobile ? '18px' : '17px',
+                    fontSize: isMobile ? '14px' : '15px',
                     fontWeight: 700,
-                    color: stage.color,
-                    marginBottom: '4px',
-                    letterSpacing: '-0.01em',
+                    color: isExpanded ? stage.color : '#374151',
+                    marginBottom: '2px',
+                    transition: 'color 0.3s',
                   }}
                 >
                   {stage.title}
                 </h3>
                 <p
                   style={{
-                    fontSize: '13px',
-                    color: '#666',
+                    fontSize: isMobile ? '11px' : '12px',
+                    color: '#6b7280',
                     margin: 0,
-                    lineHeight: 1.4,
+                    lineHeight: 1.3,
                   }}
                 >
                   {stage.subtitle}
                 </p>
-                {stage.timeframe && (
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      marginTop: '8px',
-                      padding: '2px 8px',
-                      background: `${stage.color}15`,
-                      color: stage.color,
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      borderRadius: '10px',
-                    }}
-                  >
-                    {stage.timeframe}
-                  </span>
-                )}
-              </div>
 
-              {/* Expand indicator */}
-              <motion.div
-                animate={{ rotate: activeStage === stage.id ? 180 : 0 }}
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: stage.color,
-                  fontSize: '18px',
-                }}
-              >
-                ▾
-              </motion.div>
-            </motion.button>
-
-            {/* Expanded Details */}
-            <AnimatePresence>
-              {activeStage === stage.id && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                  animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
-                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                  transition={{ duration: 0.3 }}
-                  style={{ overflow: 'hidden' }}
+                {/* Timeframe badge */}
+                <span
+                  style={{
+                    display: 'inline-block',
+                    marginTop: '8px',
+                    padding: '3px 8px',
+                    background: isExpanded ? `${stage.color}15` : '#f3f4f6',
+                    color: isExpanded ? stage.color : '#6b7280',
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    borderRadius: '12px',
+                    transition: 'all 0.3s',
+                  }}
                 >
-                  <div
-                    style={{
-                      background: 'white',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      border: `1px solid ${stage.color}25`,
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-                    }}
-                  >
-                    {stage.details.map((detail, detailIndex) => (
-                      <div key={detailIndex} style={{ marginBottom: detailIndex < stage.details.length - 1 ? '20px' : 0 }}>
-                        <h4
-                          style={{
-                            fontSize: '14px',
-                            fontWeight: 700,
-                            color: stage.color,
-                            marginBottom: '10px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                          }}
-                        >
-                          <span style={{ width: '6px', height: '6px', background: stage.color, borderRadius: '50%' }} />
-                          {detail.title}
-                        </h4>
-                        <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                          {detail.items.map((item, itemIndex) => (
-                            <li
-                              key={itemIndex}
+                  {stage.timeframe}
+                </span>
+
+                {/* Expanded details */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{
+                        marginTop: '16px',
+                        width: '100%',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          borderTop: `1px solid ${stage.color}20`,
+                          paddingTop: '12px',
+                        }}
+                      >
+                        {stage.details.map((detail, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              gap: '8px',
+                              marginBottom: '8px',
+                              fontSize: isMobile ? '12px' : '13px',
+                              color: '#4b5563',
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            <span
                               style={{
-                                fontSize: '13px',
-                                color: '#4A4A4A',
-                                lineHeight: 1.6,
-                                paddingLeft: '14px',
-                                position: 'relative',
-                                marginBottom: '6px',
+                                color: stage.color,
+                                fontWeight: 'bold',
+                                flexShrink: 0,
                               }}
                             >
-                              <span
-                                style={{
-                                  position: 'absolute',
-                                  left: 0,
-                                  color: stage.color,
-                                  fontWeight: 'bold',
-                                }}
-                              >
-                                •
-                              </span>
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
+                              ✓
+                            </span>
+                            {detail}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            </motion.div>
+          );
+        })}
       </div>
 
-      {/* Feature Highlights Grid */}
+      {/* Key Stats Row */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        style={{
-          background: `linear-gradient(135deg, ${bloomColors.eucalyptusSage}08, ${bloomColors.softTerracotta}05)`,
-          borderRadius: '20px',
-          padding: isMobile ? '28px 20px' : '40px',
-          marginBottom: '48px',
-        }}
-      >
-        <h3
-          style={{
-            textAlign: 'center',
-            fontSize: isMobile ? '20px' : '24px',
-            fontWeight: 700,
-            color: bloomColors.eucalyptusSage,
-            marginBottom: '28px',
-          }}
-        >
-          Everything You Need to Practice
-        </h3>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
-            gap: isMobile ? '12px' : '20px',
-          }}
-        >
-          {featureHighlights.map((feature, index) => (
-            <motion.div
-              key={index}
-              onHoverStart={() => setHoveredFeature(index)}
-              onHoverEnd={() => setHoveredFeature(null)}
-              whileHover={{ y: -4, scale: 1.02 }}
-              style={{
-                background: 'white',
-                padding: isMobile ? '16px 12px' : '24px 20px',
-                borderRadius: '12px',
-                textAlign: 'center',
-                boxShadow: hoveredFeature === index
-                  ? '0 8px 24px rgba(107, 142, 127, 0.15)'
-                  : '0 2px 8px rgba(0,0,0,0.04)',
-                transition: 'box-shadow 0.3s',
-                cursor: 'default',
-              }}
-            >
-              <div style={{ fontSize: isMobile ? '28px' : '36px', marginBottom: '8px' }}>
-                {feature.icon}
-              </div>
-              <h4
-                style={{
-                  fontSize: isMobile ? '14px' : '16px',
-                  fontWeight: 700,
-                  color: '#3A3A3A',
-                  marginBottom: '4px',
-                }}
-              >
-                {feature.label}
-              </h4>
-              <p
-                style={{
-                  fontSize: isMobile ? '12px' : '13px',
-                  color: '#666',
-                  margin: 0,
-                  lineHeight: 1.4,
-                }}
-              >
-                {feature.description}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Value Proposition Summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
+        transition={{ delay: 0.4 }}
         style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-          gap: '20px',
-          marginBottom: '48px',
+          gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(3, 1fr)',
+          gap: isMobile ? '12px' : '24px',
+          marginBottom: '40px',
+          padding: isMobile ? '20px 16px' : '32px',
+          background: `linear-gradient(135deg, ${bloomColors.eucalyptusSage}06, ${bloomColors.softTerracotta}04)`,
+          borderRadius: '20px',
         }}
       >
         {[
-          {
-            icon: '💰',
-            value: '80%',
-            label: 'Yours',
-            sublabel: 'simple fee structure',
-            color: bloomColors.eucalyptusSage,
-          },
-          {
-            icon: '🕐',
-            value: '0',
-            label: 'Quotas',
-            sublabel: 'work your own hours',
-            color: bloomColors.softTerracotta,
-          },
-          {
-            icon: '🔓',
-            value: 'No',
-            label: 'Lock-in',
-            sublabel: 'leave anytime',
-            color: bloomColors.honeyAmber,
-          },
-        ].map((stat, index) => (
-          <motion.div
-            key={index}
-            whileHover={{ y: -4 }}
-            style={{
-              background: 'white',
-              padding: '28px 24px',
-              borderRadius: '16px',
-              textAlign: 'center',
-              border: `2px solid ${stat.color}25`,
-              boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-            }}
-          >
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>{stat.icon}</div>
+          { value: '80%', label: 'You Keep', sublabel: 'of session fees' },
+          { value: '0', label: 'Quotas', sublabel: 'no minimums' },
+          { value: '∞', label: 'Flexibility', sublabel: 'your schedule' },
+        ].map((stat, i) => (
+          <div key={i} style={{ textAlign: 'center' }}>
             <div
               style={{
-                fontSize: isMobile ? '36px' : '44px',
+                fontSize: isMobile ? '28px' : '40px',
                 fontWeight: 800,
-                color: stat.color,
+                color: bloomColors.eucalyptusSage,
                 lineHeight: 1,
                 marginBottom: '4px',
               }}
             >
               {stat.value}
             </div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: '#3A3A3A', marginBottom: '4px' }}>
+            <div
+              style={{
+                fontSize: isMobile ? '13px' : '16px',
+                fontWeight: 700,
+                color: '#374151',
+                marginBottom: '2px',
+              }}
+            >
               {stat.label}
             </div>
-            <div style={{ fontSize: '14px', color: '#666' }}>{stat.sublabel}</div>
-          </motion.div>
+            <div style={{ fontSize: isMobile ? '11px' : '13px', color: '#6b7280' }}>
+              {stat.sublabel}
+            </div>
+          </div>
         ))}
       </motion.div>
 
@@ -666,37 +476,36 @@ export function BloomJourneyInfographic({ isMobile, onApplyClick }: Props) {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.9 }}
+        transition={{ delay: 0.6 }}
         style={{ textAlign: 'center' }}
       >
         <p
           style={{
-            fontSize: isMobile ? '17px' : '19px',
-            color: '#4A4A4A',
-            marginBottom: '24px',
-            lineHeight: 1.6,
+            fontSize: isMobile ? '16px' : '18px',
+            color: '#4b5563',
+            marginBottom: '20px',
           }}
         >
-          Ready to practice psychology your way?
+          Ready to practice psychology on your terms?
         </p>
         <motion.button
-          whileHover={{ scale: 1.05, boxShadow: '0 8px 28px rgba(107, 142, 127, 0.35)' }}
+          whileHover={{ scale: 1.03, boxShadow: '0 8px 28px rgba(107, 142, 127, 0.35)' }}
           whileTap={{ scale: 0.98 }}
           onClick={onApplyClick}
           style={{
-            padding: isMobile ? '18px 44px' : '20px 56px',
-            fontSize: isMobile ? '17px' : '19px',
+            padding: isMobile ? '16px 40px' : '18px 48px',
+            fontSize: isMobile ? '16px' : '18px',
             fontWeight: 700,
-            color: '#FEFDFB',
+            color: 'white',
             background: `linear-gradient(135deg, ${bloomColors.eucalyptusSage} 0%, ${bloomColors.softFern} 100%)`,
             border: 'none',
-            borderRadius: '16px',
+            borderRadius: '14px',
             cursor: 'pointer',
-            boxShadow: '0 6px 20px rgba(107, 142, 127, 0.3)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: '0 4px 16px rgba(107, 142, 127, 0.25)',
+            transition: 'all 0.3s',
           }}
         >
-          Check If You Qualify
+          Check If You Qualify →
         </motion.button>
       </motion.div>
     </div>

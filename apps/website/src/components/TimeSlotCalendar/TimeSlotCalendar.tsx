@@ -322,10 +322,10 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         key={`${formatDateKey(day.date)}-${slot.isoDateTime}-${slotIndex}`}
         type="button"
         onClick={() => handleSlotClick(day, slot)}
-        className={`w-full flex items-center justify-center transition-all duration-150 font-medium text-[10px] focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:z-20 touch-manipulation rounded ${
+        className={`w-full flex items-center justify-center transition-all duration-150 font-medium text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-400 focus:z-20 touch-manipulation rounded ${
           selected
-            ? 'bg-emerald-500 text-white'
-            : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+            ? 'bg-blue-500 text-white'
+            : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
         }`}
         style={{ minHeight: '20px', margin: '0 2px' }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
@@ -425,7 +425,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         <button
           onClick={toggleMonthPicker}
           className={`font-medium text-[10px] flex items-center gap-0.5 transition-colors ${
-            showMonthPicker ? 'text-emerald-700' : 'text-emerald-600 hover:text-emerald-700'
+            showMonthPicker ? 'text-blue-700' : 'text-blue-600 hover:text-blue-700'
           }`}
           aria-label="Open month picker"
           aria-expanded={showMonthPicker}
@@ -513,7 +513,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     isPast
                       ? 'text-slate-300 cursor-not-allowed'
                       : isInCurrentWeek
-                        ? 'bg-emerald-100 text-emerald-700 font-semibold'
+                        ? 'bg-blue-100 text-blue-700 font-semibold'
                         : isCurrentDay
                           ? 'bg-amber-100 text-amber-700 font-semibold'
                           : 'hover:bg-slate-100 text-slate-700'
@@ -596,7 +596,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     setMobileActiveDayIndex(index);
                   }}
                   className={`flex flex-col rounded-lg px-2 py-2 text-left transition-all ${
-                    isActive ? 'text-emerald-800' : 'text-slate-600'
+                    isActive ? 'text-blue-800' : 'text-slate-600'
                   }`}
                   style={{
                     background: isActive
@@ -612,7 +612,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                   {dayIsToday ? (
                     <span className="text-[8px] font-medium text-amber-600 leading-tight">Today</span>
                   ) : (
-                    <span className="text-[8px] font-medium text-emerald-600 leading-tight">
+                    <span className="text-[8px] font-medium text-blue-600 leading-tight">
                       {day.slots.length > 1 ? `${day.slots.length} times` : '1 time'}
                     </span>
                   )}

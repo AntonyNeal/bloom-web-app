@@ -595,15 +595,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold transition-all ${
                       isActive
-                        ? 'bg-emerald-500 text-white shadow-sm'
+                        ? 'bg-blue-500 text-white shadow-sm'
                         : isPast
-                          ? 'bg-emerald-100 text-emerald-600'
+                          ? 'bg-blue-100 text-blue-600'
                           : 'bg-slate-100 text-slate-400'
                     }`}
                   >
                     {isPast ? '✓' : num}
                   </div>
-                  {index < 4 && <div className={`w-4 sm:w-6 h-0.5 ${isPast || isActive ? 'bg-emerald-300' : 'bg-slate-200'}`} />}
+                  {index < 4 && <div className={`w-4 sm:w-6 h-0.5 ${isPast || isActive ? 'bg-blue-300' : 'bg-slate-200'}`} />}
                 </React.Fragment>
               );
             })}
@@ -637,7 +637,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['firstName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
+                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['firstName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
                   style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   placeholder="John"
                   aria-required="true"
@@ -671,7 +671,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['lastName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
+                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['lastName'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
                   style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   placeholder="Smith"
                   aria-required="true"
@@ -710,7 +710,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
+                  className={`w-full px-2 sm:px-3 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
                   style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                   placeholder="john@example.com"
                   aria-required="true"
@@ -740,7 +740,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
+                className={`w-full px-2 sm:px-3 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
                 style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)' }}
                 placeholder="0412 345 678"
                 aria-required="true"
@@ -764,7 +764,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-day"
                   value={dateOfBirth.split('/')[0] || ''}
                   onChange={(e) => handleDayChange(e.target.value)}
-                  className={`w-full px-1 sm:px-2 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-emerald-400'}`}
+                  className={`w-full px-1 sm:px-2 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   aria-label="Day of birth"
                 >
                   <option value="">Day</option>
@@ -776,7 +776,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-month"
                   value={dateOfBirth.split('/')[1] || ''}
                   onChange={(e) => handleMonthChange(e.target.value)}
-                  className={`w-full px-1 sm:px-2 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-emerald-400'}`}
+                  className={`w-full px-1 sm:px-2 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   aria-label="Month of birth"
                 >
                   <option value="">Mon</option>
@@ -797,7 +797,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-year"
                   value={dateOfBirth.split('/')[2] || ''}
                   onChange={(e) => handleYearChange(e.target.value)}
-                  className={`w-full px-1 sm:px-2 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-emerald-400'}`}
+                  className={`w-full px-1 sm:px-2 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   aria-label="Year of birth"
                 >
                   <option value="">Year</option>
@@ -818,7 +818,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 id="gender-select"
                 value={gender}
                 onChange={(e) => setGender(e.target.value as typeof gender)}
-                className="w-full px-2 sm:px-3 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-emerald-400"
+                className="w-full px-2 sm:px-3 py-1.5 sm:py-2.5 text-sm sm:text-base font-normal bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400"
               >
                 <option value="unknown">Prefer not to say</option>
                 <option value="male">Male</option>
@@ -848,10 +848,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               disabled={!isDetailsStepValid()}
               className={`px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-offset-1 border ${
                 isDetailsStepValid()
-                  ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 focus:ring-emerald-300 cursor-pointer active:scale-[0.98]'
+                  ? 'bg-gradient-to-b from-blue-500 to-blue-600 text-white border-blue-400 hover:from-blue-400 hover:to-blue-500 focus:ring-blue-300 cursor-pointer active:scale-[0.98]'
                   : 'bg-gradient-to-b from-slate-200 to-slate-300 text-slate-500 border-slate-300 cursor-not-allowed'
               }`}
-              style={isDetailsStepValid() ? { boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' } : { boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)' }}
+              style={isDetailsStepValid() ? { boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' } : { boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)' }}
               aria-disabled={!isDetailsStepValid()}
             >
               {loading ? (
@@ -878,8 +878,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           }
         }}>
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4">
-              <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
             </div>
@@ -907,7 +907,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 setVerificationCode(value);
                 setVerificationError('');
               }}
-              className="w-full px-4 py-3 text-center text-2xl font-bold tracking-widest bg-white rounded-lg border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:outline-none"
+              className="w-full px-4 py-3 text-center text-2xl font-bold tracking-widest bg-white rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none"
               placeholder="000000"
               disabled={isVerifying}
               autoFocus
@@ -928,7 +928,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               disabled={isVerifying || verificationCode.length !== 6}
               className={`w-full py-3 px-6 rounded-lg font-bold text-base transition-all ${
                 verificationCode.length === 6 && !isVerifying
-                  ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white border-2 border-emerald-400 hover:from-emerald-600 hover:to-emerald-700'
+                  ? 'bg-gradient-to-b from-blue-500 to-blue-600 text-white border-2 border-blue-400 hover:from-blue-600 hover:to-blue-700'
                   : 'bg-gradient-to-b from-slate-200 to-slate-300 text-slate-500 border-slate-300 cursor-not-allowed'
               }`}
             >
@@ -947,7 +947,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               <button
                 type="button"
                 onClick={handleResendCode}
-                className="text-emerald-600 hover:text-emerald-700 font-medium"
+                className="text-blue-600 hover:text-blue-700 font-medium"
                 disabled={isVerifying}
               >
                 {isVerifying ? 'Sending New Code...' : 'Send New Code'}
@@ -1000,7 +1000,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               disabled={!isDateTimeStepValid()}
               className={`px-5 py-2 text-xs font-semibold rounded-md transition-all ${
                 isDateTimeStepValid()
-                  ? 'text-white bg-emerald-500 hover:bg-emerald-600 cursor-pointer'
+                  ? 'text-white bg-blue-500 hover:bg-blue-600 cursor-pointer'
                   : 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
               }`}
               aria-disabled={!isDateTimeStepValid()}
@@ -1032,7 +1032,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   setMedicareSelectedThisSession(true);
                 }
               }}
-              className={`w-full px-3 py-2 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['appointmentType'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100'}`}
+              className={`w-full px-3 py-2 text-sm font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['appointmentType'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
               aria-required="true"
               aria-invalid={!!errors['appointmentType']}
               aria-describedby={
@@ -1067,10 +1067,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
             {appointmentType === 'medicare-psychologist-session' &&
               medicareSelectedThisSession && (
-                <div className="mt-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                  <p className="text-xs text-emerald-700 font-medium">
+                <div className="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                  <p className="text-xs text-blue-700 font-medium">
                     💚 Medicare: $250 − $98.95 rebate = <strong>$151.05 gap</strong>
-                    <span className="block text-emerald-600 mt-1 font-normal">Requires a valid GP Mental Health Treatment Plan</span>
+                    <span className="block text-blue-600 mt-1 font-normal">Requires a valid GP Mental Health Treatment Plan</span>
                   </p>
                 </div>
               )}
@@ -1103,7 +1103,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 id="first-session-toggle"
                 checked={isFirstSession}
                 onChange={(e) => setIsFirstSession(e.target.checked)}
-                className="h-4 w-4 cursor-pointer rounded border-slate-300 text-emerald-600 focus:ring-1 focus:ring-emerald-200"
+                className="h-4 w-4 cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-1 focus:ring-blue-200"
                 aria-describedby="first-session-hint"
               />
               <label
@@ -1126,7 +1126,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={isFirstSession ? 3 : 2}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-400 focus:ring-1 focus:ring-emerald-100 focus:outline-none transition-all bg-white"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition-all bg-white"
               placeholder={
                 isFirstSession
                   ? 'Share the top things Zoe should know before your first session...'
@@ -1153,7 +1153,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               disabled={!isSessionStepValid()}
               className={`px-5 py-2 text-xs font-semibold rounded-md transition-all ${
                 isSessionStepValid()
-                  ? 'text-white bg-emerald-500 hover:bg-emerald-600 cursor-pointer'
+                  ? 'text-white bg-blue-500 hover:bg-blue-600 cursor-pointer'
                   : 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
               }`}
               aria-disabled={!isSessionStepValid()}
@@ -1233,7 +1233,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         <div className="flex flex-col flex-1 min-h-0 gap-4">
           {/* Success Header */}
           <div className="text-center pb-2">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-500 mb-3" style={{ boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)' }}>
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-b from-blue-400 to-blue-500 mb-3" style={{ boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}>
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
@@ -1245,7 +1245,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           {/* Booking Details Card */}
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-3">
+            <div className="bg-gradient-to-r from-blue-500 to-teal-500 px-5 py-3">
               <h4 className="text-white font-semibold text-sm tracking-wide">Booking Summary</h4>
             </div>
             
@@ -1306,15 +1306,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 </div>
               </div>
               
-              <div className="flex items-center px-5 py-3.5 bg-emerald-50/50">
-                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 mr-4">
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center px-5 py-3.5 bg-blue-50/50">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-100 mr-4">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide">Date & Time</p>
-                  <p className="text-sm font-bold text-emerald-700">{formatDateForDisplay()}</p>
+                  <p className="text-xs font-medium text-blue-600 uppercase tracking-wide">Date & Time</p>
+                  <p className="text-sm font-bold text-blue-700">{formatDateForDisplay()}</p>
                 </div>
               </div>
             </div>
@@ -1349,8 +1349,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleSubmit}
               disabled={loading}
-              className="px-8 py-2.5 text-sm font-semibold rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-2 flex items-center justify-center transition-all"
-              style={{ boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)' }}
+              className="px-8 py-2.5 text-sm font-semibold rounded-lg bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:from-blue-600 hover:to-teal-600 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 flex items-center justify-center transition-all"
+              style={{ boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)' }}
             >
               {loading ? (
                 <>
@@ -1387,7 +1387,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       {/* Success State */}
       {step === 'success' && (
         <div className="text-center py-8 sm:py-12">
-          <div className="mb-6 w-24 h-24 mx-auto rounded-2xl bg-gradient-to-b from-emerald-400 to-emerald-500 flex items-center justify-center border-4 border-emerald-300" style={{ boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4), inset 0 2px 0 rgba(255,255,255,0.3)' }}>
+          <div className="mb-6 w-24 h-24 mx-auto rounded-2xl bg-gradient-to-b from-blue-400 to-blue-500 flex items-center justify-center border-4 border-blue-300" style={{ boxShadow: '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 2px 0 rgba(255,255,255,0.3)' }}>
             <svg
               className="w-12 h-12 text-white"
               fill="none"
@@ -1433,8 +1433,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
           <button
             onClick={onCancel}
-            className="px-10 py-4 bg-gradient-to-b from-emerald-500 to-emerald-600 text-white text-base font-bold rounded-lg border-2 border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 focus:outline-none focus:ring-3 focus:ring-emerald-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
-            style={{ boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
+            className="px-10 py-4 bg-gradient-to-b from-blue-500 to-blue-600 text-white text-base font-bold rounded-lg border-2 border-blue-400 hover:from-blue-400 hover:to-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
+            style={{ boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
           >
             Done
           </button>
@@ -1471,8 +1471,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 setStep('confirm');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-              className="px-6 sm:px-8 md:px-10 py-2 sm:py-3 md:py-4 bg-gradient-to-b from-emerald-500 to-emerald-600 text-white text-xs sm:text-sm md:text-base font-bold rounded-lg border-2 border-emerald-400 hover:from-emerald-400 hover:to-emerald-500 focus:outline-none focus:ring-3 focus:ring-emerald-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
-              style={{ boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
+              className="px-6 sm:px-8 md:px-10 py-2 sm:py-3 md:py-4 bg-gradient-to-b from-blue-500 to-blue-600 text-white text-xs sm:text-sm md:text-base font-bold rounded-lg border-2 border-blue-400 hover:from-blue-400 hover:to-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
+              style={{ boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
             >
               Try Again
             </button>

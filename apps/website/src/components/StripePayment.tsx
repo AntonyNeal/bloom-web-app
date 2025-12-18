@@ -258,7 +258,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
           Card Details
         </label>
-        <div className="border border-slate-200 rounded-lg p-3 bg-white focus-within:border-emerald-400 focus-within:ring-1 focus-within:ring-emerald-100 transition-all">
+        <div className="border border-slate-200 rounded-lg p-3 bg-white focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-100 transition-all">
           <CardElement options={cardElementOptions} />
         </div>
         {/* Test mode hint */}
@@ -292,7 +292,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         <button
           type="submit"
           disabled={!stripe || loading}
-          className="px-5 py-2 text-xs font-semibold rounded-md text-white bg-emerald-500 hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-5 py-2 text-xs font-semibold rounded-md text-white bg-blue-500 hover:bg-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <span className="flex items-center justify-center">

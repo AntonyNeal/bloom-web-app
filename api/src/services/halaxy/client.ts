@@ -392,7 +392,10 @@ export class HalaxyClient {
   }
 
   /**
-   * Create an appointment in Halaxy
+   * Create an appointment in Halaxy using the $book operation
+   * 
+   * Halaxy uses the FHIR $book operation for creating appointments.
+   * Required parameters: patient-id, healthcare-service-id, location-type, status
    */
   async createAppointment(appointmentData: {
     patientId: string;
@@ -401,31 +404,67 @@ export class HalaxyClient {
     end: string;   // ISO 8601
     description?: string;
     serviceType?: string;
+    healthcareServiceId?: string;
+    locationType?: 'clinic' | 'telehealth' | 'home';
   }): Promise<FHIRAppointment> {
-    const fhirAppointment = {
-      resourceType: 'Appointment',
-      status: 'booked',
-      start: appointmentData.start,
-      end: appointmentData.end,
-      minutesDuration: Math.round(
-        (new Date(appointmentData.end).getTime() - new Date(appointmentData.start).getTime()) / 60000
-      ),
-      description: appointmentData.description || 'Appointment booked via website',
-      participant: [
+    // Use environment variables for defaults
+    const practitionerRoleId = process.env.HALAXY_PRACTITIONER_ROLE_ID || 'PR-2442591';
+    const healthcareServiceId = appointmentData.healthcareServiceId || 
+      process.env.HALAXY_HEALTHCARE_SERVICE_ID || '567387';
+    const locationType = appointmentData.locationType || 'telehealth';
+
+    // Build the $book Parameters resource
+    const bookParams = {
+      resourceType: 'Parameters',
+      parameter: [
         {
-          actor: { reference: `Patient/${appointmentData.patientId}` },
-          status: 'accepted',
+          name: 'appt-resource',
+          resource: {
+            resourceType: 'Appointment',
+            start: appointmentData.start,
+            end: appointmentData.end,
+            minutesDuration: Math.round(
+              (new Date(appointmentData.end).getTime() - new Date(appointmentData.start).getTime()) / 60000
+            ),
+            description: appointmentData.description || 'Appointment booked via website',
+            participant: [{
+              actor: {
+                reference: `https://au-api.halaxy.com/main/PractitionerRole/${practitionerRoleId}`,
+                type: 'PractitionerRole'
+              }
+            }]
+          }
         },
         {
-          actor: { reference: `Practitioner/${appointmentData.practitionerId}` },
-          status: 'accepted',
+          name: 'patient-id',
+          valueReference: {
+            reference: `https://au-api.halaxy.com/main/Patient/${appointmentData.patientId}`,
+            type: 'Patient'
+          }
         },
-      ],
+        {
+          name: 'healthcare-service-id',
+          valueReference: {
+            reference: `https://au-api.halaxy.com/main/HealthcareService/${healthcareServiceId}`,
+            type: 'HealthcareService'
+          }
+        },
+        {
+          name: 'location-type',
+          valueCode: locationType
+        },
+        {
+          name: 'status',
+          valueCode: 'booked'
+        }
+      ]
     };
 
-    return this.request<FHIRAppointment>('/Appointment', {
+    console.log('[HalaxyClient] Booking appointment with $book operation');
+
+    return this.request<FHIRAppointment>('/Appointment/$book', {
       method: 'POST',
-      body: JSON.stringify(fhirAppointment),
+      body: JSON.stringify(bookParams),
     });
   }
 

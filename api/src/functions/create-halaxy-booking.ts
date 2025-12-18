@@ -63,27 +63,40 @@ async function getDefaultPractitionerId(context: InvocationContext): Promise<str
   // First check environment variable
   const envPractitionerId = process.env.HALAXY_PRACTITIONER_ID;
   if (envPractitionerId) {
+    context.log(`Using HALAXY_PRACTITIONER_ID from env: ${envPractitionerId}`);
     return envPractitionerId;
   }
+
+  context.log('HALAXY_PRACTITIONER_ID not set, querying database...');
 
   // Fall back to first active practitioner in database
   try {
     const pool = await getDbConnection();
+    context.log('Database connection established');
+    
     const result = await pool.request().query<{ halaxy_practitioner_id: string }>(`
       SELECT TOP 1 halaxy_practitioner_id 
       FROM practitioners 
-      WHERE is_active = 1
+      WHERE is_active = 1 
+        AND halaxy_practitioner_id IS NOT NULL
+        AND halaxy_practitioner_id NOT LIKE 'HAL-%'
       ORDER BY created_at
     `);
 
+    context.log(`Database query returned ${result.recordset.length} practitioners`);
+
     if (result.recordset.length > 0) {
-      return result.recordset[0].halaxy_practitioner_id;
+      const practitionerId = result.recordset[0].halaxy_practitioner_id;
+      context.log(`Found practitioner ID: ${practitionerId}`);
+      return practitionerId;
     }
+    
+    context.warn('No active practitioners found in database with valid Halaxy IDs');
   } catch (error) {
-    context.warn('Failed to get practitioner from database:', error);
+    context.error('Failed to get practitioner from database:', error);
   }
 
-  throw new Error('No practitioner configured for bookings');
+  throw new Error('No practitioner configured for bookings. Please set HALAXY_PRACTITIONER_ID environment variable.');
 }
 
 /**
@@ -287,6 +300,9 @@ async function createHalaxyBooking(
     context.error('Error creating booking:', error);
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    
+    context.error('Error details:', { message: errorMessage, stack: errorStack });
 
     // Check for specific error types
     if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
@@ -296,6 +312,30 @@ async function createHalaxyBooking(
         jsonBody: {
           success: false,
           error: 'Booking service temporarily unavailable. Please try again later.',
+        } as BookingResponse,
+      };
+    }
+
+    // Check for practitioner configuration error
+    if (errorMessage.includes('No practitioner configured')) {
+      return {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        jsonBody: {
+          success: false,
+          error: 'Booking service is not yet configured. Please contact support.',
+        } as BookingResponse,
+      };
+    }
+
+    // Check for database connection errors
+    if (errorMessage.includes('ECONNREFUSED') || errorMessage.includes('ETIMEOUT') || errorMessage.includes('SQL')) {
+      return {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        jsonBody: {
+          success: false,
+          error: 'Service temporarily unavailable. Please try again later.',
         } as BookingResponse,
       };
     }

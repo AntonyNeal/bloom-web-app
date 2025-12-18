@@ -582,14 +582,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               { num: 2, key: 'datetime' },
               { num: 3, key: 'session' },
               { num: 4, key: 'payment' },
-              { num: 5, key: 'confirm' },
             ].map(({ num, key }, index) => {
               const isActive = step === key || (key === 'datetime' && step === 'verify');
               const isPast = 
-                (key === 'details' && ['verify', 'datetime', 'session', 'payment', 'confirm'].includes(step)) ||
-                (key === 'datetime' && ['session', 'payment', 'confirm'].includes(step)) ||
-                (key === 'session' && ['payment', 'confirm'].includes(step)) ||
-                (key === 'payment' && step === 'confirm');
+                (key === 'details' && ['verify', 'datetime', 'session', 'payment', 'success'].includes(step)) ||
+                (key === 'datetime' && ['session', 'payment', 'success'].includes(step)) ||
+                (key === 'session' && ['payment', 'success'].includes(step)) ||
+                (key === 'payment' && step === 'success');
               return (
                 <React.Fragment key={key}>
                   <div
@@ -1167,6 +1166,25 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       {/* Step 4: Payment */}
       {step === 'payment' && (
         <div className="flex flex-col flex-1 min-h-0 gap-4">
+          {/* Show loading overlay when creating booking after payment */}
+          {loading && (
+            <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center z-10 rounded-xl">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-b from-blue-400 to-blue-500 flex items-center justify-center mb-4" style={{ boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}>
+                <svg
+                  className="animate-spin w-8 h-8 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+              <p className="text-lg font-semibold text-slate-800">Creating your booking...</p>
+              <p className="text-sm text-slate-500 mt-1">Please wait while we confirm your appointment</p>
+            </div>
+          )}
+          
           {/* Order Summary */}
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <div className="flex justify-between items-center text-sm">
@@ -1206,18 +1224,18 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               }
               customerEmail={email}
               customerName={`${firstName} ${lastName}`}
-              onSuccess={(paymentIntentId) => {
+              onSuccess={async (paymentIntentId) => {
                 console.log('[BookingForm] Payment successful:', paymentIntentId);
                 
-                // Track payment completion and booking confirmation
+                // Track payment completion
                 trackBookingConfirmed({
                   booking_value: appointmentType === 'couples-session' ? 300 : 
                                  appointmentType === 'ndis-psychology-session' ? 232.99 : 250,
                   appointment_type: appointmentType,
                 });
                 
-                setStep('confirm');
-                window.dispatchEvent(new CustomEvent('bookingStepChanged'));
+                // Automatically create the Halaxy booking after successful payment
+                await handleSubmit();
               }}
               onCancel={() => {
                 setStep('session');
@@ -1225,162 +1243,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               }}
             />
           </Suspense>
-        </div>
-      )}
-
-      {/* Step 5: Confirmation */}
-      {step === 'confirm' && (
-        <div className="flex flex-col flex-1 min-h-0 gap-4">
-          {/* Success Header */}
-          <div className="text-center pb-2">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-b from-blue-400 to-blue-500 mb-3" style={{ boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}>
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-slate-800">Payment Successful!</h3>
-            <p className="text-sm text-slate-500 mt-1">Please confirm your booking details below</p>
-          </div>
-
-          {/* Booking Details Card */}
-          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-            {/* Card Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-teal-500 px-5 py-3">
-              <h4 className="text-white font-semibold text-sm tracking-wide">Booking Summary</h4>
-            </div>
-            
-            {/* Card Content */}
-            <div className="divide-y divide-slate-100">
-              <div className="flex items-center px-5 py-3.5 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 mr-4">
-                  <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Patient</p>
-                  <p className="text-sm font-semibold text-slate-800 truncate">{firstName} {lastName}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center px-5 py-3.5 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-purple-50 mr-4">
-                  <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Email</p>
-                  <p className="text-sm font-semibold text-slate-800 truncate">{email}</p>
-                </div>
-              </div>
-              
-              {phone && (
-                <div className="flex items-center px-5 py-3.5 hover:bg-slate-50 transition-colors">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-green-50 mr-4">
-                    <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Phone</p>
-                    <p className="text-sm font-semibold text-slate-800">{phone}</p>
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex items-center px-5 py-3.5 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-50 mr-4">
-                  <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Session Type</p>
-                  <p className="text-sm font-semibold text-slate-800">
-                    {appointmentType
-                      .split('-')
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(' ')}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center px-5 py-3.5 bg-blue-50/50">
-                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-100 mr-4">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-blue-600 uppercase tracking-wide">Date & Time</p>
-                  <p className="text-sm font-bold text-blue-700">{formatDateForDisplay()}</p>
-                </div>
-              </div>
-            </div>
-            
-            {notes && (
-              <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">Additional Notes</p>
-                <p className="text-sm text-slate-600">{notes}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Info Banner */}
-          <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-blue-50 border border-blue-100">
-            <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-xs text-blue-700">A confirmation email will be sent to <span className="font-semibold">{email}</span> with your appointment details.</p>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row justify-between gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setStep('payment')}
-              disabled={loading}
-              className="px-5 py-2.5 text-sm font-semibold rounded-lg text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all"
-            >
-              ← Back
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="px-8 py-2.5 text-sm font-semibold rounded-lg bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:from-blue-600 hover:to-teal-600 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 flex items-center justify-center transition-all"
-              style={{ boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)' }}
-            >
-              {loading ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Confirming...
-                </>
-              ) : (
-                'Confirm Booking →'
-              )}
-            </button>
-          </div>
         </div>
       )}
 

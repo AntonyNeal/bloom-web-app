@@ -658,18 +658,34 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                 </div>
 
                 <div
-                  className="rounded-md max-h-[180px] overflow-y-auto"
+                  className="rounded-md max-h-[220px] overflow-y-auto"
                   style={{ border: '1px solid rgba(226,232,240,0.5)', background: 'rgba(255,255,255,0.6)' }}
                 >
-                  {mobileActiveDay.slots.length === 0 ? (
-                    <div className="p-3 text-center text-xs text-slate-400">No availability for this day</div>
-                  ) : (
-                    <div className="flex flex-col">
-                      {mobileActiveDay.slots.map((slot, slotIndex) =>
-                        renderSlotButton(mobileActiveDay, slot, slotIndex)
-                      )}
-                    </div>
-                  )}
+                  {/* Show all business hours 8am-6pm */}
+                  <div className="flex flex-col">
+                    {BUSINESS_HOURS.map((hour) => {
+                      // Find if there's an available slot for this hour
+                      const slot = mobileActiveDay.slots.find((s) => {
+                        const slotHour = parseInt(s.time.split(':')[0]);
+                        return slotHour === hour;
+                      });
+                      
+                      if (slot) {
+                        return renderSlotButton(mobileActiveDay, slot, hour);
+                      }
+                      
+                      // Render empty/unavailable slot
+                      return (
+                        <div
+                          key={`empty-${hour}`}
+                          className="w-full flex items-center justify-center font-medium text-sm text-slate-300 rounded"
+                          style={{ minHeight: '36px', margin: '0 2px' }}
+                        >
+                          {formatHourLabel(hour)}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             ) : (

@@ -200,3 +200,23 @@
     box-shadow: 0 4px 6px -1px rgba(68, 64, 60, 0.08), 0 2px 4px -1px rgba(68, 64, 60, 0.06);
   }
 }
+
+/* Performance optimizations */
+@layer base {
+  /* Use content-visibility for off-screen content */
+  .content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 500px;
+  }
+  
+  /* GPU acceleration for animations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  /* Optimize paint operations */
+  .contain-paint {
+    contain: paint;
+  }
+}

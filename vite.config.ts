@@ -6,7 +6,10 @@ import { copyFileSync } from 'fs';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      // Use automatic JSX runtime for smaller bundles
+      jsxRuntime: 'automatic',
+    }),
     // Copy staticwebapp.config.json to dist folder after build
     {
       name: 'copy-staticwebapp-config',
@@ -25,7 +28,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
     // Force all packages to use the same React instance
-    dedupe: ['react', 'react-dom'],
+    dedupe: ['react', 'react-dom', 'framer-motion'],
   },
   // Force Vite to pre-bundle these together
   optimizeDeps: {
@@ -40,6 +43,7 @@ export default defineConfig({
     // Enable manual chunk splitting for optimal caching
     rollupOptions: {
       output: {
+        // More aggressive chunk splitting for better caching
         manualChunks(id) {
           // Keep react and react-dom together in the same chunk
           if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
@@ -49,15 +53,39 @@ export default defineConfig({
           if (id.includes('node_modules/react-router')) {
             return 'router-vendor';
           }
-          // UI components
+          // UI components - split by usage pattern
           if (id.includes('node_modules/@radix-ui')) {
             return 'ui-vendor';
           }
-          // Form handling
+          // Form handling - only loaded on form pages
           if (id.includes('node_modules/react-hook-form') || id.includes('node_modules/zod')) {
             return 'form-vendor';
           }
+          // Animation library - defer loading
+          if (id.includes('node_modules/framer-motion')) {
+            return 'animation-vendor';
+          }
+          // Charts - only needed for admin/dashboard
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3')) {
+            return 'charts-vendor';
+          }
+          // Auth/MSAL - loaded on demand
+          if (id.includes('node_modules/@azure/msal')) {
+            return 'auth-vendor';
+          }
+          // Utility libraries
+          if (id.includes('node_modules/date-fns')) {
+            return 'utils-vendor';
+          }
+          // TanStack Query
+          if (id.includes('node_modules/@tanstack')) {
+            return 'query-vendor';
+          }
         },
+        // Optimize chunk file names for better caching
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
 
@@ -70,8 +98,14 @@ export default defineConfig({
     // Enable CSS code splitting
     cssCodeSplit: true,
 
-    // Chunk size warnings (alert if chunk > 500KB)
-    chunkSizeWarningLimit: 500,
+    // Chunk size warnings (alert if chunk > 300KB for better performance)
+    chunkSizeWarningLimit: 300,
+    
+    // Enable source maps for debugging (conditional)
+    sourcemap: false,
+    
+    // Optimize for production
+    reportCompressedSize: true,
   },
   server: {
     proxy: {

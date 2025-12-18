@@ -1,62 +1,34 @@
-// Force rebuild - 2025-12-03 - Debug React duplicate issue
-import React, { StrictMode } from 'react'
-import ReactDOM, { createRoot } from 'react-dom/client'
+// Performance-optimized entry point - minimal blocking
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 
-// DEBUG: Check for duplicate React instances
-console.log('[DEBUG] React version:', React.version);
-console.log('[DEBUG] React object:', React);
-console.log('[DEBUG] ReactDOM:', ReactDOM);
-console.log('[DEBUG] React.useState exists:', typeof React.useState);
-console.log('[DEBUG] React.useRef exists:', typeof React.useRef);
-
-// Check if React is properly set up
-if (!React.useState) {
-  console.error('[CRITICAL] React.useState is undefined! React may not be loaded correctly.');
-}
-
-// Performance debugging for Lighthouse FCP issues
-const perfStart = performance.now();
-console.log('[PERF] main.tsx started loading at', perfStart);
-
-// Import ONLY landing page critical CSS
+// Import ONLY critical landing page CSS inline
 import './index.css'
 import './styles/landing-animations.css'
 
-// Defer non-critical CSS - load after initial render
-requestIdleCallback(() => {
-  import('./styles/blob.css');
-  import('./styles/animations.css');
-  import('./styles/component-animations.css');
-  import('./styles/flower-animations.css');
-}, { timeout: 1000 });
-
-console.log('[PERF] CSS loaded in', performance.now() - perfStart, 'ms');
-
+// Dynamic import for App to allow parallel CSS loading
 import App from './App.tsx'
 import { AuthProvider } from './features/auth/AuthProvider'
 
-console.log('[PERF] App imported in', performance.now() - perfStart, 'ms');
-
-// Log when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('[PERF] DOMContentLoaded at', performance.now());
-  });
-} else {
-  console.log('[PERF] DOM already ready at', performance.now());
+// Defer non-critical CSS - load after initial paint
+if (typeof window !== 'undefined') {
+  // Use requestIdleCallback with fallback for Safari
+  const scheduleIdleTask = window.requestIdleCallback || ((cb: IdleRequestCallback) => setTimeout(cb, 1));
+  
+  scheduleIdleTask(() => {
+    import('./styles/blob.css');
+    import('./styles/animations.css');
+    import('./styles/component-animations.css');
+    import('./styles/flower-animations.css');
+  }, { timeout: 2000 });
 }
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  console.error('[PERF] ERROR: Root element not found!');
   throw new Error('Root element not found');
 }
 
-console.log('[PERF] Root element found, creating React root at', performance.now() - perfStart, 'ms');
-
 const root = createRoot(rootElement);
-
-console.log('[PERF] React root created, rendering at', performance.now() - perfStart, 'ms');
 
 root.render(
   <StrictMode>
@@ -65,31 +37,3 @@ root.render(
     </AuthProvider>
   </StrictMode>,
 );
-
-console.log('[PERF] Render queued at', performance.now() - perfStart, 'ms');
-
-// Log when first paint happens
-requestAnimationFrame(() => {
-  console.log('[PERF] First RAF callback at', performance.now() - perfStart, 'ms');
-});
-
-// Log paint timing from Performance API
-window.addEventListener('load', () => {
-  console.log('[PERF] Window load event at', performance.now());
-  
-  setTimeout(() => {
-    const paintEntries = performance.getEntriesByType('paint');
-    paintEntries.forEach(entry => {
-      console.log(`[PERF] ${entry.name}: ${entry.startTime}ms`);
-    });
-    
-    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    if (navigation) {
-      console.log('[PERF] Navigation timing:', {
-        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
-        loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
-        domInteractive: navigation.domInteractive,
-      });
-    }
-  }, 0);
-});

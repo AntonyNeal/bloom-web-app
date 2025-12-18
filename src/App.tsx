@@ -1,18 +1,16 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, memo, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
-
-// DEBUG: Check React instance in App.tsx
-console.log('[DEBUG App.tsx] React version:', React.version);
-console.log('[DEBUG App.tsx] React.useRef exists:', typeof React.useRef);
 
 import { Toaster } from './components/ui/toaster';
 import { GardenGateButton } from './components/common/GardenGateButton';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import BloomLoginButton from './components/auth/BloomLoginButton';
 import LoginRedirect from './components/auth/LoginRedirect';
-import AuthCallback from './pages/auth/AuthCallback';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
+
+// Lazy load all non-landing page routes (including auth callback)
+const AuthCallback = lazy(() => import('./pages/auth/AuthCallback'));
 
 // Lazy load all non-landing page routes
 const DesignSystemTest = lazy(() =>
@@ -35,7 +33,7 @@ const SmokeTestDashboard = lazy(() =>
 const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
 const BusinessCoach = lazy(() => import('./pages/BusinessCoach'));
 
-// Lazy-loaded flower components - keep original React components for visual fidelity
+// Lazy-loaded flower components with preloading
 const Tier1Flower = lazy(() =>
   import('@/components/flowers/Tier1Flower').then((m) => ({ default: m.Tier1Flower }))
 );
@@ -49,8 +47,30 @@ const Tier3Flower = lazy(() =>
 // Import lightweight hooks directly
 import { useIsMobile } from '@/hooks/use-is-mobile';
 
-// Landing Page - Simple navigation, no Phase 8 transitions
-function LandingPage() {
+// Memoized flower placeholder for better loading UX
+const FlowerPlaceholder = memo(({ size = 48 }: { size?: number }) => (
+  <div style={{ width: size, height: size }} aria-hidden="true" />
+));
+FlowerPlaceholder.displayName = 'FlowerPlaceholder';
+
+// Memoized flower wrapper to prevent re-renders
+const FlowerWrapper = memo(({ 
+  children, 
+  className, 
+  style 
+}: { 
+  children: React.ReactNode; 
+  className: string; 
+  style: React.CSSProperties 
+}) => (
+  <div className={className} style={style}>
+    {children}
+  </div>
+));
+FlowerWrapper.displayName = 'FlowerWrapper';
+
+// Landing Page - Simple navigation, optimized for performance
+const LandingPage = memo(function LandingPage() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
@@ -58,15 +78,36 @@ function LandingPage() {
   // Auto-redirect to bloom home if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      console.log('[LandingPage] User already authenticated, redirecting to bloom home');
       navigate('/bloom-home', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
 
+  // Memoize flower positions to prevent recalculation
+  const flowerStyles = useMemo(() => ({
+    main1: {
+      position: 'absolute' as const,
+      left: isMobile ? '12px' : '30px',
+      top: isMobile ? '42px' : '60px',
+      opacity: 0,
+      transform: isMobile ? 'scale(1.08)' : 'scale(1.10)',
+    },
+    main2: {
+      position: 'absolute' as const,
+      right: isMobile ? '120px' : '160px',
+      top: isMobile ? '8px' : '18px',
+      opacity: 0,
+      transform: isMobile ? 'scale(0.92)' : 'scale(0.95)',
+    },
+    main3: {
+      position: 'absolute' as const,
+      right: isMobile ? '8px' : '24px',
+      bottom: isMobile ? '32px' : '40px',
+      opacity: 0,
+    },
+  }), [isMobile]);
+
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      {/* Hero Content - Ambient background provided by global AmbientBackground component
-          Animations defined in src/styles/landing-animations.css */}
       <main
         style={{
           position: 'relative',
@@ -82,9 +123,7 @@ function LandingPage() {
           overflow: 'hidden',
         }}
       >
-        {/* Garden Bed - Abundant Cottage Garden
-            Miyazaki-inspired: Natural asymmetry, breathing room, depth through layering
-            9 flowers total: 3 prominent (greeting) + 6 companions (scattered naturally) */}
+        {/* Garden Bed - Optimized flower rendering */}
         <div
           style={{
             position: 'relative',
@@ -93,199 +132,30 @@ function LandingPage() {
             marginBottom: isMobile ? '24px' : '32px',
           }}
         >
-          {/* === MAIN FLOWERS - The Three Greeters === */}
-          {/* Cherry blossom - left side, mid-height (The Welcomer)
-              Refined scale: delicate stamens with ethereal presence */}
-          <div
-            className="flower-main flower-main-1"
-            style={{
-              position: 'absolute',
-              left: isMobile ? '12px' : '30px',
-              top: isMobile ? '42px' : '60px',
-              opacity: 0,
-              transform: isMobile ? 'scale(1.08)' : 'scale(1.10)',
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
+          {/* Main Flowers */}
+          <FlowerWrapper className="flower-main flower-main-1" style={flowerStyles.main1}>
+            <Suspense fallback={<FlowerPlaceholder size={48} />}>
               <Tier1Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
             </Suspense>
-          </div>
-          {/* Purple rose - upper center-right (The Observer, moved for harmony)
-              Miyazaki principle: Give important elements breathing space */}
-          <div
-            className="flower-main flower-main-2"
-            style={{
-              position: 'absolute',
-              right: isMobile ? '120px' : '160px',
-              top: isMobile ? '8px' : '18px',
-              opacity: 0,
-              transform: isMobile ? 'scale(0.92)' : 'scale(0.95)',
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
+          </FlowerWrapper>
+          
+          <FlowerWrapper className="flower-main flower-main-2" style={flowerStyles.main2}>
+            <Suspense fallback={<FlowerPlaceholder size={48} />}>
               <Tier2Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
             </Suspense>
-          </div>
-          {/* Golden daisy - right side, mid-low (The Anchor)
-              Kept at original scale: perfect grounding element */}
-          <div
-            className="flower-main flower-main-3"
-            style={{
-              position: 'absolute',
-              right: isMobile ? '8px' : '24px',
-              bottom: isMobile ? '32px' : '40px',
-              opacity: 0,
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '48px', height: '48px' }} />}>
+          </FlowerWrapper>
+          
+          <FlowerWrapper className="flower-main flower-main-3" style={flowerStyles.main3}>
+            <Suspense fallback={<FlowerPlaceholder size={48} />}>
               <Tier3Flower isChecked={true} isMobile={isMobile} shouldReduceMotion={false} />
             </Suspense>
-          </div>
-          {/* === COMPANION FLOWERS - Natural Scatter (6 companions) === */}
-          {/* #1: Small cherry blossom - lower left corner (grounding, airiness) */}
-          <div
-            className="flower-small flower-small-1"
-            style={{
-              position: 'absolute',
-              left: isMobile ? '0px' : '6px',
-              bottom: isMobile ? '14px' : '22px',
-              opacity: 0,
-              transform: isMobile ? 'scale(0.52)' : 'scale(0.62)',
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
-            </Suspense>
-          </div>
-          {/* #2: Small golden daisy - upper left (creates depth) */}
-          {/* #2: Small golden daisy - lower-middle (warmth, balance) */}
-          <div
-            className="flower-small flower-small-2"
-            style={{
-              position: 'absolute',
-              bottom: '20%',
-              left: '35%',
-              opacity: 0,
-              transform: 'scale(0.50)',
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
-            </Suspense>
-          </div>{' '}
-          {/* #3: Small cherry blossom - center-left (mid-ground layer, changed from purple)
-              More cherry blossoms create lightness */}
-          <div
-            className="flower-small flower-small-3"
-            style={{
-              position: 'absolute',
-              left: isMobile ? '115px' : '165px',
-              top: isMobile ? '72px' : '92px',
-              opacity: 0,
-              transform: isMobile ? 'scale(0.42)' : 'scale(0.52)',
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
-            </Suspense>
-          </div>
-          {/* #4: Small cherry blossom - upper right (balance, moved away from bloom button)
-              Miyazaki principle: Create breathing space around key elements */}
-          <div
-            className="flower-small flower-small-4"
-            style={{
-              position: 'absolute',
-              right: isMobile ? '85px' : '125px',
-              top: isMobile ? '45px' : '65px',
-              opacity: 0,
-              transform: isMobile ? 'scale(0.47)' : 'scale(0.57)',
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
-            </Suspense>
-          </div>
-          {/* #5: Tiny golden daisy - bottom right (the welcome at the gate)
-              Shifted slightly left to break column effect */}
-          <div
-            className="flower-small flower-small-5"
-            style={{
-              position: 'absolute',
-              right: isMobile ? '12px' : '22px',
-              bottom: isMobile ? '6px' : '11px',
-              opacity: 0,
-              transform: isMobile ? 'scale(0.37)' : 'scale(0.44)',
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
-            </Suspense>
-          </div>
-          {/* #6: Small golden daisy - upper-middle-left (adds warmth, changed from purple)
-              More golden flowers balance the composition */}
-          <div
-            className="flower-small flower-small-6"
-            style={{
-              position: 'absolute',
-              left: isMobile ? '68px' : '98px',
-              top: isMobile ? '27px' : '37px',
-              opacity: 0,
-              transform: isMobile ? 'scale(0.40)' : 'scale(0.50)',
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
-            </Suspense>
-          </div>
-          {/* #7: Tiny golden daisy - bottom left (warmth in corners) */}
-          <div
-            className="flower-small flower-small-7"
-            style={{
-              position: 'absolute',
-              left: isMobile ? '25px' : '45px',
-              bottom: isMobile ? '12px' : '18px',
-              opacity: 0,
-              transform: isMobile ? 'scale(0.35)' : 'scale(0.42)',
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
-            </Suspense>
-          </div>
-          {/* #8: Small golden daisy - center-right mid (adds golden glow) */}
-          {/* #8: Small golden daisy - center-right mid (adds golden glow) */}
-          <div
-            className="flower-small flower-small-8"
-            style={{
-              position: 'absolute',
-              top: '48%',
-              right: '30%',
-              opacity: 0,
-              transform: 'scale(0.48)',
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
-            </Suspense>
-          </div>
-          {/* #9: Tiny golden daisy - upper-left (corner warmth) */}
-          <div
-            className="flower-small flower-small-9"
-            style={{
-              position: 'absolute',
-              left: isMobile ? '8px' : '15px',
-              top: isMobile ? '18px' : '25px',
-              opacity: 0,
-              transform: isMobile ? 'scale(0.33)' : 'scale(0.39)',
-            }}
-          >
-            <Suspense fallback={<div style={{ width: '24px', height: '24px' }} />}>
-              <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
-            </Suspense>
-          </div>
+          </FlowerWrapper>
+
+          {/* Companion Flowers - Simplified for performance */}
+          <CompanionFlowers isMobile={isMobile} />
         </div>
 
-        {/* Headline */}
+        {/* Headline - Critical for LCP */}
         <h1
           className="headline"
           style={{
@@ -302,7 +172,7 @@ function LandingPage() {
           Care for People, Not Paperwork
         </h1>
 
-        {/* Organization name - Link to main website */}
+        {/* Organization name */}
         <div
           className="org-name"
           style={{
@@ -343,124 +213,14 @@ function LandingPage() {
           building sustainable practices together
         </p>
 
-        {/* DEBUG: DISABLED - Geometric Landmarks for Layout Debugging
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            pointerEvents: 'none',
-            zIndex: 100,
-          }}
-        >
-          Center crosshair
-          <div
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: 0,
-              width: '100%',
-              height: '2px',
-              background: 'rgba(255, 0, 0, 0.5)',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              left: '50%',
-              top: 0,
-              width: '2px',
-              height: '100%',
-              background: 'rgba(255, 0, 0, 0.5)',
-            }}
-          />
-
-          Corner markers
-          <div
-            style={{
-              position: 'absolute',
-              top: '10px',
-              left: '10px',
-              width: '20px',
-              height: '20px',
-              border: '2px solid green',
-              background: 'rgba(0, 255, 0, 0.2)',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
-              width: '20px',
-              height: '20px',
-              border: '2px solid green',
-              background: 'rgba(0, 255, 0, 0.2)',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '10px',
-              left: '10px',
-              width: '20px',
-              height: '20px',
-              border: '2px solid green',
-              background: 'rgba(0, 255, 0, 0.2)',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '10px',
-              right: '10px',
-              width: '20px',
-              height: '20px',
-              border: '2px solid green',
-              background: 'rgba(0, 255, 0, 0.2)',
-            }}
-          />
-
-          Grid overlay
-          {Array.from({ length: 10 }, (_, i) => (
-            <div
-              key={`h-${i}`}
-              style={{
-                position: 'absolute',
-                top: `${(i + 1) * 10}%`,
-                left: 0,
-                width: '100%',
-                height: '1px',
-                background: 'rgba(0, 0, 255, 0.2)',
-              }}
-            />
-          ))}
-          {Array.from({ length: 10 }, (_, i) => (
-            <div
-              key={`v-${i}`}
-              style={{
-                position: 'absolute',
-                left: `${(i + 1) * 10}%`,
-                top: 0,
-                width: '1px',
-                height: '100%',
-                background: 'rgba(0, 0, 255, 0.2)',
-              }}
-            />
-          ))}
-        </div>
-        */}
-
-        {/* Bloom Button - Positioned in top-right corner for subtle access */}
+        {/* Bloom Button */}
         <div
           style={{
             position: 'absolute',
             top: isMobile ? '16px' : '24px',
             right: isMobile ? '16px' : '32px',
             zIndex: 20,
-            pointerEvents: 'auto', // Ensure button is clickable
+            pointerEvents: 'auto',
           }}
         >
           <BloomLoginButton isMobile={isMobile} />
@@ -479,7 +239,6 @@ function LandingPage() {
             opacity: 0,
           }}
         >
-          {/* Primary button - Join the community - Solid and obviously clickable */}
           <button
             onClick={() => navigate('/join-us')}
             aria-label="Explore joining our community"
@@ -505,45 +264,12 @@ function LandingPage() {
               outline: 'none',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
-            onFocus={(e) => {
-              e.currentTarget.style.outline = '3px solid #6B8E7F';
-              e.currentTarget.style.outlineOffset = '2px';
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.outline = 'none';
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(107, 142, 127, 0.35)';
-              e.currentTarget.style.background =
-                'linear-gradient(135deg, #7A9B8C 0%, #9FB8A5 100%)';
-              // Animate arrow on hover
-              const arrow = e.currentTarget.querySelector('span:last-child') as HTMLElement;
-              if (arrow) arrow.style.transform = 'translateX(4px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(107, 142, 127, 0.25)';
-              e.currentTarget.style.background =
-                'linear-gradient(135deg, #6B8E7F 0%, #8FA892 100%)';
-              // Reset arrow position
-              const arrow = e.currentTarget.querySelector('span:last-child') as HTMLElement;
-              if (arrow) arrow.style.transform = 'translateX(2px)';
-            }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.transform = 'translateY(1px) scale(0.98)';
-            }}
-            onMouseUp={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-            }}
           >
-            {/* Subtle organic texture overlay */}
             <div
               style={{
                 position: 'absolute',
                 inset: 0,
-                background:
-                  'radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)',
+                background: 'radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)',
                 borderRadius: '12px',
                 pointerEvents: 'none',
               }}
@@ -554,7 +280,140 @@ function LandingPage() {
       </main>
     </div>
   );
-}
+});
+
+// Companion flowers extracted for better code splitting
+const CompanionFlowers = memo(({ isMobile }: { isMobile: boolean }) => (
+  <>
+    <div
+      className="flower-small flower-small-1"
+      style={{
+        position: 'absolute',
+        left: isMobile ? '0px' : '6px',
+        bottom: isMobile ? '14px' : '22px',
+        opacity: 0,
+        transform: isMobile ? 'scale(0.52)' : 'scale(0.62)',
+      }}
+    >
+      <Suspense fallback={<FlowerPlaceholder size={24} />}>
+        <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
+      </Suspense>
+    </div>
+    <div
+      className="flower-small flower-small-2"
+      style={{
+        position: 'absolute',
+        bottom: '20%',
+        left: '35%',
+        opacity: 0,
+        transform: 'scale(0.50)',
+      }}
+    >
+      <Suspense fallback={<FlowerPlaceholder size={24} />}>
+        <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
+      </Suspense>
+    </div>
+    <div
+      className="flower-small flower-small-3"
+      style={{
+        position: 'absolute',
+        left: isMobile ? '115px' : '165px',
+        top: isMobile ? '72px' : '92px',
+        opacity: 0,
+        transform: isMobile ? 'scale(0.42)' : 'scale(0.52)',
+      }}
+    >
+      <Suspense fallback={<FlowerPlaceholder size={24} />}>
+        <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
+      </Suspense>
+    </div>
+    <div
+      className="flower-small flower-small-4"
+      style={{
+        position: 'absolute',
+        right: isMobile ? '85px' : '125px',
+        top: isMobile ? '45px' : '65px',
+        opacity: 0,
+        transform: isMobile ? 'scale(0.47)' : 'scale(0.57)',
+      }}
+    >
+      <Suspense fallback={<FlowerPlaceholder size={24} />}>
+        <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
+      </Suspense>
+    </div>
+    <div
+      className="flower-small flower-small-5"
+      style={{
+        position: 'absolute',
+        right: isMobile ? '12px' : '22px',
+        bottom: isMobile ? '6px' : '11px',
+        opacity: 0,
+        transform: isMobile ? 'scale(0.37)' : 'scale(0.44)',
+      }}
+    >
+      <Suspense fallback={<FlowerPlaceholder size={24} />}>
+        <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
+      </Suspense>
+    </div>
+    <div
+      className="flower-small flower-small-6"
+      style={{
+        position: 'absolute',
+        left: isMobile ? '68px' : '98px',
+        top: isMobile ? '27px' : '37px',
+        opacity: 0,
+        transform: isMobile ? 'scale(0.40)' : 'scale(0.50)',
+      }}
+    >
+      <Suspense fallback={<FlowerPlaceholder size={24} />}>
+        <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
+      </Suspense>
+    </div>
+    <div
+      className="flower-small flower-small-7"
+      style={{
+        position: 'absolute',
+        left: isMobile ? '25px' : '45px',
+        bottom: isMobile ? '12px' : '18px',
+        opacity: 0,
+        transform: isMobile ? 'scale(0.35)' : 'scale(0.42)',
+      }}
+    >
+      <Suspense fallback={<FlowerPlaceholder size={24} />}>
+        <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
+      </Suspense>
+    </div>
+    <div
+      className="flower-small flower-small-8"
+      style={{
+        position: 'absolute',
+        top: '48%',
+        right: '30%',
+        opacity: 0,
+        transform: 'scale(0.48)',
+      }}
+    >
+      <Suspense fallback={<FlowerPlaceholder size={24} />}>
+        <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
+      </Suspense>
+    </div>
+    <div
+      className="flower-small flower-small-9"
+      style={{
+        position: 'absolute',
+        left: isMobile ? '8px' : '15px',
+        top: isMobile ? '18px' : '25px',
+        opacity: 0,
+        transform: isMobile ? 'scale(0.33)' : 'scale(0.39)',
+      }}
+    >
+      <Suspense fallback={<FlowerPlaceholder size={24} />}>
+        <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={false} />
+      </Suspense>
+    </div>
+  </>
+));
+CompanionFlowers.displayName = 'CompanionFlowers';
 
 /**
  * Simple routes - No transitions for maximum performance
@@ -570,7 +429,11 @@ function AnimatedRoutes() {
         <Route path="/" element={<LandingPage />} />
 
         {/* Auth callback route - handles Azure AD redirect */}
-        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/callback" element={
+          <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Completing sign-in...</div>}>
+            <AuthCallback />
+          </Suspense>
+        } />
 
         {/* Login redirect - triggers Azure AD authentication */}
         <Route path="/login" element={<LoginRedirect />} />

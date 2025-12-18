@@ -186,7 +186,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </button>
 
         {/* Booking form - fills available space, no scroll */}
-        <div className="p-3 sm:p-4 md:p-5 pt-10 sm:pt-4 flex-1 flex flex-col min-h-0">
+        <div className="p-2 sm:p-4 md:p-5 pt-8 sm:pt-4 flex-1 flex flex-col min-h-0">
           {isReady ? (
             <div className="animate-fadeIn flex-1 flex flex-col min-h-0">
               <BookingForm onSuccess={handleSuccess} onCancel={onClose} />

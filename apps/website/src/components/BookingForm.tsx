@@ -1123,8 +1123,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               id="notes-textarea"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={isFirstSession ? 2 : 2}
-              className="w-full rounded-lg border border-slate-200 px-2 py-2 text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition-all bg-white"
+              rows={isFirstSession ? 4 : 3}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition-all bg-white resize-none"
               placeholder={
                 isFirstSession
                   ? 'Share the top things Zoe should know before your first session...'

@@ -136,7 +136,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       {/* Modal panel - fills viewport, uses dvh for mobile browser chrome */}
       <div
         ref={modalContentRef}
-        className={`relative z-10 w-dvw h-dvh sm:w-[92vw] sm:h-[92vh] sm:max-h-[92vh] md:max-w-4xl overflow-hidden sm:rounded-xl bg-gradient-to-b from-slate-50 to-white sm:border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+        className={`relative z-10 w-dvw h-dvh sm:w-[95vw] sm:h-[95vh] sm:max-h-[95vh] md:max-w-4xl overflow-hidden sm:rounded-xl bg-gradient-to-b from-slate-50 to-white sm:border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         style={{
           boxShadow: `
             0 0 0 6px rgba(255, 255, 255, 0.15),

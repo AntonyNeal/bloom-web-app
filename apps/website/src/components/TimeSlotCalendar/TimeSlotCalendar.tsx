@@ -350,7 +350,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           <div
             key={hour}
             className={`grid items-center border-b border-slate-100 last:border-b-0 flex-1 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
-            style={{ gridTemplateColumns: gridCols }}
+            style={{ gridTemplateColumns: gridCols, minHeight: '36px' }}
             role="row"
           >
             <div className="text-[10px] font-medium text-slate-400 text-right pr-1.5">

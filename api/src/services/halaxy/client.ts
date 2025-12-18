@@ -411,7 +411,7 @@ export class HalaxyClient {
     const practitionerRoleId = process.env.HALAXY_PRACTITIONER_ROLE_ID || 'PR-2442591';
     const healthcareServiceId = appointmentData.healthcareServiceId || 
       process.env.HALAXY_HEALTHCARE_SERVICE_ID || '567387';
-    const locationType = appointmentData.locationType || 'telehealth';
+    const locationType = appointmentData.locationType || 'clinic';
 
     // Build the $book Parameters resource
     const bookParams = {

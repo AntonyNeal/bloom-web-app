@@ -177,22 +177,23 @@ export class HalaxyClient {
         }
       );
 
-      if (!response.success || !response.data) {
-        const errorMsg =
-          typeof response.error === 'string'
-            ? response.error
-            : typeof (response as { error?: { message?: string } }).error?.message === 'string'
-              ? (response as { error?: { message?: string } }).error?.message
-              : 'Booking failed';
-        log.error('Booking failed', 'HalaxyClient', response.error);
+      console.log('[HalaxyClient] API Response:', response);
+
+      // Handle response - the API may return data directly or nested in response.data
+      // When API returns { success: true, appointmentId: ... }, it gets passed through directly
+      // Check if the response itself is the booking response (has appointmentId)
+      const data: BookingResponse = (response as unknown as BookingResponse).appointmentId 
+        ? (response as unknown as BookingResponse)
+        : response.data as BookingResponse;
+
+      if (!data || !data.success) {
+        const errorMsg = data?.error || 
+          (typeof response.error === 'string' ? response.error : null) ||
+          (typeof (response as { error?: { message?: string } }).error?.message === 'string'
+            ? (response as { error?: { message?: string } }).error?.message
+            : 'Booking failed');
+        log.error('Booking failed', 'HalaxyClient', { response, data });
         throw new Error(errorMsg);
-      }
-
-      const data = response.data;
-
-      if (!data.success) {
-        log.error('Booking failed', 'HalaxyClient', data);
-        throw new Error(data.error || 'Booking failed');
       }
 
       console.log('[HalaxyClient] Booking successful:', data);

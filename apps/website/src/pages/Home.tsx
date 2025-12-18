@@ -70,7 +70,7 @@ const Home = () => {
       },
       {
         title: 'NDIS Services',
-        description: 'Specialized psychology support for NDIS participants.',
+        description: 'Specialised psychology support for NDIS participants.',
         href: '/ndis-services',
         icon: '📋',
       },

@@ -48,7 +48,7 @@ export function SEO({
   const siteTitle = 'Life Psychology Australia';
   const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
   const defaultDescription =
-    'Professional psychological services in the Hunter Region, NSW. Specialising in individual therapy, couples counseling, anxiety, depression, trauma recovery, and NDIS support.';
+    'Professional psychological services in the Hunter Region, NSW. Specialising in individual therapy, couples counselling, anxiety, depression, trauma recovery, and NDIS support.';
   const metaDescription = description || defaultDescription;
   const defaultImage = `${baseUrl}/og-image.png`;
   const socialImage = ogImage || defaultImage;

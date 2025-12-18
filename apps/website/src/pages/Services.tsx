@@ -25,7 +25,7 @@ const Services = () => {
     {
       title: 'Couples Counselling',
       description:
-        'Specialized couples counselling using Gottman Method and EFT approaches to improve communication, rebuild trust, and strengthen emotional connection. Professional guidance for relationship challenges, helping couples build stronger partnerships.',
+        'Specialised couples counselling using Gottman Method and EFT approaches to improve communication, rebuild trust, and strengthen emotional connection. Professional guidance for relationship challenges, helping couples build stronger partnerships.',
       icon: '👥',
       features: ['Gottman Method', 'EFT Therapy', 'Private Health'],
       href: '/couples-therapy',
@@ -35,7 +35,7 @@ const Services = () => {
     {
       title: 'Anxiety & Depression',
       description:
-        'Evidence-based treatment combining CBT, mindfulness, and behavioral activation. Learn practical tools for managing symptoms and building resilience, supporting your journey toward mental wellness and personal empowerment.',
+        'Evidence-based treatment combining CBT, mindfulness, and behavioural activation. Learn practical tools for managing symptoms and building resilience, supporting your journey toward mental wellness and personal empowerment.',
       icon: '🧠',
       features: ['CBT Therapy', 'Mindfulness', 'Medicare Rebate'],
       href: '/anxiety-depression',
@@ -55,7 +55,7 @@ const Services = () => {
     {
       title: 'NDIS Psychology Services',
       description:
-        'Registered NDIS provider offering therapeutic supports, capacity building, and assessments. Specialized psychological services for NDIS participants.',
+        'Registered NDIS provider offering therapeutic supports, capacity building, and assessments. Specialised psychological services for NDIS participants.',
       icon: '🛡️',
       features: ['NDIS Registered', 'Capacity Building', 'Assessments'],
       href: '/ndis-services',

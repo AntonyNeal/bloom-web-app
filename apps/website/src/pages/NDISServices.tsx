@@ -205,7 +205,7 @@ const NDISServices = () => {
                     </li>
                     <li className="flex items-start">
                       <span className="text-green-500 mr-2">✓</span>
-                      Receive personalized support plan across all service areas
+                      Receive personalised support plan across all service areas
                     </li>
                     <li className="flex items-start">
                       <span className="text-green-500 mr-2">✓</span>

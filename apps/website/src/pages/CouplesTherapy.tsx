@@ -256,7 +256,7 @@ const CouplesTherapy = () => {
                 <p className="text-gray-700 leading-relaxed mb-4">
                   In our sessions, we'll create a safe space where both voices
                   are heard and validated. Every relationship has its own unique
-                  dynamics, and your therapy journey will honor what makes your
+                  dynamics, and your therapy journey will honour what makes your
                   partnership special.
                 </p>
               </div>

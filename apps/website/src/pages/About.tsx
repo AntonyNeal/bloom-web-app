@@ -64,12 +64,12 @@ const About = () => {
               {
                 '@type': 'MedicalTherapy',
                 name: 'Individual Therapy',
-                description: 'Personalized therapy for mental health concerns',
+                description: 'Personalised therapy for mental health concerns',
               },
               {
                 '@type': 'MedicalTherapy',
                 name: 'Couples Therapy',
-                description: 'Relationship counseling and therapy',
+                description: 'Relationship counselling and therapy',
               },
               {
                 '@type': 'MedicalTherapy',

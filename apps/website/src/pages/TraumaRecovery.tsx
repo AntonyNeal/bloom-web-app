@@ -31,7 +31,7 @@ const TraumaRecovery = () => {
     {
       title: 'Trauma-Informed CBT',
       description:
-        'Cognitive Behavioral Therapy adapted for trauma, focusing on safety, stabilization, and gradual processing of difficult experiences.',
+        'Cognitive Behavioural Therapy adapted for trauma, focusing on safety, stabilization, and gradual processing of difficult experiences.',
       icon: '🧠',
     },
     {
@@ -151,7 +151,7 @@ const TraumaRecovery = () => {
                 <div className="text-center">
                   <div className="text-6xl mb-4">🌱</div>
                   <p className="text-gray-600 italic">
-                    "Your healing journey is unique to you – we're honored to
+                    "Your healing journey is unique to you – we're honoured to
                     walk alongside you with patience and care."
                   </p>
                 </div>

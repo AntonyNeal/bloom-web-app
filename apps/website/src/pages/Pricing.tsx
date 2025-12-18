@@ -398,7 +398,7 @@ const Pricing = () => {
                 Find Out What You'll Actually Pay
               </h2>
               <p className="text-xl text-gray-600">
-                Get your personalized cost in under 30 seconds
+                Get your personalised cost in under 30 seconds
               </p>
             </div>
 
@@ -427,7 +427,7 @@ const Pricing = () => {
               {calculatorStep === 0 && (
                 <div className="text-center space-y-6">
                   <h3 className="text-xl font-semibold text-gray-900">
-                    Let's find your personalized cost
+                    Let's find your personalised cost
                   </h3>
                   <p className="text-gray-600">
                     Answer a few quick questions to see exactly what you'll pay
@@ -574,7 +574,7 @@ const Pricing = () => {
                 <div className="text-center space-y-6">
                   <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl p-8">
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                      Your Personalized Cost
+                      Your Personalised Cost
                     </h3>
 
                     <div className="space-y-4">
@@ -1026,7 +1026,7 @@ const Pricing = () => {
                   <span className="text-2xl">🎯</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Personalized Care
+                  Personalised Care
                 </h3>
                 <p className="text-gray-600">
                   Individual approach tailored to your needs

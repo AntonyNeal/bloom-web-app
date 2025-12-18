@@ -205,7 +205,7 @@ const Neurodiversity = () => {
                     Understanding Masking
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    We recognize the toll of masking and help you develop
+                    We recognise the toll of masking and help you develop
                     strategies to live more authentically while managing social
                     expectations.
                   </p>
@@ -216,7 +216,7 @@ const Neurodiversity = () => {
                     Burnout Prevention
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    We help you recognize burnout signs early and build
+                    We help you recognise burnout signs early and build
                     sustainable strategies to maintain your mental health and
                     well-being.
                   </p>

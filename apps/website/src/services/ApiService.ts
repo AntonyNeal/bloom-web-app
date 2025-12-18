@@ -160,12 +160,14 @@ export class ApiService {
    * Handle API response
    */
   private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
-    if (!response.ok) {
-      throw this.createApiError(response.status, response.statusText);
-    }
-
     try {
       const data = await response.json();
+
+      // If response is not OK but has JSON body, extract error message
+      if (!response.ok) {
+        const errorMessage = data?.error || data?.message || response.statusText;
+        throw this.createApiError(response.status, errorMessage);
+      }
 
       // If response is already in ApiResponse format
       if ('success' in data) {
@@ -178,7 +180,15 @@ export class ApiService {
         data: data as T,
         timestamp: new Date().toISOString(),
       };
-    } catch {
+    } catch (error) {
+      // If we already created an ApiError, rethrow it
+      if (error && typeof error === 'object' && 'statusCode' in error) {
+        throw error;
+      }
+      // If response wasn't OK and we couldn't parse JSON
+      if (!response.ok) {
+        throw this.createApiError(response.status, response.statusText);
+      }
       throw this.createApiError(500, 'Failed to parse response JSON');
     }
   }

@@ -161,6 +161,7 @@ export class HalaxyClient {
     try {
       console.log('[HalaxyClient] Creating booking...', {
         patient: { ...patient, email: '***' },
+        appointmentDetails,
       });
 
       // Build session data for tracking
@@ -180,7 +181,9 @@ export class HalaxyClient {
         const errorMsg =
           typeof response.error === 'string'
             ? response.error
-            : 'Booking failed';
+            : typeof (response as { error?: { message?: string } }).error?.message === 'string'
+              ? (response as { error?: { message?: string } }).error?.message
+              : 'Booking failed';
         log.error('Booking failed', 'HalaxyClient', response.error);
         throw new Error(errorMsg);
       }
@@ -199,11 +202,18 @@ export class HalaxyClient {
 
       return data;
     } catch (error) {
-      console.error('[HalaxyClient] Booking error:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : typeof error === 'object' && error !== null && 'message' in error
+          ? String((error as { message: unknown }).message)
+          : 'Unknown error occurred';
+      
+      console.error('[HalaxyClient] Booking error:', errorMessage);
+      log.error('Booking failed', 'HalaxyClient', error);
+      
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : 'Unknown error occurred',
+        error: errorMessage,
       };
     }
   }

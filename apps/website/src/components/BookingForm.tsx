@@ -610,7 +610,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         </div>
       )}
 
-      {/* Step 1: Patient Details - start from top on mobile, centered on desktop */}
+      {/* Step 1: Patient Details - compact on mobile, centered on desktop */}
       {step === 'details' && (
         <div className="flex-1 flex flex-col min-h-0" onKeyDown={(e) => {
           if (e.key === 'Enter' && isDetailsStepValid() && !loading) {
@@ -618,7 +618,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             handleDetailsNext();
           }
         }}>
-          <div className="flex-1 flex flex-col gap-2 sm:gap-4 md:gap-6 min-h-0 sm:justify-center">
+          <div className="flex flex-col gap-2.5 sm:gap-4 md:gap-5 sm:flex-1 sm:justify-center">
             {/* Name row - side by side */}
             <div className="grid grid-cols-2 gap-2 sm:gap-4">
               <div>
@@ -837,15 +837,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
             </div>
           )}
-          </div>
 
-          {/* Action buttons */}
-          <div className="flex justify-center gap-2 pt-2 sm:pt-4 flex-shrink-0">
+          {/* Action buttons - follows content on mobile */}
+          <div className="flex justify-center gap-2 pt-4 sm:pt-6 flex-shrink-0">
             <button
               type="button"
               onClick={handleDetailsNext}
               disabled={!isDetailsStepValid()}
-              className={`px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-offset-1 border ${
+              className={`px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-offset-1 border ${
                 isDetailsStepValid()
                   ? 'bg-gradient-to-b from-blue-500 to-blue-600 text-white border-blue-400 hover:from-blue-400 hover:to-blue-500 focus:ring-blue-300 cursor-pointer active:scale-[0.98]'
                   : 'bg-gradient-to-b from-slate-200 to-slate-300 text-slate-500 border-slate-300 cursor-not-allowed'
@@ -864,6 +863,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 <>Next {isDetailsStepValid() && '→'}</>
               )}
             </button>
+          </div>
           </div>
         </div>
       )}

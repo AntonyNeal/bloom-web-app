@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { BookingButton } from '../BookingButton';
 
 interface AboutColumn {
@@ -83,14 +82,7 @@ const AboutSection = ({ columns, practitioner }: AboutSectionProps) => {
               {/* Location Highlight */}
               <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg mb-8">
                 <p className="text-slate-800 font-medium">
-                  <strong>{practitioner.location.text}:</strong>{' '}
-                  <Link
-                    to={practitioner.location.href}
-                    className="text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  >
-                    Learn more about our psychology services in Newcastle and
-                    the Greater Hunter
-                  </Link>
+                  <strong>{practitioner.location.text}:</strong> Telehealth sessions available Australia-wide
                 </p>
               </div>
 

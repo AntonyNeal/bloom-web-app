@@ -30,17 +30,8 @@ const ServicesSection = ({ title, services }: ServicesSectionProps) => {
           <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
             {title}
           </h2>
-          <p className="text-xl text-slate-800 max-w-2xl mx-auto mb-6">
+          <p className="text-xl text-slate-800 max-w-2xl mx-auto">
             Professional psychological services tailored to your needs
-          </p>
-          <p className="text-lg text-slate-700 max-w-2xl mx-auto">
-            <Link
-              to="/greater-hunter"
-              className="text-blue-600 hover:text-blue-700 underline font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 px-1 rounded transition-colors"
-            >
-              Learn more about our psychology services in Newcastle and the
-              Greater Hunter.
-            </Link>
           </p>
         </div>
 

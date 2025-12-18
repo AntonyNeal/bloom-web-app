@@ -167,7 +167,7 @@ const AnxietyDepression = () => {
                 Secure Telehealth
               </span>
               <span className="bg-teal-100 text-teal-800 px-4 py-2 rounded-full text-sm font-medium">
-                NDIS Registered
+                NDIS Provider
               </span>
             </div>
           </div>

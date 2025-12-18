@@ -57,7 +57,7 @@ const Services = () => {
       description:
         'Registered NDIS provider offering therapeutic supports, capacity building, and assessments. Specialised psychological services for NDIS participants.',
       icon: '🛡️',
-      features: ['NDIS Registered', 'Capacity Building', 'Assessments'],
+      features: ['NDIS Provider', 'Capacity Building', 'Assessments'],
       href: '/ndis-services',
       price: 'A$232.99',
       popular: false,
@@ -140,7 +140,7 @@ const Services = () => {
               </div>
               <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
                 <span className="text-blue-600">✓</span>
-                NDIS Registered Provider
+                NDIS Provider
               </div>
               <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
                 <span className="text-purple-600">✓</span>

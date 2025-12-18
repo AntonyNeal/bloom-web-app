@@ -147,7 +147,7 @@ const About = () => {
                 </span>
                 <span className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
                   <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                  NDIS Registered Provider
+                  NDIS Provider
                 </span>
               </div>
             </div>
@@ -389,7 +389,7 @@ const About = () => {
                   <span className="text-blue-500 mr-3 mt-1">✓</span>
                   <div>
                     <div className="font-semibold text-gray-900">
-                      NDIS Registered
+                      NDIS Provider
                     </div>
                     <div className="text-gray-600 text-sm">
                       Approved disability support provider

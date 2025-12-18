@@ -151,7 +151,7 @@ const IndividualTherapy = () => {
                 Secure Telehealth
               </span>
               <span className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">
-                NDIS Registered
+                NDIS Provider
               </span>
             </div>
           </div>

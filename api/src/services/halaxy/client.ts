@@ -461,6 +461,7 @@ export class HalaxyClient {
     };
 
     console.log('[HalaxyClient] Booking appointment with $book operation');
+    console.log('[HalaxyClient] $book params:', JSON.stringify(bookParams, null, 2));
 
     return this.request<FHIRAppointment>('/Appointment/$book', {
       method: 'POST',

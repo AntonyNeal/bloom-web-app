@@ -37,6 +37,9 @@ const TOTAL_WEEKS_TO_PRELOAD = 26;
 // Delay between background fetches (longer to avoid overwhelming API)
 const BACKGROUND_FETCH_DELAY_MS = 500;
 
+// Track if we've scheduled initial load
+let isScheduled = false;
+
 /**
  * Get the Monday of the week for a given date
  */
@@ -76,9 +79,69 @@ async function fetchWeekAvailability(weekStart: Date): Promise<AvailableSlot[]> 
  * Preload availability for the next N weeks starting from the current week.
  * Phase 1: Fetch first 4 weeks quickly for fast initial display
  * Phase 2: Continue fetching remaining weeks (up to 6 months) in background
- * Called automatically when the home page loads.
+ * 
+ * PERFORMANCE: Deferred until after LCP to avoid blocking initial render.
+ * Uses PerformanceObserver to detect LCP, then waits for idle time.
  */
 export async function preloadAvailability(): Promise<void> {
+  // Prevent multiple schedules
+  if (isScheduled) {
+    return preloadPromise || Promise.resolve();
+  }
+  isScheduled = true;
+
+  // Defer preloading until after LCP to improve page performance
+  const schedulePreload = () => {
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(() => startPreload(), { timeout: 5000 });
+    } else {
+      // Fallback: wait 3 seconds after load
+      setTimeout(() => startPreload(), 3000);
+    }
+  };
+
+  // Use PerformanceObserver to detect LCP, then schedule preload
+  if (typeof PerformanceObserver !== 'undefined') {
+    try {
+      const lcpObserver = new PerformanceObserver((entryList) => {
+        const entries = entryList.getEntries();
+        if (entries.length > 0) {
+          lcpObserver.disconnect();
+          // Small delay after LCP to ensure paint is complete
+          setTimeout(schedulePreload, 200);
+        }
+      });
+      lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+      
+      // Fallback if LCP doesn't fire within 6s (it should have by then)
+      setTimeout(() => {
+        lcpObserver.disconnect();
+        schedulePreload();
+      }, 6000);
+    } catch {
+      // LCP observer not supported, use load event
+      if (document.readyState === 'complete') {
+        schedulePreload();
+      } else {
+        window.addEventListener('load', schedulePreload);
+      }
+    }
+  } else {
+    // No PerformanceObserver, wait for load + delay
+    if (document.readyState === 'complete') {
+      schedulePreload();
+    } else {
+      window.addEventListener('load', schedulePreload);
+    }
+  }
+
+  return Promise.resolve();
+}
+
+/**
+ * Actually start the preload process (called after LCP)
+ */
+async function startPreload(): Promise<void> {
   // If already preloading, return the existing promise
   if (preloadPromise) {
     return preloadPromise;

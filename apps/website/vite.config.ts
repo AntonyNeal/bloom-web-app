@@ -46,20 +46,32 @@ export default defineConfig({
           ) {
             return 'stripe';
           }
-          // Core React ecosystem - load together to prevent createContext issues
-          // Include ALL packages that depend on React to avoid createContext errors
+          // Core React - minimal bundle for initial render
           if (
             id.includes('node_modules/react/') ||
             id.includes('node_modules/react-dom/') ||
-            id.includes('node_modules/react-router') ||
-            id.includes('node_modules/react-helmet-async') ||
-            id.includes('node_modules/scheduler/') ||
-            id.includes('node_modules/prop-types/') ||
+            id.includes('node_modules/scheduler/')
+          ) {
+            return 'react-core';
+          }
+          // React Router - often lazy loaded with routes
+          if (id.includes('node_modules/react-router')) {
+            return 'router';
+          }
+          // UI Components - HeadlessUI and icons (can be large)
+          if (
             id.includes('node_modules/@headlessui') ||
             id.includes('node_modules/@heroicons') ||
             id.includes('node_modules/lucide-react')
           ) {
-            return 'vendor';
+            return 'ui-components';
+          }
+          // React utilities that create contexts
+          if (
+            id.includes('node_modules/react-helmet-async') ||
+            id.includes('node_modules/prop-types/')
+          ) {
+            return 'react-utils';
           }
           // Defer analytics - BUT ApplicationInsights vendor-misc
           if (
@@ -71,7 +83,7 @@ export default defineConfig({
           if (id.includes('openai')) {
             return 'openai';
           }
-          // React-query
+          // React-query - often used with data fetching
           if (id.includes('@tanstack/react-query')) {
             return 'query';
           }
@@ -90,6 +102,14 @@ export default defineConfig({
           ) {
             return 'styles';
           }
+          // Date handling (often used in booking)
+          if (
+            id.includes('date-fns') ||
+            id.includes('dayjs') ||
+            id.includes('moment')
+          ) {
+            return 'dates';
+          }
           // Testing libraries (if accidentally included in production)
           if (
             id.includes('@testing-library') ||
@@ -98,9 +118,9 @@ export default defineConfig({
           ) {
             return 'test-libs';
           }
-          // All other node_modules go into vendor to ensure proper loading order
+          // All other node_modules go into vendor-misc
           if (id.includes('node_modules')) {
-            return 'vendor';
+            return 'vendor-misc';
           }
         },
         // Ensure proper file extensions for all chunks

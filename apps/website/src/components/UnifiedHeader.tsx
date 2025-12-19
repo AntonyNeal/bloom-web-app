@@ -13,8 +13,19 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
   const { isModalOpen, handleBookingClick } = useBookingService();
   const [availabilityText, setAvailabilityText] = useState<string | null>(null);
   
-  // Determine webp version of the photo
-  const heroPhotoWebp = heroPhoto.replace('.jpg', '.webp');
+  // Determine responsive image srcsets based on the heroPhoto variant
+  // Default (zoe) or standing variant (hero-1200) have different responsive sizes available
+  const isStandingVariant = heroPhoto.includes('hero-1200');
+  
+  const webpSrcSet = isStandingVariant
+    ? '/assets/hero-400.webp 400w, /assets/hero-800.webp 800w, /assets/hero-1200.webp 1200w'
+    : '/assets/zoe-380w.webp 380w, /assets/zoe-760w.webp 760w, /assets/zoe-1140w.webp 1140w';
+  
+  const jpgSrcSet = isStandingVariant
+    ? '/assets/hero-400.webp 400w, /assets/hero-800.webp 800w, /assets/hero-1200.jpg 1200w'
+    : '/assets/zoe-380w.jpg 380w, /assets/zoe-760w.jpg 760w, /assets/zoe-1140w.jpg 1140w';
+  
+  const fallbackSrc = isStandingVariant ? '/assets/hero-400.webp' : '/assets/zoe-380w.jpg';
 
   useEffect(() => {
     log.debug('Component mounted', 'UnifiedHeader', {
@@ -120,18 +131,24 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                 {/* Cropped hero image - focusing on face and upper body */}
                 <div className="relative overflow-hidden rounded-2xl shadow-xl" style={{ aspectRatio: '3/4' }}>
                   <picture>
+                    {/* WebP with responsive srcset - sizes based on actual display: 320px mobile, 400px desktop */}
                     <source
-                      srcSet={heroPhotoWebp}
+                      srcSet={webpSrcSet}
+                      sizes="(max-width: 1024px) 320px, 400px"
                       type="image/webp"
                     />
+                    {/* JPEG fallback with responsive srcset */}
                     <source
-                      srcSet={heroPhoto}
+                      srcSet={jpgSrcSet}
+                      sizes="(max-width: 1024px) 320px, 400px"
                       type="image/jpeg"
                     />
                     <img
-                      src={heroPhoto}
+                      src={fallbackSrc}
                       alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
                       className="w-full h-full object-cover object-top"
+                      width={320}
+                      height={427}
                       loading="eager"
                       decoding="async"
                       fetchPriority="high"

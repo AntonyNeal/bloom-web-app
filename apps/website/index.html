@@ -14,20 +14,23 @@
     <link rel="apple-touch-icon" href="/favicon.svg" />
 
     <!-- Performance Optimizations: Resource Preloading -->
-    <!-- Hero image preload for LCP improvement - high priority -->
+    <!-- Hero image preload for LCP improvement - responsive size for mobile -->
     <link
       rel="preload"
-      href="/assets/hero-zoe-main.webp"
+      href="/assets/zoe-380w.webp"
       as="image"
       type="image/webp"
       fetchpriority="high"
+      media="(max-width: 1024px)"
     />
-    <!-- Fallback for browsers without WebP support -->
+    <!-- Larger image preload for desktop -->
     <link
       rel="preload"
-      href="/assets/hero-zoe-main.jpg"
+      href="/assets/zoe-760w.webp"
       as="image"
-      type="image/jpeg"
+      type="image/webp"
+      fetchpriority="high"
+      media="(min-width: 1025px)"
     />
     <!-- Preload critical fonts with async loading and swap display -->
     <link
@@ -46,13 +49,12 @@
     <link rel="dns-prefetch" href="//fonts.googleapis.com" />
     <link rel="dns-prefetch" href="//fonts.gstatic.com" />
     <link rel="dns-prefetch" href="//www.googletagmanager.com" />
-    <link rel="dns-prefetch" href="//js.stripe.com" />
     <link rel="dns-prefetch" href="//www.clarity.ms" />
     <link rel="dns-prefetch" href="//scripts.clarity.ms" />
 
-    <!-- Performance Optimizations: Preconnect for critical resources (limit to 2-3 most important) -->
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+    <!-- Performance Optimizations: Preconnect for critical resources -->
+    <!-- Only preconnect to resources needed for initial render -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 
     <!-- Cache control hints for static assets -->
     <!-- Note: Vite automatically injects modulepreload links during build - do not add manual modulepreload links here -->
@@ -172,42 +174,50 @@
         );
         console.log('[GA4] Initialized with ID:', measurementId);
 
-        // Defer GTM loading until after First Contentful Paint to improve LCP
-        // Increased delay for better LCP performance
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', function () {
-            // Use requestIdleCallback for better performance, fallback to setTimeout
-            var loadGTM = function() {
-              var measurementId = getGa4MeasurementId();
-              var script = document.createElement('script');
-              script.async = true;
-              script.src =
-                'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
-              document.head.appendChild(script);
-            };
-            
-            if ('requestIdleCallback' in window) {
-              requestIdleCallback(loadGTM, { timeout: 2000 });
-            } else {
-              setTimeout(loadGTM, 1500); // Increased delay after DOM ready
+        // Defer GTM loading until after LCP to avoid blocking main thread
+        // Use PerformanceObserver to detect LCP, then wait for idle
+        var loadGTM = function() {
+          var measurementId = getGa4MeasurementId();
+          var script = document.createElement('script');
+          script.async = true;
+          script.src =
+            'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
+          document.head.appendChild(script);
+        };
+        
+        var scheduleGTMLoad = function() {
+          // Wait for idle callback with 3s max timeout
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(loadGTM, { timeout: 3000 });
+          } else {
+            setTimeout(loadGTM, 2500);
+          }
+        };
+
+        // Try to use LCP observer, fallback to load event
+        if ('PerformanceObserver' in window) {
+          var lcpObserver = new PerformanceObserver(function(entryList) {
+            var entries = entryList.getEntries();
+            if (entries.length > 0) {
+              lcpObserver.disconnect();
+              // Small delay after LCP to ensure paint is complete
+              setTimeout(scheduleGTMLoad, 100);
             }
           });
-        } else {
-          // Fallback if DOM is already loaded
-          var loadGTMFallback = function() {
-            var measurementId = getGa4MeasurementId();
-            var script = document.createElement('script');
-            script.async = true;
-            script.src =
-              'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
-            document.head.appendChild(script);
-          };
-          
-          if ('requestIdleCallback' in window) {
-            requestIdleCallback(loadGTMFallback, { timeout: 2000 });
-          } else {
-            setTimeout(loadGTMFallback, 1500);
+          try {
+            lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+            // Fallback if LCP doesn't fire within 5s
+            setTimeout(function() {
+              lcpObserver.disconnect();
+              scheduleGTMLoad();
+            }, 5000);
+          } catch (e) {
+            // LCP observer not supported, use load event
+            window.addEventListener('load', scheduleGTMLoad);
           }
+        } else {
+          // No PerformanceObserver, wait for load + delay
+          window.addEventListener('load', scheduleGTMLoad);
         }
 
         window.dataLayer = window.dataLayer || [];

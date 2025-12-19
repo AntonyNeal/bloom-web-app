@@ -14,18 +14,23 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
   const [availabilityText, setAvailabilityText] = useState<string | null>(null);
   
   // Determine responsive image srcsets based on the heroPhoto variant
-  // Default (zoe) or standing variant (hero-1200) have different responsive sizes available
-  const isStandingVariant = heroPhoto.includes('hero-1200');
+  // Default (zoe) has optimized responsive sizes, standing variant uses original
+  const isStandingVariant = heroPhoto.includes('hero-1200') || heroPhoto.includes('hero-zoe-standing');
   
+  // Only use responsive srcset for zoe images which have proper responsive versions
   const webpSrcSet = isStandingVariant
-    ? '/assets/hero-400.webp 400w, /assets/hero-800.webp 800w, /assets/hero-1200.webp 1200w'
+    ? undefined // Standing variant doesn't have responsive versions
     : '/assets/zoe-380w.webp 380w, /assets/zoe-760w.webp 760w, /assets/zoe-1140w.webp 1140w';
   
   const jpgSrcSet = isStandingVariant
-    ? '/assets/hero-400.webp 400w, /assets/hero-800.webp 800w, /assets/hero-1200.jpg 1200w'
+    ? undefined
     : '/assets/zoe-380w.jpg 380w, /assets/zoe-760w.jpg 760w, /assets/zoe-1140w.jpg 1140w';
   
-  const fallbackSrc = isStandingVariant ? '/assets/hero-400.webp' : '/assets/zoe-380w.jpg';
+  // Fallback src - use the original photo for standing, optimized for zoe
+  const fallbackSrc = isStandingVariant ? heroPhoto : '/assets/zoe-380w.jpg';
+  const webpFallback = isStandingVariant 
+    ? heroPhoto.replace('.jpg', '.webp') 
+    : '/assets/zoe-380w.webp';
 
   useEffect(() => {
     log.debug('Component mounted', 'UnifiedHeader', {
@@ -131,18 +136,24 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                 {/* Cropped hero image - focusing on face and upper body */}
                 <div className="relative overflow-hidden rounded-2xl shadow-xl" style={{ aspectRatio: '3/4' }}>
                   <picture>
-                    {/* WebP with responsive srcset - sizes based on actual display: 320px mobile, 400px desktop */}
-                    <source
-                      srcSet={webpSrcSet}
-                      sizes="(max-width: 1024px) 320px, 400px"
-                      type="image/webp"
-                    />
-                    {/* JPEG fallback with responsive srcset */}
-                    <source
-                      srcSet={jpgSrcSet}
-                      sizes="(max-width: 1024px) 320px, 400px"
-                      type="image/jpeg"
-                    />
+                    {/* WebP source - responsive if available, otherwise single source */}
+                    {webpSrcSet ? (
+                      <source
+                        srcSet={webpSrcSet}
+                        sizes="(max-width: 1024px) 320px, 400px"
+                        type="image/webp"
+                      />
+                    ) : (
+                      <source srcSet={webpFallback} type="image/webp" />
+                    )}
+                    {/* JPEG fallback - responsive if available */}
+                    {jpgSrcSet && (
+                      <source
+                        srcSet={jpgSrcSet}
+                        sizes="(max-width: 1024px) 320px, 400px"
+                        type="image/jpeg"
+                      />
+                    )}
                     <img
                       src={fallbackSrc}
                       alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"

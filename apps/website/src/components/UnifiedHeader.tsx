@@ -13,24 +13,32 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
   const { isModalOpen, handleBookingClick } = useBookingService();
   const [availabilityText, setAvailabilityText] = useState<string | null>(null);
   
-  // Determine responsive image srcsets based on the heroPhoto variant
-  // Default (zoe) has optimized responsive sizes, standing variant uses original
-  const isStandingVariant = heroPhoto.includes('hero-1200') || heroPhoto.includes('hero-zoe-standing');
+  // Debug: log which photo is being used
+  console.log('[UnifiedHeader] heroPhoto:', heroPhoto);
   
-  // Only use responsive srcset for zoe images which have proper responsive versions
-  const webpSrcSet = isStandingVariant
-    ? undefined // Standing variant doesn't have responsive versions
-    : '/assets/zoe-380w.webp 380w, /assets/zoe-760w.webp 760w, /assets/zoe-1140w.webp 1140w';
+  // Determine which image variant we're using
+  // photo-standing variant: /assets/zoe.jpg -> has responsive versions zoe-380w, zoe-760w, zoe-1140w
+  // photo-current variant: /assets/hero-zoe-main.jpg -> use directly (production sitting photo)
+  const isPortraitVariant = heroPhoto === '/assets/zoe.jpg';
   
-  const jpgSrcSet = isStandingVariant
-    ? undefined
-    : '/assets/zoe-380w.jpg 380w, /assets/zoe-760w.jpg 760w, /assets/zoe-1140w.jpg 1140w';
+  console.log('[UnifiedHeader] isPortraitVariant:', isPortraitVariant);
   
-  // Fallback src - use the original photo for standing, optimized for zoe
-  const fallbackSrc = isStandingVariant ? heroPhoto : '/assets/zoe-380w.jpg';
-  const webpFallback = isStandingVariant 
-    ? heroPhoto.replace('.jpg', '.webp') 
-    : '/assets/zoe-380w.webp';
+  // Responsive srcset images for both variants
+  const webpSrcSet = isPortraitVariant
+    ? '/assets/zoe-380w.webp 380w, /assets/zoe-760w.webp 760w, /assets/zoe-1140w.webp 1140w'
+    : '/assets/hero-zoe-main-400w.webp 400w, /assets/hero-zoe-main-600w.webp 600w';
+  
+  const jpgSrcSet = isPortraitVariant
+    ? '/assets/zoe-380w.jpg 380w, /assets/zoe-760w.jpg 760w, /assets/zoe-1140w.jpg 1140w'
+    : '/assets/hero-zoe-main-400w.jpg 400w, /assets/hero-zoe-main-600w.jpg 600w';
+  
+  // Fallback sources - production photo uses smaller responsive version
+  const fallbackSrc = isPortraitVariant ? '/assets/zoe-380w.jpg' : '/assets/hero-zoe-main-400w.jpg';
+  const webpFallback = isPortraitVariant 
+    ? '/assets/zoe-380w.webp' 
+    : '/assets/hero-zoe-main-400w.webp';
+  
+  console.log('[UnifiedHeader] fallbackSrc:', fallbackSrc, 'webpFallback:', webpFallback);
 
   useEffect(() => {
     log.debug('Component mounted', 'UnifiedHeader', {
@@ -128,19 +136,19 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-blue-100/20 to-transparent rounded-full -z-10 translate-x-1/4 -translate-y-1/4"></div>
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 hero-container">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             
-            {/* Image - 2 columns on desktop, cropped to upper body */}
-            <div className="order-1 lg:order-1 lg:col-span-2 hero-image-container">
-              <div className="relative mx-auto max-w-[320px] lg:max-w-none">
-                {/* Cropped hero image - focusing on face and upper body */}
-                <div className="relative overflow-hidden rounded-2xl shadow-xl" style={{ aspectRatio: '3/4' }}>
+            {/* Image - equal column on desktop */}
+            <div className="order-1 lg:order-1 hero-image-container">
+              <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-md lg:max-w-lg'}`}>
+                {/* Hero image container with badge */}
+                <div className="relative">
                   <picture>
                     {/* WebP source - responsive if available, otherwise single source */}
                     {webpSrcSet ? (
                       <source
                         srcSet={webpSrcSet}
-                        sizes="(max-width: 1024px) 320px, 400px"
+                        sizes="(max-width: 1024px) 100vw, 500px"
                         type="image/webp"
                       />
                     ) : (
@@ -150,26 +158,22 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     {jpgSrcSet && (
                       <source
                         srcSet={jpgSrcSet}
-                        sizes="(max-width: 1024px) 320px, 400px"
+                        sizes="(max-width: 1024px) 100vw, 500px"
                         type="image/jpeg"
                       />
                     )}
                     <img
                       src={fallbackSrc}
                       alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
-                      className="w-full h-full object-cover object-top"
-                      width={320}
-                      height={427}
+                      className="w-full rounded-2xl shadow-lg block"
+                      style={{ display: 'block', verticalAlign: 'bottom' }}
                       loading="eager"
                       decoding="async"
                       fetchPriority="high"
-                      style={{
-                        objectPosition: 'center 15%',
-                      }}
                     />
                   </picture>
-                  {/* Floating credential badge - inside container so it stays attached */}
-                  <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
+                  {/* Floating credential badge - inside image bounds */}
+                  <div className="absolute bottom-8 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
                     <p className="text-xs font-semibold text-slate-700">Registered Psychologist</p>
                     <p className="text-[10px] text-slate-500">Newcastle, NSW</p>
                   </div>
@@ -177,8 +181,8 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
               </div>
             </div>
 
-            {/* Content - 3 columns on desktop */}
-            <div className="order-2 lg:order-2 lg:col-span-3 text-center lg:text-left content-sections">
+            {/* Content - equal column on desktop */}
+            <div className="order-2 lg:order-2 text-center lg:text-left content-sections">
               {/* Name and Title */}
               <div className="mb-4">
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">

@@ -25,10 +25,10 @@ const SmartHeader = () => {
   console.log(`[SmartHeader] Rendering variant: ${variant}`);
 
   // A/B Test: Different hero photos
-  // photo-standing uses the full standing portrait (hero-1200.jpg - 1067x1600)
-  // photo-current uses the seated photo (hero-zoe-main.jpg)
+  // photo-current uses the sitting on couch photo (production - proven to work)
+  // photo-standing uses the close-up portrait (warmer, more personal connection)
   const heroPhoto = variant === 'photo-standing' 
-    ? '/assets/hero-1200.jpg' 
+    ? '/assets/zoe.jpg' 
     : '/assets/hero-zoe-main.jpg';
 
   return <UnifiedHeader heroPhoto={heroPhoto} />;

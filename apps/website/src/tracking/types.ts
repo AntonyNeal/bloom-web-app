@@ -151,6 +151,7 @@ export interface ClickBookNowParams extends BaseEventParams {
   button_location: string;
   button_text?: string;
   service_type?: string;
+  page_section?: string;
 }
 
 export interface ClickPhoneParams extends BaseEventParams {

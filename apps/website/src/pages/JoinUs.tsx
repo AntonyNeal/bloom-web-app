@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { useEffect } from 'react';
 import { PsychologistApplicationForm } from '../components/forms/PsychologistApplicationForm';
+import { trackServicePageViewed } from '../utils/analytics';
 
 export default function JoinUs() {
   useEffect(() => {

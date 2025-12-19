@@ -25,18 +25,18 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
   
   // Responsive srcset images for both variants
   const webpSrcSet = isPortraitVariant
-    ? '/assets/zoe-380w.webp 380w, /assets/zoe-760w.webp 760w, /assets/zoe-1140w.webp 1140w'
-    : '/assets/hero-zoe-main-400w.webp 400w, /assets/hero-zoe-main-600w.webp 600w';
+    ? '/assets/zoe-380w.webp 380w, /assets/zoe-760w.webp 760w'
+    : '/assets/hero-zoe-main-500w.webp 500w, /assets/hero-zoe-main.webp 800w';
   
   const jpgSrcSet = isPortraitVariant
-    ? '/assets/zoe-380w.jpg 380w, /assets/zoe-760w.jpg 760w, /assets/zoe-1140w.jpg 1140w'
-    : '/assets/hero-zoe-main-400w.jpg 400w, /assets/hero-zoe-main-600w.jpg 600w';
+    ? '/assets/zoe-380w.jpg 380w, /assets/zoe-760w.jpg 760w'
+    : '/assets/hero-zoe-main-500w.jpg 500w, /assets/hero-zoe-main.jpg 800w';
   
-  // Fallback sources - production photo uses smaller responsive version
-  const fallbackSrc = isPortraitVariant ? '/assets/zoe-380w.jpg' : '/assets/hero-zoe-main-400w.jpg';
+  // Fallback sources - production photo uses higher quality version
+  const fallbackSrc = isPortraitVariant ? '/assets/zoe-380w.jpg' : '/assets/hero-zoe-main-500w.jpg';
   const webpFallback = isPortraitVariant 
     ? '/assets/zoe-380w.webp' 
-    : '/assets/hero-zoe-main-400w.webp';
+    : '/assets/hero-zoe-main-500w.webp';
   
   console.log('[UnifiedHeader] fallbackSrc:', fallbackSrc, 'webpFallback:', webpFallback);
 
@@ -140,7 +140,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
             
             {/* Image - equal column on desktop */}
             <div className="order-1 lg:order-1 hero-image-container">
-              <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-md lg:max-w-lg'}`}>
+              <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-xs lg:max-w-sm'}`}>
                 {/* Hero image container with badge */}
                 <div className="relative">
                   <picture>

@@ -568,8 +568,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     <div className="w-full h-full flex flex-col min-h-0">
       {/* Header with integrated progress */}
       {step !== 'success' && step !== 'error' && (
-        <div className="flex-shrink-0 mb-4 sm:mb-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className="flex-shrink-0 mb-2 sm:mb-4">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             <div>
               <h2 className="text-base sm:text-lg font-semibold text-slate-800 tracking-tight leading-tight">
                 Book Your Appointment
@@ -632,9 +632,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             handleDetailsNext();
           }
         }}>
-          <div className="flex flex-col gap-3.5 sm:gap-4 md:gap-5 sm:flex-1 sm:justify-center">
+          <div className="flex flex-col gap-2.5 sm:gap-4 md:gap-5 sm:flex-1 sm:justify-center">
             {/* Name row - side by side */}
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               <div>
                 <label
                   htmlFor="firstName-input"
@@ -706,7 +706,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </div>
 
           {/* Email and Phone row - side by side on larger screens */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
             <div>
               <label
                 htmlFor="email-input"
@@ -767,7 +767,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           {/* DOB and Gender row - side by side on larger screens */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 tracking-wide">
                 Date of Birth <span className="text-red-500" aria-label="required">*</span>
@@ -853,7 +853,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           )}
 
           {/* Action buttons - follows content on mobile */}
-          <div className="flex justify-center gap-2 pt-4 sm:pt-6 flex-shrink-0">
+          <div className="flex justify-center gap-2 pt-3 sm:pt-6 flex-shrink-0">
             <button
               type="button"
               onClick={handleDetailsNext}

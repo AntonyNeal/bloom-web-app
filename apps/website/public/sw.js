@@ -1,11 +1,13 @@
 // Service Worker for Life Psychology Australia
 // Optimized for Newcastle users with aggressive caching and performance
 
-const CACHE_NAME = 'life-psychology-v1763566040177';
+// IMPORTANT: Bump version on each deployment to clear stale caches
+const SW_VERSION = '1766103000000'; // Updated: Dec 2025
+const CACHE_NAME = `life-psychology-v${SW_VERSION}`;
 const OFFLINE_URL = '/offline.html';
-const API_CACHE_NAME = 'life-psychology-api-v1763566040177';
-const IMAGE_CACHE_NAME = 'life-psychology-images-v1763566040177';
-const FONT_CACHE_NAME = 'life-psychology-fonts-v1763566040177';
+const API_CACHE_NAME = `life-psychology-api-v${SW_VERSION}`;
+const IMAGE_CACHE_NAME = `life-psychology-images-v${SW_VERSION}`;
+const FONT_CACHE_NAME = `life-psychology-fonts-v${SW_VERSION}`;
 
 // Cache strategies optimized for Australian latency
 const CACHE_STRATEGIES = {
@@ -149,8 +151,13 @@ self.addEventListener('fetch', (event) => {
   // Choose caching strategy based on resource type
   let strategy = CACHE_STRATEGIES.NETWORK_FIRST;
 
-  // Always use network-first for root index.html to ensure runtime injection works
-  if (url.pathname === '/' || url.pathname === '/index.html') {
+  // CRITICAL: Always use network-first for ALL HTML pages/navigation requests
+  // This prevents stale HTML from referencing old JS/CSS bundles with different hashes
+  if (event.request.mode === 'navigate' || 
+      url.pathname === '/' || 
+      url.pathname === '/index.html' ||
+      url.pathname.endsWith('.html') ||
+      (!url.pathname.includes('.') && !url.pathname.startsWith('/api/') && !url.pathname.startsWith('/assets/'))) {
     strategy = CACHE_STRATEGIES.NETWORK_FIRST;
   } else if (event.request.url.includes('/api/') || API_ENDPOINTS.some(endpoint => url.pathname.startsWith(endpoint))) {
     strategy = CACHE_STRATEGIES.STALE_WHILE_REVALIDATE;
@@ -158,7 +165,8 @@ self.addEventListener('fetch', (event) => {
     strategy = CACHE_STRATEGIES.CACHE_FIRST;
   } else if (event.request.destination === 'font' || event.request.url.includes('font')) {
     strategy = CACHE_STRATEGIES.CACHE_FIRST;
-  } else if (CRITICAL_RESOURCES.includes(url.pathname)) {
+  } else if (url.pathname.startsWith('/assets/') && (url.pathname.endsWith('.js') || url.pathname.endsWith('.css'))) {
+    // JS/CSS bundles with content hashes - safe to cache forever
     strategy = CACHE_STRATEGIES.CACHE_FIRST;
   }
 

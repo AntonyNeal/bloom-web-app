@@ -577,7 +577,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       {mobileWeekSchedule.length > 0 && (
         <div className="lg:hidden space-y-3" role="region" aria-label="Mobile appointment calendar">
           <div
-            className="grid gap-1.5 pb-1"
+            className="grid gap-2 pb-1"
             style={{ gridTemplateColumns: `repeat(${Math.min(mobileWeekSchedule.length, 5)}, 1fr)` }}
             role="tablist"
           >
@@ -595,24 +595,25 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     setUserSelectedDay(true);
                     setMobileActiveDayIndex(index);
                   }}
-                  className={`flex flex-col rounded-lg px-2 py-2 text-left transition-all ${
+                  className={`flex flex-col items-center justify-center rounded-xl px-3 py-3 min-h-[72px] text-center transition-all touch-manipulation ${
                     isActive ? 'text-blue-800' : 'text-slate-600'
                   }`}
                   style={{
                     background: isActive
                       ? 'linear-gradient(135deg, rgba(236,253,245,0.95) 0%, rgba(209,250,229,0.8) 100%)'
                       : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-                    border: isActive ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(226,232,240,0.8)',
+                    border: isActive ? '2px solid rgba(16,185,129,0.4)' : '1px solid rgba(226,232,240,0.8)',
+                    boxShadow: isActive ? '0 2px 8px rgba(16,185,129,0.15)' : 'none',
                   }}
                 >
-                  <span className="text-[10px] font-semibold uppercase tracking-wide opacity-70 leading-none">
+                  <span className="text-xs font-semibold uppercase tracking-wide opacity-70 leading-none">
                     {day.dayName}
                   </span>
-                  <span className="text-base font-bold leading-tight">{day.dayNumber}</span>
+                  <span className="text-2xl font-bold leading-tight mt-0.5">{day.dayNumber}</span>
                   {dayIsToday ? (
-                    <span className="text-[9px] font-medium text-amber-600 leading-none">Today</span>
+                    <span className="text-[11px] font-medium text-amber-600 leading-none mt-0.5">Today</span>
                   ) : (
-                    <span className="text-[9px] font-medium text-blue-600 leading-none">
+                    <span className="text-[11px] font-medium text-blue-600 leading-none mt-0.5">
                       {day.slots.length > 1 ? `${day.slots.length} times` : '1 time'}
                     </span>
                   )}

@@ -322,12 +322,12 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         key={`${formatDateKey(day.date)}-${slot.isoDateTime}-${slotIndex}`}
         type="button"
         onClick={() => handleSlotClick(day, slot)}
-        className={`w-full flex items-center justify-center transition-all duration-150 font-medium text-sm lg:text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-400 focus:z-20 touch-manipulation rounded ${
+        className={`w-full flex items-center justify-center transition-all duration-150 font-medium text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-400 focus:z-20 touch-manipulation rounded ${
           selected
             ? 'bg-blue-500 text-white'
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
         }`}
-        style={{ minHeight: '28px', margin: '0 2px' }}
+        style={{ height: '22px', margin: '0 2px' }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
         aria-pressed={selected}
       >
@@ -351,7 +351,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           <div
             key={hour}
             className={`grid items-center border-b border-slate-100 last:border-b-0 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
-            style={{ gridTemplateColumns: gridCols, height: '32px' }}
+            style={{ gridTemplateColumns: gridCols, height: '26px' }}
             role="row"
           >
             <div className="text-[10px] font-medium text-slate-400 text-right pr-1.5">

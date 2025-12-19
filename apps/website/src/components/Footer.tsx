@@ -128,17 +128,6 @@ const Footer = () => {
                   Newcastle & Greater Hunter
                 </Link>
               </li>
-              <li>
-                <Link
-                  to="/privacy"
-                  className="hover:text-blue-600 transition-colors flex items-center py-1 min-h-[44px]"
-                  onClick={() =>
-                    window.scrollTo({ top: 0, behavior: 'smooth' })
-                  }
-                >
-                  Privacy Policy
-                </Link>
-              </li>
               {showRecruitment && (
                 <li>
                   <a

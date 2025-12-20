@@ -126,13 +126,10 @@ export const ABTestProvider = ({ children }: ABTestProviderProps) => {
           return;
         }
 
-        // Allocate new variant
-        let allocatedVariant: string;
-
-        // Use local allocation for consistent, fast variant assignment
+        // Allocate new variant using local allocation for consistent, fast assignment
         // Server-side Azure Function allocation was removed to improve performance
         // and eliminate 404 errors in console (Lighthouse Best Practices)
-        allocatedVariant = allocateUserToVariant(userId, HOMEPAGE_TEST_CONFIG);
+        const allocatedVariant = allocateUserToVariant(userId, HOMEPAGE_TEST_CONFIG);
         log.info('Allocated variant (local)', 'ABTest', {
           variant: allocatedVariant,
           userId,

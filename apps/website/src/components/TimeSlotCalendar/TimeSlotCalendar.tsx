@@ -695,7 +695,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
               </div>
             ) : (
               <div className="p-3 text-center text-sm text-slate-400">No days loaded</div>
-            )}}
+            )}
           </div>
         </div>
       )}

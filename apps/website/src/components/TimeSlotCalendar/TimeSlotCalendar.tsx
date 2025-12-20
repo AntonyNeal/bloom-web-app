@@ -323,13 +323,13 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         type="button"
         onClick={() => handleSlotClick(day, slot)}
         className={`w-full flex items-center justify-center transition-all duration-150 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-20 touch-manipulation rounded-lg ${
-          isMobile ? 'text-sm min-h-[36px]' : 'text-[10px]'
+          isMobile ? 'text-xs min-h-[28px]' : 'text-[10px]'
         } ${
           selected
             ? 'bg-blue-500 text-white shadow-md'
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200'
         }`}
-        style={{ height: isMobile ? '36px' : '22px', margin: isMobile ? '1px 0' : '0 2px' }}
+        style={{ height: isMobile ? '28px' : '22px', margin: isMobile ? '0' : '0 2px' }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
         aria-pressed={selected}
       >
@@ -400,25 +400,25 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           <button
             onClick={previousWeek}
             disabled={loading || currentWeekStart.getTime() <= minWeekStart.getTime()}
-            className="w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
+            className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
             aria-label="Previous week"
           >
-            <svg className="w-4 h-4 sm:w-3 sm:h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
-          <span className="text-sm sm:text-xs font-semibold text-slate-700 min-w-[100px] sm:min-w-[100px] text-center">
+          <span className="text-xs font-semibold text-slate-700 min-w-[90px] text-center">
             {getWeekDateRange(currentWeekStart)}
           </span>
 
           <button
             onClick={nextWeek}
             disabled={loading}
-            className="w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
+            className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
             aria-label="Next week"
           >
-            <svg className="w-4 h-4 sm:w-3 sm:h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -598,7 +598,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     setUserSelectedDay(true);
                     setMobileActiveDayIndex(index);
                   }}
-                  className={`flex flex-col items-center justify-center rounded-lg px-1 py-1.5 min-h-[40px] text-center transition-all touch-manipulation ${
+                  className={`flex flex-col items-center justify-center rounded-lg px-1 py-1 min-h-[32px] text-center transition-all touch-manipulation ${
                     isActive ? 'text-blue-800' : 'text-slate-600'
                   }`}
                   style={{
@@ -609,16 +609,12 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     boxShadow: isActive ? '0 2px 8px rgba(16,185,129,0.15)' : 'none',
                   }}
                 >
-                  <span className="text-[9px] font-semibold uppercase tracking-wide opacity-70 leading-none">
+                  <span className="text-[8px] font-semibold uppercase tracking-wide opacity-70 leading-none">
                     {day.dayName}
                   </span>
-                  <span className="text-base font-bold leading-tight">{day.dayNumber}</span>
-                  {dayIsToday ? (
-                    <span className="text-[9px] font-medium text-amber-600 leading-none">Today</span>
-                  ) : (
-                    <span className="text-[9px] font-medium text-blue-600 leading-none">
-                      {day.slots.length > 1 ? `${day.slots.length}` : '1'}
-                    </span>
+                  <span className="text-sm font-bold leading-none">{day.dayNumber}</span>
+                  {dayIsToday && (
+                    <span className="text-[8px] font-medium text-amber-600 leading-none">Today</span>
                   )}
                 </button>
               );
@@ -627,7 +623,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
 
           {/* Time slots area - compact to show all hours without scrolling */}
           <div
-            className="rounded-xl p-2 flex-1"
+            className="rounded-lg p-1 flex-1"
             style={{
               background: 'linear-gradient(145deg, rgba(248,250,252,0.95) 0%, rgba(255,255,255,0.98) 100%)',
               border: '1px solid rgba(226,232,240,0.6)',
@@ -635,7 +631,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           >
             {mobileActiveDay ? (
               <div className="space-y-1">
-                <div className="flex items-center justify-between">
+                {/* Hide date header on mobile to save space - day selector shows which day is selected */}
+                <div className="hidden sm:flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold text-slate-700">
                       {mobileActiveDay.dayName}, {mobileActiveDay.dayNumber} {mobileActiveDay.month}
@@ -663,11 +660,11 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                 </div>
 
                 <div
-                  className="rounded-lg p-1.5"
+                  className="rounded-lg p-1"
                   style={{ border: '1px solid rgba(226,232,240,0.5)', background: 'rgba(255,255,255,0.6)' }}
                 >
-                  {/* Single column for better mobile readability */}
-                  <div className="grid grid-cols-1 gap-0.5">
+                  {/* Two columns for compact display */}
+                  <div className="grid grid-cols-2 gap-0.5">
                     {BUSINESS_HOURS.map((hour) => {
                       // Find if there's an available slot for this hour
                       const slot = mobileActiveDay.slots.find((s) => {
@@ -683,8 +680,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                       return (
                         <div
                           key={`empty-${hour}`}
-                          className="w-full flex items-center justify-center font-medium text-xs text-slate-300 rounded-lg"
-                          style={{ minHeight: '36px' }}
+                          className="w-full flex items-center justify-center font-medium text-[10px] text-slate-300 rounded-lg"
+                          style={{ minHeight: '28px' }}
                         >
                           {formatHourLabel(hour)}
                         </div>

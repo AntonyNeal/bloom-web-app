@@ -598,7 +598,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 <React.Fragment key={key}>
                   <div className="flex flex-col items-center">
                     <div
-                      className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all ${
+                      className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-all ${
                         isActive
                           ? 'bg-blue-500 text-white shadow-md'
                           : isPast
@@ -608,7 +608,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                     >
                       {isPast ? '✓' : num}
                     </div>
-                    <span className={`text-[10px] sm:text-xs mt-1 font-medium ${
+                    <span className={`text-[9px] sm:text-xs mt-0.5 font-medium ${
                       isActive ? 'text-blue-600' : isPast ? 'text-green-600' : 'text-slate-400'
                     }`}>
                       {label}

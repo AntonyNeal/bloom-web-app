@@ -323,13 +323,13 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         type="button"
         onClick={() => handleSlotClick(day, slot)}
         className={`w-full flex items-center justify-center transition-all duration-150 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-20 touch-manipulation rounded-lg ${
-          isMobile ? 'text-sm min-h-[40px]' : 'text-[10px]'
+          isMobile ? 'text-base min-h-[48px]' : 'text-[10px]'
         } ${
           selected
             ? 'bg-blue-500 text-white shadow-md'
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200'
         }`}
-        style={{ height: isMobile ? '40px' : '22px', margin: isMobile ? '2px 0' : '0 2px' }}
+        style={{ height: isMobile ? '48px' : '22px', margin: isMobile ? '2px 0' : '0 2px' }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
         aria-pressed={selected}
       >
@@ -663,11 +663,11 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                 </div>
 
                 <div
-                  className="rounded-lg p-2"
-                  style={{ border: '1px solid rgba(226,232,240,0.5)', background: 'rgba(255,255,255,0.6)' }}
+                  className="rounded-lg p-2 overflow-y-auto"
+                  style={{ border: '1px solid rgba(226,232,240,0.5)', background: 'rgba(255,255,255,0.6)', maxHeight: '280px' }}
                 >
-                  {/* 2-column grid to fit all hours on screen */}
-                  <div className="grid grid-cols-2 gap-1.5">
+                  {/* Single column for better mobile readability */}
+                  <div className="grid grid-cols-1 gap-1.5">
                     {BUSINESS_HOURS.map((hour) => {
                       // Find if there's an available slot for this hour
                       const slot = mobileActiveDay.slots.find((s) => {
@@ -684,7 +684,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                         <div
                           key={`empty-${hour}`}
                           className="w-full flex items-center justify-center font-medium text-sm text-slate-300 rounded-lg"
-                          style={{ minHeight: '40px' }}
+                          style={{ minHeight: '48px' }}
                         >
                           {formatHourLabel(hour)}
                         </div>

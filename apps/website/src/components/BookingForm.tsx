@@ -996,14 +996,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           )}
 
           {/* Action buttons - Balanced */}
-          <div className="flex justify-between items-center gap-3 flex-shrink-0 pt-2">
+          <div className="flex justify-between items-center gap-3 flex-shrink-0 pt-3 pb-2 mt-2 border-t border-slate-100">
             <button
               type="button"
               onClick={() => {
                 setStep('details');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-              className="px-4 py-2 text-xs font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
+              className="px-4 py-2.5 text-sm font-semibold rounded-lg text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
             >
               ← Back
             </button>
@@ -1011,9 +1011,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleDateTimeNext}
               disabled={!isDateTimeStepValid()}
-              className={`px-5 py-2 text-xs font-semibold rounded-md transition-all ${
+              className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-all ${
                 isDateTimeStepValid()
-                  ? 'text-white bg-blue-500 hover:bg-blue-600 cursor-pointer'
+                  ? 'text-white bg-blue-500 hover:bg-blue-600 cursor-pointer shadow-md'
                   : 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
               }`}
               aria-disabled={!isDateTimeStepValid()}

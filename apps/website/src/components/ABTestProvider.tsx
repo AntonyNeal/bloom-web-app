@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { ABTestContext, TestConfig, useABTest } from '../hooks/useABTest';
 import { tracker } from '../utils/UnifiedTracker';
-import { apiService } from '../services/ApiService';
 import { log } from '../utils/logger';
 
 // Homepage A/B testing configuration - Photo comparison test
@@ -63,59 +62,6 @@ function allocateUserToVariant(userId: string, testConfig: TestConfig): string {
 
   // Fallback to first variant
   return testConfig.variants[0];
-}
-
-function normalizeFunctionBaseUrl(functionUrl: string): string {
-  if (!functionUrl) {
-    return '';
-  }
-
-  const trimmed = functionUrl.replace(/\/+$/, '');
-  if (/\/api$/i.test(trimmed)) {
-    return trimmed.slice(0, -4);
-  }
-
-  return trimmed;
-}
-
-// Call Azure Function for variant allocation (production)
-async function allocateVariantViaAzure(userId: string): Promise<string> {
-  try {
-    const functionUrl =
-      import.meta.env.VITE_AZURE_FUNCTION_URL ||
-      'https://lpa-functions.azurewebsites.net';
-
-    const normalizedBase = normalizeFunctionBaseUrl(functionUrl);
-    const endpoint = `${normalizedBase}/api/ab-test/allocate?test=homepage-header-test&userId=${userId}`;
-    const result = await apiService.get<{ variant: string }>(endpoint);
-
-    if (!result.success || !result.data) {
-      log.error('Azure Function variant allocation failed', 'ABTest', {
-        error: result.error,
-      });
-      throw new Error('Failed to allocate variant');
-    }
-
-    const allocatedVariant = result.data.variant;
-    log.info('Azure Function allocated variant', 'ABTest', {
-      variant: allocatedVariant,
-      userId,
-    });
-
-    // Track allocation with unified tracker
-    tracker.trackCustomEvent('ab_test_allocation', {
-      test_name: 'homepage-header-test',
-      variant: allocatedVariant,
-      user_id: userId,
-      allocation_method: 'azure_function',
-    });
-
-    return allocatedVariant;
-  } catch (error) {
-    log.error('Error calling Azure Function', 'ABTest', error);
-    // Fallback to local allocation
-    return allocateUserToVariant(userId, HOMEPAGE_TEST_CONFIG);
-  }
 }
 
 export const ABTestProvider = ({ children }: ABTestProviderProps) => {
@@ -183,20 +129,14 @@ export const ABTestProvider = ({ children }: ABTestProviderProps) => {
         // Allocate new variant
         let allocatedVariant: string;
 
-        if (isDevMode || !import.meta.env.VITE_AZURE_FUNCTION_URL) {
-          // Local allocation for development or when Azure Function is not configured
-          allocatedVariant = allocateUserToVariant(
-            userId,
-            HOMEPAGE_TEST_CONFIG
-          );
-          log.info('Allocated variant (local)', 'ABTest', {
-            variant: allocatedVariant,
-            userId,
-          });
-        } else {
-          // Production: Use Azure Function
-          allocatedVariant = await allocateVariantViaAzure(userId);
-        }
+        // Use local allocation for consistent, fast variant assignment
+        // Server-side Azure Function allocation was removed to improve performance
+        // and eliminate 404 errors in console (Lighthouse Best Practices)
+        allocatedVariant = allocateUserToVariant(userId, HOMEPAGE_TEST_CONFIG);
+        log.info('Allocated variant (local)', 'ABTest', {
+          variant: allocatedVariant,
+          userId,
+        });
 
         // Store the allocation
         localStorage.setItem('ab-test-variant', allocatedVariant);

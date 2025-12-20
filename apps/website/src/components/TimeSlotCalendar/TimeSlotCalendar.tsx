@@ -323,13 +323,13 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         type="button"
         onClick={() => handleSlotClick(day, slot)}
         className={`w-full flex items-center justify-center transition-all duration-150 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-20 touch-manipulation rounded-lg ${
-          isMobile ? 'text-sm min-h-[44px]' : 'text-[10px]'
+          isMobile ? 'text-sm min-h-[40px]' : 'text-[10px]'
         } ${
           selected
             ? 'bg-blue-500 text-white shadow-md'
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200'
         }`}
-        style={{ height: isMobile ? '44px' : '22px', margin: isMobile ? '4px 0' : '0 2px' }}
+        style={{ height: isMobile ? '40px' : '22px', margin: isMobile ? '2px 0' : '0 2px' }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
         aria-pressed={selected}
       >
@@ -625,28 +625,27 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             })}
           </div>
 
-          {/* Time slots area - scrollable */}
+          {/* Time slots area - compact to show all hours without scrolling */}
           <div
-            className="rounded-xl p-4 flex-1 overflow-y-auto"
+            className="rounded-xl p-3 flex-1"
             style={{
               background: 'linear-gradient(145deg, rgba(248,250,252,0.95) 0%, rgba(255,255,255,0.98) 100%)',
               border: '1px solid rgba(226,232,240,0.6)',
-              WebkitOverflowScrolling: 'touch',
             }}
           >
             {mobileActiveDay ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-base font-semibold text-slate-700">
+                    <p className="text-sm font-semibold text-slate-700">
                       {mobileActiveDay.dayName}, {mobileActiveDay.dayNumber} {mobileActiveDay.month}
                     </p>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-xs text-slate-500">
                       {mobileActiveDay.slots.length > 0 ? getTimeRangeForDay(mobileActiveDay.slots) : 'No times available'}
                     </p>
                   </div>
                   <span
-                    className="rounded-full px-3 py-1.5 text-sm font-medium"
+                    className="rounded-full px-2 py-1 text-xs font-medium"
                     style={{
                       background:
                         mobileActiveDay.slots.length > 0
@@ -667,8 +666,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                   className="rounded-lg p-2"
                   style={{ border: '1px solid rgba(226,232,240,0.5)', background: 'rgba(255,255,255,0.6)' }}
                 >
-                  {/* Show all business hours 8am-6pm */}
-                  <div className="flex flex-col gap-1">
+                  {/* 2-column grid to fit all hours on screen */}
+                  <div className="grid grid-cols-2 gap-1.5">
                     {BUSINESS_HOURS.map((hour) => {
                       // Find if there's an available slot for this hour
                       const slot = mobileActiveDay.slots.find((s) => {
@@ -684,8 +683,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                       return (
                         <div
                           key={`empty-${hour}`}
-                          className="w-full flex items-center justify-center font-medium text-base text-slate-300 rounded-lg"
-                          style={{ minHeight: '44px' }}
+                          className="w-full flex items-center justify-center font-medium text-sm text-slate-300 rounded-lg"
+                          style={{ minHeight: '40px' }}
                         >
                           {formatHourLabel(hour)}
                         </div>
@@ -696,7 +695,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
               </div>
             ) : (
               <div className="p-3 text-center text-sm text-slate-400">No days loaded</div>
-            )}
+            )}}
           </div>
         </div>
       )}

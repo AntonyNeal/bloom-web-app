@@ -7,6 +7,15 @@
   html {
     font-family: 'Inter', system-ui, sans-serif;
   }
+  
+  /* CLS Prevention: Match fallback font metrics to Inter to prevent layout shifts */
+  /* This uses font-synthesis and size-adjust to minimize text reflow when Inter loads */
+  body {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
 @layer utilities {
@@ -127,4 +136,11 @@
   font-size: 1rem;
   color: #374151;
   font-weight: 500;
+}
+
+/* CLS Prevention: Reserve space for mobile CTA bar from initial render */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 73px; /* Height of MobileCTABar (60px + safe area) */
+  }
 }

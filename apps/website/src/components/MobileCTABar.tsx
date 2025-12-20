@@ -72,17 +72,7 @@ const MobileCTABar: React.FC = () => {
         {/* Safe area padding for devices with home indicator */}
         <div className="h-safe-area-inset-bottom bg-white"></div>
       </div>
-
-      {/* Add bottom padding to body when mobile CTA is present */}
-      <style>
-        {`
-          @media (max-width: 767px) {
-            body {
-              padding-bottom: 60px !important;
-            }
-          }
-        `}
-      </style>
+      {/* CLS Prevention: padding-bottom is now set statically in App.css instead of dynamic injection */}
     </>
   );
 };

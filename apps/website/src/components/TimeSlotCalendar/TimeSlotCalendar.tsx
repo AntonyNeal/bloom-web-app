@@ -323,13 +323,15 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         type="button"
         onClick={() => handleSlotClick(day, slot)}
         className={`w-full flex items-center justify-center transition-all duration-150 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-20 touch-manipulation rounded-lg ${
-          isMobile ? 'text-sm min-h-[40px]' : 'text-[10px]'
-        } ${
           selected
             ? 'bg-blue-500 text-white shadow-md'
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200'
         }`}
-        style={{ height: isMobile ? '40px' : '22px', margin: isMobile ? '2px 0' : '0 2px' }}
+        style={{ 
+          height: isMobile ? 'clamp(36px, 6vh, 52px)' : '22px', 
+          fontSize: isMobile ? 'clamp(12px, 3vw, 16px)' : '10px',
+          margin: isMobile ? 'clamp(2px, 0.5vh, 4px) 0' : '0 2px' 
+        }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
         aria-pressed={selected}
       >
@@ -394,31 +396,33 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div className="w-full flex-1 flex flex-col min-h-0 relative">
-      {/* Navigation - Larger on mobile for readability */}
+      {/* Navigation - responsive sizing */}
       <div className="mb-2 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-1 sm:gap-1">
+        <div className="flex items-center gap-1">
           <button
             onClick={previousWeek}
             disabled={loading || currentWeekStart.getTime() <= minWeekStart.getTime()}
-            className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
+            className="flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
+            style={{ width: 'clamp(24px, 6vw, 32px)', height: 'clamp(24px, 6vw, 32px)' }}
             aria-label="Previous week"
           >
-            <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg style={{ width: 'clamp(12px, 3vw, 16px)', height: 'clamp(12px, 3vw, 16px)' }} className="text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
-          <span className="text-xs font-semibold text-slate-700 min-w-[90px] text-center">
+          <span style={{ fontSize: 'clamp(11px, 2.8vw, 14px)' }} className="font-semibold text-slate-700 min-w-[80px] text-center">
             {getWeekDateRange(currentWeekStart)}
           </span>
 
           <button
             onClick={nextWeek}
             disabled={loading}
-            className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
+            className="flex items-center justify-center rounded border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:border-slate-300 bg-white"
+            style={{ width: 'clamp(24px, 6vw, 32px)', height: 'clamp(24px, 6vw, 32px)' }}
             aria-label="Next week"
           >
-            <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg style={{ width: 'clamp(12px, 3vw, 16px)', height: 'clamp(12px, 3vw, 16px)' }} className="text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -426,9 +430,10 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
 
         <button
           onClick={toggleMonthPicker}
-          className={`font-medium text-xs flex items-center gap-1 transition-colors ${
+          className={`font-medium flex items-center gap-1 transition-colors ${
             showMonthPicker ? 'text-blue-700' : 'text-blue-600 hover:text-blue-700'
           }`}
+          style={{ fontSize: 'clamp(11px, 2.8vw, 13px)' }}
           aria-label="Open month picker"
           aria-expanded={showMonthPicker}
         >
@@ -598,10 +603,12 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     setUserSelectedDay(true);
                     setMobileActiveDayIndex(index);
                   }}
-                  className={`flex flex-col items-center justify-center rounded-lg px-2 py-1.5 min-h-[48px] text-center transition-all touch-manipulation ${
+                  className={`flex flex-col items-center justify-center rounded-lg text-center transition-all touch-manipulation ${
                     isActive ? 'text-blue-800' : 'text-slate-600'
                   }`}
                   style={{
+                    minHeight: 'clamp(44px, 8vh, 64px)',
+                    padding: 'clamp(4px, 1vh, 8px) clamp(4px, 2vw, 12px)',
                     background: isActive
                       ? 'linear-gradient(135deg, rgba(236,253,245,0.95) 0%, rgba(209,250,229,0.8) 100%)'
                       : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
@@ -609,12 +616,12 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     boxShadow: isActive ? '0 2px 8px rgba(16,185,129,0.15)' : 'none',
                   }}
                 >
-                  <span className="text-[10px] font-semibold uppercase tracking-wide opacity-70 leading-none">
+                  <span style={{ fontSize: 'clamp(8px, 1.5vw, 11px)' }} className="font-semibold uppercase tracking-wide opacity-70 leading-none">
                     {day.dayName}
                   </span>
-                  <span className="text-lg font-bold leading-tight">{day.dayNumber}</span>
+                  <span style={{ fontSize: 'clamp(14px, 4vw, 22px)' }} className="font-bold leading-tight">{day.dayNumber}</span>
                   {dayIsToday && (
-                    <span className="text-[8px] font-medium text-amber-600 leading-none">Today</span>
+                    <span style={{ fontSize: 'clamp(7px, 1.5vw, 10px)' }} className="font-medium text-amber-600 leading-none">Today</span>
                   )}
                 </button>
               );
@@ -680,8 +687,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                       return (
                         <div
                           key={`empty-${hour}`}
-                          className="w-full flex items-center justify-center font-medium text-xs text-slate-300 rounded-lg"
-                          style={{ minHeight: '40px' }}
+                          className="w-full flex items-center justify-center font-medium text-slate-300 rounded-lg"
+                          style={{ minHeight: 'clamp(36px, 6vh, 52px)', fontSize: 'clamp(10px, 2.5vw, 14px)' }}
                         >
                           {formatHourLabel(hour)}
                         </div>

@@ -571,10 +571,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         <div className="flex-shrink-0 mb-2 sm:mb-4">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <div>
-              <h2 className="text-base sm:text-lg font-semibold text-slate-800 tracking-tight leading-tight">
+              <h2 style={{ fontSize: 'clamp(14px, 4vw, 20px)' }} className="font-semibold text-slate-800 tracking-tight leading-tight">
                 Book Your Appointment
               </h2>
-              <p className="text-slate-500 text-xs sm:text-sm leading-tight">
+              <p style={{ fontSize: 'clamp(11px, 2.5vw, 14px)' }} className="text-slate-500 leading-tight">
                 Telehealth with Zoe Semmler
               </p>
             </div>
@@ -598,24 +598,26 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 <React.Fragment key={key}>
                   <div className="flex flex-col items-center">
                     <div
-                      className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-all ${
+                      className={`rounded-full flex items-center justify-center font-bold transition-all ${
                         isActive
                           ? 'bg-blue-500 text-white shadow-md'
                           : isPast
                             ? 'bg-green-500 text-white'
                             : 'bg-slate-200 text-slate-500'
                       }`}
+                      style={{ width: 'clamp(24px, 6vw, 36px)', height: 'clamp(24px, 6vw, 36px)', fontSize: 'clamp(10px, 2.5vw, 14px)' }}
                     >
                       {isPast ? '✓' : num}
                     </div>
-                    <span className={`text-[9px] sm:text-xs mt-0.5 font-medium ${
-                      isActive ? 'text-blue-600' : isPast ? 'text-green-600' : 'text-slate-400'
-                    }`}>
+                    <span 
+                      className={`mt-0.5 font-medium ${isActive ? 'text-blue-600' : isPast ? 'text-green-600' : 'text-slate-400'}`}
+                      style={{ fontSize: 'clamp(8px, 2vw, 12px)' }}
+                    >
                       {label}
                     </span>
                   </div>
                   {index < 3 && (
-                    <div className={`flex-1 h-1 mx-1 sm:mx-2 rounded-full ${isPast ? 'bg-green-400' : isActive ? 'bg-blue-300' : 'bg-slate-200'}`} />
+                    <div className={`flex-1 mx-1 sm:mx-2 rounded-full ${isPast ? 'bg-green-400' : isActive ? 'bg-blue-300' : 'bg-slate-200'}`} style={{ height: 'clamp(3px, 0.5vh, 6px)' }} />
                   )}
                 </React.Fragment>
               );
@@ -1003,7 +1005,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 setStep('details');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-              className="px-4 py-2.5 text-sm font-semibold rounded-lg text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
+              className="font-semibold rounded-lg text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
+              style={{ padding: 'clamp(8px, 2vh, 12px) clamp(12px, 4vw, 20px)', fontSize: 'clamp(12px, 3vw, 14px)' }}
             >
               ← Back
             </button>
@@ -1011,11 +1014,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleDateTimeNext}
               disabled={!isDateTimeStepValid()}
-              className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+              className={`font-semibold rounded-lg transition-all ${
                 isDateTimeStepValid()
                   ? 'text-white bg-blue-500 hover:bg-blue-600 cursor-pointer shadow-md'
                   : 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
               }`}
+              style={{ padding: 'clamp(8px, 2vh, 12px) clamp(16px, 5vw, 28px)', fontSize: 'clamp(12px, 3vw, 14px)' }}
               aria-disabled={!isDateTimeStepValid()}
             >
               Continue →

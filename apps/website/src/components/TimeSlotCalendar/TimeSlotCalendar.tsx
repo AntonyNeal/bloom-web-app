@@ -328,7 +328,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200'
         }`}
         style={{ 
-          height: isMobile ? 'clamp(36px, 6vh, 52px)' : 'clamp(18px, 3vh, 26px)', 
+          height: isMobile ? 'clamp(36px, 6vh, 52px)' : '90%', 
           fontSize: isMobile ? 'clamp(12px, 3vw, 16px)' : 'clamp(9px, 1vw, 11px)',
           margin: isMobile ? 'clamp(2px, 0.5vh, 4px) 0' : '0 2px' 
         }}
@@ -348,14 +348,14 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       <div
         role="grid"
         aria-label="Available appointment time slots"
-        className="bg-white flex-1"
+        className="bg-white flex-1 flex flex-col"
         style={{ minHeight: '0' }}
       >
         {BUSINESS_HOURS.map((hour, rowIndex) => (
           <div
             key={hour}
-            className={`grid items-center border-b border-slate-100 last:border-b-0 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
-            style={{ gridTemplateColumns: gridCols, height: 'clamp(22px, 3.5vh, 32px)' }}
+            className={`grid items-center border-b border-slate-100 last:border-b-0 flex-1 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
+            style={{ gridTemplateColumns: gridCols, minHeight: 'clamp(20px, 2.5vh, 28px)' }}
             role="row"
           >
             <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)' }} className="font-medium text-slate-400 text-right pr-1.5">

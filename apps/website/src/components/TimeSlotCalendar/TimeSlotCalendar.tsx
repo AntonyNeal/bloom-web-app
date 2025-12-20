@@ -328,8 +328,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200'
         }`}
         style={{ 
-          height: isMobile ? 'clamp(36px, 6vh, 52px)' : '22px', 
-          fontSize: isMobile ? 'clamp(12px, 3vw, 16px)' : '10px',
+          height: isMobile ? 'clamp(36px, 6vh, 52px)' : 'clamp(18px, 3vh, 26px)', 
+          fontSize: isMobile ? 'clamp(12px, 3vw, 16px)' : 'clamp(9px, 1vw, 11px)',
           margin: isMobile ? 'clamp(2px, 0.5vh, 4px) 0' : '0 2px' 
         }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
@@ -355,10 +355,10 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           <div
             key={hour}
             className={`grid items-center border-b border-slate-100 last:border-b-0 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
-            style={{ gridTemplateColumns: gridCols, height: '26px' }}
+            style={{ gridTemplateColumns: gridCols, height: 'clamp(22px, 3.5vh, 32px)' }}
             role="row"
           >
-            <div className="text-[10px] font-medium text-slate-400 text-right pr-1.5">
+            <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)' }} className="font-medium text-slate-400 text-right pr-1.5">
               {formatHourLabel(hour)}
             </div>
 
@@ -755,10 +755,10 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     }}
                     role="columnheader"
                   >
-                    <div className="text-[8px] font-semibold uppercase text-slate-400 leading-none">
+                    <div style={{ fontSize: 'clamp(7px, 0.9vw, 9px)' }} className="font-semibold uppercase text-slate-400 leading-none">
                       {day.dayName}
                     </div>
-                    <div className={`text-xs font-bold leading-tight ${dayIsToday ? 'text-amber-600' : 'text-slate-700'}`}>
+                    <div style={{ fontSize: 'clamp(11px, 1.4vw, 14px)' }} className={`font-bold leading-tight ${dayIsToday ? 'text-amber-600' : 'text-slate-700'}`}>
                       {day.dayNumber}
                     </div>
                   </div>

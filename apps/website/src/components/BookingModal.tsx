@@ -133,10 +133,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         onClick={onClose}
       ></div>
 
-      {/* Modal panel - full height on mobile (slide up sheet), constrained on desktop */}
+      {/* Modal panel - full height on both mobile and desktop, responsive to viewport */}
       <div
         ref={modalContentRef}
-        className={`relative z-10 w-full h-[92dvh] sm:w-[95vw] sm:h-auto sm:max-h-[95vh] md:max-w-4xl overflow-hidden rounded-t-2xl sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'}`}
+        className={`relative z-10 w-full h-[92dvh] sm:w-[95vw] sm:h-[90vh] md:max-w-4xl overflow-hidden rounded-t-2xl sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'}`}
         style={{
           boxShadow: `
             0 0 0 6px rgba(255, 255, 255, 0.15),

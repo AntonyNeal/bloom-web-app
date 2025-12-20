@@ -995,8 +995,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </p>
           )}
 
-          {/* Action buttons - Balanced */}
-          <div className="flex justify-between items-center gap-3 flex-shrink-0 pt-3 pb-2 mt-2 border-t border-slate-100">
+          {/* Action buttons - Sticky at bottom on mobile */}
+          <div className="flex justify-between items-center gap-3 flex-shrink-0 pt-3 pb-2 mt-2 border-t border-slate-100 sticky bottom-0 bg-white/95 backdrop-blur-sm -mx-4 px-4 sm:mx-0 sm:px-0 sm:static sm:bg-transparent sm:backdrop-blur-none">
             <button
               type="button"
               onClick={() => {

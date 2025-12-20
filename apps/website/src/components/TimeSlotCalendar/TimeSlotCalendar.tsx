@@ -314,7 +314,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   // ─────────────────────────────────────────────────────────────────────────────
   // Render Helpers
   // ─────────────────────────────────────────────────────────────────────────────
-  const renderSlotButton = (day: DaySchedule, slot: TimeSlot, slotIndex: number) => {
+  const renderSlotButton = (day: DaySchedule, slot: TimeSlot, slotIndex: number, isMobile = false) => {
     const selected = isSlotSelected(day, slot);
 
     return (
@@ -322,12 +322,14 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         key={`${formatDateKey(day.date)}-${slot.isoDateTime}-${slotIndex}`}
         type="button"
         onClick={() => handleSlotClick(day, slot)}
-        className={`w-full flex items-center justify-center transition-all duration-150 font-medium text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-400 focus:z-20 touch-manipulation rounded ${
+        className={`w-full flex items-center justify-center transition-all duration-150 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-20 touch-manipulation rounded-lg ${
+          isMobile ? 'text-sm min-h-[44px]' : 'text-[10px]'
+        } ${
           selected
-            ? 'bg-blue-500 text-white'
-            : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+            ? 'bg-blue-500 text-white shadow-md'
+            : 'bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200'
         }`}
-        style={{ height: '22px', margin: '0 2px' }}
+        style={{ height: isMobile ? '44px' : '22px', margin: isMobile ? '4px 0' : '0 2px' }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
         aria-pressed={selected}
       >
@@ -575,9 +577,10 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
 
       {/* Mobile Calendar - only shows days with availability */}
       {mobileWeekSchedule.length > 0 && (
-        <div className="lg:hidden space-y-3" role="region" aria-label="Mobile appointment calendar">
+        <div className="lg:hidden flex flex-col flex-1 min-h-0" role="region" aria-label="Mobile appointment calendar">
+          {/* Day selector - always visible at top */}
           <div
-            className="grid gap-2 pb-1"
+            className="grid gap-2 pb-3 flex-shrink-0 sticky top-0 z-10 bg-white/95 backdrop-blur-sm -mx-1 px-1 pt-1"
             style={{ gridTemplateColumns: `repeat(${Math.min(mobileWeekSchedule.length, 5)}, 1fr)` }}
             role="tablist"
           >
@@ -622,26 +625,28 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             })}
           </div>
 
+          {/* Time slots area - scrollable */}
           <div
-            className="rounded-xl p-3"
+            className="rounded-xl p-4 flex-1 overflow-y-auto"
             style={{
               background: 'linear-gradient(145deg, rgba(248,250,252,0.95) 0%, rgba(255,255,255,0.98) 100%)',
               border: '1px solid rgba(226,232,240,0.6)',
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             {mobileActiveDay ? (
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-slate-700">
+                    <p className="text-base font-semibold text-slate-700">
                       {mobileActiveDay.dayName}, {mobileActiveDay.dayNumber} {mobileActiveDay.month}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-sm text-slate-500">
                       {mobileActiveDay.slots.length > 0 ? getTimeRangeForDay(mobileActiveDay.slots) : 'No times available'}
                     </p>
                   </div>
                   <span
-                    className="rounded-full px-2.5 py-1 text-xs font-medium"
+                    className="rounded-full px-3 py-1.5 text-sm font-medium"
                     style={{
                       background:
                         mobileActiveDay.slots.length > 0
@@ -659,11 +664,11 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                 </div>
 
                 <div
-                  className="rounded-md"
+                  className="rounded-lg p-2"
                   style={{ border: '1px solid rgba(226,232,240,0.5)', background: 'rgba(255,255,255,0.6)' }}
                 >
                   {/* Show all business hours 8am-6pm */}
-                  <div className="flex flex-col">
+                  <div className="flex flex-col gap-1">
                     {BUSINESS_HOURS.map((hour) => {
                       // Find if there's an available slot for this hour
                       const slot = mobileActiveDay.slots.find((s) => {
@@ -672,15 +677,15 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                       });
                       
                       if (slot) {
-                        return renderSlotButton(mobileActiveDay, slot, hour);
+                        return renderSlotButton(mobileActiveDay, slot, hour, true);
                       }
                       
                       // Render empty/unavailable slot
                       return (
                         <div
                           key={`empty-${hour}`}
-                          className="w-full flex items-center justify-center font-medium text-sm text-slate-300 rounded"
-                          style={{ minHeight: '36px', margin: '0 2px' }}
+                          className="w-full flex items-center justify-center font-medium text-base text-slate-300 rounded-lg"
+                          style={{ minHeight: '44px' }}
                         >
                           {formatHourLabel(hour)}
                         </div>
@@ -690,7 +695,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="p-3 text-center text-xs text-slate-400">No days loaded</div>
+              <div className="p-3 text-center text-sm text-slate-400">No days loaded</div>
             )}
           </div>
         </div>

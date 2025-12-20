@@ -50,7 +50,7 @@ export function SEO({
   const defaultDescription =
     'Professional psychological services in the Hunter Region, NSW. Specialising in individual therapy, couples counselling, anxiety, depression, trauma recovery, and NDIS support.';
   const metaDescription = description || defaultDescription;
-  const defaultImage = `${baseUrl}/og-image.png`;
+  const defaultImage = `${baseUrl}/og-image-sunflower.png`;
   const socialImage = ogImage || defaultImage;
 
   return (

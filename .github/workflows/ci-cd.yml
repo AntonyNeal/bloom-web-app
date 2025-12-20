@@ -250,31 +250,6 @@ jobs:
           echo "═══════════════════════════════════════════════════════"
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Detect Changes (Always deploy everything on push)
-  # ─────────────────────────────────────────────────────────────────────────────
-
-  detect-changes:
-    name: 🔍 Detect Changes
-    runs-on: ubuntu-latest
-    outputs:
-      bloom-frontend: 'true'
-      bloom-api: 'true'
-      halaxy-worker: 'true'
-      website-frontend: 'true'
-      website-api: 'true'
-      database: 'true'
-    steps:
-      - name: Always Deploy Everything
-        run: |
-          echo "🚀 Always deploy all components on push"
-          echo "   bloom-frontend: true"
-          echo "   bloom-api: true"
-          echo "   halaxy-worker: true"
-          echo "   website-frontend: true"
-          echo "   website-api: true"
-          echo "   database: true"
-
-  # ─────────────────────────────────────────────────────────────────────────────
   # Quality Checks (Run in Parallel)
   # ─────────────────────────────────────────────────────────────────────────────
 
@@ -319,10 +294,8 @@ jobs:
   validate-migrations:
     name: ✅ Validate Migrations
     runs-on: ubuntu-latest
-    needs: [detect-changes, determine-environment]
-    if: |
-      needs.detect-changes.outputs.database == 'true' ||
-      github.event.inputs.run_migrations == 'true'
+    needs: [determine-environment]
+    if: github.event.inputs.run_migrations == 'true'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -383,10 +356,10 @@ jobs:
   run-migrations:
     name: 🗄️ Run Migrations (${{ needs.determine-environment.outputs.db-environment }})
     runs-on: ubuntu-latest
-    needs: [detect-changes, determine-environment, validate-migrations, lint, type-check]
+    needs: [determine-environment, validate-migrations, lint, type-check]
     if: |
       always() &&
-      (needs.detect-changes.outputs.database == 'true' || github.event.inputs.run_migrations == 'true') &&
+      github.event.inputs.run_migrations == 'true' &&
       needs.validate-migrations.result == 'success' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success' &&
@@ -1384,7 +1357,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - determine-environment
-      - detect-changes
       - run-migrations
       - deploy-bloom-frontend
       - deploy-bloom-api
@@ -1404,16 +1376,6 @@ jobs:
           echo "📅 Date:            $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
           echo "🔖 Commit:          ${{ github.sha }}"
           echo "👤 Triggered by:    ${{ github.actor }}"
-          echo ""
-          echo "─────────────────────────────────────────────────────────────────"
-          echo "CHANGES DETECTED"
-          echo "─────────────────────────────────────────────────────────────────"
-          echo "🌸 Bloom Frontend:  ${{ needs.detect-changes.outputs.bloom-frontend }}"
-          echo "🔌 Bloom API:       ${{ needs.detect-changes.outputs.bloom-api }}"
-          echo "🔄 Halaxy Worker:   ${{ needs.detect-changes.outputs.halaxy-worker }}"
-          echo "🌐 Website Frontend: ${{ needs.detect-changes.outputs.website-frontend }}"
-          echo "⚡ Website API:     ${{ needs.detect-changes.outputs.website-api }}"
-          echo "🗄️ Database:        ${{ needs.detect-changes.outputs.database }}"
           echo ""
           echo "─────────────────────────────────────────────────────────────────"
           echo "DEPLOYMENT STATUS"

@@ -15,6 +15,7 @@ import {
 } from './components/ABTestProvider';
 import { trackScrollDepth } from './utils/trackingEvents';
 import { trackPageView } from './utils/applicationInsights';
+import { preloadAvailability } from './utils/availabilityPreloader';
 // Note: High Intent timer is initialized by UnifiedTracker singleton when any page tracking is called
 import './App.css';
 
@@ -88,6 +89,12 @@ function App() {
       timestamp: new Date().toISOString(),
     });
   }, [pathname]);
+
+  // Preload availability data on app mount - enables "next available" message
+  // in MobileCTABar and UnifiedHeader on ALL pages, not just Home
+  useEffect(() => {
+    preloadAvailability();
+  }, []);
 
   useEffect(() => {
     // Defer analytics initialization to avoid blocking initial render

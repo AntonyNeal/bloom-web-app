@@ -14,23 +14,22 @@
     <link rel="apple-touch-icon" href="/favicon.svg" />
 
     <!-- Performance Optimizations: Resource Preloading -->
-    <!-- Hero image preload for LCP improvement - responsive size for mobile -->
+    <!-- Hero image preloads for LCP - both A/B test variants covered -->
+    <!-- Variant A (photo-current): hero-zoe-main images -->
+    <link
+      rel="preload"
+      href="/assets/hero-zoe-main-500w.webp"
+      as="image"
+      type="image/webp"
+      fetchpriority="high"
+    />
+    <!-- Variant B (photo-standing): zoe standing images - only preload for mobile to reduce requests -->
     <link
       rel="preload"
       href="/assets/zoe-380w.webp"
       as="image"
       type="image/webp"
-      fetchpriority="high"
-      media="(max-width: 1024px)"
-    />
-    <!-- Larger image preload for desktop -->
-    <link
-      rel="preload"
-      href="/assets/zoe-760w.webp"
-      as="image"
-      type="image/webp"
-      fetchpriority="high"
-      media="(min-width: 1025px)"
+      media="(max-width: 768px)"
     />
     <!-- Preload critical fonts with async loading and swap display -->
     <link

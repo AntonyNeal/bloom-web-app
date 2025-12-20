@@ -6,7 +6,7 @@ import { HelmetProvider } from 'react-helmet-async';
 // import './index.css'; // Moved to async loading for performance
 import App from './App';
 import { loadRuntimeConfig } from './runtime-fetch';
-import { initializeApplicationInsights } from './utils/applicationInsights';
+// Application Insights is dynamically imported after render for better TBT
 
 // Lightweight build metadata logging (kept minimal)
 if (import.meta.env.DEV) {
@@ -147,10 +147,7 @@ async function bootstrapApp() {
     }
   }
 
-  // Initialize Application Insights for monitoring and analytics
-  initializeApplicationInsights();
-
-  // Create React root and render app
+  // Create React root and render app - Application Insights deferred until after initial render
   const root = createRoot(rootElement);
   root.render(
     <StrictMode>
@@ -161,6 +158,25 @@ async function bootstrapApp() {
       </HelmetProvider>
     </StrictMode>
   );
+
+  // Defer Application Insights initialization to reduce TBT
+  // Load after initial paint using requestIdleCallback
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(
+      () => {
+        import('./utils/applicationInsights').then(({ initializeApplicationInsights }) => {
+          initializeApplicationInsights();
+        });
+      },
+      { timeout: 3000 }
+    );
+  } else {
+    setTimeout(() => {
+      import('./utils/applicationInsights').then(({ initializeApplicationInsights }) => {
+        initializeApplicationInsights();
+      });
+    }, 2000);
+  }
 }
 
 // Start the app

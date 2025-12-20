@@ -79,6 +79,12 @@ export default defineConfig({
           ) {
             return 'analytics';
           }
+          // Application Insights - separate lazy-loaded chunk (large SDK ~150KB)
+          if (
+            id.includes('@microsoft/applicationinsights')
+          ) {
+            return 'app-insights';
+          }
           // OpenAI (only used in assessment)
           if (id.includes('openai')) {
             return 'openai';

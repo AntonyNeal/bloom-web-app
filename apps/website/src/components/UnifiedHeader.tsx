@@ -140,7 +140,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
             
             {/* Image - equal column on desktop */}
             <div className="order-1 lg:order-1 hero-image-container">
-              <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-xs lg:max-w-sm'}`}>
+              <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-md lg:max-w-lg'}`}>
                 {/* Hero image container with badge */}
                 <div className="relative">
                   <picture>

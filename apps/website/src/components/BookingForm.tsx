@@ -998,7 +998,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           )}
 
           {/* Action buttons */}
-          <div className="flex justify-between items-center gap-3 flex-shrink-0 pt-3 pb-2 mt-2 border-t border-slate-100">
+          <div className="flex justify-between items-center gap-3 flex-shrink-0 pt-2 pb-1 mt-1 border-t border-slate-100">
             <button
               type="button"
               onClick={() => {
@@ -1006,7 +1006,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
               className="font-semibold rounded-lg text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
-              style={{ padding: 'clamp(8px, 2vh, 12px) clamp(12px, 4vw, 20px)', fontSize: 'clamp(12px, 3vw, 14px)' }}
+              style={{ padding: 'clamp(6px, 1.5vh, 10px) clamp(10px, 3vw, 16px)', fontSize: 'clamp(11px, 2.5vw, 13px)' }}
             >
               ← Back
             </button>
@@ -1019,7 +1019,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   ? 'text-white bg-blue-500 hover:bg-blue-600 cursor-pointer shadow-md'
                   : 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
               }`}
-              style={{ padding: 'clamp(8px, 2vh, 12px) clamp(16px, 5vw, 28px)', fontSize: 'clamp(12px, 3vw, 14px)' }}
+              style={{ padding: 'clamp(6px, 1.5vh, 10px) clamp(12px, 4vw, 20px)', fontSize: 'clamp(11px, 2.5vw, 13px)' }}
               aria-disabled={!isDateTimeStepValid()}
             >
               Continue →

@@ -328,9 +328,9 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200'
         }`}
         style={{ 
-          height: isMobile ? 'clamp(36px, 6vh, 52px)' : '90%', 
-          fontSize: isMobile ? 'clamp(12px, 3vw, 16px)' : 'clamp(9px, 1vw, 11px)',
-          margin: isMobile ? 'clamp(2px, 0.5vh, 4px) 0' : '0 2px' 
+          height: isMobile ? 'clamp(32px, 4.5vh, 44px)' : '90%', 
+          fontSize: isMobile ? 'clamp(11px, 2.5vw, 14px)' : 'clamp(9px, 1vw, 11px)',
+          margin: isMobile ? 'clamp(1px, 0.3vh, 3px) 0' : '0 2px' 
         }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
         aria-pressed={selected}
@@ -607,8 +607,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     isActive ? 'text-blue-800' : 'text-slate-600'
                   }`}
                   style={{
-                    minHeight: 'clamp(44px, 8vh, 64px)',
-                    padding: 'clamp(4px, 1vh, 8px) clamp(4px, 2vw, 12px)',
+                    minHeight: 'clamp(36px, 5.5vh, 52px)',
+                    padding: 'clamp(2px, 0.5vh, 6px) clamp(4px, 2vw, 12px)',
                     background: isActive
                       ? 'linear-gradient(135deg, rgba(236,253,245,0.95) 0%, rgba(209,250,229,0.8) 100%)'
                       : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
@@ -688,7 +688,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                         <div
                           key={`empty-${hour}`}
                           className="w-full flex items-center justify-center font-medium text-slate-300 rounded-lg"
-                          style={{ minHeight: 'clamp(36px, 6vh, 52px)', fontSize: 'clamp(10px, 2.5vw, 14px)' }}
+                          style={{ minHeight: 'clamp(28px, 4.5vh, 40px)', fontSize: 'clamp(10px, 2.5vw, 14px)' }}
                         >
                           {formatHourLabel(hour)}
                         </div>

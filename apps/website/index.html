@@ -103,7 +103,28 @@
       window.VITE_BUILD_TIME = '__RUNTIME_VITE_BUILD_TIME__';
       window.VITE_BOOKING_URL = '__RUNTIME_VITE_BOOKING_URL__';
     </script>
-    <!-- Global site tag (gtag.js) - Google Analytics & Google Ads -->
+    
+    <!-- Partytown: Run third-party scripts in web worker for better performance -->
+    <script>
+      // Partytown configuration - must be before partytown script
+      partytown = {
+        // Forward these functions to the main thread
+        forward: ['dataLayer.push', 'gtag'],
+        // Debug mode in development
+        debug: window.location.hostname === 'localhost',
+        // Resolve URL for proxying (needed for some third-party scripts)
+        resolveUrl: function (url) {
+          // Allow Google scripts to load directly
+          if (url.hostname.includes('google')) {
+            return url;
+          }
+          return url;
+        }
+      };
+    </script>
+    <script src="/~partytown/partytown.js"></script>
+    
+    <!-- Global site tag (gtag.js) - Google Analytics & Google Ads via Partytown -->
     <script>
       // Environment-based GA4 Measurement ID Detection
       function getGa4MeasurementId() {
@@ -120,7 +141,8 @@
         // Staging domain (Azure Static Web Apps)
         if (
           hostname.includes('azurestaticapps.net') ||
-          hostname.includes('red-desert')
+          hostname.includes('red-desert') ||
+          hostname.includes('staging')
         ) {
           return 'G-MVE59VPCQH';
         }
@@ -150,140 +172,50 @@
         return 'G-XGGBRLPBKK';
       }
 
-      // Dynamically load GA4 script with correct measurement ID
+      // Initialize dataLayer and gtag on main thread (Partytown will forward calls)
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      window.gtag = gtag;
+
+      gtag('js', new Date());
+
+      // Configure based on environment
       (function () {
         const measurementId = getGa4MeasurementId();
         const hostname = window.location.hostname;
-        let environment = 'unknown';
-
-        if (
-          hostname === 'www.life-psychology.com.au' ||
-          hostname === 'life-psychology.com.au'
-        ) {
-          environment = 'production';
-        } else if (
-          hostname.includes('azurestaticapps.net') ||
-          hostname.includes('red-desert')
-        ) {
-          environment = 'staging';
-        } else if (
-          hostname === 'localhost' ||
-          hostname === '127.0.0.1' ||
-          hostname.includes('localhost')
-        ) {
-          environment = 'local development';
-        }
-
-        console.log(
-          '[GA4] Environment detected:',
-          environment,
-          '- Hostname:',
-          hostname
-        );
-        console.log('[GA4] Initialized with ID:', measurementId);
-
-        // Defer GTM loading until after LCP to avoid blocking main thread
-        // Use PerformanceObserver to detect LCP, then wait for idle
-        var loadGTM = function() {
-          var measurementId = getGa4MeasurementId();
-          var script = document.createElement('script');
-          script.async = true;
-          script.src =
-            'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
-          document.head.appendChild(script);
-        };
-        
-        var scheduleGTMLoad = function() {
-          // Wait for idle callback with 3s max timeout
-          if ('requestIdleCallback' in window) {
-            requestIdleCallback(loadGTM, { timeout: 3000 });
-          } else {
-            setTimeout(loadGTM, 2500);
-          }
-        };
-
-        // Try to use LCP observer, fallback to load event
-        if ('PerformanceObserver' in window) {
-          var lcpObserver = new PerformanceObserver(function(entryList) {
-            var entries = entryList.getEntries();
-            if (entries.length > 0) {
-              lcpObserver.disconnect();
-              // Small delay after LCP to ensure paint is complete
-              setTimeout(scheduleGTMLoad, 100);
-            }
-          });
-          try {
-            lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
-            // Fallback if LCP doesn't fire within 5s
-            setTimeout(function() {
-              lcpObserver.disconnect();
-              scheduleGTMLoad();
-            }, 5000);
-          } catch (e) {
-            // LCP observer not supported, use load event
-            window.addEventListener('load', scheduleGTMLoad);
-          }
-        } else {
-          // No PerformanceObserver, wait for load + delay
-          window.addEventListener('load', scheduleGTMLoad);
-        }
-
-        window.dataLayer = window.dataLayer || [];
-        function gtag() {
-          dataLayer.push(arguments);
-        }
-        window.gtag = gtag; // Make gtag globally available
-
-        gtag('js', new Date());
 
         // Configure GA4
-        if (
-          hostname === 'www.life-psychology.com.au' ||
-          hostname === 'life-psychology.com.au'
-        ) {
-          gtag('config', 'G-XGGBRLPBKK', {
-            custom_map: {
-              custom_parameter_1: 'page_section',
-              custom_parameter_2: 'button_location',
-              custom_parameter_3: 'service_type',
-              dimension1: 'page_section',
-              dimension2: 'button_location',
-              dimension3: 'service_type',
-              metric1: 'scroll_depth',
-              metric2: 'time_on_page',
-            },
-            send_page_view: true,
-            allow_google_signals: true,
-            allow_ad_personalization_signals: true,
-            transport_type: 'beacon',
-            link_attribution: true,
-          });
-        } else {
-          gtag('config', 'G-XGGBRLPBKK', {
-            custom_map: {
-              custom_parameter_1: 'page_section',
-              custom_parameter_2: 'button_location',
-              custom_parameter_3: 'service_type',
-              dimension1: 'page_section',
-              dimension2: 'button_location',
-              dimension3: 'service_type',
-              metric1: 'scroll_depth',
-              metric2: 'time_on_page',
-            },
-            send_page_view: true,
-            allow_google_signals: true,
-            allow_ad_personalization_signals: true,
-            transport_type: 'beacon',
-            link_attribution: true,
-          });
-        }
+        gtag('config', measurementId, {
+          custom_map: {
+            custom_parameter_1: 'page_section',
+            custom_parameter_2: 'button_location',
+            custom_parameter_3: 'service_type',
+            dimension1: 'page_section',
+            dimension2: 'button_location',
+            dimension3: 'service_type',
+            metric1: 'scroll_depth',
+            metric2: 'time_on_page',
+          },
+          send_page_view: true,
+          allow_google_signals: true,
+          allow_ad_personalization_signals: true,
+          transport_type: 'beacon',
+          link_attribution: true,
+        });
 
         // Google Ads Conversion Tracking Configuration
         gtag('config', 'AW-11563740075', {
           allow_enhanced_conversions: true,
         });
+
+        console.log('[GA4] Initialized with Partytown - ID:', measurementId);
       })();
     </script>
+    
+    <!-- Load gtag.js via Partytown (runs in web worker, not main thread) -->
+    <script type="text/partytown" src="https://www.googletagmanager.com/gtag/js?id=G-XGGBRLPBKK"></script>
     <!-- EARLY RUNTIME ENV CHECK - only enabled when VITE_DEBUG_PANEL is set to 'true' -->
     <script>
       try {

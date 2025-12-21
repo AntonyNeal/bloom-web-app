@@ -3,6 +3,7 @@ import { resolve } from 'path';
 import removeConsole from 'vite-plugin-remove-console';
 import { defineConfig } from 'vite';
 import { criticalCssInline } from './src/plugins/critical-css-plugin';
+import { partytownVite } from '@qwik.dev/partytown/utils';
 
 // Force rebuild: 2025-12-03 - Added VITE_AVAILABILITY_FUNCTION_URL
 
@@ -14,6 +15,10 @@ export default defineConfig({
     }),
     removeConsole(),
     criticalCssInline(),
+    // Partytown: Run third-party scripts in web worker to avoid main thread blocking
+    partytownVite({
+      dest: resolve(__dirname, 'dist', '~partytown'),
+    }),
   ],
   resolve: {
     alias: {

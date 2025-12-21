@@ -1,5 +1,6 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
+import { emailService } from '../services/email';
 
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
@@ -250,11 +251,50 @@ async function applicationsHandler(
         };
       }
 
+      const updatedApplication = result.recordset[0];
       context.log(`Application ${id} updated to status: ${status}`);
+
+      // Send email notification based on status change
+      const emailContext = {
+        firstName: updatedApplication.first_name,
+        lastName: updatedApplication.last_name,
+        email: updatedApplication.email,
+        interviewDate: interview_scheduled_at ? new Date(interview_scheduled_at) : undefined,
+        interviewNotes: interview_notes,
+        decisionReason: decision_reason,
+      };
+
+      try {
+        let emailResult;
+        switch (status) {
+          case 'denied':
+            emailResult = await emailService.sendDenialEmail(emailContext);
+            context.log('Denial email sent:', emailResult);
+            break;
+          case 'waitlisted':
+            emailResult = await emailService.sendWaitlistEmail(emailContext);
+            context.log('Waitlist email sent:', emailResult);
+            break;
+          case 'interview_scheduled':
+            if (interview_scheduled_at) {
+              emailResult = await emailService.sendInterviewEmail(emailContext);
+              context.log('Interview email sent:', emailResult);
+            }
+            break;
+          case 'accepted':
+            emailResult = await emailService.sendAcceptanceEmail(emailContext);
+            context.log('Acceptance email sent:', emailResult);
+            break;
+        }
+      } catch (emailError) {
+        // Log email error but don't fail the request
+        context.warn('Failed to send email notification:', emailError);
+      }
+
       return {
         status: 200,
         headers,
-        jsonBody: result.recordset[0],
+        jsonBody: updatedApplication,
       };
     }
 

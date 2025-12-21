@@ -6,13 +6,21 @@ const statusOptions = [
   { value: '', label: 'All Statuses' },
   { value: 'Received', label: 'Received' },
   { value: 'Reviewed', label: 'Reviewed' },
+  { value: 'Denied', label: 'Denied' },
+  { value: 'Waitlisted', label: 'Waitlisted' },
+  { value: 'Interview Scheduled', label: 'Interview Scheduled' },
+  { value: 'Accepted', label: 'Accepted' },
   { value: 'Approved', label: 'Approved' },
   { value: 'Rejected', label: 'Rejected' },
 ];
 
-const statusBadgeClasses = {
+const statusBadgeClasses: Record<string, string> = {
   Received: 'bg-blue-100 text-blue-800',
   Reviewed: 'bg-yellow-100 text-yellow-800',
+  Denied: 'bg-red-100 text-red-800',
+  Waitlisted: 'bg-purple-100 text-purple-800',
+  'Interview Scheduled': 'bg-cyan-100 text-cyan-800',
+  Accepted: 'bg-emerald-100 text-emerald-800',
   Approved: 'bg-green-100 text-green-800',
   Rejected: 'bg-red-100 text-red-800',
 };

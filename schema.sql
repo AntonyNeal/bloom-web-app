@@ -18,11 +18,19 @@ CREATE TABLE applications (
   cover_letter TEXT,
   qualification_type NVARCHAR(50), -- 'clinical', 'experienced', 'phd'
   qualification_check NVARCHAR(MAX), -- JSON object with qualification check data
-  status NVARCHAR(20) DEFAULT 'submitted', -- submitted, reviewing, approved, rejected
+  -- Status: submitted, reviewing, denied, waitlisted, interview_scheduled, accepted (approved, rejected are legacy)
+  status NVARCHAR(20) DEFAULT 'submitted',
   created_at DATETIME2 DEFAULT GETDATE(),
   updated_at DATETIME2 DEFAULT GETDATE(),
   reviewed_by NVARCHAR(100),
-  reviewed_at DATETIME2
+  reviewed_at DATETIME2,
+  -- Review workflow fields (Epic 1.1)
+  admin_notes NVARCHAR(MAX),              -- Admin notes/comments for review decisions
+  interview_scheduled_at DATETIME2,       -- Date/time of scheduled interview
+  interview_notes NVARCHAR(MAX),          -- Notes from interview
+  decision_reason NVARCHAR(500),          -- Reason for decision
+  waitlisted_at DATETIME2,                -- When application was waitlisted
+  accepted_at DATETIME2                   -- When application was accepted
 );
 
 -- Performance indexes

@@ -1,3 +1,14 @@
+// Application status type - includes new workflow statuses
+export type ApplicationStatus = 
+  | 'Received'           // Initial submission
+  | 'Reviewed'           // Under review (legacy)
+  | 'Denied'             // Application denied
+  | 'Waitlisted'         // On waitlist for future positions
+  | 'Interview Scheduled' // Interview has been scheduled
+  | 'Accepted'           // Application accepted, pending onboarding
+  | 'Approved'           // Legacy status
+  | 'Rejected';          // Legacy status
+
 export interface Application {
   ApplicationID: string;
   FirstName: string;
@@ -7,7 +18,7 @@ export interface Application {
   AHPRANumber: string;
   RegistrationType: string;
   YearsRegistered: number;
-  ApplicationStatus: 'Received' | 'Reviewed' | 'Approved' | 'Rejected';
+  ApplicationStatus: ApplicationStatus;
   SubmittedAt: string;
   ReviewedAt?: string;
   ReviewedBy?: string;
@@ -36,6 +47,13 @@ export interface ApplicationDetail extends Application {
   Reference2Contact?: string;
   AdditionalNotes?: string;
   ReviewNotes?: string;
+  // New review workflow fields
+  AdminNotes?: string;              // Admin notes/comments for review decisions
+  InterviewScheduledAt?: string;    // Date/time of scheduled interview
+  InterviewNotes?: string;          // Notes from interview
+  DecisionReason?: string;          // Reason for decision (deny/waitlist/accept)
+  WaitlistedAt?: string;            // When application was waitlisted
+  AcceptedAt?: string;              // When application was accepted
 }
 
 export interface ApplicationDocument {

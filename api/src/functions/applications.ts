@@ -175,8 +175,12 @@ async function applicationsHandler(
       const body = (await req.json()) as {
         status?: string;
         reviewed_by?: string;
+        admin_notes?: string;
+        interview_scheduled_at?: string;
+        interview_notes?: string;
+        decision_reason?: string;
       };
-      const { status, reviewed_by } = body;
+      const { status, reviewed_by, admin_notes, interview_scheduled_at, interview_notes, decision_reason } = body;
 
       if (!status) {
         return {
@@ -186,13 +190,54 @@ async function applicationsHandler(
         };
       }
 
-      const result = await pool
-        .request()
+      // Valid statuses for the application workflow
+      const validStatuses = [
+        'submitted',
+        'reviewing',
+        'denied',
+        'waitlisted',
+        'interview_scheduled',
+        'accepted',
+        'approved',  // Legacy
+        'rejected',  // Legacy
+      ];
+
+      if (!validStatuses.includes(status)) {
+        return {
+          status: 400,
+          headers,
+          jsonBody: { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` },
+        };
+      }
+
+      // Build dynamic update query based on provided fields
+      const request = pool.request()
         .input('id', sql.Int, id)
         .input('status', sql.NVarChar, status)
-        .input('reviewed_by', sql.NVarChar, reviewed_by || null).query(`
+        .input('reviewed_by', sql.NVarChar, reviewed_by || null)
+        .input('admin_notes', sql.NVarChar, admin_notes || null)
+        .input('interview_scheduled_at', sql.DateTime2, interview_scheduled_at ? new Date(interview_scheduled_at) : null)
+        .input('interview_notes', sql.NVarChar, interview_notes || null)
+        .input('decision_reason', sql.NVarChar, decision_reason || null);
+
+      // Set timestamp columns based on status change
+      let additionalColumns = '';
+      if (status === 'waitlisted') {
+        additionalColumns = ', waitlisted_at = GETDATE()';
+      } else if (status === 'accepted') {
+        additionalColumns = ', accepted_at = GETDATE()';
+      }
+
+      const result = await request.query(`
           UPDATE applications
-          SET status = @status, reviewed_by = @reviewed_by, reviewed_at = GETDATE()
+          SET status = @status, 
+              reviewed_by = @reviewed_by, 
+              reviewed_at = GETDATE(),
+              admin_notes = COALESCE(@admin_notes, admin_notes),
+              interview_scheduled_at = COALESCE(@interview_scheduled_at, interview_scheduled_at),
+              interview_notes = COALESCE(@interview_notes, interview_notes),
+              decision_reason = COALESCE(@decision_reason, decision_reason)
+              ${additionalColumns}
           OUTPUT INSERTED.*
           WHERE id = @id
         `);
@@ -205,6 +250,7 @@ async function applicationsHandler(
         };
       }
 
+      context.log(`Application ${id} updated to status: ${status}`);
       return {
         status: 200,
         headers,

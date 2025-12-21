@@ -288,14 +288,49 @@ jobs:
 # ═══════════════════════════════════════════════════════════════════════════════
 
   # ─────────────────────────────────────────────────────────────────────────────
+  # Detect Migration Changes
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  detect-migrations:
+    name: 🔍 Detect Migration Changes
+    runs-on: ubuntu-latest
+    outputs:
+      has_migrations: ${{ steps.check.outputs.has_migrations }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for Migration Changes
+        id: check
+        run: |
+          # For manual dispatch, use the input
+          if [ "${{ github.event.inputs.run_migrations }}" == "true" ]; then
+            echo "has_migrations=true" >> $GITHUB_OUTPUT
+            echo "✅ Migrations enabled via manual input"
+            exit 0
+          fi
+          
+          # For push events, check if migration files changed
+          if git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q "^db/migrations/"; then
+            echo "has_migrations=true" >> $GITHUB_OUTPUT
+            echo "✅ Migration files changed - will run migrations"
+            git diff --name-only HEAD~1 HEAD | grep "^db/migrations/"
+          else
+            echo "has_migrations=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No migration file changes detected"
+          fi
+
+  # ─────────────────────────────────────────────────────────────────────────────
   # Validate Migrations
   # ─────────────────────────────────────────────────────────────────────────────
 
   validate-migrations:
     name: ✅ Validate Migrations
     runs-on: ubuntu-latest
-    needs: [determine-environment]
-    if: github.event.inputs.run_migrations == 'true'
+    needs: [determine-environment, detect-migrations]
+    if: needs.detect-migrations.outputs.has_migrations == 'true'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -356,10 +391,10 @@ jobs:
   run-migrations:
     name: 🗄️ Run Migrations (${{ needs.determine-environment.outputs.db-environment }})
     runs-on: ubuntu-latest
-    needs: [determine-environment, validate-migrations, lint, type-check]
+    needs: [determine-environment, detect-migrations, validate-migrations, lint, type-check]
     if: |
       always() &&
-      github.event.inputs.run_migrations == 'true' &&
+      needs.detect-migrations.outputs.has_migrations == 'true' &&
       needs.validate-migrations.result == 'success' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success' &&
@@ -419,15 +454,32 @@ jobs:
 
       - name: Run Migrations
         id: migrate
-        working-directory: api
+        working-directory: db
         env:
-          SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
+          DB_SERVER: lpa-sql-server.database.windows.net
+          DB_NAME: ${{ needs.determine-environment.outputs.db-environment == 'prod' && 'lpa-bloom-db-prod' || 'lpa-bloom-db-dev' }}
+          DB_USER: ${{ secrets.SQL_USER }}
+          DB_PASSWORD: ${{ secrets.SQL_PASSWORD }}
           DRY_RUN: ${{ github.event.inputs.dry_run_migrations || github.event_name == 'pull_request' }}
         run: |
-          echo "🚀 Building database schema for ${{ needs.determine-environment.outputs.db-environment }}..."
+          echo "🚀 Running database migrations for ${{ needs.determine-environment.outputs.db-environment }}..."
+          echo "   Database: $DB_NAME"
           
-          # Build schema from single source of truth
-          node build-schema.js
+          # Install migration dependencies
+          npm ci
+          
+          # Show migration status
+          echo ""
+          echo "📋 Current migration status:"
+          npm run info || true
+          
+          # Run pending migrations
+          echo ""
+          echo "🔄 Applying pending migrations..."
+          npm run migrate
+          
+          echo ""
+          echo "✅ Migrations completed!"
         continue-on-error: ${{ github.event.inputs.dry_run_migrations == 'true' || github.event_name == 'pull_request' }}
 
       - name: Extended Validation (Staging)

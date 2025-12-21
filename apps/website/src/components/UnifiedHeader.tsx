@@ -148,7 +148,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     {webpSrcSet ? (
                       <source
                         srcSet={webpSrcSet}
-                        sizes="(max-width: 1024px) 100vw, 500px"
+                        sizes="(max-width: 640px) 320px, (max-width: 1024px) 380px, 400px"
                         type="image/webp"
                       />
                     ) : (
@@ -158,7 +158,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     {jpgSrcSet && (
                       <source
                         srcSet={jpgSrcSet}
-                        sizes="(max-width: 1024px) 100vw, 500px"
+                        sizes="(max-width: 640px) 320px, (max-width: 1024px) 380px, 400px"
                         type="image/jpeg"
                       />
                     )}

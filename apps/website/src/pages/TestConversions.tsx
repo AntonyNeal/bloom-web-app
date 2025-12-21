@@ -28,41 +28,24 @@ const TestConversions = () => {
   const [dataLayerContent, setDataLayerContent] = useState<unknown[]>([]);
   const [ga4Results, setGa4Results] = useState<string[]>([]);
 
-  // Log for debugging
-  console.log('[TestConversions] Page loaded, checking access...');
-  console.log('[TestConversions] URL:', window.location.href);
-  console.log('[TestConversions] Search params:', window.location.search);
-
   // Allow access in dev OR with secret URL parameter in production
   const urlParams = new URLSearchParams(window.location.search);
-  const testKeyValue = urlParams.get('test_key');
-  const hasTestKey = testKeyValue === 'bloom2025';
+  const hasTestKey = urlParams.get('test_key') === 'bloom2025';
   
-  console.log('[TestConversions] test_key value:', testKeyValue);
-  console.log('[TestConversions] hasTestKey:', hasTestKey);
-  console.log('[TestConversions] DEV mode:', import.meta.env.DEV);
-  
-  // TEMPORARY: Allow all access for testing
-  const allowAccess = true; // import.meta.env.DEV || hasTestKey
-  
-  if (!allowAccess) {
+  if (!import.meta.env.DEV && !hasTestKey) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-red-50">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg">
           <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
           <p className="text-gray-600 mt-2">
-            This page is only available in development mode.
-          </p>
-          <p className="text-sm text-gray-400 mt-4">
-            test_key: {testKeyValue || 'none'}<br/>
-            DEV: {String(import.meta.env.DEV)}
+            This page requires authentication.
           </p>
         </div>
       </div>
     );
   }
 
-  // NEW: Fire begin_checkout directly via gtag
+  // Fire begin_checkout directly via gtag
   const handleFireBeginCheckout = () => {
     console.log('🧪 Testing GA4 begin_checkout event...');
     const result = trackBookingStart({ entry_point: 'test_page' });

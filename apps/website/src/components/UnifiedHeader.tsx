@@ -166,7 +166,9 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                       src={fallbackSrc}
                       alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
                       className="w-full rounded-2xl shadow-lg block"
-                      style={{ display: 'block', verticalAlign: 'bottom' }}
+                      style={{ display: 'block', verticalAlign: 'bottom', aspectRatio: '500 / 731' }}
+                      width={500}
+                      height={731}
                       loading="eager"
                       decoding="async"
                       fetchPriority="high"

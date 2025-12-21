@@ -271,17 +271,16 @@ h1 {
 .hero-image-container {
   width: 100%;
   max-width: 600px;
-  height: auto;
-  /* REMOVED aspect-ratio to prevent image cropping on iOS Safari */
-  /* The image should maintain its natural aspect ratio */
+  /* Reserve space for image to prevent CLS */
+  aspect-ratio: 500 / 731;
 }
 
 .hero-image-container img {
   width: 100%;
-  height: auto; /* Changed from 100% to auto */
-  object-fit: contain; /* Changed from cover to contain to show full image */
-  /* DEBUG: Add min-height for iOS Safari to ensure full image displays */
-  min-height: 400px;
+  height: auto;
+  object-fit: contain;
+  /* Aspect ratio set via HTML attributes, this is a fallback */
+  aspect-ratio: 500 / 731;
 }
 
 .lcp-placeholder {

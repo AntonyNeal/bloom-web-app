@@ -77,8 +77,26 @@ function App() {
       window.removeEventListener('unhandledrejection', () => {});
     };
   }, [pathname]);
+  
+  // Track initial page view only after a delay to not block first paint
+  const isFirstRender = React.useRef(true);
   useEffect(() => {
-    // Track page view in Application Insights (lazy loaded to reduce initial bundle)
+    if (isFirstRender.current) {
+      // Defer first page view tracking to after LCP
+      isFirstRender.current = false;
+      const timer = setTimeout(() => {
+        import('./utils/applicationInsights').then(({ trackPageView }) => {
+          trackPageView(`Page View: ${pathname}`, window.location.href, {
+            path: pathname,
+            referrer: document.referrer || 'direct',
+            timestamp: new Date().toISOString(),
+          });
+        });
+      }, 2000); // Wait 2s after initial render
+      return () => clearTimeout(timer);
+    }
+    
+    // Track subsequent page views immediately (they don't block LCP)
     import('./utils/applicationInsights').then(({ trackPageView }) => {
       trackPageView(`Page View: ${pathname}`, window.location.href, {
         path: pathname,

@@ -6,6 +6,21 @@
 
 ---
 
+## ⚠️ PRODUCTION DEPLOYMENT - JANUARY 11, 2026 ⚠️
+
+> **DO NOT merge to `main` branch until January 11, 2026.**
+> 
+> All development happens on `staging` branch only.
+> Production deployment is scheduled for **Saturday, January 11, 2026**.
+> 
+> **Pre-production checklist (complete by Jan 10):**
+> - [ ] All Epic 1 & 2 features tested on staging
+> - [ ] Email templates reviewed and approved
+> - [ ] Database migrations validated on staging
+> - [ ] Stakeholder sign-off received
+
+---
+
 ## Context
 
 This sprint focuses on building a proper **application lifecycle** for psychologists applying to join Bloom/Life Psychology Australia. Currently, applications are submitted but admin review is limited to basic status changes. We need:

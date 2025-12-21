@@ -140,7 +140,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
             
             {/* Image - equal column on desktop */}
             <div className="order-1 lg:order-1 hero-image-container">
-              <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-md lg:max-w-lg'}`}>
+              <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-xs lg:max-w-sm'}`}>
                 {/* Hero image container with badge */}
                 <div className="relative">
                   <picture>
@@ -148,7 +148,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     {webpSrcSet ? (
                       <source
                         srcSet={webpSrcSet}
-                        sizes="(max-width: 640px) 320px, (max-width: 1024px) 380px, 400px"
+                        sizes="(max-width: 1024px) 100vw, 500px"
                         type="image/webp"
                       />
                     ) : (
@@ -158,15 +158,15 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     {jpgSrcSet && (
                       <source
                         srcSet={jpgSrcSet}
-                        sizes="(max-width: 640px) 320px, (max-width: 1024px) 380px, 400px"
+                        sizes="(max-width: 1024px) 100vw, 500px"
                         type="image/jpeg"
                       />
                     )}
                     <img
                       src={fallbackSrc}
                       alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
-                      className="w-full h-auto block"
-                      style={{ aspectRatio: '3/4' }}
+                      className="w-full rounded-2xl shadow-lg block"
+                      style={{ display: 'block', verticalAlign: 'bottom' }}
                       loading="eager"
                       decoding="async"
                       fetchPriority="high"

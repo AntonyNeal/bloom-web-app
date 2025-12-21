@@ -13,11 +13,12 @@ import {
   ConversionResult,
   BookingData,
 } from '../utils/conversionTracking';
+import { trackBookingStart, trackBookingComplete } from '../tracking';
 
 /**
  * Test Conversions Page
- * Development-only page for testing conversion tracking
- * Only accessible when import.meta.env.DEV === true
+ * Testing page for conversion tracking
+ * Accessible with ?test_key=bloom2025 in production
  */
 
 const TestConversions = () => {
@@ -25,9 +26,13 @@ const TestConversions = () => {
   const [gclid, setGclid] = useState<string | null>(null);
   const [bookingIntent, setBookingIntent] = useState<BookingData | null>(null);
   const [dataLayerContent, setDataLayerContent] = useState<unknown[]>([]);
+  const [ga4Results, setGa4Results] = useState<string[]>([]);
 
-  // Only render in development
-  if (!import.meta.env.DEV) {
+  // Allow access in dev OR with secret URL parameter in production
+  const urlParams = new URLSearchParams(window.location.search);
+  const hasTestKey = urlParams.get('test_key') === 'bloom2025';
+  
+  if (!import.meta.env.DEV && !hasTestKey) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -39,6 +44,24 @@ const TestConversions = () => {
       </div>
     );
   }
+
+  // NEW: Fire begin_checkout directly via gtag
+  const handleFireBeginCheckout = () => {
+    console.log('🧪 Testing GA4 begin_checkout event...');
+    const result = trackBookingStart({ entry_point: 'test_page' });
+    setGa4Results(prev => [...prev, `begin_checkout: ${result.success ? '✅ Success' : '❌ Failed'}`]);
+  };
+
+  // NEW: Fire purchase directly via gtag
+  const handleFirePurchase = () => {
+    console.log('🧪 Testing GA4 purchase event...');
+    const result = trackBookingComplete({
+      bookingId: `test_${Date.now()}`,
+      booking_value: 250,
+      transaction_id: `test_txn_${Date.now()}`,
+    });
+    setGa4Results(prev => [...prev, `purchase: ${result.success ? '✅ Success' : '❌ Failed'}`]);
+  };
 
   const handleFireGoogleAds = async () => {
     console.log('🧪 Testing Google Ads conversion...');
@@ -198,6 +221,18 @@ const TestConversions = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
+                onClick={handleFireBeginCheckout}
+                className="px-4 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors"
+              >
+                🛒 Fire begin_checkout (GA4)
+              </button>
+              <button
+                onClick={handleFirePurchase}
+                className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
+              >
+                💰 Fire purchase (GA4)
+              </button>
+              <button
                 onClick={handleFireGoogleAds}
                 className="px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
               >
@@ -207,7 +242,7 @@ const TestConversions = () => {
                 onClick={handleFireGA4Purchase}
                 className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
               >
-                🛒 Fire GA4 Purchase Event
+                🛒 Fire GA4 Purchase (Legacy)
               </button>
               <button
                 onClick={handleFireGA4Booking}
@@ -222,6 +257,16 @@ const TestConversions = () => {
                 👁️ Fire Microsoft Clarity Event
               </button>
             </div>
+            
+            {/* GA4 Results */}
+            {ga4Results.length > 0 && (
+              <div className="mt-4 p-3 bg-gray-100 rounded-lg">
+                <h3 className="font-semibold text-gray-700 mb-2">GA4 Event Results:</h3>
+                {ga4Results.map((result, i) => (
+                  <div key={i} className="text-sm text-gray-600">{result}</div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* All Conversions Test */}

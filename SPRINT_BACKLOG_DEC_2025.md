@@ -67,8 +67,8 @@ This sprint focuses on building a proper **application lifecycle** for psycholog
 |-------|-------------|--------|--------|
 | 1.1 | **DB Migration**: Add statuses `denied`, `waitlisted`, `interview_scheduled`, `accepted` to applications table | 2 | ✅ Complete |
 | 1.2 | **Admin UI**: Add action buttons for each status (Deny, Waitlist, Schedule Interview, Accept) | 3 | ✅ Complete |
-| 1.3 | **Email Templates**: Create templates for deny, waitlist, interview request | 3 | Not Started |
-| 1.4 | **Interview Scheduling**: Add date/time picker, send email with booking link | 2 | Not Started |
+| 1.3 | **Email Templates**: Create templates for deny, waitlist, interview request | 3 | ✅ Complete |
+| 1.4 | **Interview Scheduling**: Add date/time picker, send email with booking link | 2 | ✅ Complete |
 | 1.5 | **Admin Notes**: Add notes/comments field for admin to record review decisions | 2 | ✅ Complete |
 
 **Total**: 12 points

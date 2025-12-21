@@ -5,6 +5,7 @@
 
 import { apiService } from '../services/ApiService';
 import { log } from './logger';
+import { GOOGLE_ADS_ID, BOOKING_CONVERSION } from './trackingEvents';
 
 interface PatientData {
   firstName: string;
@@ -221,32 +222,38 @@ export class HalaxyClient {
 
   /**
    * Fire GA4 conversion event for successful booking
+   * Uses centralized conversion labels from trackingEvents.ts
    */
   private fireBookingConversion(appointmentId: string): void {
     try {
-      // Push to dataLayer for GTM
+      // Push to dataLayer for GTM (backup)
       if (window.dataLayer) {
         window.dataLayer.push({
           event: 'booking_completed',
           transaction_id: appointmentId,
-          value: 250,
+          value: BOOKING_CONVERSION.value,
           currency: 'AUD',
         });
       }
 
-      // Fire Google Ads conversion
+      // Fire Google Ads conversion directly (most reliable)
       if (typeof gtag !== 'undefined') {
         gtag('event', 'conversion', {
-          send_to: 'AW-11563740075/FqhOCJgmqfDzEKvXgoor',
+          send_to: `${GOOGLE_ADS_ID}/${BOOKING_CONVERSION.label}`,
           transaction_id: appointmentId,
-          value: 250,
+          value: BOOKING_CONVERSION.value,
           currency: 'AUD',
         });
+        console.log('[HalaxyClient] ✅ Google Ads conversion fired:', {
+          label: BOOKING_CONVERSION.label,
+          value: BOOKING_CONVERSION.value,
+          appointmentId,
+        });
+      } else {
+        console.warn('[HalaxyClient] ⚠️ gtag not available for conversion');
       }
-
-      console.log('[HalaxyClient] Conversion event fired for:', appointmentId);
     } catch (error) {
-      console.error('[HalaxyClient] Error firing conversion:', error);
+      console.error('[HalaxyClient] ❌ Error firing conversion:', error);
     }
   }
 

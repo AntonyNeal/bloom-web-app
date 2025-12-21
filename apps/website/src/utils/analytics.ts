@@ -268,20 +268,6 @@ export function trackBookNowClick(data: {
   });
 }
 
-// Phone Call Attempt Tracking
-export function trackPhoneCallAttempt(data: {
-  phone_number: string;
-  button_location: string;
-  page_path?: string;
-}) {
-  trackEvent('phone_call_attempt', {
-    phone_number: data.phone_number,
-    button_location: data.button_location,
-    page_path: data.page_path || window.location.pathname,
-    value: 50, // Medium value for lead tracking
-  });
-}
-
 // Contact Form Submission Tracking
 export function trackContactFormSubmit(data: {
   form_type: string;

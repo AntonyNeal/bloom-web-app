@@ -36,12 +36,6 @@ export interface BookNowClickParams {
   value?: number;
 }
 
-export interface PhoneCallParams {
-  phone_number: string;
-  button_location: string;
-  value?: number;
-}
-
 export interface ContactFormParams {
   form_type: string;
   form_location: string;
@@ -97,6 +91,13 @@ export const MICRO_CONVERSIONS: Record<string, MicroConversionConfig> = {
   },
 } as const;
 
+// Main booking conversion (not a micro-conversion)
+export const BOOKING_CONVERSION = {
+  label: 'FqhOCJgmqfDzEKvXgoor',
+  value: 250,
+  name: 'Booking Completed - Halaxy',
+} as const;
+
 export type MicroConversionType = keyof typeof MICRO_CONVERSIONS;
 
 // ============================================================================
@@ -126,26 +127,7 @@ export const trackBookNowClick = (params: BookNowClickParams): boolean => {
   return success;
 };
 
-/**
- * Track phone call attempt
- * Fires GA4 event for analytics
- */
-export const trackPhoneCallAttempt = (params: PhoneCallParams): boolean => {
-  const success = fireGtagEvent('phone_call_attempt', {
-    event_category: 'engagement',
-    event_label: 'phone_click',
-    value: params.value || 50,
-    phone_number: params.phone_number,
-    button_location: params.button_location,
-    page_path: window.location.pathname,
-  });
 
-  if (success) {
-    log.debug('Phone call attempt tracked', 'TrackingEvents', params);
-  }
-
-  return success;
-};
 
 /**
  * Track contact form submission
@@ -367,23 +349,25 @@ export const fireHighIntentConversion = (): boolean => {
 /**
  * Fire main Google Ads booking conversion
  * This is the $250 conversion for actual bookings
+ * Label: "Booking Completed - Halaxy" in Google Ads
  */
 export const fireBookingConversion = (
   value: number = 250,
+  transactionId?: string,
   additionalParams?: Record<string, unknown>
 ): boolean => {
-  const CONVERSION_LABEL = 'BV_MCN3Wx-gZEO20_k-'; // Main booking conversion
+  const CONVERSION_LABEL = 'FqhOCJgmqfDzEKvXgoor'; // Booking Completed - Halaxy
 
   const success = fireGtagEvent('conversion', {
     send_to: `${GOOGLE_ADS_ID}/${CONVERSION_LABEL}`,
     value,
     currency: 'AUD',
-    transaction_id: `booking_${Date.now()}`,
+    transaction_id: transactionId || `booking_${Date.now()}`,
     ...additionalParams,
   });
 
   if (success) {
-    log.info('Booking conversion fired', 'TrackingEvents', { value });
+    log.info('Booking conversion fired', 'TrackingEvents', { value, transactionId });
   } else {
     log.error('Booking conversion failed', 'TrackingEvents', { value });
   }

@@ -16,7 +16,6 @@ import {
   trackPageView as trackPageViewEvent,
   trackBookNowClick as trackBookNowClickEvent,
   trackContactFormSubmit as trackContactFormSubmitEvent,
-  trackPhoneCallAttempt as trackPhoneCallAttemptEvent,
   trackScrollDepth,
   fireMicroConversion as fireMicroConversionEvent,
   fireServicePageConversion,
@@ -217,13 +216,6 @@ export class UnifiedTracker {
         trackContactFormSubmitEvent({
           form_type: 'contact_form',
           form_location: data.button_location || 'unknown',
-          value: data.value,
-        });
-        break;
-      case 'phone_call_attempt':
-        trackPhoneCallAttemptEvent({
-          phone_number: data.page_section || 'unknown',
-          button_location: data.button_location || 'unknown',
           value: data.value,
         });
         break;

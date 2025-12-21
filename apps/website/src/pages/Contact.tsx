@@ -1,8 +1,5 @@
 import { useRef, useState } from 'react';
-import {
-  trackContactFormSubmit,
-  trackPhoneCallAttempt,
-} from '../utils/trackingEvents';
+import { trackContactFormSubmit } from '../utils/trackingEvents';
 
 const Contact = () => {
   const formRef = useRef<HTMLFormElement>(null);
@@ -50,22 +47,7 @@ const Contact = () => {
     }
   };
 
-  const handlePhoneClick = () => {
-    try {
-      // Track phone call attempt
-      trackPhoneCallAttempt({
-        phone_number: '131114',
-        button_location: 'contact_page',
-      });
-      if (import.meta.env.MODE !== 'production') {
-        console.log('[Analytics] phone_call_attempt event tracked');
-      }
-    } catch (err) {
-      if (import.meta.env.MODE !== 'production') {
-        console.log('[Analytics] Error tracking phone_call_attempt:', err);
-      }
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -108,7 +90,6 @@ const Contact = () => {
                       <a
                         href="tel:131114"
                         className="text-blue-600 hover:text-blue-700 underline"
-                        onClick={handlePhoneClick}
                       >
                         Lifeline: 13 11 14
                       </a>

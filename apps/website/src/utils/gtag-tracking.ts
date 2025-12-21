@@ -84,28 +84,6 @@ export function trackBookNowClick(params: {
   console.log('[GA4] Tracked book_now_click:', params);
 }
 
-// Phone Number Click Tracking
-export function trackPhoneCallAttempt(params: {
-  phone_number: string;
-  button_location: string;
-}) {
-  if (typeof gtag === 'undefined') {
-    console.warn('[GA4] gtag not loaded, skipping phone_call_attempt tracking');
-    return;
-  }
-
-  gtag('event', 'phone_call_attempt', {
-    event_category: 'engagement',
-    event_label: 'phone_click',
-    value: 50,
-    phone_number: params.phone_number,
-    button_location: params.button_location,
-    page_path: window.location.pathname,
-  });
-
-  console.log('[GA4] Tracked phone_call_attempt:', params);
-}
-
 // Contact Form Submission Tracking
 export function trackContactFormSubmit(params: {
   form_type: string;

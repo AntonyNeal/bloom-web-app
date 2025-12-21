@@ -177,16 +177,68 @@ CREATE INDEX idx_practitioners_onboarding_token ON practitioners(onboarding_toke
 
 ---
 
-## Epic 4: Multi-Clinician Booking 🔮 Future Sprint
+## Epic 4: Social Media Link Preview Optimization ⭐ P2
+
+**Goal**: Maximize branding when URLs are shared on social media (LinkedIn priority)
+
+| Story | Description | Points | Status |
+|-------|-------------|--------|--------|
+| 4.1 | **Audit Current OG Tags**: Review all pages for Open Graph and Twitter Card meta tags | 1 | Not Started |
+| 4.2 | **LinkedIn-Optimized Images**: Create 1200x627px branded preview images for key pages | 2 | Not Started |
+| 4.3 | **Dynamic OG Tags**: Implement per-page OG titles, descriptions, and images | 3 | Not Started |
+| 4.4 | **Practitioner Profile Previews**: Auto-generate social cards for each practitioner | 3 | Not Started |
+| 4.5 | **Validation & Testing**: Test with LinkedIn Post Inspector, Facebook Debugger, Twitter Card Validator | 1 | Not Started |
+
+**Total**: 10 points
+
+### Technical Details - Epic 4
+
+**4.1 Required Meta Tags**
+```html
+<!-- Open Graph (LinkedIn, Facebook) -->
+<meta property="og:title" content="Page Title" />
+<meta property="og:description" content="Description" />
+<meta property="og:image" content="https://url-to-image.png" />
+<meta property="og:url" content="https://canonical-url" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Life Psychology Australia" />
+
+<!-- LinkedIn-specific -->
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="627" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Page Title" />
+<meta name="twitter:description" content="Description" />
+<meta name="twitter:image" content="https://url-to-image.png" />
+```
+
+**4.2 Image Requirements for LinkedIn**
+- Minimum: 1200 x 627 px (1.91:1 ratio)
+- File size: < 5MB
+- Format: PNG or JPG
+- Include brand logo, clean typography
+
+**4.3 Key Pages to Optimize**
+- Homepage (lifepsychologyaustralia.com.au)
+- Bloom Portal (bloom.lifepsychologyaustralia.com.au)
+- Join Us / Careers page
+- Individual practitioner profiles
+- Blog posts (if applicable)
+
+---
+
+## Epic 5: Multi-Clinician Booking 🔮 Future Sprint
 
 **Goal**: Update booking flow to support multiple clinicians
 
 | Story | Description | Points | Status |
 |-------|-------------|--------|--------|
-| 4.1 | Update booking CTA to show clinician selector | 5 | Not Started |
-| 4.2 | Filter availability by selected clinician | 5 | Not Started |
-| 4.3 | Update Halaxy integration for multi-practitioner | 5 | Not Started |
-| 4.4 | Update booking confirmation with clinician details | 2 | Not Started |
+| 5.1 | Update booking CTA to show clinician selector | 5 | Not Started |
+| 5.2 | Filter availability by selected clinician | 5 | Not Started |
+| 5.3 | Update Halaxy integration for multi-practitioner | 5 | Not Started |
+| 5.4 | Update booking confirmation with clinician details | 2 | Not Started |
 
 **Total**: 17 points
 

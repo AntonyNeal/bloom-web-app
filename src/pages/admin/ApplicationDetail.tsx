@@ -23,6 +23,43 @@ const statusBadgeClasses: Record<string, string> = {
   Rejected: 'bg-red-100 text-red-800',
 };
 
+// Workflow action types
+type WorkflowAction = 'deny' | 'waitlist' | 'interview' | 'accept';
+
+// Modal component for workflow actions
+interface WorkflowModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}
+
+function WorkflowModal({ isOpen, onClose, title, children }: WorkflowModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
+        <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ApplicationDetailPage({ applicationId }: Props) {
   const [application, setApplication] = useState<ApplicationDetail | null>(null);
   const [documents, setDocuments] = useState<ApplicationDocument[]>([]);
@@ -32,6 +69,14 @@ function ApplicationDetailPage({ applicationId }: Props) {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
   const [reviewNotes, setReviewNotes] = useState('');
+  
+  // Workflow modal states
+  const [activeModal, setActiveModal] = useState<'deny' | 'waitlist' | 'interview' | 'accept' | null>(null);
+  const [decisionReason, setDecisionReason] = useState('');
+  const [adminNotes, setAdminNotes] = useState('');
+  const [interviewDate, setInterviewDate] = useState('');
+  const [interviewTime, setInterviewTime] = useState('');
+  const [interviewNotes, setInterviewNotes] = useState('');
 
   const loadApplication = useCallback(async () => {
     try {
@@ -42,6 +87,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
       setDocuments(response.documents);
       setSelectedStatus(response.application.ApplicationStatus);
       setReviewNotes(response.application.ReviewNotes || '');
+      setAdminNotes(response.application.AdminNotes || '');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load application');
     } finally {
@@ -60,11 +106,107 @@ function ApplicationDetailPage({ applicationId }: Props) {
       setUpdating(true);
       await adminService.updateStatus(applicationId, selectedStatus, 'Admin User', reviewNotes);
       setUpdateSuccess(true);
-      // Reload the application data
       await loadApplication();
       setTimeout(() => setUpdateSuccess(false), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update status');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // Workflow action handlers
+  const handleDeny = async () => {
+    if (!application) return;
+    try {
+      setUpdating(true);
+      await adminService.updateApplication(applicationId, {
+        status: 'denied',
+        reviewed_by: 'Admin User',
+        decision_reason: decisionReason,
+        admin_notes: adminNotes,
+      });
+      setUpdateSuccess(true);
+      setActiveModal(null);
+      setDecisionReason('');
+      setAdminNotes('');
+      await loadApplication();
+      setTimeout(() => setUpdateSuccess(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to deny application');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleWaitlist = async () => {
+    if (!application) return;
+    try {
+      setUpdating(true);
+      await adminService.updateApplication(applicationId, {
+        status: 'waitlisted',
+        reviewed_by: 'Admin User',
+        decision_reason: decisionReason,
+        admin_notes: adminNotes,
+      });
+      setUpdateSuccess(true);
+      setActiveModal(null);
+      setDecisionReason('');
+      setAdminNotes('');
+      await loadApplication();
+      setTimeout(() => setUpdateSuccess(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to waitlist application');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleScheduleInterview = async () => {
+    if (!application || !interviewDate || !interviewTime) return;
+    try {
+      setUpdating(true);
+      const scheduledDateTime = new Date(`${interviewDate}T${interviewTime}`);
+      await adminService.updateApplication(applicationId, {
+        status: 'interview_scheduled',
+        reviewed_by: 'Admin User',
+        interview_scheduled_at: scheduledDateTime.toISOString(),
+        interview_notes: interviewNotes,
+        admin_notes: adminNotes,
+      });
+      setUpdateSuccess(true);
+      setActiveModal(null);
+      setInterviewDate('');
+      setInterviewTime('');
+      setInterviewNotes('');
+      setAdminNotes('');
+      await loadApplication();
+      setTimeout(() => setUpdateSuccess(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to schedule interview');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleAccept = async () => {
+    if (!application) return;
+    try {
+      setUpdating(true);
+      await adminService.updateApplication(applicationId, {
+        status: 'accepted',
+        reviewed_by: 'Admin User',
+        decision_reason: decisionReason,
+        admin_notes: adminNotes,
+      });
+      setUpdateSuccess(true);
+      setActiveModal(null);
+      setDecisionReason('');
+      setAdminNotes('');
+      await loadApplication();
+      setTimeout(() => setUpdateSuccess(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to accept application');
     } finally {
       setUpdating(false);
     }
@@ -78,6 +220,26 @@ function ApplicationDetailPage({ applicationId }: Props) {
       setError(err instanceof Error ? err.message : 'Failed to download document');
     }
   };
+
+  // Determine which workflow actions are available based on current status
+  const getAvailableActions = (): WorkflowAction[] => {
+    if (!application) return [];
+    const status = application.ApplicationStatus;
+    
+    // Actions available based on current status
+    if (status === 'Received' || status === 'Reviewed') {
+      return ['deny', 'waitlist', 'interview', 'accept'];
+    }
+    if (status === 'Waitlisted') {
+      return ['deny', 'interview', 'accept'];
+    }
+    if (status === 'Interview Scheduled') {
+      return ['deny', 'waitlist', 'accept'];
+    }
+    return [];
+  };
+
+  const availableActions = getAvailableActions();
 
   if (loading) {
     return (
@@ -140,8 +302,111 @@ function ApplicationDetailPage({ applicationId }: Props) {
         </div>
       )}
 
+      {/* Workflow Actions Card */}
+      {availableActions.length > 0 && (
+        <div className="bg-white shadow rounded-lg p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Review Actions</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Take action on this application. Each action will update the status and can trigger an email to the applicant.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {availableActions.includes('deny') && (
+              <button
+                onClick={() => setActiveModal('deny')}
+                disabled={updating}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Deny
+              </button>
+            )}
+            {availableActions.includes('waitlist') && (
+              <button
+                onClick={() => setActiveModal('waitlist')}
+                disabled={updating}
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Waitlist
+              </button>
+            )}
+            {availableActions.includes('interview') && (
+              <button
+                onClick={() => setActiveModal('interview')}
+                disabled={updating}
+                className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:opacity-50 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Schedule Interview
+              </button>
+            )}
+            {availableActions.includes('accept') && (
+              <button
+                onClick={() => setActiveModal('accept')}
+                disabled={updating}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Accept
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Interview Info (if scheduled) */}
+      {application.InterviewScheduledAt && (
+        <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-cyan-900 mb-2 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Interview Scheduled
+          </h3>
+          <p className="text-cyan-800">
+            {new Date(application.InterviewScheduledAt).toLocaleDateString('en-AU', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </p>
+          {application.InterviewNotes && (
+            <p className="text-cyan-700 text-sm mt-2">
+              <span className="font-medium">Notes:</span> {application.InterviewNotes}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Admin Notes (if any) */}
+      {application.AdminNotes && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-gray-900 mb-2">Admin Notes</h3>
+          <p className="text-gray-700 whitespace-pre-wrap">{application.AdminNotes}</p>
+        </div>
+      )}
+
+      {/* Decision Reason (if denied/waitlisted/accepted) */}
+      {application.DecisionReason && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-gray-900 mb-2">Decision Reason</h3>
+          <p className="text-gray-700">{application.DecisionReason}</p>
+        </div>
+      )}
+
       <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Update Status</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Update Status (Manual)</h2>
         <div className="space-y-4">
           <div>
             <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
@@ -303,6 +568,249 @@ function ApplicationDetailPage({ applicationId }: Props) {
           </div>
         )}
       </div>
+
+      {/* Deny Modal */}
+      <WorkflowModal
+        isOpen={activeModal === 'deny'}
+        onClose={() => setActiveModal(null)}
+        title="Deny Application"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            This will deny the application for <strong>{application.FirstName} {application.LastName}</strong>. 
+            An email will be sent to notify the applicant.
+          </p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Reason for Denial <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={decisionReason}
+              onChange={(e) => setDecisionReason(e.target.value)}
+              rows={3}
+              placeholder="e.g., Does not meet minimum experience requirements..."
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Internal Notes (optional)
+            </label>
+            <textarea
+              value={adminNotes}
+              onChange={(e) => setAdminNotes(e.target.value)}
+              rows={2}
+              placeholder="Notes for internal reference only..."
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setActiveModal(null)}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeny}
+              disabled={updating || !decisionReason.trim()}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {updating ? 'Processing...' : 'Deny Application'}
+            </button>
+          </div>
+        </div>
+      </WorkflowModal>
+
+      {/* Waitlist Modal */}
+      <WorkflowModal
+        isOpen={activeModal === 'waitlist'}
+        onClose={() => setActiveModal(null)}
+        title="Add to Waitlist"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            This will add <strong>{application.FirstName} {application.LastName}</strong> to the waitlist.
+            An email will be sent to notify the applicant.
+          </p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Reason for Waitlisting
+            </label>
+            <textarea
+              value={decisionReason}
+              onChange={(e) => setDecisionReason(e.target.value)}
+              rows={3}
+              placeholder="e.g., Currently at capacity, will review when positions open..."
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Internal Notes (optional)
+            </label>
+            <textarea
+              value={adminNotes}
+              onChange={(e) => setAdminNotes(e.target.value)}
+              rows={2}
+              placeholder="Notes for internal reference only..."
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setActiveModal(null)}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleWaitlist}
+              disabled={updating}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {updating ? 'Processing...' : 'Add to Waitlist'}
+            </button>
+          </div>
+        </div>
+      </WorkflowModal>
+
+      {/* Schedule Interview Modal */}
+      <WorkflowModal
+        isOpen={activeModal === 'interview'}
+        onClose={() => setActiveModal(null)}
+        title="Schedule Interview"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Schedule an interview with <strong>{application.FirstName} {application.LastName}</strong>.
+            An email will be sent with the interview details.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={interviewDate}
+                onChange={(e) => setInterviewDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Time <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="time"
+                value={interviewTime}
+                onChange={(e) => setInterviewTime(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Interview Notes
+            </label>
+            <textarea
+              value={interviewNotes}
+              onChange={(e) => setInterviewNotes(e.target.value)}
+              rows={2}
+              placeholder="e.g., Video call via Zoom, focus on telehealth experience..."
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Internal Notes (optional)
+            </label>
+            <textarea
+              value={adminNotes}
+              onChange={(e) => setAdminNotes(e.target.value)}
+              rows={2}
+              placeholder="Notes for internal reference only..."
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setActiveModal(null)}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleScheduleInterview}
+              disabled={updating || !interviewDate || !interviewTime}
+              className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {updating ? 'Processing...' : 'Schedule Interview'}
+            </button>
+          </div>
+        </div>
+      </WorkflowModal>
+
+      {/* Accept Modal */}
+      <WorkflowModal
+        isOpen={activeModal === 'accept'}
+        onClose={() => setActiveModal(null)}
+        title="Accept Application"
+      >
+        <div className="space-y-4">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+            <p className="text-sm text-emerald-800">
+              🎉 Accepting <strong>{application.FirstName} {application.LastName}</strong> will:
+            </p>
+            <ul className="text-sm text-emerald-700 mt-2 space-y-1 list-disc list-inside">
+              <li>Send a welcome/onboarding email</li>
+              <li>Mark the application as accepted</li>
+              <li>Prepare them for practitioner onboarding</li>
+            </ul>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Acceptance Notes
+            </label>
+            <textarea
+              value={decisionReason}
+              onChange={(e) => setDecisionReason(e.target.value)}
+              rows={3}
+              placeholder="e.g., Strong experience in CBT, excellent references..."
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Internal Notes (optional)
+            </label>
+            <textarea
+              value={adminNotes}
+              onChange={(e) => setAdminNotes(e.target.value)}
+              rows={2}
+              placeholder="Notes for internal reference only..."
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setActiveModal(null)}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAccept}
+              disabled={updating}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {updating ? 'Processing...' : 'Accept Application'}
+            </button>
+          </div>
+        </div>
+      </WorkflowModal>
     </div>
   );
 }

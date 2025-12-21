@@ -112,6 +112,27 @@ export const adminService = {
     });
   },
 
+  /**
+   * Update application with full workflow support
+   * Supports all new status fields: admin_notes, interview scheduling, decision reasons
+   */
+  async updateApplication(
+    id: string,
+    updates: {
+      status: string;
+      reviewed_by?: string;
+      admin_notes?: string;
+      interview_scheduled_at?: string;
+      interview_notes?: string;
+      decision_reason?: string;
+    }
+  ): Promise<ApplicationDetail> {
+    return apiRequest<ApplicationDetail>(`/api/applications/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  },
+
   async getDocumentUrl(blobName: string): Promise<{ downloadUrl: string; expiresAt: string }> {
     return apiRequest<{ downloadUrl: string; expiresAt: string }>(
       `/api/applications/documents/url?blobName=${encodeURIComponent(blobName)}`

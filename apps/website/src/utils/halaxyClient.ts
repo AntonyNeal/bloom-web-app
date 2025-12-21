@@ -237,7 +237,7 @@ export class HalaxyClient {
       // Fire Google Ads conversion
       if (typeof gtag !== 'undefined') {
         gtag('event', 'conversion', {
-          send_to: 'AW-11563740075/BOOKING_CONVERSION_LABEL', // Update with your label
+          send_to: 'AW-11563740075/FqhOCJgmqfDzEKvXgoor',
           transaction_id: appointmentId,
           value: 250,
           currency: 'AUD',

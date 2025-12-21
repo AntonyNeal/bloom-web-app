@@ -2,12 +2,10 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, Suspense, lazy, useRef } from 'react';
 import Header from './components/Header';
-import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
 import ScrollToTop from './components/ScrollToTop';
 import SEO from './components/SEO';
-import MobileCTABar from './components/MobileCTABar';
 import GlobalBookingModal from './components/GlobalBookingModal';
 import { ABTestProvider, ABTestControlPanel } from './components/ABTestProvider';
 import { trackScrollDepth } from './utils/trackingEvents';
@@ -17,6 +15,11 @@ import './App.css';
 
 import { injectGoogleAdsTag } from './utils/googleAds';
 import { conversionManager } from './tracking';
+
+// Lazy load below-the-fold components
+const Footer = lazy(() => import('./components/Footer'));
+const MobileCTABar = lazy(() => import('./components/MobileCTABar'));
+
 // Lazy load all pages for better performance
 const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./pages/About'));
@@ -232,10 +235,14 @@ function App() {
             )}
           </Routes>
         </Suspense>
-        <Footer />
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
 
         {/* Mobile-only sticky CTA bar */}
-        <MobileCTABar />
+        <Suspense fallback={null}>
+          <MobileCTABar />
+        </Suspense>
         <GlobalBookingModal />
       </ABTestProvider>
     </ErrorBoundary>

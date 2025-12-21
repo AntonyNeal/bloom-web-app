@@ -39,7 +39,7 @@ import {
 // ============================================================================
 
 const GOOGLE_ADS_CONVERSION_ID = 'AW-11563740075';
-const BOOKING_CONVERSION_LABEL = 'FqhOCKymqUbEKvXgoor'; // Update with actual label
+const BOOKING_CONVERSION_LABEL = 'FqhOCJgmqfDzEKvXgoor';
 const DEFAULT_BOOKING_VALUE = 250;
 
 const STORAGE_KEY = 'lpa_booking_flow_state';

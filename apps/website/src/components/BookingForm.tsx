@@ -565,7 +565,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col min-h-0">
+    <div className="w-full flex flex-col">
       {/* Header with integrated progress */}
       {step !== 'success' && step !== 'error' && (
         <div className="flex-shrink-0 mb-2 sm:mb-4">
@@ -628,7 +628,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 1: Patient Details - compact on mobile, centered on desktop */}
       {step === 'details' && (
-        <div className="flex-1 flex flex-col min-h-0" onKeyDown={(e) => {
+        <div className="flex flex-col" onKeyDown={(e) => {
           if (e.key === 'Enter' && isDetailsStepValid() && !loading) {
             e.preventDefault();
             handleDetailsNext();
@@ -974,9 +974,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 2: Date & Time */}
       {step === 'datetime' && (
-        <div className="flex flex-col flex-1 min-h-0">
+        <div className="flex flex-col">
           {/* Calendar Section - takes all available space */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex flex-col">
           <TimeSlotCalendar
               onSelectSlot={(date, time) => {
                 setAppointmentDate(date);
@@ -1182,7 +1182,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 4: Payment */}
       {step === 'payment' && (
-        <div className="flex flex-col flex-1 min-h-0 gap-4">
+        <div className="flex flex-col gap-4">
           {/* Show loading overlay when creating booking after payment */}
           {loading && (
             <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center z-10 rounded-xl">

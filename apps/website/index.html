@@ -231,8 +231,7 @@
 
         gtag('js', new Date());
 
-        // Configure GA4 with cross-domain tracking linker
-        // The 'linker' parameter enables GA4 to append linker parameters to URLs, allowing attribution across domains.
+        // Configure GA4
         if (
           hostname === 'www.life-psychology.com.au' ||
           hostname === 'life-psychology.com.au'
@@ -253,14 +252,6 @@
             allow_ad_personalization_signals: true,
             transport_type: 'beacon',
             link_attribution: true,
-            linker: {
-              domains: [
-                'life-psychology.com.au',
-                'www.life-psychology.com.au',
-                'halaxy.com',
-              ],
-              accept_incoming: true,
-            },
           });
         } else {
           gtag('config', 'G-XGGBRLPBKK', {
@@ -279,14 +270,6 @@
             allow_ad_personalization_signals: true,
             transport_type: 'beacon',
             link_attribution: true,
-            linker: {
-              domains: [
-                'life-psychology.com.au',
-                'www.life-psychology.com.au',
-                'halaxy.com',
-              ],
-              accept_incoming: true,
-            },
           });
         }
 

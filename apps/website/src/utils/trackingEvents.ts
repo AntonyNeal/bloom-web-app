@@ -81,7 +81,7 @@ export const MICRO_CONVERSIONS: Record<string, MicroConversionConfig> = {
     name: 'Service Page View',
   },
   about_page: {
-    label: 'IvW6CPqnw6UbEKvXgoor',
+    label: 'LrW6CBgmwElbEKvXgoor',
     value: 3,
     name: 'About Zoe View',
   },

@@ -23,7 +23,7 @@ export interface ConversionResult {
 
 // Constants
 const GOOGLE_ADS_CONVERSION_ID = 'AW-11563740075';
-const GOOGLE_ADS_CONVERSION_LABEL = 'FqhOCKymqUbEKvXgoor';
+const GOOGLE_ADS_CONVERSION_LABEL = 'FqhOCJgmqfDzEKvXgoor';
 const DEFAULT_BOOKING_VALUE = 250; // $250 AUD
 const GCLID_STORAGE_KEY = 'lpa_gclid';
 const BOOKING_INTENT_KEY = 'lpa_booking_intent';

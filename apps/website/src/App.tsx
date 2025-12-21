@@ -1,6 +1,6 @@
 // Force rebuild for payment integration deployment - Deploy with managed API - 2025-11-24
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, Suspense, lazy, useRef } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -79,7 +79,7 @@ function App() {
   }, [pathname]);
   
   // Track initial page view only after a delay to not block first paint
-  const isFirstRender = React.useRef(true);
+  const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) {
       // Defer first page view tracking to after LCP

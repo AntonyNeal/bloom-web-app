@@ -88,10 +88,14 @@ function App() {
     });
   }, [pathname]);
 
-  // Preload availability data on app mount - enables "next available" message
+  // Preload availability data after initial render - enables "next available" message
   // in MobileCTABar and UnifiedHeader on ALL pages, not just Home
   useEffect(() => {
-    preloadAvailability();
+    // Defer availability preloading to not block initial render
+    const timer = setTimeout(() => {
+      preloadAvailability();
+    }, 1000); // Wait 1 second after mount
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {

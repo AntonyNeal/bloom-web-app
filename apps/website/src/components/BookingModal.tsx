@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { BookingForm } from './BookingForm';
+import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
+
+// Lazy load BookingForm to reduce initial bundle (~30KB+ savings)
+const BookingForm = lazy(() => import('./BookingForm').then(m => ({ default: m.BookingForm })));
 
 // Skeleton loading component for seamless modal open
 const BookingFormSkeleton: React.FC = () => (
@@ -189,7 +191,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         <div className="p-[2vh] flex-1 flex flex-col min-h-0 overflow-hidden">
           {isReady ? (
             <div className="animate-fadeIn flex-1 flex flex-col min-h-0">
-              <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
+              <Suspense fallback={<BookingFormSkeleton />}>
+                <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
+              </Suspense>
             </div>
           ) : (
             <BookingFormSkeleton />

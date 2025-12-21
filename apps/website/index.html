@@ -58,6 +58,11 @@
     <!-- Performance Optimizations: Preconnect for critical resources -->
     <!-- Only preconnect to resources needed for initial render -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <!-- Preconnect to API for faster booking availability checks -->
+    <link rel="preconnect" href="https://bloom-functions-prod.azurewebsites.net" crossorigin="anonymous" />
+    <!-- Preconnect to Google for analytics/ads (deferred but used on most sessions) -->
+    <link rel="dns-prefetch" href="//www.google-analytics.com" />
+    <link rel="dns-prefetch" href="//googleads.g.doubleclick.net" />
 
     <!-- Cache control hints for static assets -->
     <!-- Note: Vite automatically injects modulepreload links during build - do not add manual modulepreload links here -->

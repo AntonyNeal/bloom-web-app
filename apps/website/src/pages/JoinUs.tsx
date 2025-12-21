@@ -1,7 +1,11 @@
 import { Helmet } from 'react-helmet-async';
-import { useEffect } from 'react';
-import { PsychologistApplicationForm } from '../components/forms/PsychologistApplicationForm';
+import { useEffect, lazy, Suspense } from 'react';
 import { trackServicePageViewed } from '../utils/analytics';
+
+// Lazy load the large application form (1400+ lines) - it's below the fold
+const PsychologistApplicationForm = lazy(() => 
+  import('../components/forms/PsychologistApplicationForm').then(m => ({ default: m.PsychologistApplicationForm }))
+);
 
 export default function JoinUs() {
   useEffect(() => {
@@ -394,7 +398,17 @@ export default function JoinUs() {
             </p>
           </div>
 
-          <PsychologistApplicationForm />
+          <Suspense fallback={
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3 mx-auto mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+              </div>
+            </div>
+          }>
+            <PsychologistApplicationForm />
+          </Suspense>
         </div>
       </section>
     </>

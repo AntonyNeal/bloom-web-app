@@ -9,12 +9,8 @@ import ScrollToTop from './components/ScrollToTop';
 import SEO from './components/SEO';
 import MobileCTABar from './components/MobileCTABar';
 import GlobalBookingModal from './components/GlobalBookingModal';
-import {
-  ABTestProvider,
-  ABTestControlPanel,
-} from './components/ABTestProvider';
+import { ABTestProvider, ABTestControlPanel } from './components/ABTestProvider';
 import { trackScrollDepth } from './utils/trackingEvents';
-import { trackPageView } from './utils/applicationInsights';
 import { preloadAvailability } from './utils/availabilityPreloader';
 // Note: High Intent timer is initialized by UnifiedTracker singleton when any page tracking is called
 import './App.css';
@@ -82,11 +78,13 @@ function App() {
     };
   }, [pathname]);
   useEffect(() => {
-    // Track page view in Application Insights
-    trackPageView(`Page View: ${pathname}`, window.location.href, {
-      path: pathname,
-      referrer: document.referrer || 'direct',
-      timestamp: new Date().toISOString(),
+    // Track page view in Application Insights (lazy loaded to reduce initial bundle)
+    import('./utils/applicationInsights').then(({ trackPageView }) => {
+      trackPageView(`Page View: ${pathname}`, window.location.href, {
+        path: pathname,
+        referrer: document.referrer || 'direct',
+        timestamp: new Date().toISOString(),
+      });
     });
   }, [pathname]);
 

@@ -23,12 +23,13 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Font loading optimization - prevent layout shifts */
+/* Font loading optimization - font-display: optional prevents CLS entirely */
+/* If Inter doesn't load fast enough, system fonts are used for the session */
 @font-face {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400 500 600 700;
-  font-display: swap;
+  font-display: optional;
   src: url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2')
     format('woff2');
 }

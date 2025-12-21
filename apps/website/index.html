@@ -33,17 +33,17 @@
       imagesrcset="/assets/zoe-380w.webp 380w, /assets/zoe-760w.webp 760w"
       imagesizes="(max-width: 640px) 320px, (max-width: 1024px) 380px, 400px"
     />
-    <!-- Preload critical fonts with async loading and swap display -->
+    <!-- Preload critical fonts with async loading and optional display (prevents CLS) -->
     <link
       rel="preload"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional"
       as="style"
       onload="this.onload=null;this.rel='stylesheet'"
     />
     <noscript
       ><link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional"
     /></noscript>
 
     <!-- Performance Optimizations: DNS Prefetch -->

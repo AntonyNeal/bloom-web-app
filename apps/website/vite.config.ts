@@ -63,13 +63,9 @@ export default defineConfig({
           if (id.includes('node_modules/react-router')) {
             return 'router';
           }
-          // UI Components - HeadlessUI and icons (can be large)
-          if (
-            id.includes('node_modules/@headlessui') ||
-            id.includes('node_modules/@heroicons') ||
-            id.includes('node_modules/lucide-react')
-          ) {
-            return 'ui-components';
+          // Lucide icons - small chunk for Privacy page icons
+          if (id.includes('node_modules/lucide-react')) {
+            return 'icons';
           }
           // React utilities that create contexts
           if (

@@ -191,9 +191,8 @@ function App() {
               element={<CounsellingNewcastle />}
             />
             <Route path="/booking-success" element={<BookingSuccess />} />
-            {import.meta.env.DEV && (
-              <Route path="/test-conversions" element={<TestConversions />} />
-            )}
+            {/* Test conversions page - accessible with ?test_key=bloom2025 in production */}
+            <Route path="/test-conversions" element={<TestConversions />} />
             {/* Development test route removed */}
             {import.meta.env.MODE === 'development' && (
               <Route

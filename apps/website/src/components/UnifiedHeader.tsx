@@ -165,7 +165,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     <img
                       src={fallbackSrc}
                       alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
-                      className="w-full h-auto rounded-2xl shadow-lg block"
+                      className="w-full h-auto block"
                       style={{ aspectRatio: '3/4' }}
                       loading="eager"
                       decoding="async"

@@ -707,8 +707,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
             </div>
 
-          {/* Email and Phone row - side by side on larger screens */}
-          <div className="grid grid-cols-2 gap-[1vh]">
+          {/* Email and Phone row - stacked on mobile, side by side on larger screens */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[1vh]">
             <div>
               <label
                 htmlFor="email-input"

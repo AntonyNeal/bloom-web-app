@@ -221,14 +221,14 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 gap-[1.5vh]">
       {/* Google Pay / Apple Pay Button */}
       {canMakePayment && paymentRequest && (
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+          <label className="block text-[clamp(9px,1.5vh,12px)] font-semibold text-slate-600 mb-[0.5vh] uppercase tracking-wide">
             Express Checkout
           </label>
-          <div className="mb-2">
+          <div className="mb-[1vh]">
             <PaymentRequestButtonElement
               options={{
                 paymentRequest,
@@ -242,11 +242,11 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               }}
             />
           </div>
-          <div className="relative my-4">
+          <div className="relative my-[1.5vh]">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-200"></div>
             </div>
-            <div className="relative flex justify-center text-xs">
+            <div className="relative flex justify-center text-[clamp(9px,1.5vh,12px)]">
               <span className="px-3 bg-white text-slate-400">or pay with card</span>
             </div>
           </div>
@@ -255,36 +255,39 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
       {/* Card Element */}
       <div>
-        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+        <label className="block text-[clamp(9px,1.5vh,12px)] font-semibold text-slate-600 mb-[0.5vh] uppercase tracking-wide">
           Card Details
         </label>
-        <div className="border border-slate-200 rounded-lg p-3 bg-white focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-100 transition-all">
+        <div className="border border-slate-200 rounded-lg p-[1.5vh] bg-white focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-100 transition-all">
           <CardElement options={cardElementOptions} />
         </div>
         {/* Test mode hint */}
-        <p className="text-[10px] text-slate-400 mt-1.5">
+        <p className="text-[clamp(8px,1.2vh,10px)] text-slate-400 mt-[0.5vh]">
           Test mode: <span className="font-mono">4242 4242 4242 4242</span>, any future date, any CVC
         </p>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-red-600 text-sm">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-[1.5vh]">
+          <p className="text-red-600 text-[clamp(10px,1.5vh,14px)]">{error}</p>
         </div>
       )}
 
       {/* Medicare/NDIS Info */}
-      <div className="text-xs text-slate-500 p-3 bg-slate-50 rounded-lg border border-slate-100">
+      <div className="text-[clamp(9px,1.3vh,12px)] text-slate-500 p-[1.5vh] bg-slate-50 rounded-lg border border-slate-100">
         <p>💡 Medicare rebates available with valid GP Mental Health Plan. Receipt provided immediately.</p>
       </div>
 
+      {/* Spacer to push buttons to bottom */}
+      <div className="flex-1" />
+
       {/* Buttons */}
-      <div className="flex justify-between items-center gap-3 pt-2">
+      <div className="flex justify-between items-center gap-3">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-xs font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
+          className="px-[2vh] py-[1vh] text-[clamp(10px,1.5vh,12px)] font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
           disabled={loading}
         >
           ← Back
@@ -292,7 +295,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         <button
           type="submit"
           disabled={!stripe || loading}
-          className="px-5 py-2 text-xs font-semibold rounded-md text-white bg-blue-500 hover:bg-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-[2.5vh] py-[1vh] text-[clamp(10px,1.5vh,12px)] font-semibold rounded-md text-white bg-blue-500 hover:bg-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <span className="flex items-center justify-center">
@@ -324,7 +327,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       </div>
 
       {/* Security Badge */}
-      <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
+      <div className="flex items-center justify-center gap-1.5 text-[clamp(8px,1.2vh,10px)] text-slate-400">
         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
           <path
             fillRule="evenodd"

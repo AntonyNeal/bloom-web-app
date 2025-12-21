@@ -565,7 +565,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-col">
+    <div className="w-full h-full flex flex-col min-h-0 overflow-hidden">
       {/* Header with integrated progress */}
       {step !== 'success' && step !== 'error' && (
         <div className="flex-shrink-0 mb-2 sm:mb-4">
@@ -626,9 +626,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         </div>
       )}
 
-      {/* Step 1: Patient Details - compact on mobile, centered on desktop */}
+      {/* Step 1: Patient Details - scales to fit viewport */}
       {step === 'details' && (
-        <div className="flex flex-col" onKeyDown={(e) => {
+        <div className="flex-1 flex flex-col min-h-0" onKeyDown={(e) => {
           if (e.key === 'Enter' && isDetailsStepValid() && !loading) {
             e.preventDefault();
             handleDetailsNext();
@@ -974,9 +974,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 2: Date & Time */}
       {step === 'datetime' && (
-        <div className="flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           {/* Calendar Section - takes all available space */}
-          <div className="flex flex-col">
+          <div className="flex-1 flex flex-col min-h-0">
           <TimeSlotCalendar
               onSelectSlot={(date, time) => {
                 setAppointmentDate(date);
@@ -1182,7 +1182,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 4: Payment */}
       {step === 'payment' && (
-        <div className="flex flex-col gap-4">
+        <div className="flex-1 flex flex-col min-h-0 gap-[2vh]">
           {/* Show loading overlay when creating booking after payment */}
           {loading && (
             <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center z-10 rounded-xl">
@@ -1203,8 +1203,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           )}
           
           {/* Order Summary */}
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <div className="flex justify-between items-center text-sm">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-[1.5vh]">
+            <div className="flex justify-between items-center text-[clamp(11px,1.5vh,14px)]">
               <span className="text-slate-600">
                 {appointmentType === 'psychologist-session'
                   ? 'Psychologist Session'
@@ -1215,7 +1215,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                       : 'NDIS Psychology Session'}
                 <span className="text-slate-400 ml-1">(60 mins)</span>
               </span>
-              <span className="text-lg font-bold text-slate-800">
+              <span className="text-[clamp(14px,2vh,18px)] font-bold text-slate-800">
                 {appointmentType === 'couples-session'
                   ? '$300.00'
                   : appointmentType === 'ndis-psychology-session'
@@ -1226,9 +1226,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           <Suspense fallback={
-            <div className="animate-pulse space-y-3">
-              <div className="h-10 bg-slate-100 rounded-lg"></div>
-              <div className="h-10 bg-slate-100 rounded-lg"></div>
+            <div className="animate-pulse space-y-[1.5vh] flex-1">
+              <div className="h-[5vh] bg-slate-100 rounded-lg"></div>
+              <div className="h-[5vh] bg-slate-100 rounded-lg"></div>
             </div>
           }>
             <StripePayment

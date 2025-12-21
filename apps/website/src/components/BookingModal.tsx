@@ -133,10 +133,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         onClick={onClose}
       ></div>
 
-      {/* Modal panel - responsive to viewport with scrolling */}
+      {/* Modal panel - fixed viewport height, content scales to fit */}
       <div
         ref={modalContentRef}
-        className={`relative z-10 w-full max-h-[92dvh] sm:w-[95vw] sm:max-h-[90vh] md:max-w-4xl overflow-y-auto rounded-t-2xl sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'}`}
+        className={`relative z-10 w-full h-[92dvh] sm:w-[95vw] sm:h-[90vh] md:max-w-4xl overflow-hidden rounded-t-2xl sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'}`}
         style={{
           boxShadow: `
             0 0 0 6px rgba(255, 255, 255, 0.15),
@@ -185,10 +185,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           </svg>
         </button>
 
-        {/* Booking form - scrollable content area */}
-        <div className="p-2 sm:p-4 md:p-5 pt-4 sm:pt-4 flex-1 flex flex-col">
+        {/* Booking form - fills available space, content scales */}
+        <div className="p-2 sm:p-4 md:p-5 pt-4 sm:pt-4 flex-1 flex flex-col min-h-0 overflow-hidden">
           {isReady ? (
-            <div className="animate-fadeIn flex-1 flex flex-col pb-4">
+            <div className="animate-fadeIn flex-1 flex flex-col min-h-0">
               <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
             </div>
           ) : (

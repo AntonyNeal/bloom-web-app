@@ -389,7 +389,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
 
   run-migrations:
-    name: 🗄️ Run Migrations (${{ needs.determine-environment.outputs.db-environment }})
+    name: 🗄️ Run Flyway Migrations (${{ needs.determine-environment.outputs.db-environment }})
     runs-on: ubuntu-latest
     needs: [determine-environment, detect-migrations, validate-migrations, lint, type-check]
     if: |
@@ -404,21 +404,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION_API }}
-          cache: 'npm'
-          cache-dependency-path: api/package-lock.json
-
-      - name: Install Dependencies
-        working-directory: api
-        run: npm ci
-
-      - name: Build API
-        working-directory: api
-        run: npm run build
-
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -426,177 +411,131 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Get Connection Strings from Key Vault
-        id: secrets
+      - name: Get Database Connection from Key Vault
+        id: db-config
         run: |
           ENV_SUFFIX="${{ needs.determine-environment.outputs.db-environment == 'prod' && 'PROD' || 'DEV' }}"
-          
-          # Use the actual Key Vault name (includes random suffix from Bicep deployment)
           KV_NAME="lpa-kv-dev-i3u6u6psuu75o"
           
-          SQL_CONN=$(az keyvault secret show \
+          echo "📦 Environment: ${{ needs.determine-environment.outputs.db-environment }}"
+          echo "🔑 Fetching SQL-${ENV_SUFFIX}-CONNECTION-STRING from Key Vault..."
+          
+          CONN_STR=$(az keyvault secret show \
             --name "SQL-${ENV_SUFFIX}-CONNECTION-STRING" \
             --vault-name "$KV_NAME" \
-            --query value -o tsv 2>/dev/null || echo "")
+            --query value -o tsv)
           
-          if [ -n "$SQL_CONN" ]; then
-            echo "SQL_CONNECTION_STRING=$SQL_CONN" >> $GITHUB_ENV
-          fi
-          
-          COSMOS_CONN=$(az keyvault secret show \
-            --name "COSMOS-${ENV_SUFFIX}-CONNECTION-STRING" \
-            --vault-name "$KV_NAME" \
-            --query value -o tsv 2>/dev/null || echo "")
-          
-          if [ -n "$COSMOS_CONN" ]; then
-            echo "DBVC_COSMOS_CONNECTION_STRING=$COSMOS_CONN" >> $GITHUB_ENV
-          fi
-
-      - name: Parse Connection String
-        id: parse-conn
-        env:
-          SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
-        run: |
-          # Parse SQL connection string to extract credentials
-          # Format: Server=xxx;Database=xxx;User Id=xxx;Password=xxx;...
-          
-          if [ -z "$SQL_CONNECTION_STRING" ]; then
-            echo "❌ SQL_CONNECTION_STRING not found"
+          if [ -z "$CONN_STR" ]; then
+            echo "❌ Could not retrieve connection string from Key Vault"
             exit 1
           fi
           
-          # Extract User Id (handle both "User Id" and "User ID" and "UID")
-          DB_USER=$(echo "$SQL_CONNECTION_STRING" | sed -n 's/.*User Id=\([^;]*\).*/\1/ip' | head -1)
-          if [ -z "$DB_USER" ]; then
-            DB_USER=$(echo "$SQL_CONNECTION_STRING" | sed -n 's/.*UID=\([^;]*\).*/\1/ip' | head -1)
+          # Parse connection string for Flyway JDBC URL
+          # Handle both formats: Server=tcp:xxx,1433 and Server=xxx
+          if echo "$CONN_STR" | grep -q "Server=tcp:"; then
+            SERVER=$(echo "$CONN_STR" | sed -n 's/.*Server=tcp:\([^,;]*\).*/\1/p')
+          else
+            SERVER=$(echo "$CONN_STR" | sed -n 's/.*Server=\([^;,]*\).*/\1/p')
           fi
           
-          # Extract Password (handle both "Password" and "PWD")
-          DB_PASSWORD=$(echo "$SQL_CONNECTION_STRING" | sed -n 's/.*Password=\([^;]*\).*/\1/ip' | head -1)
-          if [ -z "$DB_PASSWORD" ]; then
-            DB_PASSWORD=$(echo "$SQL_CONNECTION_STRING" | sed -n 's/.*PWD=\([^;]*\).*/\1/ip' | head -1)
+          # Handle both formats: Initial Catalog and Database
+          if echo "$CONN_STR" | grep -qi "Initial Catalog"; then
+            DATABASE=$(echo "$CONN_STR" | sed -n 's/.*Initial Catalog=\([^;]*\).*/\1/ip' | head -1)
+          else
+            DATABASE=$(echo "$CONN_STR" | sed -n 's/.*Database=\([^;]*\).*/\1/ip' | head -1)
           fi
           
-          if [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
-            echo "❌ Could not parse credentials from connection string"
-            exit 1
+          # Handle both formats: User ID and User Id
+          USER=$(echo "$CONN_STR" | sed -n 's/.*User I[Dd]=\([^;]*\).*/\1/p' | head -1)
+          
+          # Handle both formats: Password and Pwd
+          PASSWORD=$(echo "$CONN_STR" | sed -n 's/.*Password=\([^;]*\).*/\1/ip' | head -1)
+          if [ -z "$PASSWORD" ]; then
+            PASSWORD=$(echo "$CONN_STR" | sed -n 's/.*Pwd=\([^;]*\).*/\1/ip' | head -1)
           fi
           
-          echo "✅ Credentials parsed successfully"
-          echo "DB_USER=$DB_USER" >> $GITHUB_ENV
-          echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
-          # Mask the password in logs
-          echo "::add-mask::$DB_PASSWORD"
+          echo "::add-mask::$PASSWORD"
+          
+          # Build JDBC URL for SQL Server
+          JDBC_URL="jdbc:sqlserver://${SERVER}:1433;database=${DATABASE};encrypt=true;trustServerCertificate=false;loginTimeout=30"
+          
+          echo "🗄️ Database: $DATABASE"
+          echo "🔗 Server: $SERVER"
+          
+          echo "FLYWAY_URL=$JDBC_URL" >> $GITHUB_OUTPUT
+          echo "FLYWAY_USER=$USER" >> $GITHUB_OUTPUT
+          echo "FLYWAY_PASSWORD=$PASSWORD" >> $GITHUB_OUTPUT
+          echo "DB_NAME=$DATABASE" >> $GITHUB_OUTPUT
 
-      - name: Run Migrations
+      - name: Flyway Info (Pre-migration)
+        uses: docker://flyway/flyway:10
+        with:
+          args: >-
+            -url="${{ steps.db-config.outputs.FLYWAY_URL }}"
+            -user="${{ steps.db-config.outputs.FLYWAY_USER }}"
+            -password="${{ steps.db-config.outputs.FLYWAY_PASSWORD }}"
+            -locations="filesystem:./db/migrations"
+            -table=flyway_schema_history
+            -baselineOnMigrate=true
+            -baselineVersion=0
+            info
+
+      - name: Flyway Validate
+        id: validate
+        uses: docker://flyway/flyway:10
+        with:
+          args: >-
+            -url="${{ steps.db-config.outputs.FLYWAY_URL }}"
+            -user="${{ steps.db-config.outputs.FLYWAY_USER }}"
+            -password="${{ steps.db-config.outputs.FLYWAY_PASSWORD }}"
+            -locations="filesystem:./db/migrations"
+            -table=flyway_schema_history
+            -baselineOnMigrate=true
+            -baselineVersion=0
+            validate
+        continue-on-error: true
+
+      - name: Flyway Migrate
         id: migrate
-        working-directory: db
-        env:
-          DB_SERVER: lpa-sql-server.database.windows.net
-          DB_NAME: ${{ needs.determine-environment.outputs.db-environment == 'prod' && 'lpa-bloom-db-prod' || 'lpa-bloom-db-dev' }}
-          DRY_RUN: ${{ github.event.inputs.dry_run_migrations || github.event_name == 'pull_request' }}
-        run: |
-          echo "🚀 Running database migrations for ${{ needs.determine-environment.outputs.db-environment }}..."
-          echo "   Database: $DB_NAME"
-          
-          # Install migration dependencies
-          npm ci
-          
-          # Show migration status
-          echo ""
-          echo "📋 Current migration status:"
-          npm run info || true
-          
-          # Run pending migrations
-          echo ""
-          echo "🔄 Applying pending migrations..."
-          npm run migrate
-          
-          echo ""
-          echo "✅ Migrations completed!"
-        continue-on-error: ${{ github.event.inputs.dry_run_migrations == 'true' || github.event_name == 'pull_request' }}
+        uses: docker://flyway/flyway:10
+        with:
+          args: >-
+            -url="${{ steps.db-config.outputs.FLYWAY_URL }}"
+            -user="${{ steps.db-config.outputs.FLYWAY_USER }}"
+            -password="${{ steps.db-config.outputs.FLYWAY_PASSWORD }}"
+            -locations="filesystem:./db/migrations"
+            -table=flyway_schema_history
+            -baselineOnMigrate=true
+            -baselineVersion=0
+            -mixed=true
+            -outOfOrder=false
+            -validateMigrationNaming=true
+            migrate
 
-      - name: Extended Validation (Staging)
-        if: |
-          success() && 
-          needs.determine-environment.outputs.is-staging-validation == 'true' && 
-          github.event.inputs.dry_run_migrations != 'true' &&
-          github.event_name != 'pull_request'
-        working-directory: api
-        env:
-          SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
-        run: |
-          echo "🔬 Running extended validation tests (staging branch - second pass)..."
-          echo "📋 This validates migrations are safe to promote to production"
-          
-          # Simple validation - check schema_versions table
-          cat > extended-validation.js << 'EOF'
-          const sql = require('mssql');
-          
-          async function main() {
-            let pool;
-            try {
-              pool = await sql.connect(process.env.SQL_CONNECTION_STRING);
-              
-              console.log('\n🔬 EXTENDED VALIDATION SUITE');
-              console.log('━'.repeat(50));
-              
-              // Check schema_versions table
-              const result = await pool.request().query(`
-                SELECT version, description, applied_at, applied_by 
-                FROM schema_versions 
-                ORDER BY applied_at DESC
-              `);
-              
-              console.log(`\n📋 Applied migrations: ${result.recordset.length}`);
-              for (const row of result.recordset.slice(0, 5)) {
-                console.log(`   ✅ ${row.version}: ${row.description}`);
-              }
-              
-              // Simple schema check
-              const tablesResult = await pool.request().query(`
-                SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES 
-                WHERE TABLE_TYPE = 'BASE TABLE'
-              `);
-              console.log(`\n📊 Tables in database: ${tablesResult.recordset.length}`);
-              
-              console.log('\n' + '━'.repeat(50));
-              console.log('✅ EXTENDED VALIDATION PASSED');
-              
-              await pool.close();
-              process.exit(0);
-            } catch (error) {
-              console.error('❌ Extended validation error:', error.message);
-              if (pool) await pool.close();
-              process.exit(1);
-            }
-          }
-          
-          main();
-          EOF
-          
-          node extended-validation.js
+      - name: Flyway Info (Post-migration)
+        if: success()
+        uses: docker://flyway/flyway:10
+        with:
+          args: >-
+            -url="${{ steps.db-config.outputs.FLYWAY_URL }}"
+            -user="${{ steps.db-config.outputs.FLYWAY_USER }}"
+            -password="${{ steps.db-config.outputs.FLYWAY_PASSWORD }}"
+            -locations="filesystem:./db/migrations"
+            -table=flyway_schema_history
+            info
 
       - name: Migration Summary
         if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const success = '${{ steps.migrate.outcome }}' === 'success';
-            const environment = '${{ needs.determine-environment.outputs.db-environment }}';
-            const dryRun = '${{ github.event.inputs.dry_run_migrations }}' === 'true' || '${{ github.event_name }}' === 'pull_request';
-            
-            const summary = `## 🗃️ Database Migration Summary
-            
-            | Property | Value |
-            |----------|-------|
-            | Environment | \`${environment}\` |
-            | Dry Run | ${dryRun ? '✅ Yes' : '❌ No'} |
-            | Status | ${success ? '✅ Success' : '❌ Failed'} |
-            | Commit | \`${context.sha.substring(0, 7)}\` |
-            `;
-            
-            await core.summary.addRaw(summary).write();
+        run: |
+          echo "## 🗄️ Flyway Migration Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | \`${{ needs.determine-environment.outputs.db-environment }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Database | \`${{ steps.db-config.outputs.DB_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Validation | \`${{ steps.validate.outcome }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Migration | \`${{ steps.migrate.outcome }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${GITHUB_SHA::7}\` |" >> $GITHUB_STEP_SUMMARY
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Rollback on Failure (Production only)

@@ -23,6 +23,7 @@ import {
   createDataLayerEvent,
   pushConversionEvent,
   fireGtagConversion,
+  fireGtagEvent,
   clearEcommerceData,
 } from '../core/dataLayer';
 
@@ -146,14 +147,27 @@ export function trackBookingStart(params: Partial<StartBookingParams> = {}): Tra
     ...utmParams,
   });
 
-  const success = pushToDataLayer(event);
+  const dataLayerSuccess = pushToDataLayer(event);
+
+  // Fire GA4 begin_checkout event directly (standard ecommerce event)
+  const ga4Success = fireGtagEvent('begin_checkout', {
+    currency: 'AUD',
+    value: 250, // Estimated value
+    items: [{
+      item_id: 'psychology_session',
+      item_name: 'Psychology Session',
+      item_category: 'Healthcare',
+      price: 250,
+      quantity: 1,
+    }],
+  });
 
   if (import.meta.env.DEV) {
-    console.log('[Booking] Start tracked', { state, params });
+    console.log('[Booking] Start tracked', { state, params, ga4Success });
   }
 
   return {
-    success,
+    success: dataLayerSuccess || ga4Success,
     event: 'start_booking',
     timestamp: Date.now(),
   };
@@ -360,7 +374,7 @@ export function trackBookingComplete(params: Partial<CompleteBookingParams> & {
   // Clear any previous ecommerce data
   clearEcommerceData();
 
-  // Push the conversion event to dataLayer (for GTM)
+  // Push the conversion event to dataLayer (for GTM if present)
   const dataLayerSuccess = pushConversionEvent(
     'complete_booking',
     bookingValue,
@@ -374,13 +388,27 @@ export function trackBookingComplete(params: Partial<CompleteBookingParams> & {
     }
   );
 
-  // Also fire gtag conversion directly as backup
+  // Fire Google Ads conversion directly
   const gtagSuccess = fireGtagConversion(
     GOOGLE_ADS_CONVERSION_ID,
     BOOKING_CONVERSION_LABEL,
     bookingValue,
     transactionId
   );
+
+  // Fire GA4 purchase event directly (required for GA4 without GTM)
+  const ga4Success = fireGtagEvent('purchase', {
+    transaction_id: transactionId,
+    value: bookingValue,
+    currency: 'AUD',
+    items: [{
+      item_id: bookingId || 'psychology_session',
+      item_name: 'Psychology Session',
+      item_category: 'Healthcare',
+      price: bookingValue,
+      quantity: 1,
+    }],
+  });
 
   // Mark conversion as fired
   markConversionFired('complete_booking');
@@ -394,12 +422,13 @@ export function trackBookingComplete(params: Partial<CompleteBookingParams> & {
       bookingValue,
       dataLayerSuccess,
       gtagSuccess,
+      ga4Success,
       params,
     });
   }
 
   return {
-    success: dataLayerSuccess || gtagSuccess,
+    success: dataLayerSuccess || gtagSuccess || ga4Success,
     event: 'complete_booking',
     timestamp: Date.now(),
   };

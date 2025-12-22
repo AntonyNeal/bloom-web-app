@@ -74,12 +74,10 @@ function ApplicationDetailPage({ applicationId }: Props) {
   const [activeModal, setActiveModal] = useState<'deny' | 'waitlist' | 'interview' | 'accept' | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
-  const [interviewDate, setInterviewDate] = useState('');
-  const [interviewTime, setInterviewTime] = useState('');
   const [interviewNotes, setInterviewNotes] = useState('');
   
   // Contract upload states
-  const [contractFile, setContractFile] = useState<File | null>(null);
+  const [_contractFile, setContractFile] = useState<File | null>(null);
   const [contractUploading, setContractUploading] = useState(false);
   const [contractUrl, setContractUrl] = useState<string | null>(null);
 

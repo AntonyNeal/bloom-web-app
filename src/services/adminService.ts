@@ -120,12 +120,13 @@ export const adminService = {
   async updateApplication(
     id: string,
     updates: {
-      status: string;
+      status?: string;
       reviewed_by?: string;
       admin_notes?: string;
       interview_scheduled_at?: string;
       interview_notes?: string;
       decision_reason?: string;
+      contract_url?: string;
     }
   ): Promise<ApplicationDetail> {
     return apiRequest<ApplicationDetail>(`/api/applications/${id}`, {

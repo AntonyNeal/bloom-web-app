@@ -167,10 +167,24 @@ export async function createPractitionerFromApplication(
 /**
  * Validate an onboarding token
  */
+interface PractitionerOnboardingData {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  ahpra_number?: string;
+  specializations?: string;
+  experience_years?: number;
+  profile_photo_url?: string;
+  onboarding_token_expires_at: Date;
+  onboarding_completed_at?: Date;
+}
+
 export async function validateOnboardingToken(
   pool: sql.ConnectionPool,
   token: string
-): Promise<{ valid: boolean; practitioner?: any; error?: string }> {
+): Promise<{ valid: boolean; practitioner?: PractitionerOnboardingData; error?: string }> {
   try {
     const result = await pool.request()
       .input('token', sql.NVarChar, token)

@@ -289,7 +289,7 @@ async function applicationsHandler(
             emailResult = await emailService.sendInterviewEmail(emailContext);
             context.log('Interview invitation email sent:', emailResult);
             break;
-          case 'accepted':
+          case 'accepted': {
             // Create practitioner record with onboarding token
             context.log('Creating practitioner from application...');
             const practitionerResult = await practitionerService.createPractitionerFromApplication(
@@ -308,6 +308,7 @@ async function applicationsHandler(
             emailResult = await emailService.sendAcceptanceEmail(emailContext);
             context.log('Acceptance email sent:', emailResult);
             break;
+          }
         }
       } catch (emailError) {
         // Log email error but don't fail the request

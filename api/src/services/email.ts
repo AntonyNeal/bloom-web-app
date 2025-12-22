@@ -15,6 +15,9 @@ const BLOOM_NAME = 'Bloom';
 // Interview booking link (Calendly, Cal.com, or similar)
 const INTERVIEW_BOOKING_URL = process.env.INTERVIEW_BOOKING_URL || 'https://calendly.com/zoe-lifepsychology/interview';
 
+// Onboarding base URL
+const ONBOARDING_BASE_URL = process.env.ONBOARDING_BASE_URL || 'https://staging.bloom.life-psychology.com.au';
+
 interface EmailContext {
   firstName: string;
   lastName: string;
@@ -23,6 +26,7 @@ interface EmailContext {
   interviewNotes?: string;
   decisionReason?: string;
   bookingUrl?: string; // Optional override for booking URL
+  onboardingLink?: string; // Full onboarding URL with token
 }
 
 /**
@@ -318,10 +322,10 @@ Zoe & The ${BLOOM_NAME} Team
  * Acceptance/Onboarding Email Template
  */
 export async function sendAcceptanceEmail(context: EmailContext) {
-  const { firstName, email } = context;
+  const { firstName, email, onboardingLink: providedLink } = context;
 
-  // TODO: Generate onboarding token and link when onboarding system is built
-  const onboardingLink = `https://bloom.lifepsychologyaustralia.com.au/onboarding`;
+  // Use provided onboarding link or fallback
+  const onboardingLink = providedLink || `${ONBOARDING_BASE_URL}/onboarding`;
 
   const htmlContent = wrapInTemplate(`
     <h2 style="color: #333; margin-top: 0;">🎉 Welcome to ${BLOOM_NAME}!</h2>
@@ -340,18 +344,18 @@ export async function sendAcceptanceEmail(context: EmailContext) {
     
     <p>During onboarding, you'll:</p>
     <ul style="color: #666;">
-      <li>Create your login credentials</li>
-      <li>Set up your professional profile</li>
-      <li>Take a quick tour of the platform</li>
+      <li>Create your secure password</li>
+      <li>Complete your professional profile</li>
+      <li>Take a quick tour of the ${BLOOM_NAME} platform</li>
     </ul>
     
-    <p style="color: #888; font-size: 14px;"><em>Note: The onboarding link will expire in 7 days.</em></p>
+    <p style="color: #888; font-size: 14px;"><em>Note: This link will expire in 7 days. If you need a new link, please contact us.</em></p>
     
-    <p>We're excited to have you join us!</p>
+    <p>We're excited to have you join the ${BLOOM_NAME} family!</p>
     
     <p style="margin-top: 30px;">
       Warm regards,<br>
-      <strong>The ${BLOOM_NAME} Team</strong>
+      <strong>Zoe & The ${BLOOM_NAME} Team</strong>
     </p>
   `);
 
@@ -368,16 +372,16 @@ Complete your profile and set up your account:
 ${onboardingLink}
 
 During onboarding, you'll:
-- Create your login credentials
-- Set up your professional profile
-- Take a quick tour of the platform
+- Create your secure password
+- Complete your professional profile
+- Take a quick tour of the ${BLOOM_NAME} platform
 
-Note: The onboarding link will expire in 7 days.
+Note: This link will expire in 7 days. If you need a new link, please contact us.
 
-We're excited to have you join us!
+We're excited to have you join the ${BLOOM_NAME} family!
 
 Warm regards,
-The ${BLOOM_NAME} Team
+Zoe & The ${BLOOM_NAME} Team
   `.trim();
 
   return sendEmail(

@@ -1,6 +1,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
 import { emailService } from '../services/email';
+import { practitionerService } from '../services/practitioner';
 
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
@@ -255,7 +256,15 @@ async function applicationsHandler(
       context.log(`Application ${id} updated to status: ${status}`);
 
       // Send email notification based on status change
-      const emailContext = {
+      const emailContext: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        interviewDate?: Date;
+        interviewNotes?: string;
+        decisionReason?: string;
+        onboardingLink?: string;
+      } = {
         firstName: updatedApplication.first_name,
         lastName: updatedApplication.last_name,
         email: updatedApplication.email,
@@ -281,6 +290,21 @@ async function applicationsHandler(
             context.log('Interview invitation email sent:', emailResult);
             break;
           case 'accepted':
+            // Create practitioner record with onboarding token
+            context.log('Creating practitioner from application...');
+            const practitionerResult = await practitionerService.createPractitionerFromApplication(
+              pool,
+              updatedApplication
+            );
+            
+            if (practitionerResult.success && practitionerResult.onboardingLink) {
+              context.log(`Practitioner created: ${practitionerResult.practitionerId}`);
+              emailContext.onboardingLink = practitionerResult.onboardingLink;
+            } else {
+              context.warn('Failed to create practitioner:', practitionerResult.error);
+              // Still send email but without personalized onboarding link
+            }
+            
             emailResult = await emailService.sendAcceptanceEmail(emailContext);
             context.log('Acceptance email sent:', emailResult);
             break;

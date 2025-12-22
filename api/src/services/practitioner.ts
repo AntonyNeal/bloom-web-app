@@ -84,9 +84,13 @@ export async function createPractitionerFromApplication(
     const tokenExpiresAt = new Date();
     tokenExpiresAt.setDate(tokenExpiresAt.getDate() + ONBOARDING_TOKEN_EXPIRY_DAYS);
 
+    // Generate a placeholder halaxy_practitioner_id for manual practitioners (app-{applicationId})
+    const halaxyPractitionerId = `app-${application.id}`;
+
     // Create practitioner record
     const result = await pool.request()
       .input('application_id', sql.Int, application.id)
+      .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
       .input('first_name', sql.NVarChar, application.first_name)
       .input('last_name', sql.NVarChar, application.last_name)
       .input('email', sql.NVarChar, application.email)
@@ -99,6 +103,7 @@ export async function createPractitionerFromApplication(
       .input('onboarding_token_expires_at', sql.DateTime2, tokenExpiresAt)
       .query(`
         INSERT INTO practitioners (
+          halaxy_practitioner_id,
           application_id,
           first_name,
           last_name,
@@ -115,6 +120,7 @@ export async function createPractitionerFromApplication(
           updated_at
         ) OUTPUT INSERTED.id
         VALUES (
+          @halaxy_practitioner_id,
           @application_id,
           @first_name,
           @last_name,

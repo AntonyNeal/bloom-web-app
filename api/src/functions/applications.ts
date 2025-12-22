@@ -181,8 +181,37 @@ async function applicationsHandler(
         interview_scheduled_at?: string;
         interview_notes?: string;
         decision_reason?: string;
+        contract_url?: string;
       };
-      const { status, reviewed_by, admin_notes, interview_scheduled_at, interview_notes, decision_reason } = body;
+      const { status, reviewed_by, admin_notes, interview_scheduled_at, interview_notes, decision_reason, contract_url } = body;
+
+      // If only contract_url is provided, do a simple update without status validation
+      if (contract_url && !status) {
+        context.log(`Updating contract_url for application ${id}`);
+        const result = await pool.request()
+          .input('id', sql.Int, id)
+          .input('contract_url', sql.NVarChar, contract_url)
+          .query(`
+            UPDATE applications
+            SET contract_url = @contract_url
+            OUTPUT INSERTED.*
+            WHERE id = @id
+          `);
+
+        if (result.recordset.length === 0) {
+          return {
+            status: 404,
+            headers,
+            jsonBody: { error: 'Application not found' },
+          };
+        }
+
+        return {
+          status: 200,
+          headers,
+          jsonBody: result.recordset[0],
+        };
+      }
 
       if (!status) {
         return {

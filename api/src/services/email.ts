@@ -7,8 +7,8 @@
 
 import { EmailClient, EmailMessage } from '@azure/communication-email';
 
-// Email configuration
-const FROM_EMAIL = process.env.ACS_EMAIL_FROM || 'noreply@lifepsychologyaustralia.com.au';
+// Email configuration - domain must be verified in Azure Communication Services
+const FROM_EMAIL = process.env.ACS_EMAIL_FROM || 'donotreply@life-psychology.com.au';
 const COMPANY_NAME = 'Life Psychology Australia';
 const BLOOM_NAME = 'Bloom';
 
@@ -28,7 +28,7 @@ function getEmailClient(): EmailClient | null {
   const connectionString = process.env.AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING;
   
   if (!connectionString) {
-    console.warn('Azure Communication Services not configured for email');
+    console.warn('[EmailService] AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING not configured');
     return null;
   }
   
@@ -44,9 +44,13 @@ async function sendEmail(
   htmlContent: string,
   plainTextContent: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  console.log(`[EmailService] Sending email to: ${to}, subject: ${subject}`);
+  console.log(`[EmailService] From address: ${FROM_EMAIL}`);
+  
   const client = getEmailClient();
   
   if (!client) {
+    console.error('[EmailService] Email client not available - ACS not configured');
     return { success: false, error: 'Email service not configured' };
   }
 
@@ -63,15 +67,22 @@ async function sendEmail(
       },
     };
 
+    console.log('[EmailService] Starting email send...');
     const poller = await client.beginSend(message);
     const result = await poller.pollUntilDone();
+
+    console.log(`[EmailService] Send result: status=${result.status}, id=${result.id}`);
+    
+    if (result.status !== 'Succeeded') {
+      console.error('[EmailService] Email send failed:', JSON.stringify(result));
+    }
 
     return { 
       success: result.status === 'Succeeded', 
       messageId: result.id 
     };
   } catch (error) {
-    console.error('Failed to send email:', error);
+    console.error('[EmailService] Failed to send email:', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 

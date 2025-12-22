@@ -54,6 +54,7 @@ export interface ApplicationDetail extends Application {
   DecisionReason?: string;          // Reason for decision (deny/waitlist/accept)
   WaitlistedAt?: string;            // When application was waitlisted
   AcceptedAt?: string;              // When application was accepted
+  ContractUrl?: string;             // URL to uploaded practitioner agreement PDF
 }
 
 export interface ApplicationDocument {

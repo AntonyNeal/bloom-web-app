@@ -264,6 +264,7 @@ async function applicationsHandler(
         interviewNotes?: string;
         decisionReason?: string;
         onboardingLink?: string;
+        contractUrl?: string;
       } = {
         firstName: updatedApplication.first_name,
         lastName: updatedApplication.last_name,
@@ -271,6 +272,7 @@ async function applicationsHandler(
         interviewDate: interview_scheduled_at ? new Date(interview_scheduled_at) : undefined,
         interviewNotes: interview_notes,
         decisionReason: decision_reason,
+        contractUrl: updatedApplication.contract_url,
       };
 
       try {
@@ -285,7 +287,7 @@ async function applicationsHandler(
             context.log('Waitlist email sent:', emailResult);
             break;
           case 'interview_scheduled':
-            // Always send interview email - uses booking link, no specific date required
+            // Send interview email with booking link and contract (if uploaded)
             emailResult = await emailService.sendInterviewEmail(emailContext);
             context.log('Interview invitation email sent:', emailResult);
             break;

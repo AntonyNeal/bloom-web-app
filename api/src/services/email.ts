@@ -27,6 +27,7 @@ interface EmailContext {
   decisionReason?: string;
   bookingUrl?: string; // Optional override for booking URL
   onboardingLink?: string; // Full onboarding URL with token
+  contractUrl?: string; // URL to practitioner agreement PDF
 }
 
 /**
@@ -242,11 +243,28 @@ The ${BLOOM_NAME} Team
 /**
  * Interview Invitation Email Template
  * Sends a booking link for the applicant to schedule their interview
+ * Includes contract/practitioner agreement for review
  */
 export async function sendInterviewEmail(context: EmailContext) {
-  const { firstName, email, interviewNotes, bookingUrl } = context;
+  const { firstName, email, interviewNotes, bookingUrl, contractUrl } = context;
 
   const schedulingLink = bookingUrl || INTERVIEW_BOOKING_URL;
+
+  const contractSection = contractUrl ? `
+    <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+      <h3 style="margin: 0 0 15px; color: #b45309;">📄 Practitioner Agreement</h3>
+      <p style="margin: 5px 0;">Before your interview, please review our Practitioner Agreement:</p>
+      <div style="margin: 15px 0;">
+        <a href="${contractUrl}" 
+           style="display: inline-block; background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">
+          📄 View Agreement (PDF)
+        </a>
+      </div>
+      <p style="margin: 10px 0 0; color: #92400e; font-size: 14px;">
+        Please read through this document carefully. We'll be happy to answer any questions during the interview.
+      </p>
+    </div>
+  ` : '';
 
   const htmlContent = wrapInTemplate(`
     <h2 style="color: #333; margin-top: 0;">Interview Invitation - ${BLOOM_NAME}</h2>
@@ -267,11 +285,14 @@ export async function sendInterviewEmail(context: EmailContext) {
       ${interviewNotes ? `<p style="margin: 15px 0 0; color: #666;"><strong>Note from our team:</strong> ${interviewNotes}</p>` : ''}
     </div>
     
+    ${contractSection}
+    
     <p>The interview will be a friendly conversation (approximately 30 minutes) where we'll discuss:</p>
     <ul style="color: #555;">
       <li>Your clinical experience and specializations</li>
       <li>Your approach to client care</li>
       <li>How ${BLOOM_NAME} can support your practice</li>
+      ${contractUrl ? '<li>Any questions about the Practitioner Agreement</li>' : ''}
     </ul>
     
     <p>If you have any questions before the interview, feel free to reply to this email.</p>
@@ -297,10 +318,17 @@ Please visit the link below to choose a time that works best for you:
 ${schedulingLink}
 
 ${interviewNotes ? `Note from our team: ${interviewNotes}\n` : ''}
-The interview will be a friendly conversation (approximately 30 minutes) where we'll discuss:
+${contractUrl ? `PRACTITIONER AGREEMENT
+----------------------
+Before your interview, please review our Practitioner Agreement:
+${contractUrl}
+
+Please read through this document carefully. We'll be happy to answer any questions during the interview.
+
+` : ''}The interview will be a friendly conversation (approximately 30 minutes) where we'll discuss:
 - Your clinical experience and specializations
 - Your approach to client care
-- How ${BLOOM_NAME} can support your practice
+- How ${BLOOM_NAME} can support your practice${contractUrl ? '\n- Any questions about the Practitioner Agreement' : ''}
 
 If you have any questions before the interview, feel free to reply to this email.
 

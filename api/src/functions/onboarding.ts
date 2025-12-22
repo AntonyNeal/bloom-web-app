@@ -153,9 +153,10 @@ async function onboardingHandler(
         displayName?: string;
         bio?: string;
         phone?: string;
+        contractAccepted?: boolean;
       };
 
-      const { password, displayName, bio, phone } = body;
+      const { password, displayName, bio, phone, contractAccepted } = body;
 
       // Validate password
       if (!password || password.length < 8) {
@@ -179,16 +180,31 @@ async function onboardingHandler(
         };
       }
 
+      // Require contract acceptance
+      if (!contractAccepted) {
+        return {
+          status: 400,
+          headers,
+          jsonBody: { error: 'You must accept the Practitioner Agreement to continue' },
+        };
+      }
+
+      // Get client IP for contract acceptance record
+      const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                       request.headers.get('x-real-ip') || 
+                       'unknown';
+
       // Hash the password
       const passwordHash = hashPassword(password);
 
-      // Update practitioner
+      // Update practitioner with contract acceptance
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
         .input('password_hash', sql.NVarChar, passwordHash)
         .input('display_name', sql.NVarChar, displayName || null)
         .input('bio', sql.NVarChar, bio || null)
         .input('phone', sql.NVarChar, phone || null)
+        .input('contract_ip_address', sql.NVarChar, clientIp)
         .query(`
           UPDATE practitioners
           SET 
@@ -196,6 +212,9 @@ async function onboardingHandler(
             display_name = COALESCE(@display_name, display_name),
             bio = COALESCE(@bio, bio),
             phone = COALESCE(@phone, phone),
+            contract_accepted_at = GETDATE(),
+            contract_version = '1.0',
+            contract_ip_address = @contract_ip_address,
             onboarding_completed_at = GETDATE(),
             onboarding_token = NULL,
             onboarding_token_expires_at = NULL,

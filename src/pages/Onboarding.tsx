@@ -36,6 +36,7 @@ interface PractitionerData {
   profilePhotoUrl?: string;
   displayName?: string;
   bio?: string;
+  contractUrl?: string;
 }
 
 type OnboardingStep = 'loading' | 'welcome' | 'password' | 'profile' | 'complete' | 'error';
@@ -57,6 +58,7 @@ export default function OnboardingPage() {
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [phone, setPhone] = useState('');
+  const [contractAccepted, setContractAccepted] = useState(false);
   
   // Submission state
   const [submitting, setSubmitting] = useState(false);
@@ -106,7 +108,7 @@ export default function OnboardingPage() {
   }, [token]);
 
   const handleSubmit = async () => {
-    if (!isPasswordValid) return;
+    if (!isPasswordValid || !contractAccepted) return;
 
     setSubmitting(true);
     try {
@@ -118,6 +120,7 @@ export default function OnboardingPage() {
           displayName,
           bio,
           phone,
+          contractAccepted: true,
         }),
       });
 
@@ -696,6 +699,49 @@ export default function OnboardingPage() {
                   </p>
                 </div>
 
+                {/* Contract Acceptance */}
+                <div style={{
+                  background: '#fef3c7',
+                  borderRadius: 8,
+                  padding: 16,
+                  marginBottom: 8,
+                }}>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 12,
+                    cursor: 'pointer',
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={contractAccepted}
+                      onChange={(e) => setContractAccepted(e.target.checked)}
+                      style={{
+                        width: 20,
+                        height: 20,
+                        marginTop: 2,
+                        accentColor: colors.eucalyptusSage,
+                      }}
+                    />
+                    <span style={{ fontSize: 14, color: colors.charcoalText, lineHeight: 1.5 }}>
+                      I confirm that I have read and agree to the{' '}
+                      {practitioner?.contractUrl ? (
+                        <a
+                          href={practitioner.contractUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: colors.eucalyptusSage, fontWeight: 600 }}
+                        >
+                          Practitioner Agreement
+                        </a>
+                      ) : (
+                        <strong>Practitioner Agreement</strong>
+                      )}{' '}
+                      that was sent to me prior to my interview.
+                    </span>
+                  </label>
+                </div>
+
                 {error && (
                   <div style={{
                     background: '#fef2f2',
@@ -730,17 +776,17 @@ export default function OnboardingPage() {
                   </button>
                   <button
                     onClick={handleSubmit}
-                    disabled={submitting}
+                    disabled={submitting || !contractAccepted}
                     style={{
                       flex: 2,
-                      background: colors.eucalyptusSage,
+                      background: (submitting || !contractAccepted) ? '#ccc' : colors.eucalyptusSage,
                       color: 'white',
                       border: 'none',
                       padding: '14px 24px',
                       borderRadius: 8,
                       fontSize: 16,
                       fontWeight: 600,
-                      cursor: submitting ? 'not-allowed' : 'pointer',
+                      cursor: (submitting || !contractAccepted) ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',

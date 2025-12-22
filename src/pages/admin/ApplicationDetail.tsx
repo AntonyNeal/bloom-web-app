@@ -77,6 +77,11 @@ function ApplicationDetailPage({ applicationId }: Props) {
   const [interviewDate, setInterviewDate] = useState('');
   const [interviewTime, setInterviewTime] = useState('');
   const [interviewNotes, setInterviewNotes] = useState('');
+  
+  // Contract upload states
+  const [contractFile, setContractFile] = useState<File | null>(null);
+  const [contractUploading, setContractUploading] = useState(false);
+  const [contractUrl, setContractUrl] = useState<string | null>(null);
 
   const loadApplication = useCallback(async () => {
     try {
@@ -162,15 +167,54 @@ function ApplicationDetailPage({ applicationId }: Props) {
     }
   };
 
+  const handleContractUpload = async (file: File) => {
+    if (!application) return;
+    setContractUploading(true);
+    try {
+      // Upload contract to blob storage
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('applicationId', applicationId);
+      formData.append('type', 'contract');
+      
+      const API_URL = import.meta.env.VITE_API_URL || 'https://bloom-functions-staging-new.azurewebsites.net/api';
+      const response = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error('Failed to upload contract');
+      const data = await response.json();
+      
+      // Update application with contract URL
+      await adminService.updateApplication(applicationId, {
+        contract_url: data.url,
+      });
+      
+      setContractUrl(data.url);
+      setContractFile(file);
+      await loadApplication();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload contract');
+    } finally {
+      setContractUploading(false);
+    }
+  };
+
   const handleScheduleInterview = async () => {
-    if (!application || !interviewDate || !interviewTime) return;
+    if (!application) return;
+    // Contract is required for interview scheduling
+    const currentContractUrl = application.ContractUrl || contractUrl;
+    if (!currentContractUrl) {
+      setError('Please upload a contract before scheduling the interview');
+      return;
+    }
     try {
       setUpdating(true);
-      const scheduledDateTime = new Date(`${interviewDate}T${interviewTime}`);
+      // Cal.com handles the actual scheduling - we just send the email with booking link
       await adminService.updateApplication(applicationId, {
         status: 'interview_scheduled',
         reviewed_by: 'Admin User',
-        interview_scheduled_at: scheduledDateTime.toISOString(),
         interview_notes: interviewNotes,
         admin_notes: adminNotes,
       });
@@ -180,6 +224,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
       setInterviewTime('');
       setInterviewNotes('');
       setAdminNotes('');
+      setContractFile(null);
       await loadApplication();
       setTimeout(() => setUpdateSuccess(false), 3000);
     } catch (err) {
@@ -683,43 +728,61 @@ function ApplicationDetailPage({ applicationId }: Props) {
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            Schedule an interview with <strong>{application.FirstName} {application.LastName}</strong>.
-            An email will be sent with the interview details.
+            Send an interview invitation to <strong>{application.FirstName} {application.LastName}</strong>.
+            The email will include a booking link and the practitioner agreement.
           </p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={interviewDate}
-                onChange={(e) => setInterviewDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Time <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="time"
-                value={interviewTime}
-                onChange={(e) => setInterviewTime(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-              />
-            </div>
+          
+          {/* Contract Upload Section */}
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <label className="block text-sm font-medium text-amber-900 mb-2">
+              Practitioner Agreement <span className="text-red-500">*</span>
+            </label>
+            {application.ContractUrl || contractUrl ? (
+              <div className="flex items-center gap-2 text-sm text-green-700">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Contract uploaded</span>
+                <a 
+                  href={application.ContractUrl || contractUrl || '#'} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline ml-2"
+                >
+                  View PDF
+                </a>
+              </div>
+            ) : (
+              <div>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleContractUpload(file);
+                  }}
+                  disabled={contractUploading}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-amber-100 file:text-amber-700 hover:file:bg-amber-200 disabled:opacity-50"
+                />
+                {contractUploading && (
+                  <p className="text-sm text-amber-600 mt-2">Uploading contract...</p>
+                )}
+                <p className="text-xs text-amber-700 mt-2">
+                  Upload the personalized contract for this applicant (PDF only)
+                </p>
+              </div>
+            )}
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Interview Notes
+              Interview Notes (included in email)
             </label>
             <textarea
               value={interviewNotes}
               onChange={(e) => setInterviewNotes(e.target.value)}
               rows={2}
-              placeholder="e.g., Video call via Zoom, focus on telehealth experience..."
+              placeholder="e.g., Looking forward to discussing your telehealth experience..."
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
             />
           </div>
@@ -744,10 +807,10 @@ function ApplicationDetailPage({ applicationId }: Props) {
             </button>
             <button
               onClick={handleScheduleInterview}
-              disabled={updating || !interviewDate || !interviewTime}
+              disabled={updating || contractUploading || !(application.ContractUrl || contractUrl)}
               className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {updating ? 'Processing...' : 'Schedule Interview'}
+              {updating ? 'Processing...' : 'Send Interview Invitation'}
             </button>
           </div>
         </div>

@@ -38,6 +38,7 @@ interface Application {
   decision_reason?: string;
   waitlisted_at?: string;
   accepted_at?: string;
+  contract_url?: string;
 }
 
 type ErrorType = 'network' | 'server' | null;
@@ -46,6 +47,8 @@ export function Admin() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [contractUploading, setContractUploading] = useState(false);
   const [error, setError] = useState<ErrorType>(null);
   const [errorCode, setErrorCode] = useState<number | undefined>(undefined);
   const [lastAttempt, setLastAttempt] = useState<Date | undefined>(undefined);
@@ -113,6 +116,7 @@ export function Admin() {
   };
 
   const updateStatus = async (id: number, status: string) => {
+    setIsUpdating(true);
     try {
       const response = await fetch(`${API_ENDPOINTS.applications}/${id}`, {
         method: "PUT",
@@ -135,9 +139,65 @@ export function Admin() {
         const updatedApp = await response.json();
         setSelectedApp(updatedApp);
       }
+      
+      toast({
+        title: "Status Updated",
+        description: `Application status changed to ${status.replace('_', ' ')}.`,
+      });
     } catch (error) {
       console.error("Failed to update status:", error);
-      alert("Failed to update application status. Please try again.");
+      toast({
+        title: "Update Failed",
+        description: "Failed to update application status. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleContractUpload = async (file: File) => {
+    if (!selectedApp) return;
+    setContractUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('applicationId', String(selectedApp.id));
+      formData.append('type', 'contract');
+      
+      const response = await fetch(`${API_BASE_URL}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error('Failed to upload contract');
+      const data = await response.json();
+      
+      // Update application with contract URL
+      await fetch(`${API_ENDPOINTS.applications}/${selectedApp.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contract_url: data.url }),
+      });
+      
+      // Refresh the selected app
+      const updatedResponse = await fetch(`${API_ENDPOINTS.applications}/${selectedApp.id}`);
+      const updatedApp = await updatedResponse.json();
+      setSelectedApp(updatedApp);
+      
+      toast({
+        title: "Contract Uploaded",
+        description: "The practitioner agreement has been uploaded successfully.",
+      });
+    } catch (err) {
+      console.error('Contract upload error:', err);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload contract. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setContractUploading(false);
     }
   };
 
@@ -432,43 +492,114 @@ export function Admin() {
                         onClick={() => updateStatus(selectedApp.id, "reviewing")}
                         className="w-full"
                         size="sm"
+                        disabled={isUpdating}
                       >
-                        📋 Start Review
+                        {isUpdating ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Processing...
+                          </span>
+                        ) : (
+                          "📋 Start Review"
+                        )}
                       </Button>
                     </div>
                   )}
 
                   {/* Under review: Full set of decision options */}
                   {selectedApp.status === "reviewing" && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
-                        variant="secondary"
-                        size="sm"
-                      >
-                        📅 Schedule Interview
-                      </Button>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "waitlisted")}
-                        variant="outline"
-                        size="sm"
-                      >
-                        ⏳ Waitlist
-                      </Button>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "accepted")}
-                        className="bg-emerald-600 hover:bg-emerald-700"
-                        size="sm"
-                      >
-                        ✅ Accept
-                      </Button>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "denied")}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        ❌ Deny
-                      </Button>
+                    <div className="space-y-3">
+                      {/* Contract Upload Section */}
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                        <Label className="text-sm font-medium text-amber-900 mb-2 block">
+                          Practitioner Agreement {!selectedApp.contract_url && <span className="text-red-500">*</span>}
+                        </Label>
+                        {selectedApp.contract_url ? (
+                          <div className="flex items-center gap-2 text-sm text-green-700">
+                            <span>✓ Contract uploaded</span>
+                            <a 
+                              href={selectedApp.contract_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              View PDF
+                            </a>
+                          </div>
+                        ) : (
+                          <div>
+                            <input
+                              type="file"
+                              accept=".pdf"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleContractUpload(file);
+                              }}
+                              disabled={contractUploading}
+                              className="block w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-amber-100 file:text-amber-700 hover:file:bg-amber-200 disabled:opacity-50"
+                            />
+                            {contractUploading && (
+                              <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                                <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Uploading...
+                              </p>
+                            )}
+                            <p className="text-xs text-amber-700 mt-1">Required before scheduling interview</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
+                          variant="secondary"
+                          size="sm"
+                          disabled={isUpdating || !selectedApp.contract_url}
+                          title={!selectedApp.contract_url ? "Upload contract first" : ""}
+                        >
+                          {isUpdating ? (
+                            <span className="flex items-center gap-1">
+                              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              ...
+                            </span>
+                          ) : (
+                            "📅 Schedule Interview"
+                          )}
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "waitlisted")}
+                          variant="outline"
+                          size="sm"
+                          disabled={isUpdating}
+                        >
+                          {isUpdating ? "..." : "⏳ Waitlist"}
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "accepted")}
+                          className="bg-emerald-600 hover:bg-emerald-700"
+                          size="sm"
+                          disabled={isUpdating}
+                        >
+                          {isUpdating ? "..." : "✅ Accept"}
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "denied")}
+                          variant="destructive"
+                          size="sm"
+                          disabled={isUpdating}
+                        >
+                          {isUpdating ? "..." : "❌ Deny"}
+                        </Button>
+                      </div>
                     </div>
                   )}
 
@@ -485,15 +616,27 @@ export function Admin() {
                           onClick={() => updateStatus(selectedApp.id, "accepted")}
                           className="bg-emerald-600 hover:bg-emerald-700"
                           size="sm"
+                          disabled={isUpdating}
                         >
-                          ✅ Accept
+                          {isUpdating ? (
+                            <span className="flex items-center gap-1">
+                              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              ...
+                            </span>
+                          ) : (
+                            "✅ Accept"
+                          )}
                         </Button>
                         <Button
                           onClick={() => updateStatus(selectedApp.id, "waitlisted")}
                           variant="outline"
                           size="sm"
+                          disabled={isUpdating}
                         >
-                          ⏳ Waitlist
+                          {isUpdating ? "..." : "⏳ Waitlist"}
                         </Button>
                       </div>
                       <Button
@@ -501,8 +644,9 @@ export function Admin() {
                         variant="destructive"
                         size="sm"
                         className="w-full"
+                        disabled={isUpdating}
                       >
-                        ❌ Deny
+                        {isUpdating ? "..." : "❌ Deny"}
                       </Button>
                     </div>
                   )}

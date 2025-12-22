@@ -119,13 +119,14 @@ ALTER TABLE applications ADD interview_notes NVARCHAR(MAX) NULL;
 
 | Story | Description | Points | Status |
 |-------|-------------|--------|--------|
-| 2.1 | **DB Migration**: Create `practitioners` table with profile fields, `is_active`, `password_hash`, `onboarding_token` | 3 | Not Started |
-| 2.2 | **Accept Action**: Creates practitioner record + generates onboarding token + sends invite email | 3 | Not Started |
-| 2.3 | **Onboarding Page**: `/onboarding/:token` - set username/password, complete profile | 5 | Not Started |
-| 2.4 | **Platform Tour**: Walkthrough/tour on first login | 3 | Not Started |
-| 2.5 | **Admin Active Toggle**: Toggle `is_active` in admin practitioner view | 2 | Not Started |
+| 2.1 | **DB Migration**: Create `practitioners` table with profile fields, `is_active`, `password_hash`, `onboarding_token` | 3 | ✅ Complete |
+| 2.2 | **Accept Action**: Creates practitioner record + generates onboarding token + sends invite email | 3 | ✅ Complete |
+| 2.3 | **Onboarding Page**: `/onboarding/:token` - set username/password, complete profile | 5 | ✅ Complete |
+| 2.4 | **Contract Workflow**: Upload contract, include in email, require acceptance during onboarding | 3 | ✅ Complete |
+| 2.5 | **Platform Tour**: Walkthrough/tour on first login | 3 | Not Started |
+| 2.6 | **Admin Active Toggle**: Toggle `is_active` in admin practitioner view | 2 | Not Started |
 
-**Total**: 16 points
+**Total**: 19 points (16 complete, 3 remaining)
 
 ### Technical Details - Epic 2
 

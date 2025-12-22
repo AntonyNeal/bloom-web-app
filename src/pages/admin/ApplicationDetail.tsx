@@ -218,8 +218,6 @@ function ApplicationDetailPage({ applicationId }: Props) {
       });
       setUpdateSuccess(true);
       setActiveModal(null);
-      setInterviewDate('');
-      setInterviewTime('');
       setInterviewNotes('');
       setAdminNotes('');
       setContractFile(null);

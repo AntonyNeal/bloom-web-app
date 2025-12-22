@@ -82,10 +82,11 @@ const initializeMsal = async (): Promise<void> => {
 /**
  * AuthProvider component wraps the app with MSAL authentication
  * Falls back to rendering children directly if auth is not configured
- * Uses deferred initialization for better performance
+ * CRITICAL: Must NOT render children that use useMsal() until MsalProvider is ready
  */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isReady, setIsReady] = useState(!isAuthConfigured());
+  const [msalReady, setMsalReady] = useState(false);
   
   const initialize = useCallback(async () => {
     if (!isAuthConfigured()) {
@@ -95,34 +96,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     try {
       await initializeMsal();
+      // Mark MSAL as ready only after successful initialization
+      if (msalInstance) {
+        setMsalReady(true);
+      }
     } finally {
       setIsReady(true);
     }
   }, []);
   
   useEffect(() => {
-    // Use requestIdleCallback for non-blocking initialization
-    const scheduleInit = window.requestIdleCallback || ((cb: IdleRequestCallback) => setTimeout(cb, 1));
+    // Initialize immediately for auth callback pages (they need MSAL right away)
+    const isAuthCallback = window.location.pathname === '/auth/callback';
     
-    const handle = scheduleInit(() => {
+    if (isAuthCallback) {
+      // Immediate initialization for auth callback
       initialize();
-    }, { timeout: 1000 });
-    
-    return () => {
-      if (window.cancelIdleCallback) {
-        window.cancelIdleCallback(handle as number);
-      }
-    };
+    } else {
+      // Use requestIdleCallback for non-blocking initialization on other pages
+      const scheduleInit = window.requestIdleCallback || ((cb: IdleRequestCallback) => setTimeout(cb, 1));
+      
+      const handle = scheduleInit(() => {
+        initialize();
+      }, { timeout: 1000 });
+      
+      return () => {
+        if (window.cancelIdleCallback) {
+          window.cancelIdleCallback(handle as number);
+        }
+      };
+    }
   }, [initialize]);
   
-  // If auth not configured or we're ready, render children
-  if (!isAuthConfigured() || !msalInstance) {
+  // If auth not configured, render children directly (no MSAL needed)
+  if (!isAuthConfigured()) {
     return <>{children}</>;
   }
   
-  // Show minimal loading state while MSAL initializes
-  if (!isReady) {
-    return <>{children}</>;
+  // While MSAL is initializing, show loading state
+  // CRITICAL: Do NOT render children here as they may use useMsal() hook
+  if (!isReady || !msalReady || !msalInstance) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '100vh',
+        background: '#FAF7F2'
+      }}>
+        <div style={{ textAlign: 'center', color: '#6B8E7F' }}>
+          <div style={{ fontSize: '18px', fontWeight: 500 }}>Loading...</div>
+        </div>
+      </div>
+    );
   }
   
   return <MsalProvider instance={msalInstance}>{children}</MsalProvider>;

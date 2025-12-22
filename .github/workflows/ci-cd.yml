@@ -609,11 +609,13 @@ jobs:
 
       - name: Build Bloom Application
         env:
-          MODE: ${{ needs.determine-environment.outputs.environment == 'production' && 'production' || 'development' }}
+          # Map environment to Vite mode - staging uses .env.staging, production uses .env.production
+          MODE: ${{ needs.determine-environment.outputs.environment }}
           VITE_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
         run: |
           echo "🌸 Building Bloom Frontend..."
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "📦 Using Vite mode: $MODE"
           npm run build:bloom -- --mode $MODE
           echo "✅ Build complete"
 

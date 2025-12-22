@@ -1,0 +1,7 @@
+﻿{
+    "properties":  {
+                       "linkedDomains":  [
+                                             "/subscriptions/47b5552f-0eb8-4462-97e7-cd67e8e660b8/resourceGroups/lpa-rg/providers/Microsoft.Communication/emailServices/lpa-email-service/domains/life-psychology.com.au"
+                                         ]
+                   }
+}

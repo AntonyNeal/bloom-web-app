@@ -12,6 +12,9 @@ const FROM_EMAIL = process.env.ACS_EMAIL_FROM || 'donotreply@life-psychology.com
 const COMPANY_NAME = 'Life Psychology Australia';
 const BLOOM_NAME = 'Bloom';
 
+// Interview booking link (Calendly, Cal.com, or similar)
+const INTERVIEW_BOOKING_URL = process.env.INTERVIEW_BOOKING_URL || 'https://calendly.com/zoe-lifepsychology/interview';
+
 interface EmailContext {
   firstName: string;
   lastName: string;
@@ -19,6 +22,7 @@ interface EmailContext {
   interviewDate?: Date;
   interviewNotes?: string;
   decisionReason?: string;
+  bookingUrl?: string; // Optional override for booking URL
 }
 
 /**
@@ -233,48 +237,46 @@ The ${BLOOM_NAME} Team
 
 /**
  * Interview Invitation Email Template
+ * Sends a booking link for the applicant to schedule their interview
  */
 export async function sendInterviewEmail(context: EmailContext) {
-  const { firstName, email, interviewDate, interviewNotes } = context;
+  const { firstName, email, interviewNotes, bookingUrl } = context;
 
-  if (!interviewDate) {
-    throw new Error('Interview date is required');
-  }
-
-  const formattedDate = interviewDate.toLocaleDateString('en-AU', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-  
-  const formattedTime = interviewDate.toLocaleTimeString('en-AU', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  });
+  const schedulingLink = bookingUrl || INTERVIEW_BOOKING_URL;
 
   const htmlContent = wrapInTemplate(`
     <h2 style="color: #333; margin-top: 0;">Interview Invitation - ${BLOOM_NAME}</h2>
     
     <p>Dear ${firstName},</p>
     
-    <p>Great news! We'd love to learn more about you and discuss your application to join ${BLOOM_NAME}.</p>
+    <p>Great news! We've reviewed your application and would love to meet with you to learn more about your experience and discuss how you might fit with ${BLOOM_NAME}.</p>
     
     <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
-      <h3 style="margin: 0 0 15px; color: #059669;">📅 Interview Details</h3>
-      <p style="margin: 5px 0;"><strong>Date:</strong> ${formattedDate}</p>
-      <p style="margin: 5px 0;"><strong>Time:</strong> ${formattedTime} (Australian Eastern Time)</p>
-      ${interviewNotes ? `<p style="margin: 15px 0 0; color: #666;"><strong>Notes:</strong> ${interviewNotes}</p>` : ''}
+      <h3 style="margin: 0 0 15px; color: #059669;">📅 Schedule Your Interview</h3>
+      <p style="margin: 5px 0;">Please click the button below to choose a time that works best for you:</p>
+      <div style="margin: 20px 0;">
+        <a href="${schedulingLink}" 
+           style="display: inline-block; background: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          📅 Book Interview Time
+        </a>
+      </div>
+      ${interviewNotes ? `<p style="margin: 15px 0 0; color: #666;"><strong>Note from our team:</strong> ${interviewNotes}</p>` : ''}
     </div>
     
-    <p>Please confirm your availability by replying to this email. If you need to reschedule, let us know and we'll find an alternative time.</p>
+    <p>The interview will be a friendly conversation (approximately 30 minutes) where we'll discuss:</p>
+    <ul style="color: #555;">
+      <li>Your clinical experience and specializations</li>
+      <li>Your approach to client care</li>
+      <li>How ${BLOOM_NAME} can support your practice</li>
+    </ul>
     
-    <p>We look forward to speaking with you!</p>
+    <p>If you have any questions before the interview, feel free to reply to this email.</p>
+    
+    <p>We look forward to meeting you!</p>
     
     <p style="margin-top: 30px;">
       Warm regards,<br>
-      <strong>The ${BLOOM_NAME} Team</strong>
+      <strong>Zoe & The ${BLOOM_NAME} Team</strong>
     </p>
   `);
 
@@ -283,25 +285,30 @@ Interview Invitation - ${BLOOM_NAME}
 
 Dear ${firstName},
 
-Great news! We'd love to learn more about you and discuss your application to join ${BLOOM_NAME}.
+Great news! We've reviewed your application and would love to meet with you to learn more about your experience and discuss how you might fit with ${BLOOM_NAME}.
 
-INTERVIEW DETAILS
------------------
-Date: ${formattedDate}
-Time: ${formattedTime} (Australian Eastern Time)
-${interviewNotes ? `Notes: ${interviewNotes}` : ''}
+SCHEDULE YOUR INTERVIEW
+-----------------------
+Please visit the link below to choose a time that works best for you:
+${schedulingLink}
 
-Please confirm your availability by replying to this email. If you need to reschedule, let us know and we'll find an alternative time.
+${interviewNotes ? `Note from our team: ${interviewNotes}\n` : ''}
+The interview will be a friendly conversation (approximately 30 minutes) where we'll discuss:
+- Your clinical experience and specializations
+- Your approach to client care
+- How ${BLOOM_NAME} can support your practice
 
-We look forward to speaking with you!
+If you have any questions before the interview, feel free to reply to this email.
+
+We look forward to meeting you!
 
 Warm regards,
-The ${BLOOM_NAME} Team
+Zoe & The ${BLOOM_NAME} Team
   `.trim();
 
   return sendEmail(
     email,
-    `${BLOOM_NAME} Application - Interview Invitation`,
+    `${BLOOM_NAME} - Schedule Your Interview 📅`,
     htmlContent,
     plainTextContent
   );

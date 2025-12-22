@@ -276,10 +276,9 @@ async function applicationsHandler(
             context.log('Waitlist email sent:', emailResult);
             break;
           case 'interview_scheduled':
-            if (interview_scheduled_at) {
-              emailResult = await emailService.sendInterviewEmail(emailContext);
-              context.log('Interview email sent:', emailResult);
-            }
+            // Always send interview email - uses booking link, no specific date required
+            emailResult = await emailService.sendInterviewEmail(emailContext);
+            context.log('Interview invitation email sent:', emailResult);
             break;
           case 'accepted':
             emailResult = await emailService.sendAcceptanceEmail(emailContext);

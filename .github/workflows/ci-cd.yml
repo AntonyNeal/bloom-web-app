@@ -1,12 +1,14 @@
 # LIFE PSYCHOLOGY UNIFIED CI/CD WORKFLOW
 # Combined Application Deployment + Database Migrations
-# Last updated: 2025-12-06
+# Last updated: 2025-12-23
 #
 # APPLICATIONS:
 # 1. Bloom Portal (apps/bloom) + Bloom API (api/)
-# 2. Website (apps/website) + Website API (apps/website/functions)
-# 3. Halaxy DB Realtime Sync Service (api/src/services/halaxy/)
-# 4. Database Migrations (db/migrations)
+# 2. Website (apps/website) - uses Bloom API
+# 3. Database Migrations (db/migrations)
+#
+# NOTE: Website API (apps/website/functions) has been removed - all functions consolidated into Bloom API
+# NOTE: Halaxy Sync Worker has been disabled - data is fetched directly from Halaxy APIs
 #
 # ENVIRONMENTS:
 # - Development (develop branch)
@@ -61,10 +63,10 @@ on:
         type: boolean
         default: true
       deploy_halaxy_sync:
-        description: 'Deploy Halaxy Sync Service'
+        description: 'Deploy Halaxy Sync Service (DISABLED)'
         required: false
         type: boolean
-        default: true
+        default: false
       dry_run_migrations:
         description: 'Dry run migrations (preview only)'
         required: false
@@ -113,9 +115,7 @@ jobs:
       bloom-api-url: ${{ steps.config.outputs.bloom_api_url }}
       # Website
       website-frontend-app: ${{ steps.config.outputs.website_frontend_app }}
-      website-api-app: ${{ steps.config.outputs.website_api_app }}
       website-frontend-secret: ${{ steps.config.outputs.website_frontend_secret }}
-      website-api-secret: ${{ steps.config.outputs.website_api_secret }}
     steps:
       - name: Set Environment Configuration
         id: config
@@ -173,9 +173,7 @@ jobs:
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD"
               BLOOM_API_SECRET="BLOOM_PROD_API_PUBLISH_PROFILE"
               WEBSITE_FRONTEND_APP="lpa-frontend-prod"
-              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_PROD"
-              WEBSITE_API_SECRET=""
               SHOULD_DEPLOY="true"
               ;;
             staging)
@@ -185,9 +183,7 @@ jobs:
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING"
               BLOOM_API_SECRET="BLOOM_STAGING_API_PUBLISH_PROFILE"
               WEBSITE_FRONTEND_APP="lpa-frontend-staging"
-              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_STAGING"
-              WEBSITE_API_SECRET=""
               SHOULD_DEPLOY="true"
               ;;
             development)
@@ -197,9 +193,7 @@ jobs:
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_DEV"
               BLOOM_API_SECRET="BLOOM_DEV_API_PUBLISH_PROFILE"
               WEBSITE_FRONTEND_APP="lpa-frontend-dev"
-              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_DEV"
-              WEBSITE_API_SECRET=""
               SHOULD_DEPLOY="true"
               ;;
             preview)
@@ -209,9 +203,7 @@ jobs:
               BLOOM_FRONTEND_SECRET=""
               BLOOM_API_SECRET=""
               WEBSITE_FRONTEND_APP="lpa-frontend-dev"
-              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET=""
-              WEBSITE_API_SECRET=""
               SHOULD_DEPLOY="false"
               ;;
           esac
@@ -231,9 +223,7 @@ jobs:
           
           # Website
           echo "website_frontend_app=$WEBSITE_FRONTEND_APP" >> $GITHUB_OUTPUT
-          echo "website_api_app=$WEBSITE_API_APP" >> $GITHUB_OUTPUT
           echo "website_frontend_secret=$WEBSITE_FRONTEND_SECRET" >> $GITHUB_OUTPUT
-          echo "website_api_secret=$WEBSITE_API_SECRET" >> $GITHUB_OUTPUT
 
           echo ""
           echo "═══════════════════════════════════════════════════════"
@@ -830,167 +820,21 @@ jobs:
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Build Website API
-  # ─────────────────────────────────────────────────────────────────────────────
-
-  build-website-api:
-    name: ⚡ Build Website API
-    runs-on: ubuntu-latest
-    needs: [determine-environment, lint, type-check]
-    if: |
-      always() &&
-      needs.determine-environment.outputs.should-deploy == 'true' &&
-      needs.lint.result == 'success' &&
-      needs.type-check.result == 'success'
-    environment: ${{ needs.determine-environment.outputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION_API }}
-          cache: 'npm'
-
-      - name: Install Website API Dependencies
-        working-directory: ./apps/website/functions
-        run: npm install
-
-      - name: Build Website API
-        working-directory: ./apps/website/functions
-        run: |
-          echo "⚡ Building Website API..."
-          npm run build
-          echo "✅ API build complete"
-
-      - name: Package Website API
-        working-directory: ./apps/website/functions
-        run: |
-          mkdir -p deploy-package
-          cp -r dist/* deploy-package/ || true
-          cp host.json deploy-package/ || true
-          cp package.json deploy-package/
-          cd deploy-package
-          npm install --production
-          echo "✅ Package ready"
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: website-api-${{ needs.determine-environment.outputs.environment }}
-          path: apps/website/functions/deploy-package/**
-          if-no-files-found: error
-          retention-days: 7
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # Build Halaxy Sync Worker (Container Apps)
+  # Build Halaxy Sync Worker (Container Apps) - DISABLED
+  # Note: Halaxy data is fetched directly from APIs at request time
   # ─────────────────────────────────────────────────────────────────────────────
 
   build-halaxy-worker:
-    name: 🐳 Build Halaxy Sync Worker
+    name: 🐳 Build Halaxy Sync Worker (DISABLED)
     runs-on: ubuntu-latest
-    needs: [determine-environment, lint, type-check]
-    if: |
-      always() &&
-      needs.determine-environment.outputs.should-deploy == 'true' &&
-      needs.lint.result == 'success' &&
-      needs.type-check.result == 'success'
+    needs: [determine-environment]
+    if: false  # DISABLED - Halaxy data fetched directly from APIs
     environment: ${{ needs.determine-environment.outputs.environment }}
     outputs:
       image-tag: ${{ steps.meta.outputs.tags }}
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Check Azure Credentials
-        id: check-creds
-        run: |
-          if [ -n "${{ secrets.AZURE_CLIENT_ID }}" ] && [ -n "${{ secrets.AZURE_TENANT_ID }}" ] && [ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
-            echo "has-azure-creds=true" >> $GITHUB_OUTPUT
-            echo "✅ Azure credentials are configured"
-          else
-            echo "has-azure-creds=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Azure credentials not configured - skipping ACR push"
-          fi
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: services/halaxy-sync-worker/package-lock.json
-
-      - name: Install Worker Dependencies
-        working-directory: ./services/halaxy-sync-worker
-        run: npm ci
-
-      - name: Build Worker
-        working-directory: ./services/halaxy-sync-worker
-        run: |
-          echo "🐳 Building Halaxy Sync Worker..."
-          npm run build
-          echo "✅ Build complete"
-
-      - name: Azure Login
-        if: steps.check-creds.outputs.has-azure-creds == 'true'
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Get ACR Login Server
-        if: steps.check-creds.outputs.has-azure-creds == 'true'
-        id: acr
-        run: |
-          ACR_NAME=$(az acr list --resource-group rg-lpa-unified --query "[0].name" -o tsv 2>/dev/null || echo "")
-          if [ -z "$ACR_NAME" ]; then
-            echo "ACR not found - will be created during infra deployment"
-            echo "acr-exists=false" >> $GITHUB_OUTPUT
-          else
-            ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
-            echo "acr-exists=true" >> $GITHUB_OUTPUT
-            echo "login-server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
-            echo "name=$ACR_NAME" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Login to ACR
-        if: steps.check-creds.outputs.has-azure-creds == 'true' && steps.acr.outputs.acr-exists == 'true'
-        run: |
-          az acr login --name ${{ steps.acr.outputs.name }}
-
-      - name: Docker Meta
-        if: steps.check-creds.outputs.has-azure-creds == 'true'
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ steps.acr.outputs.login-server }}/halaxy-sync-worker
-          tags: |
-            type=sha,prefix=
-            type=ref,event=branch
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-
-      - name: Build and Push Docker Image
-        if: steps.check-creds.outputs.has-azure-creds == 'true' && steps.acr.outputs.acr-exists == 'true'
-        uses: docker/build-push-action@v5
-        with:
-          context: ./services/halaxy-sync-worker
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Build Summary
-        run: |
-          if [ "${{ steps.check-creds.outputs.has-azure-creds }}" == "true" ]; then
-            echo "✅ HALAXY SYNC WORKER BUILD COMPLETE"
-            echo "🐳 Image: ${{ steps.meta.outputs.tags }}"
-          else
-            echo "✅ HALAXY SYNC WORKER BUILD COMPLETE (TypeScript only)"
-            echo "⚠️ Docker image not pushed - Azure credentials not configured"
-            echo "📝 To enable Docker push, add these secrets to your repository:"
-            echo "   - AZURE_CLIENT_ID"
-            echo "   - AZURE_TENANT_ID"
-            echo "   - AZURE_SUBSCRIPTION_ID"
-          fi
+      - name: Skip Notice
+        run: echo "Halaxy Sync Worker is disabled - data fetched directly from APIs"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 4: DEPLOY TO AZURE
@@ -1079,55 +923,6 @@ jobs:
           echo "🔗 URL: https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net"
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Deploy Website API (Separate Azure Functions)
-  # ─────────────────────────────────────────────────────────────────────────────
-
-  deploy-website-api:
-    name: 🚀 Deploy Website API
-    runs-on: ubuntu-latest
-    needs: [determine-environment, build-website-api]
-    if: |
-      always() &&
-      needs.build-website-api.result == 'success' &&
-      needs.determine-environment.outputs.should-deploy == 'true'
-    environment: ${{ needs.determine-environment.outputs.environment }}
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: website-api-${{ needs.determine-environment.outputs.environment }}
-          path: website-api-dist
-
-      - name: Check Publish Profile
-        id: check-secret
-        run: |
-          if [ -z "${{ secrets[needs.determine-environment.outputs.website-api-secret] }}" ]; then
-            echo "secret-exists=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Website API publish profile not configured for this environment"
-          else
-            echo "secret-exists=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Deploy to Azure Functions
-        if: steps.check-secret.outputs.secret-exists == 'true'
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${{ needs.determine-environment.outputs.website-api-app }}
-          package: website-api-dist
-          publish-profile: ${{ secrets[needs.determine-environment.outputs.website-api-secret] }}
-
-      - name: Deployment Summary
-        run: |
-          if [ "${{ steps.check-secret.outputs.secret-exists }}" == "true" ]; then
-            echo "✅ WEBSITE API DEPLOYED"
-            echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
-            echo "🔗 URL: https://${{ needs.determine-environment.outputs.website-api-app }}.azurewebsites.net"
-          else
-            echo "⚠️ WEBSITE API DEPLOYMENT SKIPPED"
-            echo "📝 Configure WEBSITE_API_PUBLISH_PROFILE secret to enable deployment"
-          fi
-
-  # ─────────────────────────────────────────────────────────────────────────────
   # Deploy Bloom API
   # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1213,167 +1008,18 @@ jobs:
           echo "🔄 Halaxy Sync: Triggered automatically"
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Deploy Halaxy Sync Worker (Container Apps)
+  # Deploy Halaxy Sync Worker (Container Apps) - DISABLED
+  # Note: Halaxy data is fetched directly from APIs at request time
   # ─────────────────────────────────────────────────────────────────────────────
 
   deploy-halaxy-worker:
-    name: 🐳 Deploy Halaxy Sync Worker
+    name: 🐳 Deploy Halaxy Sync Worker (DISABLED)
     runs-on: ubuntu-latest
-    needs: [determine-environment, build-halaxy-worker]
-    if: |
-      always() &&
-      needs.build-halaxy-worker.result == 'success'
-    environment: ${{ needs.determine-environment.outputs.environment }}
+    needs: [determine-environment]
+    if: false  # DISABLED - Halaxy data fetched directly from APIs
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Check Azure Credentials
-        id: check-creds
-        run: |
-          if [ -n "${{ secrets.AZURE_CLIENT_ID }}" ] && [ -n "${{ secrets.AZURE_TENANT_ID }}" ] && [ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
-            echo "has-azure-creds=true" >> $GITHUB_OUTPUT
-            echo "✅ Azure credentials are configured"
-          else
-            echo "has-azure-creds=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Azure credentials not configured - skipping deployment"
-            echo "📝 To enable deployment, add these secrets to your repository:"
-            echo "   - AZURE_CLIENT_ID"
-            echo "   - AZURE_TENANT_ID"
-            echo "   - AZURE_SUBSCRIPTION_ID"
-          fi
-
-      - name: Azure Login
-        if: steps.check-creds.outputs.has-azure-creds == 'true'
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Update Container App
-        if: steps.check-creds.outputs.has-azure-creds == 'true'
-        run: |
-          FULL_ENV="${{ needs.determine-environment.outputs.environment }}"
-          
-          # Map full environment name to short name for resource naming
-          case "$FULL_ENV" in
-            production) ENV_SHORT="prod" ;;
-            staging) ENV_SHORT="staging" ;;
-            *) ENV_SHORT="dev" ;;
-          esac
-          
-          APP_NAME="lpa-halaxy-sync-${ENV_SHORT}"
-          RG_NAME="rg-lpa-unified"
-          
-          # Wait for the container app to exist (Bicep may still be provisioning)
-          echo "⏳ Waiting for container app $APP_NAME to exist..."
-          for i in {1..30}; do
-            if az containerapp show --name "$APP_NAME" --resource-group "$RG_NAME" --query "name" -o tsv 2>/dev/null; then
-              echo "✅ Container app exists"
-              break
-            fi
-            if [ "$i" -eq 30 ]; then
-              echo "❌ Timed out waiting for container app $APP_NAME"
-              exit 1
-            fi
-            echo "   Attempt $i/30 - container app not found, retrying in 10s..."
-            sleep 10
-          done
-          
-          # Get ACR info
-          ACR_NAME=$(az acr list --resource-group $RG_NAME --query "[0].name" -o tsv)
-          ACR_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
-          
-          # Use short SHA (7 chars) to match docker/metadata-action tag format
-          SHORT_SHA="${{ github.sha }}"
-          SHORT_SHA="${SHORT_SHA:0:7}"
-          
-          # Update container app with new image (fail the job on error)
-          az containerapp update \
-            --name $APP_NAME \
-            --resource-group $RG_NAME \
-            --image "${ACR_SERVER}/halaxy-sync-worker:${SHORT_SHA}"
-
-      - name: Verify Deployment
-        if: steps.check-creds.outputs.has-azure-creds == 'true'
-        run: |
-          FULL_ENV="${{ needs.determine-environment.outputs.environment }}"
-          
-          # Map full environment name to short name for resource naming
-          case "$FULL_ENV" in
-            production) ENV_SHORT="prod" ;;
-            staging) ENV_SHORT="staging" ;;
-            *) ENV_SHORT="dev" ;;
-          esac
-          
-          APP_NAME="lpa-halaxy-sync-${ENV_SHORT}"
-          RG_NAME="rg-lpa-unified"
-          
-          # Wait for container to be ready
-          for i in {1..30}; do
-            STATUS=$(az containerapp show --name $APP_NAME --resource-group $RG_NAME --query "properties.runningStatus" -o tsv 2>/dev/null || echo "NotFound")
-            if [ "$STATUS" == "Running" ]; then
-              echo "✅ Container is running"
-              break
-            fi
-            echo "Waiting for container to start... ($i/30)"
-            sleep 10
-          done
-
-      - name: Verify Container Health
-        if: steps.check-creds.outputs.has-azure-creds == 'true'
-        continue-on-error: true  # Don't fail deployment if health check times out
-        run: |
-          FULL_ENV="${{ needs.determine-environment.outputs.environment }}"
-          
-          # Map full environment name to short name for resource naming
-          case "$FULL_ENV" in
-            production) ENV_SHORT="prod" ;;
-            staging) ENV_SHORT="staging" ;;
-            *) ENV_SHORT="dev" ;;
-          esac
-          
-          APP_NAME="lpa-halaxy-sync-${ENV_SHORT}"
-          RG_NAME="rg-lpa-unified"
-          
-          echo "ℹ️  Note: Halaxy sync worker is a placeholder service"
-          echo "ℹ️  It provides health checks and infrastructure but does not sync data"
-          echo "ℹ️  Data is fetched directly from Halaxy public APIs at request time"
-          
-          # Just verify the container is healthy
-          echo "🔍 Checking container health..."
-          
-          for i in {1..6}; do
-            STATUS=$(az containerapp show --name $APP_NAME --resource-group $RG_NAME --query "properties.runningStatus" -o tsv 2>/dev/null || echo "NotFound")
-            
-            if [ "$STATUS" == "Running" ]; then
-              echo "✅ Container is running and healthy"
-              exit 0
-            fi
-            
-            if [ "$i" -eq 6 ]; then
-              echo "⚠️ Container status: $STATUS"
-              echo "📝 This is informational only - deployment can proceed"
-              exit 0
-            fi
-            
-            echo "   Status: $STATUS - checking again in 10s ($i/6)..."
-            sleep 10
-          done
-
-      - name: Deployment Summary
-        run: |
-          if [ "${{ steps.check-creds.outputs.has-azure-creds }}" == "true" ]; then
-            echo "✅ HALAXY SYNC WORKER DEPLOYED"
-            echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
-            echo "🐳 Container App: lpa-halaxy-sync-${{ needs.determine-environment.outputs.environment }}"
-          else
-            echo "⚠️ DEPLOYMENT SKIPPED - Azure credentials not configured"
-            echo "📝 Build was successful, but deployment requires:"
-            echo "   - AZURE_CLIENT_ID"
-            echo "   - AZURE_TENANT_ID"
-            echo "   - AZURE_SUBSCRIPTION_ID"
-          fi
+      - name: Skip Notice
+        run: echo "Halaxy Sync Worker deployment is disabled - data fetched directly from APIs"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 5: DEPLOYMENT SUMMARY
@@ -1388,8 +1034,6 @@ jobs:
       - deploy-bloom-frontend
       - deploy-bloom-api
       - deploy-website-frontend
-      - deploy-website-api
-      - deploy-halaxy-worker
     if: always()
     steps:
       - name: Generate Summary
@@ -1410,9 +1054,7 @@ jobs:
           echo "🗄️ Migrations:      ${{ needs.run-migrations.result }}"
           echo "🌸 Bloom Frontend:  ${{ needs.deploy-bloom-frontend.result }}"
           echo "🔌 Bloom API:       ${{ needs.deploy-bloom-api.result }}"
-          echo "🔄 Halaxy Worker:   ${{ needs.deploy-halaxy-worker.result }}"
           echo "🌐 Website Frontend: ${{ needs.deploy-website-frontend.result }}"
-          echo "⚡ Website API:     ${{ needs.deploy-website-api.result }}"
           echo ""
           echo "─────────────────────────────────────────────────────────────────"
           echo "APPLICATION URLS"
@@ -1427,11 +1069,9 @@ jobs:
           BLOOM_FE="${{ needs.deploy-bloom-frontend.result }}"
           BLOOM_API="${{ needs.deploy-bloom-api.result }}"
           WEBSITE_FE="${{ needs.deploy-website-frontend.result }}"
-          WEBSITE_API="${{ needs.deploy-website-api.result }}"
           
           if [[ "$MIGRATIONS" == "failure" ]] || [[ "$BLOOM_FE" == "failure" ]] || \
-             [[ "$BLOOM_API" == "failure" ]] || [[ "$WEBSITE_FE" == "failure" ]] || \
-             [[ "$WEBSITE_API" == "failure" ]]; then
+             [[ "$BLOOM_API" == "failure" ]] || [[ "$WEBSITE_FE" == "failure" ]]; then
             echo "❌ DEPLOYMENT FAILED - See logs above"
             exit 1
           else

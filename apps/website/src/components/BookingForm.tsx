@@ -454,11 +454,23 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   };
 
-  const handleSessionNext = () => {
+  const handleSessionNext = async () => {
     if (validateSessionStep()) {
-      // Track payment initiation
-      const bookingValue = appointmentType === 'couples-session' ? 300 : 
-                          appointmentType === 'ndis-psychology-session' ? 232.99 : 250;
+      // NDIS bookings skip payment - they're billed separately
+      if (appointmentType === 'ndis-psychology-session') {
+        // Track as direct booking (no payment step)
+        trackBookingConfirmed({
+          booking_value: 232.99,
+          appointment_type: appointmentType,
+        });
+        
+        // Go directly to booking creation
+        await handleSubmit();
+        return;
+      }
+      
+      // Track payment initiation for paid bookings
+      const bookingValue = appointmentType === 'couples-session' ? 300 : 250;
       trackPaymentInitiated({
         payment_method: 'card',
         booking_value: bookingValue,
@@ -1082,6 +1094,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </p>
             )}
 
+            {appointmentType === 'ndis-psychology-session' && (
+              <div className="mt-2.5 p-2.5 rounded-lg bg-green-50 border border-green-200">
+                <p className="text-sm text-green-700 font-medium">
+                  💚 NDIS-funded session — no upfront payment required. Your plan will be billed directly.
+                </p>
+              </div>
+            )}
+
             {appointmentType === 'medicare-psychologist-session' &&
               medicareSelectedThisSession && (
                 <div className="mt-2.5 p-2.5 rounded-lg bg-blue-50 border border-blue-200">
@@ -1091,7 +1111,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 </div>
               )}
 
-            {!(
+            {appointmentType !== 'ndis-psychology-session' && !(
               appointmentType === 'medicare-psychologist-session' &&
               medicareSelectedThisSession
             ) && (
@@ -1159,22 +1179,35 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 setStep('datetime');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-              className="px-4 py-2 text-xs font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
+              disabled={loading}
+              className="px-4 py-2 text-xs font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all disabled:opacity-50"
             >
               ← Back
             </button>
             <button
               type="button"
               onClick={handleSessionNext}
-              disabled={!isSessionStepValid()}
+              disabled={!isSessionStepValid() || loading}
               className={`px-5 py-2 text-xs font-semibold rounded-md transition-all ${
-                isSessionStepValid()
+                isSessionStepValid() && !loading
                   ? 'text-white bg-blue-500 hover:bg-blue-600 cursor-pointer'
                   : 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
               }`}
-              aria-disabled={!isSessionStepValid()}
+              aria-disabled={!isSessionStepValid() || loading}
             >
-              Continue →
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Booking...
+                </span>
+              ) : appointmentType === 'ndis-psychology-session' ? (
+                'Book Now →'
+              ) : (
+                'Continue →'
+              )}
             </button>
           </div>
         </div>
@@ -1285,7 +1318,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             Booking Confirmed!
           </h3>
           <p className="text-slate-500 text-lg mb-8 font-medium">
-            Your appointment has been successfully booked.
+            {appointmentType === 'ndis-psychology-session' 
+              ? 'Your NDIS-funded appointment has been booked.'
+              : 'Your appointment has been successfully booked.'}
           </p>
           <div className="rounded-xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 to-white p-6 sm:p-8 text-left mb-8" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}>
             <div className="space-y-3 text-base">
@@ -1308,6 +1343,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 <strong className="text-slate-800">{email}</strong> with your
                 appointment details and telehealth link.
               </p>
+              {appointmentType === 'ndis-psychology-session' && (
+                <p className="text-sm text-green-700 leading-relaxed font-medium mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                  💚 Your NDIS plan will be billed directly. No upfront payment required.
+                </p>
+              )}
             </div>
           </div>
           <button

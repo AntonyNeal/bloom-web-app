@@ -360,15 +360,27 @@ export class HalaxyClient {
       const existing = await this.getAllPages<FHIRPatient>('/Patient', {
         email: patientData.email,
       });
-      if (existing.length > 0) {
-        console.log(`[HalaxyClient] Found existing patient: ${existing[0].id}`);
-        return existing[0];
+      
+      // Filter out any invalid patient IDs (like 'warning' from FHIR OperationOutcome)
+      const validPatients = existing.filter(p => 
+        p.id && 
+        typeof p.id === 'string' && 
+        p.id !== 'warning' && 
+        p.id !== 'error' &&
+        !p.id.startsWith('outcome') &&
+        p.id.length > 3 // Valid Halaxy IDs are longer
+      );
+      
+      if (validPatients.length > 0) {
+        console.log(`[HalaxyClient] Found existing patient: ${validPatients[0].id}`);
+        return validPatients[0];
       }
     } catch (error) {
       console.log('[HalaxyClient] No existing patient found, creating new');
     }
 
     // Create new patient
+    console.log('[HalaxyClient] Creating new patient...');
     const fhirPatient = {
       resourceType: 'Patient',
       active: true,
@@ -385,10 +397,19 @@ export class HalaxyClient {
       ...(patientData.gender && { gender: patientData.gender }),
     };
 
-    return this.request<FHIRPatient>('/Patient', {
+    const newPatient = await this.request<FHIRPatient>('/Patient', {
       method: 'POST',
       body: JSON.stringify(fhirPatient),
     });
+
+    // Validate the returned patient has a proper ID
+    if (!newPatient.id || newPatient.id === 'warning' || newPatient.id === 'error' || newPatient.id.length <= 3) {
+      console.error('[HalaxyClient] Invalid patient ID returned from Halaxy:', newPatient);
+      throw new Error(`Halaxy returned invalid patient ID: ${newPatient.id}`);
+    }
+
+    console.log(`[HalaxyClient] Created new patient: ${newPatient.id}`);
+    return newPatient;
   }
 
   /**
@@ -407,6 +428,14 @@ export class HalaxyClient {
     healthcareServiceId?: string;
     locationType?: 'clinic' | 'telehealth' | 'home';
   }): Promise<FHIRAppointment> {
+    // Validate patient ID before attempting to create appointment
+    if (!appointmentData.patientId || 
+        appointmentData.patientId === 'warning' || 
+        appointmentData.patientId === 'error' ||
+        appointmentData.patientId.length <= 3) {
+      throw new Error(`Invalid patient ID: ${appointmentData.patientId}. Cannot create appointment.`);
+    }
+
     // Use environment variables for defaults
     const practitionerRoleId = process.env.HALAXY_PRACTITIONER_ROLE_ID || 'PR-2442591';
     const healthcareServiceId = appointmentData.healthcareServiceId || 

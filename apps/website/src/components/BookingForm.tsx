@@ -1,16 +1,12 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { halaxyClient, HalaxyClient } from '../utils/halaxyClient';
 import { TimeSlotCalendar } from './TimeSlotCalendar';
-
-// Lazy load StripePayment to reduce initial bundle size (~240KB savings)
-const StripePayment = lazy(() => import('./StripePayment').then(m => ({ default: m.StripePayment })));
 
 import {
   trackBookingStart,
   trackDetailsComplete,
   trackDatetimeSelected,
   trackPaymentInitiated,
-  trackBookingConfirmed,
   trackBookingComplete,
   trackBookingAbandonment,
 } from '../tracking';
@@ -470,6 +466,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSubmit = async () => {
     setLoading(true);
     setErrorMessage('');
@@ -1183,83 +1180,47 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       {/* Step 4: Payment */}
       {step === 'payment' && (
         <div className="flex-1 flex flex-col min-h-0 gap-[2vh]">
-          {/* Show loading overlay when creating booking after payment */}
-          {loading && (
-            <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center z-10 rounded-xl">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-b from-blue-400 to-blue-500 flex items-center justify-center mb-4" style={{ boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}>
-                <svg
-                  className="animate-spin w-8 h-8 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              </div>
-              <p className="text-lg font-semibold text-slate-800">Creating your booking...</p>
-              <p className="text-sm text-slate-500 mt-1">Please wait while we confirm your appointment</p>
+          {/* Temporarily Out of Order Message */}
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-b from-amber-400 to-amber-500 flex items-center justify-center mb-6" style={{ boxShadow: '0 4px 14px rgba(245, 158, 11, 0.4)' }}>
+              <svg
+                className="w-10 h-10 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
             </div>
-          )}
-          
-          {/* Order Summary */}
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-[1.5vh]">
-            <div className="flex justify-between items-center text-[clamp(11px,1.5vh,14px)]">
-              <span className="text-slate-600">
-                {appointmentType === 'psychologist-session'
-                  ? 'Psychologist Session'
-                  : appointmentType === 'medicare-psychologist-session'
-                    ? 'Medicare Psychologist Session'
-                    : appointmentType === 'couples-session'
-                      ? 'Couples Session'
-                      : 'NDIS Psychology Session'}
-                <span className="text-slate-400 ml-1">(60 mins)</span>
-              </span>
-              <span className="text-[clamp(14px,2vh,18px)] font-bold text-slate-800">
-                {appointmentType === 'couples-session'
-                  ? '$300.00'
-                  : appointmentType === 'ndis-psychology-session'
-                    ? '$232.99'
-                    : '$250.00'}
-              </span>
-            </div>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">
+              Online Booking Temporarily Unavailable
+            </h3>
+            <p className="text-slate-600 mb-4 max-w-sm">
+              Our online booking system is currently undergoing maintenance. Please try again soon.
+            </p>
+            <p className="text-xs text-slate-400">
+              We apologize for any inconvenience.
+            </p>
           </div>
 
-          <Suspense fallback={
-            <div className="animate-pulse space-y-[1.5vh] flex-1">
-              <div className="h-[5vh] bg-slate-100 rounded-lg"></div>
-              <div className="h-[5vh] bg-slate-100 rounded-lg"></div>
-            </div>
-          }>
-            <StripePayment
-              amount={
-                appointmentType === 'couples-session'
-                  ? 300
-                  : appointmentType === 'ndis-psychology-session'
-                    ? 232.99
-                    : 250
-              }
-              customerEmail={email}
-              customerName={`${firstName} ${lastName}`}
-              onSuccess={async (paymentIntentId) => {
-                console.log('[BookingForm] Payment successful:', paymentIntentId);
-                
-                // Track payment completion
-                trackBookingConfirmed({
-                  booking_value: appointmentType === 'couples-session' ? 300 : 
-                                 appointmentType === 'ndis-psychology-session' ? 232.99 : 250,
-                  appointment_type: appointmentType,
-                });
-                
-                // Automatically create the Halaxy booking after successful payment
-                await handleSubmit();
-              }}
-              onCancel={() => {
+          {/* Back Button */}
+          <div className="flex justify-start items-center gap-3 flex-shrink-0 pt-2 mt-auto">
+            <button
+              type="button"
+              onClick={() => {
                 setStep('session');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-            />
-          </Suspense>
+              className="px-4 py-2 text-xs font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
+            >
+              ← Back
+            </button>
+          </div>
         </div>
       )}
 

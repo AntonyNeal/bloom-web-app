@@ -552,7 +552,14 @@ export class HalaxyClient {
       );
 
       if (bundle.entry) {
-        results.push(...bundle.entry.map(e => e.resource));
+        // Filter out entries without valid resources (Halaxy sometimes returns warning entries)
+        const validResources = bundle.entry
+          .filter(e => {
+            const resource = e.resource as { id?: string };
+            return resource && resource.id && typeof resource.id === 'string' && resource.id !== 'warning';
+          })
+          .map(e => e.resource);
+        results.push(...validResources);
       }
 
       // Find next page link

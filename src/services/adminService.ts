@@ -54,6 +54,7 @@ export interface ApplicationDetail extends Application {
   DecisionReason?: string;          // Reason for decision (deny/waitlist/accept)
   WaitlistedAt?: string;            // When application was waitlisted
   AcceptedAt?: string;              // When application was accepted
+  ContractUrl?: string;             // URL to uploaded contract document
 }
 
 export interface ApplicationDocument {
@@ -116,5 +117,22 @@ export const adminService = {
     return apiRequest<{ downloadUrl: string; expiresAt: string }>(
       `/api/applications/documents/url?blobName=${encodeURIComponent(blobName)}`
     );
+  },
+
+  async updateApplication(
+    id: string,
+    data: {
+      status?: string;
+      reviewed_by?: string;
+      admin_notes?: string;
+      decision_reason?: string;
+      interview_notes?: string;
+      contract_url?: string;
+    }
+  ): Promise<{ success: boolean; message: string }> {
+    return apiRequest<{ success: boolean; message: string }>(`/api/applications/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   },
 };

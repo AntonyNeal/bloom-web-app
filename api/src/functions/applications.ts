@@ -1,7 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
-import { emailService } from '../services/email';
-import { practitionerService } from '../services/practitioner';
 
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
@@ -181,37 +179,8 @@ async function applicationsHandler(
         interview_scheduled_at?: string;
         interview_notes?: string;
         decision_reason?: string;
-        contract_url?: string;
       };
-      const { status, reviewed_by, admin_notes, interview_scheduled_at, interview_notes, decision_reason, contract_url } = body;
-
-      // If only contract_url is provided, do a simple update without status validation
-      if (contract_url && !status) {
-        context.log(`Updating contract_url for application ${id}`);
-        const result = await pool.request()
-          .input('id', sql.Int, id)
-          .input('contract_url', sql.NVarChar, contract_url)
-          .query(`
-            UPDATE applications
-            SET contract_url = @contract_url
-            OUTPUT INSERTED.*
-            WHERE id = @id
-          `);
-
-        if (result.recordset.length === 0) {
-          return {
-            status: 404,
-            headers,
-            jsonBody: { error: 'Application not found' },
-          };
-        }
-
-        return {
-          status: 200,
-          headers,
-          jsonBody: result.recordset[0],
-        };
-      }
+      const { status, reviewed_by, admin_notes, interview_scheduled_at, interview_notes, decision_reason } = body;
 
       if (!status) {
         return {
@@ -281,75 +250,11 @@ async function applicationsHandler(
         };
       }
 
-      const updatedApplication = result.recordset[0];
       context.log(`Application ${id} updated to status: ${status}`);
-
-      // Send email notification based on status change
-      const emailContext: {
-        firstName: string;
-        lastName: string;
-        email: string;
-        interviewDate?: Date;
-        interviewNotes?: string;
-        decisionReason?: string;
-        onboardingLink?: string;
-        contractUrl?: string;
-      } = {
-        firstName: updatedApplication.first_name,
-        lastName: updatedApplication.last_name,
-        email: updatedApplication.email,
-        interviewDate: interview_scheduled_at ? new Date(interview_scheduled_at) : undefined,
-        interviewNotes: interview_notes,
-        decisionReason: decision_reason,
-        contractUrl: updatedApplication.contract_url,
-      };
-
-      try {
-        let emailResult;
-        switch (status) {
-          case 'denied':
-            emailResult = await emailService.sendDenialEmail(emailContext);
-            context.log('Denial email sent:', emailResult);
-            break;
-          case 'waitlisted':
-            emailResult = await emailService.sendWaitlistEmail(emailContext);
-            context.log('Waitlist email sent:', emailResult);
-            break;
-          case 'interview_scheduled':
-            // Send interview email with booking link and contract (if uploaded)
-            emailResult = await emailService.sendInterviewEmail(emailContext);
-            context.log('Interview invitation email sent:', emailResult);
-            break;
-          case 'accepted': {
-            // Create practitioner record with onboarding token
-            context.log('Creating practitioner from application...');
-            const practitionerResult = await practitionerService.createPractitionerFromApplication(
-              pool,
-              updatedApplication
-            );
-            
-            if (practitionerResult.success && practitionerResult.onboardingLink) {
-              context.log(`Practitioner created: ${practitionerResult.practitionerId}`);
-              emailContext.onboardingLink = practitionerResult.onboardingLink;
-            } else {
-              context.warn('Failed to create practitioner:', practitionerResult.error);
-              // Still send email but without personalized onboarding link
-            }
-            
-            emailResult = await emailService.sendAcceptanceEmail(emailContext);
-            context.log('Acceptance email sent:', emailResult);
-            break;
-          }
-        }
-      } catch (emailError) {
-        // Log email error but don't fail the request
-        context.warn('Failed to send email notification:', emailError);
-      }
-
       return {
         status: 200,
         headers,
-        jsonBody: updatedApplication,
+        jsonBody: result.recordset[0],
       };
     }
 

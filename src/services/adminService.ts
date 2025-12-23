@@ -54,7 +54,6 @@ export interface ApplicationDetail extends Application {
   DecisionReason?: string;          // Reason for decision (deny/waitlist/accept)
   WaitlistedAt?: string;            // When application was waitlisted
   AcceptedAt?: string;              // When application was accepted
-  ContractUrl?: string;             // URL to uploaded practitioner agreement PDF
 }
 
 export interface ApplicationDocument {
@@ -110,28 +109,6 @@ export const adminService = {
     return apiRequest<{ success: boolean; message: string }>(`/api/applications/${id}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status, reviewedBy, reviewNotes }),
-    });
-  },
-
-  /**
-   * Update application with full workflow support
-   * Supports all new status fields: admin_notes, interview scheduling, decision reasons
-   */
-  async updateApplication(
-    id: string,
-    updates: {
-      status?: string;
-      reviewed_by?: string;
-      admin_notes?: string;
-      interview_scheduled_at?: string;
-      interview_notes?: string;
-      decision_reason?: string;
-      contract_url?: string;
-    }
-  ): Promise<ApplicationDetail> {
-    return apiRequest<ApplicationDetail>(`/api/applications/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(updates),
     });
   },
 

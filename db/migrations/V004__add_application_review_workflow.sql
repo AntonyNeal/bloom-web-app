@@ -15,50 +15,49 @@
 -- Add admin_notes column for recording review decisions
 IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('applications') AND name = 'admin_notes')
 BEGIN
-    EXEC('ALTER TABLE applications ADD admin_notes NVARCHAR(MAX) NULL');
+    ALTER TABLE applications ADD admin_notes NVARCHAR(MAX) NULL;
     PRINT 'Added admin_notes column';
 END;
 
 -- Add interview_scheduled_at column for tracking interview date/time
 IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('applications') AND name = 'interview_scheduled_at')
 BEGIN
-    EXEC('ALTER TABLE applications ADD interview_scheduled_at DATETIME2 NULL');
+    ALTER TABLE applications ADD interview_scheduled_at DATETIME2 NULL;
     PRINT 'Added interview_scheduled_at column';
 END;
 
 -- Add interview_notes column for recording interview feedback
 IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('applications') AND name = 'interview_notes')
 BEGIN
-    EXEC('ALTER TABLE applications ADD interview_notes NVARCHAR(MAX) NULL');
+    ALTER TABLE applications ADD interview_notes NVARCHAR(MAX) NULL;
     PRINT 'Added interview_notes column';
 END;
 
 -- Add decision_reason column for recording why a decision was made (useful for auditing)
 IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('applications') AND name = 'decision_reason')
 BEGIN
-    EXEC('ALTER TABLE applications ADD decision_reason NVARCHAR(500) NULL');
+    ALTER TABLE applications ADD decision_reason NVARCHAR(500) NULL;
     PRINT 'Added decision_reason column';
 END;
 
 -- Add waitlisted_at timestamp for tracking when an application was waitlisted
 IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('applications') AND name = 'waitlisted_at')
 BEGIN
-    EXEC('ALTER TABLE applications ADD waitlisted_at DATETIME2 NULL');
+    ALTER TABLE applications ADD waitlisted_at DATETIME2 NULL;
     PRINT 'Added waitlisted_at column';
 END;
 
 -- Add accepted_at timestamp for tracking when an application was accepted
 IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('applications') AND name = 'accepted_at')
 BEGIN
-    EXEC('ALTER TABLE applications ADD accepted_at DATETIME2 NULL');
+    ALTER TABLE applications ADD accepted_at DATETIME2 NULL;
     PRINT 'Added accepted_at column';
 END;
 
 -- Create index on interview_scheduled_at for efficient queries on upcoming interviews
--- Using EXEC to ensure the column exists before index creation
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_interview_scheduled_at' AND object_id = OBJECT_ID('applications'))
 BEGIN
-    EXEC('CREATE INDEX idx_interview_scheduled_at ON applications(interview_scheduled_at) WHERE interview_scheduled_at IS NOT NULL');
+    CREATE INDEX idx_interview_scheduled_at ON applications(interview_scheduled_at) WHERE interview_scheduled_at IS NOT NULL;
     PRINT 'Created index idx_interview_scheduled_at';
 END;
 

@@ -15,6 +15,8 @@ import './functions/store-booking-session';
 import './functions/get-halaxy-availability';
 import './functions/create-halaxy-booking';
 import './functions/create-payment-intent';
+import './functions/capture-payment';
+import './functions/cancel-payment';
 import './functions/halaxy-sync-timer';
 import './functions/trigger-halaxy-sync';
 import './functions/halaxy-api-discovery';

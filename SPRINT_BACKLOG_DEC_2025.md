@@ -6,21 +6,6 @@
 
 ---
 
-## ⚠️ PRODUCTION DEPLOYMENT - JANUARY 11, 2026 ⚠️
-
-> **DO NOT merge to `main` branch until January 11, 2026.**
-> 
-> All development happens on `staging` branch only.
-> Production deployment is scheduled for **Saturday, January 11, 2026**.
-> 
-> **Pre-production checklist (complete by Jan 10):**
-> - [ ] All Epic 1 & 2 features tested on staging
-> - [ ] Email templates reviewed and approved
-> - [ ] Database migrations validated on staging
-> - [ ] Stakeholder sign-off received
-
----
-
 ## Context
 
 This sprint focuses on building a proper **application lifecycle** for psychologists applying to join Bloom/Life Psychology Australia. Currently, applications are submitted but admin review is limited to basic status changes. We need:
@@ -81,10 +66,10 @@ This sprint focuses on building a proper **application lifecycle** for psycholog
 | Story | Description | Points | Status |
 |-------|-------------|--------|--------|
 | 1.1 | **DB Migration**: Add statuses `denied`, `waitlisted`, `interview_scheduled`, `accepted` to applications table | 2 | ✅ Complete |
-| 1.2 | **Admin UI**: Add action buttons for each status (Deny, Waitlist, Schedule Interview, Accept) | 3 | ✅ Complete |
-| 1.3 | **Email Templates**: Create templates for deny, waitlist, interview request | 3 | ✅ Complete |
-| 1.4 | **Interview Scheduling**: Add date/time picker, send email with booking link | 2 | ✅ Complete |
-| 1.5 | **Admin Notes**: Add notes/comments field for admin to record review decisions | 2 | ✅ Complete |
+| 1.2 | **Admin UI**: Add action buttons for each status (Deny, Waitlist, Schedule Interview, Accept) | 3 | Not Started |
+| 1.3 | **Email Templates**: Create templates for deny, waitlist, interview request | 3 | Not Started |
+| 1.4 | **Interview Scheduling**: Add date/time picker, send email with booking link | 2 | Not Started |
+| 1.5 | **Admin Notes**: Add notes/comments field for admin to record review decisions | 2 | Not Started |
 
 **Total**: 12 points
 
@@ -119,54 +104,13 @@ ALTER TABLE applications ADD interview_notes NVARCHAR(MAX) NULL;
 
 | Story | Description | Points | Status |
 |-------|-------------|--------|--------|
-| 2.1 | **DB Migration**: Create `practitioners` table with profile fields, `is_active`, `password_hash`, `onboarding_token` | 3 | ✅ Complete |
-| 2.2 | **Accept Action**: Creates practitioner record + generates onboarding token + sends invite email | 3 | ✅ Complete |
-| 2.3 | **Onboarding Page**: `/onboarding/:token` - set username/password, complete profile | 5 | ✅ Complete |
-| 2.4 | **Contract Workflow**: Upload contract, include in email, require acceptance during onboarding | 3 | ✅ Complete |
-| 2.5 | **Platform Tour**: Walkthrough/tour on first login | 3 | Not Started |
-| 2.6 | **Admin Active Toggle**: Toggle `is_active` in admin practitioner view | 2 | Not Started |
+| 2.1 | **DB Migration**: Create `practitioners` table with profile fields, `is_active`, `password_hash`, `onboarding_token` | 3 | Not Started |
+| 2.2 | **Accept Action**: Creates practitioner record + generates onboarding token + sends invite email | 3 | Not Started |
+| 2.3 | **Onboarding Page**: `/onboarding/:token` - set username/password, complete profile | 5 | Not Started |
+| 2.4 | **Platform Tour**: Walkthrough/tour on first login | 3 | Not Started |
+| 2.5 | **Admin Active Toggle**: Toggle `is_active` in admin practitioner view | 2 | Not Started |
 
-**Total**: 19 points (16 complete, 3 remaining)
-
----
-
-## Epic 3: NDIS Free Booking Flow ⭐ P1
-
-**Goal**: NDIS bookings skip payment step entirely (NDIS is billed separately)
-
-| Story | Description | Points | Status |
-|-------|-------------|--------|--------|
-| 3.1 | **Booking Form Update**: Detect NDIS funding type and skip payment step | 2 | Not Started |
-| 3.2 | **API Update**: Allow bookings without payment intent for NDIS | 2 | Not Started |
-| 3.3 | **Confirmation Flow**: Show NDIS-specific confirmation message | 1 | Not Started |
-| 3.4 | **Halaxy Integration**: Ensure NDIS appointments tagged correctly in Halaxy | 2 | Not Started |
-
-**Total**: 7 points
-
-### Technical Details - Epic 3
-
-**3.1 Booking Form Logic**
-- In `BookingForm.tsx`, check if funding type is "NDIS"
-- If NDIS: skip payment step, go directly to confirmation
-- If Private/Medicare: continue to payment as normal
-
-**3.2 API Changes**
-- `create-halaxy-booking.ts` should accept bookings without `paymentIntentId` when funding type is NDIS
-- Add validation: NDIS bookings must have NDIS number provided
-
-**3.3 Confirmation Message**
-```
-Your NDIS-funded appointment has been booked!
-
-Date: {date}
-Time: {time}
-
-Your NDIS plan will be billed directly. No upfront payment required.
-```
-
-**3.4 Halaxy Tagging**
-- Ensure appointment is created with correct funding source in Halaxy
-- NDIS appointments should be flagged for separate billing workflow
+**Total**: 16 points
 
 ### Technical Details - Epic 2
 
@@ -219,147 +163,30 @@ CREATE INDEX idx_practitioners_onboarding_token ON practitioners(onboarding_toke
 
 ---
 
-## Epic 4: Clinician Booking Notifications ⭐ P1
-
-**Goal**: Notify clinicians via SMS and email when a new booking is made via website (Halaxy doesn't send notifications for API-created bookings)
-
-| Story | Description | Points | Status |
-|-------|-------------|--------|--------|
-| 4.1 | **SMS Service**: Integrate SMS provider (Twilio/Azure Communication Services) | 2 | ⏸️ Deferred |
-| 4.2 | **Email Template**: Create new booking notification email template | 1 | ✅ Complete |
-| 4.3 | **SMS Template**: Create new booking notification SMS template | 1 | ⏸️ Deferred |
-| 4.4 | **Booking API Hook**: Trigger notifications after successful Halaxy booking | 3 | ✅ Complete |
-| 4.5 | **Practitioner Contact Lookup**: Get clinician email/phone from DB practitioner data | 2 | ✅ Complete |
-| 4.6 | **Notification Preferences**: Allow clinicians to opt-in/out of SMS/email (future) | 3 | ⏸️ Deferred |
-
-**Total**: 12 points (6 completed, 6 deferred to future sprint)
-
-**Implementation Notes:**
-- Email notifications implemented using Azure Communication Services
-- SMS notifications deferred (requires additional Azure SMS setup/provisioning)
-- Notification preferences deferred as future enhancement
-
-### Technical Details - Epic 4
-
-**4.1 SMS Service**
-- Use Azure Communication Services (already in Azure subscription) or Twilio
-- Create `api/src/services/sms.ts`
-- Handle delivery status tracking
-
-**4.2 Email Template - New Booking**
-```
-Subject: New Booking: {patient_name} - {appointment_date}
-
-Hi {clinician_first_name},
-
-You have a new booking:
-
-Patient: {patient_name}
-Date: {appointment_date}
-Time: {appointment_time}
-Service: {service_type}
-
-View in Halaxy: {halaxy_link}
-
-Regards,
-Bloom Booking System
-```
-
-**3.3 SMS Template - New Booking**
-```
-New booking: {patient_name}, {appointment_date} at {appointment_time}. 
-Check Halaxy for details.
-```
-
-**4.4 Booking API Integration**
-- Hook into `create-halaxy-booking.ts` after successful appointment creation
-- Get practitioner details from Halaxy API
-- Send both email and SMS in parallel
-- Don't fail booking if notification fails (log error only)
-
-**4.5 Practitioner Contact Info**
-- Query Halaxy practitioner endpoint to get email/phone
-- Cache practitioner details to reduce API calls
-- Fallback: use configured contact info in environment variables
-
----
-
-## Epic 5: LPA Website Team Page ⭐ P2 (Next Sprint)
+## Epic 3: LPA Website Team Page ⭐ P2 (Next Sprint)
 
 **Goal**: Auto-generated team page from active practitioners
 
 | Story | Description | Points | Status |
 |-------|-------------|--------|--------|
-| 5.1 | **API Endpoint**: `GET /api/public/practitioners` returns active practitioners only | 2 | Not Started |
-| 5.2 | **Team Page**: Build `/our-team` page in `apps/website` | 5 | Not Started |
-| 5.3 | **Performance**: Ensure CLS=0, LCP < 2.5s | 1 | Not Started |
+| 3.1 | **API Endpoint**: `GET /api/public/practitioners` returns active practitioners only | 2 | Not Started |
+| 3.2 | **Team Page**: Build `/our-team` page in `apps/website` | 5 | Not Started |
+| 3.3 | **Performance**: Ensure CLS=0, LCP < 2.5s | 1 | Not Started |
 
 **Total**: 8 points
 
 ---
 
-## Epic 6: Social Media Link Preview Optimization ⭐ P2
-
-**Goal**: Maximize branding when URLs are shared on social media (LinkedIn priority)
-
-| Story | Description | Points | Status |
-|-------|-------------|--------|--------|
-| 6.1 | **Audit Current OG Tags**: Review all pages for Open Graph and Twitter Card meta tags | 1 | Not Started |
-| 6.2 | **LinkedIn-Optimized Images**: Create 1200x627px branded preview images for key pages | 2 | Not Started |
-| 6.3 | **Dynamic OG Tags**: Implement per-page OG titles, descriptions, and images | 3 | Not Started |
-| 6.4 | **Practitioner Profile Previews**: Auto-generate social cards for each practitioner | 3 | Not Started |
-| 6.5 | **Validation & Testing**: Test with LinkedIn Post Inspector, Facebook Debugger, Twitter Card Validator | 1 | Not Started |
-
-**Total**: 10 points
-
-### Technical Details - Epic 6
-
-**6.1 Required Meta Tags**
-```html
-<!-- Open Graph (LinkedIn, Facebook) -->
-<meta property="og:title" content="Page Title" />
-<meta property="og:description" content="Description" />
-<meta property="og:image" content="https://url-to-image.png" />
-<meta property="og:url" content="https://canonical-url" />
-<meta property="og:type" content="website" />
-<meta property="og:site_name" content="Life Psychology Australia" />
-
-<!-- LinkedIn-specific -->
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="627" />
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Page Title" />
-<meta name="twitter:description" content="Description" />
-<meta name="twitter:image" content="https://url-to-image.png" />
-```
-
-**6.2 Image Requirements for LinkedIn**
-- Minimum: 1200 x 627 px (1.91:1 ratio)
-- File size: < 5MB
-- Format: PNG or JPG
-- Include brand logo, clean typography
-
-**6.3 Key Pages to Optimize**
-- Homepage (lifepsychologyaustralia.com.au)
-- Bloom Portal (bloom.lifepsychologyaustralia.com.au)
-- Join Us / Careers page
-- Individual practitioner profiles
-- Blog posts (if applicable)
-
----
-
-## Epic 7: Multi-Clinician Booking 🔮 Future Sprint
+## Epic 4: Multi-Clinician Booking 🔮 Future Sprint
 
 **Goal**: Update booking flow to support multiple clinicians
 
 | Story | Description | Points | Status |
 |-------|-------------|--------|--------|
-| 7.1 | Update booking CTA to show clinician selector | 5 | Not Started |
-| 7.2 | Filter availability by selected clinician | 5 | Not Started |
-| 7.3 | Update Halaxy integration for multi-practitioner | 5 | Not Started |
-| 7.4 | Update booking confirmation with clinician details | 2 | Not Started |
+| 4.1 | Update booking CTA to show clinician selector | 5 | Not Started |
+| 4.2 | Filter availability by selected clinician | 5 | Not Started |
+| 4.3 | Update Halaxy integration for multi-practitioner | 5 | Not Started |
+| 4.4 | Update booking confirmation with clinician details | 2 | Not Started |
 
 **Total**: 17 points
 
@@ -370,14 +197,11 @@ Check Halaxy for details.
 ### This Sprint (Dec 22 - Jan 4)
 - ✅ **Epic 1**: Application Review Workflow (12 points)
 - ✅ **Epic 2**: Acceptance + Onboarding (16 points)
-- 🔄 **Epic 3**: NDIS Free Booking Flow (7 points)
-- 🔄 **Epic 4**: Clinician Booking Notifications (12 points)
-- **Total**: 47 points
+- **Total**: 28 points
 
 ### Next Sprint (Jan 4+)
-- Epic 5: Team Page
-- Epic 6: Social Media Optimization
-- Epic 7: Multi-Clinician Booking
+- Epic 3: Team Page
+- Epic 4: Multi-Clinician Booking
 
 ---
 

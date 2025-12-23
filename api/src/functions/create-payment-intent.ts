@@ -95,10 +95,11 @@ async function createPaymentIntent(
 
     const stripe = getStripeClient(context);
 
-    // Create PaymentIntent with Stripe
+    // Create PaymentIntent with manual capture (authorize now, capture after booking)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: body.amount,
       currency: body.currency,
+      capture_method: 'manual', // Authorize only - capture after booking succeeds
       metadata: {
         customer_email: body.customerEmail,
         customer_name: body.customerName || '',

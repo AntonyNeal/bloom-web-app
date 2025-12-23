@@ -1,14 +1,12 @@
 # LIFE PSYCHOLOGY UNIFIED CI/CD WORKFLOW
 # Combined Application Deployment + Database Migrations
-# Last updated: 2025-12-23
+# Last updated: 2025-12-06
 #
 # APPLICATIONS:
 # 1. Bloom Portal (apps/bloom) + Bloom API (api/)
-# 2. Website (apps/website) - uses Bloom API
-# 3. Database Migrations (db/migrations)
-#
-# NOTE: Website API (apps/website/functions) has been removed - all functions consolidated into Bloom API
-# NOTE: Halaxy Sync Worker has been disabled - data is fetched directly from Halaxy APIs
+# 2. Website (apps/website) + Website API (apps/website/functions)
+# 3. Halaxy DB Realtime Sync Service (api/src/services/halaxy/)
+# 4. Database Migrations (db/migrations)
 #
 # ENVIRONMENTS:
 # - Development (develop branch)
@@ -63,10 +61,10 @@ on:
         type: boolean
         default: true
       deploy_halaxy_sync:
-        description: 'Deploy Halaxy Sync Service (DISABLED)'
+        description: 'Deploy Halaxy Sync Service'
         required: false
         type: boolean
-        default: false
+        default: true
       dry_run_migrations:
         description: 'Dry run migrations (preview only)'
         required: false
@@ -278,49 +276,14 @@ jobs:
 # ═══════════════════════════════════════════════════════════════════════════════
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Detect Migration Changes
-  # ─────────────────────────────────────────────────────────────────────────────
-
-  detect-migrations:
-    name: 🔍 Detect Migration Changes
-    runs-on: ubuntu-latest
-    outputs:
-      has_migrations: ${{ steps.check.outputs.has_migrations }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Check for Migration Changes
-        id: check
-        run: |
-          # For manual dispatch, use the input
-          if [ "${{ github.event.inputs.run_migrations }}" == "true" ]; then
-            echo "has_migrations=true" >> $GITHUB_OUTPUT
-            echo "✅ Migrations enabled via manual input"
-            exit 0
-          fi
-          
-          # For push events, check if migration files changed
-          if git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q "^db/migrations/"; then
-            echo "has_migrations=true" >> $GITHUB_OUTPUT
-            echo "✅ Migration files changed - will run migrations"
-            git diff --name-only HEAD~1 HEAD | grep "^db/migrations/"
-          else
-            echo "has_migrations=false" >> $GITHUB_OUTPUT
-            echo "ℹ️ No migration file changes detected"
-          fi
-
-  # ─────────────────────────────────────────────────────────────────────────────
   # Validate Migrations
   # ─────────────────────────────────────────────────────────────────────────────
 
   validate-migrations:
     name: ✅ Validate Migrations
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-migrations]
-    if: needs.detect-migrations.outputs.has_migrations == 'true'
+    needs: [determine-environment]
+    if: github.event.inputs.run_migrations == 'true'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -379,12 +342,12 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
 
   run-migrations:
-    name: 🗄️ Run Flyway Migrations (${{ needs.determine-environment.outputs.db-environment }})
+    name: 🗄️ Run Migrations (${{ needs.determine-environment.outputs.db-environment }})
     runs-on: ubuntu-latest
-    needs: [determine-environment, detect-migrations, validate-migrations, lint, type-check]
+    needs: [determine-environment, validate-migrations, lint, type-check]
     if: |
       always() &&
-      needs.detect-migrations.outputs.has_migrations == 'true' &&
+      github.event.inputs.run_migrations == 'true' &&
       needs.validate-migrations.result == 'success' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success' &&
@@ -394,6 +357,21 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION_API }}
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: api
+        run: npm ci
+
+      - name: Build API
+        working-directory: api
+        run: npm run build
+
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -401,131 +379,126 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Get Database Connection from Key Vault
-        id: db-config
+      - name: Get Connection Strings from Key Vault
+        id: secrets
         run: |
           ENV_SUFFIX="${{ needs.determine-environment.outputs.db-environment == 'prod' && 'PROD' || 'DEV' }}"
+          
+          # Use the actual Key Vault name (includes random suffix from Bicep deployment)
           KV_NAME="lpa-kv-dev-i3u6u6psuu75o"
           
-          echo "📦 Environment: ${{ needs.determine-environment.outputs.db-environment }}"
-          echo "🔑 Fetching SQL-${ENV_SUFFIX}-CONNECTION-STRING from Key Vault..."
-          
-          CONN_STR=$(az keyvault secret show \
+          SQL_CONN=$(az keyvault secret show \
             --name "SQL-${ENV_SUFFIX}-CONNECTION-STRING" \
             --vault-name "$KV_NAME" \
-            --query value -o tsv)
+            --query value -o tsv 2>/dev/null || echo "")
           
-          if [ -z "$CONN_STR" ]; then
-            echo "❌ Could not retrieve connection string from Key Vault"
-            exit 1
+          if [ -n "$SQL_CONN" ]; then
+            echo "SQL_CONNECTION_STRING=$SQL_CONN" >> $GITHUB_ENV
           fi
           
-          # Parse connection string for Flyway JDBC URL
-          # Handle both formats: Server=tcp:xxx,1433 and Server=xxx
-          if echo "$CONN_STR" | grep -q "Server=tcp:"; then
-            SERVER=$(echo "$CONN_STR" | sed -n 's/.*Server=tcp:\([^,;]*\).*/\1/p')
-          else
-            SERVER=$(echo "$CONN_STR" | sed -n 's/.*Server=\([^;,]*\).*/\1/p')
+          COSMOS_CONN=$(az keyvault secret show \
+            --name "COSMOS-${ENV_SUFFIX}-CONNECTION-STRING" \
+            --vault-name "$KV_NAME" \
+            --query value -o tsv 2>/dev/null || echo "")
+          
+          if [ -n "$COSMOS_CONN" ]; then
+            echo "DBVC_COSMOS_CONNECTION_STRING=$COSMOS_CONN" >> $GITHUB_ENV
           fi
-          
-          # Handle both formats: Initial Catalog and Database
-          if echo "$CONN_STR" | grep -qi "Initial Catalog"; then
-            DATABASE=$(echo "$CONN_STR" | sed -n 's/.*Initial Catalog=\([^;]*\).*/\1/ip' | head -1)
-          else
-            DATABASE=$(echo "$CONN_STR" | sed -n 's/.*Database=\([^;]*\).*/\1/ip' | head -1)
-          fi
-          
-          # Handle both formats: User ID and User Id
-          USER=$(echo "$CONN_STR" | sed -n 's/.*User I[Dd]=\([^;]*\).*/\1/p' | head -1)
-          
-          # Handle both formats: Password and Pwd
-          PASSWORD=$(echo "$CONN_STR" | sed -n 's/.*Password=\([^;]*\).*/\1/ip' | head -1)
-          if [ -z "$PASSWORD" ]; then
-            PASSWORD=$(echo "$CONN_STR" | sed -n 's/.*Pwd=\([^;]*\).*/\1/ip' | head -1)
-          fi
-          
-          echo "::add-mask::$PASSWORD"
-          
-          # Build JDBC URL for SQL Server
-          JDBC_URL="jdbc:sqlserver://${SERVER}:1433;database=${DATABASE};encrypt=true;trustServerCertificate=false;loginTimeout=30"
-          
-          echo "🗄️ Database: $DATABASE"
-          echo "🔗 Server: $SERVER"
-          
-          echo "FLYWAY_URL=$JDBC_URL" >> $GITHUB_OUTPUT
-          echo "FLYWAY_USER=$USER" >> $GITHUB_OUTPUT
-          echo "FLYWAY_PASSWORD=$PASSWORD" >> $GITHUB_OUTPUT
-          echo "DB_NAME=$DATABASE" >> $GITHUB_OUTPUT
 
-      - name: Flyway Info (Pre-migration)
-        uses: docker://flyway/flyway:10
-        with:
-          args: >-
-            -url="${{ steps.db-config.outputs.FLYWAY_URL }}"
-            -user="${{ steps.db-config.outputs.FLYWAY_USER }}"
-            -password="${{ steps.db-config.outputs.FLYWAY_PASSWORD }}"
-            -locations="filesystem:./db/migrations"
-            -table=flyway_schema_history
-            -baselineOnMigrate=true
-            -baselineVersion=0
-            info
-
-      - name: Flyway Validate
-        id: validate
-        uses: docker://flyway/flyway:10
-        with:
-          args: >-
-            -url="${{ steps.db-config.outputs.FLYWAY_URL }}"
-            -user="${{ steps.db-config.outputs.FLYWAY_USER }}"
-            -password="${{ steps.db-config.outputs.FLYWAY_PASSWORD }}"
-            -locations="filesystem:./db/migrations"
-            -table=flyway_schema_history
-            -baselineOnMigrate=true
-            -baselineVersion=0
-            validate
-        continue-on-error: true
-
-      - name: Flyway Migrate
+      - name: Run Migrations
         id: migrate
-        uses: docker://flyway/flyway:10
-        with:
-          args: >-
-            -url="${{ steps.db-config.outputs.FLYWAY_URL }}"
-            -user="${{ steps.db-config.outputs.FLYWAY_USER }}"
-            -password="${{ steps.db-config.outputs.FLYWAY_PASSWORD }}"
-            -locations="filesystem:./db/migrations"
-            -table=flyway_schema_history
-            -baselineOnMigrate=true
-            -baselineVersion=0
-            -mixed=true
-            -outOfOrder=false
-            -validateMigrationNaming=true
-            migrate
+        working-directory: api
+        env:
+          SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
+          DRY_RUN: ${{ github.event.inputs.dry_run_migrations || github.event_name == 'pull_request' }}
+        run: |
+          echo "🚀 Building database schema for ${{ needs.determine-environment.outputs.db-environment }}..."
+          
+          # Build schema from single source of truth
+          node build-schema.js
+        continue-on-error: ${{ github.event.inputs.dry_run_migrations == 'true' || github.event_name == 'pull_request' }}
 
-      - name: Flyway Info (Post-migration)
-        if: success()
-        uses: docker://flyway/flyway:10
-        with:
-          args: >-
-            -url="${{ steps.db-config.outputs.FLYWAY_URL }}"
-            -user="${{ steps.db-config.outputs.FLYWAY_USER }}"
-            -password="${{ steps.db-config.outputs.FLYWAY_PASSWORD }}"
-            -locations="filesystem:./db/migrations"
-            -table=flyway_schema_history
-            info
+      - name: Extended Validation (Staging)
+        if: |
+          success() && 
+          needs.determine-environment.outputs.is-staging-validation == 'true' && 
+          github.event.inputs.dry_run_migrations != 'true' &&
+          github.event_name != 'pull_request'
+        working-directory: api
+        env:
+          SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
+        run: |
+          echo "🔬 Running extended validation tests (staging branch - second pass)..."
+          echo "📋 This validates migrations are safe to promote to production"
+          
+          # Simple validation - check schema_versions table
+          cat > extended-validation.js << 'EOF'
+          const sql = require('mssql');
+          
+          async function main() {
+            let pool;
+            try {
+              pool = await sql.connect(process.env.SQL_CONNECTION_STRING);
+              
+              console.log('\n🔬 EXTENDED VALIDATION SUITE');
+              console.log('━'.repeat(50));
+              
+              // Check schema_versions table
+              const result = await pool.request().query(`
+                SELECT version, description, applied_at, applied_by 
+                FROM schema_versions 
+                ORDER BY applied_at DESC
+              `);
+              
+              console.log(`\n📋 Applied migrations: ${result.recordset.length}`);
+              for (const row of result.recordset.slice(0, 5)) {
+                console.log(`   ✅ ${row.version}: ${row.description}`);
+              }
+              
+              // Simple schema check
+              const tablesResult = await pool.request().query(`
+                SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES 
+                WHERE TABLE_TYPE = 'BASE TABLE'
+              `);
+              console.log(`\n📊 Tables in database: ${tablesResult.recordset.length}`);
+              
+              console.log('\n' + '━'.repeat(50));
+              console.log('✅ EXTENDED VALIDATION PASSED');
+              
+              await pool.close();
+              process.exit(0);
+            } catch (error) {
+              console.error('❌ Extended validation error:', error.message);
+              if (pool) await pool.close();
+              process.exit(1);
+            }
+          }
+          
+          main();
+          EOF
+          
+          node extended-validation.js
 
       - name: Migration Summary
         if: always()
-        run: |
-          echo "## 🗄️ Flyway Migration Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | \`${{ needs.determine-environment.outputs.db-environment }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Database | \`${{ steps.db-config.outputs.DB_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Validation | \`${{ steps.validate.outcome }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Migration | \`${{ steps.migrate.outcome }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Commit | \`${GITHUB_SHA::7}\` |" >> $GITHUB_STEP_SUMMARY
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const success = '${{ steps.migrate.outcome }}' === 'success';
+            const environment = '${{ needs.determine-environment.outputs.db-environment }}';
+            const dryRun = '${{ github.event.inputs.dry_run_migrations }}' === 'true' || '${{ github.event_name }}' === 'pull_request';
+            
+            const summary = `## 🗃️ Database Migration Summary
+            
+            | Property | Value |
+            |----------|-------|
+            | Environment | \`${environment}\` |
+            | Dry Run | ${dryRun ? '✅ Yes' : '❌ No'} |
+            | Status | ${success ? '✅ Success' : '❌ Failed'} |
+            | Commit | \`${context.sha.substring(0, 7)}\` |
+            `;
+            
+            await core.summary.addRaw(summary).write();
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Rollback on Failure (Production only)
@@ -599,13 +572,11 @@ jobs:
 
       - name: Build Bloom Application
         env:
-          # Map environment to Vite mode - staging uses .env.staging, production uses .env.production
-          MODE: ${{ needs.determine-environment.outputs.environment }}
+          MODE: ${{ needs.determine-environment.outputs.environment == 'production' && 'production' || 'development' }}
           VITE_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
         run: |
           echo "🌸 Building Bloom Frontend..."
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
-          echo "📦 Using Vite mode: $MODE"
           npm run build:bloom -- --mode $MODE
           echo "✅ Build complete"
 
@@ -820,21 +791,116 @@ jobs:
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Build Halaxy Sync Worker (Container Apps) - DISABLED
-  # Note: Halaxy data is fetched directly from APIs at request time
+  # Build Halaxy Sync Worker (Container Apps)
   # ─────────────────────────────────────────────────────────────────────────────
 
   build-halaxy-worker:
-    name: 🐳 Build Halaxy Sync Worker (DISABLED)
+    name: 🐳 Build Halaxy Sync Worker
     runs-on: ubuntu-latest
-    needs: [determine-environment]
-    if: false  # DISABLED - Halaxy data fetched directly from APIs
+    needs: [determine-environment, lint, type-check]
+    # Temporarily disabled - uncomment the condition below to re-enable
+    if: false
+    # if: |
+    #   always() &&
+    #   needs.determine-environment.outputs.should-deploy == 'true' &&
+    #   needs.lint.result == 'success' &&
+    #   needs.type-check.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     outputs:
       image-tag: ${{ steps.meta.outputs.tags }}
     steps:
-      - name: Skip Notice
-        run: echo "Halaxy Sync Worker is disabled - data fetched directly from APIs"
+      - uses: actions/checkout@v4
+      
+      - name: Check Azure Credentials
+        id: check-creds
+        run: |
+          if [ -n "${{ secrets.AZURE_CLIENT_ID }}" ] && [ -n "${{ secrets.AZURE_TENANT_ID }}" ] && [ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+            echo "has-azure-creds=true" >> $GITHUB_OUTPUT
+            echo "✅ Azure credentials are configured"
+          else
+            echo "has-azure-creds=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Azure credentials not configured - skipping ACR push"
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: services/halaxy-sync-worker/package-lock.json
+
+      - name: Install Worker Dependencies
+        working-directory: ./services/halaxy-sync-worker
+        run: npm ci
+
+      - name: Build Worker
+        working-directory: ./services/halaxy-sync-worker
+        run: |
+          echo "🐳 Building Halaxy Sync Worker..."
+          npm run build
+          echo "✅ Build complete"
+
+      - name: Azure Login
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get ACR Login Server
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
+        id: acr
+        run: |
+          ACR_NAME=$(az acr list --resource-group rg-lpa-unified --query "[0].name" -o tsv 2>/dev/null || echo "")
+          if [ -z "$ACR_NAME" ]; then
+            echo "ACR not found - will be created during infra deployment"
+            echo "acr-exists=false" >> $GITHUB_OUTPUT
+          else
+            ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
+            echo "acr-exists=true" >> $GITHUB_OUTPUT
+            echo "login-server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
+            echo "name=$ACR_NAME" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Login to ACR
+        if: steps.check-creds.outputs.has-azure-creds == 'true' && steps.acr.outputs.acr-exists == 'true'
+        run: |
+          az acr login --name ${{ steps.acr.outputs.name }}
+
+      - name: Docker Meta
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.acr.outputs.login-server }}/halaxy-sync-worker
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and Push Docker Image
+        if: steps.check-creds.outputs.has-azure-creds == 'true' && steps.acr.outputs.acr-exists == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/halaxy-sync-worker
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Build Summary
+        run: |
+          if [ "${{ steps.check-creds.outputs.has-azure-creds }}" == "true" ]; then
+            echo "✅ HALAXY SYNC WORKER BUILD COMPLETE"
+            echo "🐳 Image: ${{ steps.meta.outputs.tags }}"
+          else
+            echo "✅ HALAXY SYNC WORKER BUILD COMPLETE (TypeScript only)"
+            echo "⚠️ Docker image not pushed - Azure credentials not configured"
+            echo "📝 To enable Docker push, add these secrets to your repository:"
+            echo "   - AZURE_CLIENT_ID"
+            echo "   - AZURE_TENANT_ID"
+            echo "   - AZURE_SUBSCRIPTION_ID"
+          fi
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 4: DEPLOY TO AZURE
@@ -1008,18 +1074,169 @@ jobs:
           echo "🔄 Halaxy Sync: Triggered automatically"
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Deploy Halaxy Sync Worker (Container Apps) - DISABLED
-  # Note: Halaxy data is fetched directly from APIs at request time
+  # Deploy Halaxy Sync Worker (Container Apps)
   # ─────────────────────────────────────────────────────────────────────────────
 
   deploy-halaxy-worker:
-    name: 🐳 Deploy Halaxy Sync Worker (DISABLED)
+    name: 🐳 Deploy Halaxy Sync Worker
     runs-on: ubuntu-latest
-    needs: [determine-environment]
-    if: false  # DISABLED - Halaxy data fetched directly from APIs
+    needs: [determine-environment, build-halaxy-worker]
+    # Temporarily disabled - uncomment the condition below to re-enable
+    if: false
+    # if: |
+    #   always() &&
+    #   needs.build-halaxy-worker.result == 'success'
+    environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
-      - name: Skip Notice
-        run: echo "Halaxy Sync Worker deployment is disabled - data fetched directly from APIs"
+      - uses: actions/checkout@v4
+
+      - name: Check Azure Credentials
+        id: check-creds
+        run: |
+          if [ -n "${{ secrets.AZURE_CLIENT_ID }}" ] && [ -n "${{ secrets.AZURE_TENANT_ID }}" ] && [ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+            echo "has-azure-creds=true" >> $GITHUB_OUTPUT
+            echo "✅ Azure credentials are configured"
+          else
+            echo "has-azure-creds=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Azure credentials not configured - skipping deployment"
+            echo "📝 To enable deployment, add these secrets to your repository:"
+            echo "   - AZURE_CLIENT_ID"
+            echo "   - AZURE_TENANT_ID"
+            echo "   - AZURE_SUBSCRIPTION_ID"
+          fi
+
+      - name: Azure Login
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Update Container App
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
+        run: |
+          FULL_ENV="${{ needs.determine-environment.outputs.environment }}"
+          
+          # Map full environment name to short name for resource naming
+          case "$FULL_ENV" in
+            production) ENV_SHORT="prod" ;;
+            staging) ENV_SHORT="staging" ;;
+            *) ENV_SHORT="dev" ;;
+          esac
+          
+          APP_NAME="lpa-halaxy-sync-${ENV_SHORT}"
+          RG_NAME="rg-lpa-unified"
+          
+          # Wait for the container app to exist (Bicep may still be provisioning)
+          echo "⏳ Waiting for container app $APP_NAME to exist..."
+          for i in {1..30}; do
+            if az containerapp show --name "$APP_NAME" --resource-group "$RG_NAME" --query "name" -o tsv 2>/dev/null; then
+              echo "✅ Container app exists"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "❌ Timed out waiting for container app $APP_NAME"
+              exit 1
+            fi
+            echo "   Attempt $i/30 - container app not found, retrying in 10s..."
+            sleep 10
+          done
+          
+          # Get ACR info
+          ACR_NAME=$(az acr list --resource-group $RG_NAME --query "[0].name" -o tsv)
+          ACR_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
+          
+          # Use short SHA (7 chars) to match docker/metadata-action tag format
+          SHORT_SHA="${{ github.sha }}"
+          SHORT_SHA="${SHORT_SHA:0:7}"
+          
+          # Update container app with new image (fail the job on error)
+          az containerapp update \
+            --name $APP_NAME \
+            --resource-group $RG_NAME \
+            --image "${ACR_SERVER}/halaxy-sync-worker:${SHORT_SHA}"
+
+      - name: Verify Deployment
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
+        run: |
+          FULL_ENV="${{ needs.determine-environment.outputs.environment }}"
+          
+          # Map full environment name to short name for resource naming
+          case "$FULL_ENV" in
+            production) ENV_SHORT="prod" ;;
+            staging) ENV_SHORT="staging" ;;
+            *) ENV_SHORT="dev" ;;
+          esac
+          
+          APP_NAME="lpa-halaxy-sync-${ENV_SHORT}"
+          RG_NAME="rg-lpa-unified"
+          
+          # Wait for container to be ready
+          for i in {1..30}; do
+            STATUS=$(az containerapp show --name $APP_NAME --resource-group $RG_NAME --query "properties.runningStatus" -o tsv 2>/dev/null || echo "NotFound")
+            if [ "$STATUS" == "Running" ]; then
+              echo "✅ Container is running"
+              break
+            fi
+            echo "Waiting for container to start... ($i/30)"
+            sleep 10
+          done
+
+      - name: Verify Container Health
+        if: steps.check-creds.outputs.has-azure-creds == 'true'
+        continue-on-error: true  # Don't fail deployment if health check times out
+        run: |
+          FULL_ENV="${{ needs.determine-environment.outputs.environment }}"
+          
+          # Map full environment name to short name for resource naming
+          case "$FULL_ENV" in
+            production) ENV_SHORT="prod" ;;
+            staging) ENV_SHORT="staging" ;;
+            *) ENV_SHORT="dev" ;;
+          esac
+          
+          APP_NAME="lpa-halaxy-sync-${ENV_SHORT}"
+          RG_NAME="rg-lpa-unified"
+          
+          echo "ℹ️  Note: Halaxy sync worker is a placeholder service"
+          echo "ℹ️  It provides health checks and infrastructure but does not sync data"
+          echo "ℹ️  Data is fetched directly from Halaxy public APIs at request time"
+          
+          # Just verify the container is healthy
+          echo "🔍 Checking container health..."
+          
+          for i in {1..6}; do
+            STATUS=$(az containerapp show --name $APP_NAME --resource-group $RG_NAME --query "properties.runningStatus" -o tsv 2>/dev/null || echo "NotFound")
+            
+            if [ "$STATUS" == "Running" ]; then
+              echo "✅ Container is running and healthy"
+              exit 0
+            fi
+            
+            if [ "$i" -eq 6 ]; then
+              echo "⚠️ Container status: $STATUS"
+              echo "📝 This is informational only - deployment can proceed"
+              exit 0
+            fi
+            
+            echo "   Status: $STATUS - checking again in 10s ($i/6)..."
+            sleep 10
+          done
+
+      - name: Deployment Summary
+        run: |
+          if [ "${{ steps.check-creds.outputs.has-azure-creds }}" == "true" ]; then
+            echo "✅ HALAXY SYNC WORKER DEPLOYED"
+            echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
+            echo "🐳 Container App: lpa-halaxy-sync-${{ needs.determine-environment.outputs.environment }}"
+          else
+            echo "⚠️ DEPLOYMENT SKIPPED - Azure credentials not configured"
+            echo "📝 Build was successful, but deployment requires:"
+            echo "   - AZURE_CLIENT_ID"
+            echo "   - AZURE_TENANT_ID"
+            echo "   - AZURE_SUBSCRIPTION_ID"
+          fi
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 5: DEPLOYMENT SUMMARY
@@ -1034,6 +1251,7 @@ jobs:
       - deploy-bloom-frontend
       - deploy-bloom-api
       - deploy-website-frontend
+      - deploy-halaxy-worker
     if: always()
     steps:
       - name: Generate Summary
@@ -1054,6 +1272,7 @@ jobs:
           echo "🗄️ Migrations:      ${{ needs.run-migrations.result }}"
           echo "🌸 Bloom Frontend:  ${{ needs.deploy-bloom-frontend.result }}"
           echo "🔌 Bloom API:       ${{ needs.deploy-bloom-api.result }}"
+          echo "🔄 Halaxy Worker:   ${{ needs.deploy-halaxy-worker.result }}"
           echo "🌐 Website Frontend: ${{ needs.deploy-website-frontend.result }}"
           echo ""
           echo "─────────────────────────────────────────────────────────────────"

@@ -113,9 +113,7 @@ jobs:
       bloom-api-url: ${{ steps.config.outputs.bloom_api_url }}
       # Website
       website-frontend-app: ${{ steps.config.outputs.website_frontend_app }}
-      website-api-app: ${{ steps.config.outputs.website_api_app }}
       website-frontend-secret: ${{ steps.config.outputs.website_frontend_secret }}
-      website-api-secret: ${{ steps.config.outputs.website_api_secret }}
     steps:
       - name: Set Environment Configuration
         id: config
@@ -173,9 +171,7 @@ jobs:
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD"
               BLOOM_API_SECRET="BLOOM_PROD_API_PUBLISH_PROFILE"
               WEBSITE_FRONTEND_APP="lpa-frontend-prod"
-              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_PROD"
-              WEBSITE_API_SECRET=""
               SHOULD_DEPLOY="true"
               ;;
             staging)
@@ -185,9 +181,7 @@ jobs:
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_STAGING"
               BLOOM_API_SECRET="BLOOM_STAGING_API_PUBLISH_PROFILE"
               WEBSITE_FRONTEND_APP="lpa-frontend-staging"
-              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_STAGING"
-              WEBSITE_API_SECRET=""
               SHOULD_DEPLOY="true"
               ;;
             development)
@@ -197,9 +191,7 @@ jobs:
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_DEV"
               BLOOM_API_SECRET="BLOOM_DEV_API_PUBLISH_PROFILE"
               WEBSITE_FRONTEND_APP="lpa-frontend-dev"
-              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_DEV"
-              WEBSITE_API_SECRET=""
               SHOULD_DEPLOY="true"
               ;;
             preview)
@@ -209,9 +201,7 @@ jobs:
               BLOOM_FRONTEND_SECRET=""
               BLOOM_API_SECRET=""
               WEBSITE_FRONTEND_APP="lpa-frontend-dev"
-              WEBSITE_API_APP=""
               WEBSITE_FRONTEND_SECRET=""
-              WEBSITE_API_SECRET=""
               SHOULD_DEPLOY="false"
               ;;
           esac
@@ -231,9 +221,7 @@ jobs:
           
           # Website
           echo "website_frontend_app=$WEBSITE_FRONTEND_APP" >> $GITHUB_OUTPUT
-          echo "website_api_app=$WEBSITE_API_APP" >> $GITHUB_OUTPUT
           echo "website_frontend_secret=$WEBSITE_FRONTEND_SECRET" >> $GITHUB_OUTPUT
-          echo "website_api_secret=$WEBSITE_API_SECRET" >> $GITHUB_OUTPUT
 
           echo ""
           echo "═══════════════════════════════════════════════════════"
@@ -803,59 +791,6 @@ jobs:
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Build Website API
-  # ─────────────────────────────────────────────────────────────────────────────
-
-  build-website-api:
-    name: ⚡ Build Website API
-    runs-on: ubuntu-latest
-    needs: [determine-environment, lint, type-check]
-    if: |
-      always() &&
-      needs.determine-environment.outputs.should-deploy == 'true' &&
-      needs.lint.result == 'success' &&
-      needs.type-check.result == 'success'
-    environment: ${{ needs.determine-environment.outputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION_API }}
-          cache: 'npm'
-
-      - name: Install Website API Dependencies
-        working-directory: ./apps/website/functions
-        run: npm install
-
-      - name: Build Website API
-        working-directory: ./apps/website/functions
-        run: |
-          echo "⚡ Building Website API..."
-          npm run build
-          echo "✅ API build complete"
-
-      - name: Package Website API
-        working-directory: ./apps/website/functions
-        run: |
-          mkdir -p deploy-package
-          cp -r dist/* deploy-package/ || true
-          cp host.json deploy-package/ || true
-          cp package.json deploy-package/
-          cd deploy-package
-          npm install --production
-          echo "✅ Package ready"
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: website-api-${{ needs.determine-environment.outputs.environment }}
-          path: apps/website/functions/deploy-package/**
-          if-no-files-found: error
-          retention-days: 7
-
-  # ─────────────────────────────────────────────────────────────────────────────
   # Build Halaxy Sync Worker (Container Apps)
   # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1050,55 +985,6 @@ jobs:
           echo "✅ WEBSITE FRONTEND DEPLOYED"
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
           echo "🔗 URL: https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net"
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # Deploy Website API (Separate Azure Functions)
-  # ─────────────────────────────────────────────────────────────────────────────
-
-  deploy-website-api:
-    name: 🚀 Deploy Website API
-    runs-on: ubuntu-latest
-    needs: [determine-environment, build-website-api]
-    if: |
-      always() &&
-      needs.build-website-api.result == 'success' &&
-      needs.determine-environment.outputs.should-deploy == 'true'
-    environment: ${{ needs.determine-environment.outputs.environment }}
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: website-api-${{ needs.determine-environment.outputs.environment }}
-          path: website-api-dist
-
-      - name: Check Publish Profile
-        id: check-secret
-        run: |
-          if [ -z "${{ secrets[needs.determine-environment.outputs.website-api-secret] }}" ]; then
-            echo "secret-exists=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Website API publish profile not configured for this environment"
-          else
-            echo "secret-exists=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Deploy to Azure Functions
-        if: steps.check-secret.outputs.secret-exists == 'true'
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${{ needs.determine-environment.outputs.website-api-app }}
-          package: website-api-dist
-          publish-profile: ${{ secrets[needs.determine-environment.outputs.website-api-secret] }}
-
-      - name: Deployment Summary
-        run: |
-          if [ "${{ steps.check-secret.outputs.secret-exists }}" == "true" ]; then
-            echo "✅ WEBSITE API DEPLOYED"
-            echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
-            echo "🔗 URL: https://${{ needs.determine-environment.outputs.website-api-app }}.azurewebsites.net"
-          else
-            echo "⚠️ WEBSITE API DEPLOYMENT SKIPPED"
-            echo "📝 Configure WEBSITE_API_PUBLISH_PROFILE secret to enable deployment"
-          fi
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Deploy Bloom API
@@ -1361,7 +1247,6 @@ jobs:
       - deploy-bloom-frontend
       - deploy-bloom-api
       - deploy-website-frontend
-      - deploy-website-api
       - deploy-halaxy-worker
     if: always()
     steps:
@@ -1385,7 +1270,6 @@ jobs:
           echo "🔌 Bloom API:       ${{ needs.deploy-bloom-api.result }}"
           echo "🔄 Halaxy Worker:   ${{ needs.deploy-halaxy-worker.result }}"
           echo "🌐 Website Frontend: ${{ needs.deploy-website-frontend.result }}"
-          echo "⚡ Website API:     ${{ needs.deploy-website-api.result }}"
           echo ""
           echo "─────────────────────────────────────────────────────────────────"
           echo "APPLICATION URLS"
@@ -1400,11 +1284,9 @@ jobs:
           BLOOM_FE="${{ needs.deploy-bloom-frontend.result }}"
           BLOOM_API="${{ needs.deploy-bloom-api.result }}"
           WEBSITE_FE="${{ needs.deploy-website-frontend.result }}"
-          WEBSITE_API="${{ needs.deploy-website-api.result }}"
           
           if [[ "$MIGRATIONS" == "failure" ]] || [[ "$BLOOM_FE" == "failure" ]] || \
-             [[ "$BLOOM_API" == "failure" ]] || [[ "$WEBSITE_FE" == "failure" ]] || \
-             [[ "$WEBSITE_API" == "failure" ]]; then
+             [[ "$BLOOM_API" == "failure" ]] || [[ "$WEBSITE_FE" == "failure" ]]; then
             echo "❌ DEPLOYMENT FAILED - See logs above"
             exit 1
           else

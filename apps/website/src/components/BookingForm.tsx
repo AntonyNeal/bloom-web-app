@@ -64,9 +64,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   const [medicareSelectedThisSession, setMedicareSelectedThisSession] =
     useState(false);
 
-  // Payment state for Authorize → Book → Capture flow
-  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
-
   // Phone verification state
   const [verificationId, setVerificationId] = useState<number | null>(null);
   const [verificationCode, setVerificationCode] = useState('');
@@ -496,7 +493,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   const handlePaymentAuthorized = async (authorizedPaymentIntentId: string) => {
     setLoading(true);
     setErrorMessage('');
-    setPaymentIntentId(authorizedPaymentIntentId);
 
     try {
       // Build appointment start/end times
@@ -559,7 +555,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           }
         );
 
-        if (!captureResponse.success || !captureResponse.data?.success) {
+        if (!captureResponse.success) {
           // Payment capture failed - but booking exists
           // Log error but still show success (payment is authorized, will be captured later)
           console.error('[BookingForm] Payment capture failed:', captureResponse);

@@ -169,12 +169,12 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                       style={{ 
                         display: 'block', 
                         verticalAlign: 'bottom', 
-                        aspectRatio: isPortraitVariant ? '500 / 731' : '4 / 3',
+                        aspectRatio: '500 / 731',
                         objectFit: 'cover',
                         objectPosition: 'center top'
                       }}
-                      width={isPortraitVariant ? 500 : 500}
-                      height={isPortraitVariant ? 731 : 375}
+                      width={500}
+                      height={731}
                       loading="eager"
                       decoding="async"
                       fetchPriority="high"

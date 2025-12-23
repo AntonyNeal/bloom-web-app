@@ -223,6 +223,31 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
     hidePostalCode: true,
   };
 
+  // Temporarily disable payments
+  const PAYMENTS_DISABLED = true;
+
+  if (PAYMENTS_DISABLED) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0 gap-4 p-6">
+        <div className="text-6xl">🔧</div>
+        <h3 className="text-xl font-semibold text-slate-700">Payment System Maintenance</h3>
+        <p className="text-slate-500 text-center max-w-md">
+          Our payment system is temporarily undergoing maintenance. We'll be back up and running shortly!
+        </p>
+        <p className="text-slate-400 text-sm">
+          Please try again in a few minutes.
+        </p>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="mt-4 px-6 py-2 text-sm font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
+        >
+          ← Back
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 gap-[1.5vh]">
       {/* Google Pay / Apple Pay Button */}

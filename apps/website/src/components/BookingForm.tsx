@@ -1395,10 +1395,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Success State */}
       {step === 'success' && (
-        <div className="text-center py-8 sm:py-12">
-          <div className="mb-6 w-24 h-24 mx-auto rounded-2xl bg-gradient-to-b from-blue-400 to-blue-500 flex items-center justify-center border-4 border-blue-300" style={{ boxShadow: '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 2px 0 rgba(255,255,255,0.3)' }}>
+        <div className="text-center py-4 sm:py-6 overflow-y-auto flex-1">
+          <div className="mb-4 w-20 h-20 mx-auto rounded-2xl bg-gradient-to-b from-blue-400 to-blue-500 flex items-center justify-center border-4 border-blue-300" style={{ boxShadow: '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 2px 0 rgba(255,255,255,0.3)' }}>
             <svg
-              className="w-12 h-12 text-white"
+              className="w-10 h-10 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -1411,14 +1411,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               />
             </svg>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-800 mb-3">
+          <h3 className="text-xl sm:text-2xl font-extrabold text-slate-800 mb-2">
             Booking Confirmed!
           </h3>
-          <p className="text-slate-500 text-lg mb-8 font-medium">
+          <p className="text-slate-500 text-base mb-4 font-medium">
             Your appointment has been successfully booked.
           </p>
-          <div className="rounded-xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 to-white p-6 sm:p-8 text-left mb-8" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}>
-            <div className="space-y-3 text-base">
+          <div className="rounded-xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 to-white p-4 sm:p-6 text-left mb-4" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}>
+            <div className="space-y-2 text-base">
               <div className="flex flex-col sm:flex-row sm:gap-2 py-2 border-b border-slate-200">
                 <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
                   Appointment ID
@@ -1432,7 +1432,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 <span className="text-slate-800 font-semibold">{formatDateForDisplay()}</span>
               </div>
             </div>
-            <div className="mt-6 pt-6 border-t-2 border-slate-200">
+            <div className="mt-4 pt-4 border-t-2 border-slate-200">
               <p className="text-sm text-slate-600 leading-relaxed font-medium">
                 A confirmation email has been sent to{' '}
                 <strong className="text-slate-800">{email}</strong> with your
@@ -1442,7 +1442,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
           <button
             onClick={onCancel}
-            className="px-10 py-4 bg-gradient-to-b from-blue-500 to-blue-600 text-white text-base font-bold rounded-lg border-2 border-blue-400 hover:from-blue-400 hover:to-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
+            className="px-8 py-3 bg-gradient-to-b from-blue-500 to-blue-600 text-white text-base font-bold rounded-lg border-2 border-blue-400 hover:from-blue-400 hover:to-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
             style={{ boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
           >
             Done

@@ -188,7 +188,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </button>
 
         {/* Booking form - fills available space, content scales */}
-        <div className="p-[2vh] flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className="p-[2vh] flex-1 flex flex-col min-h-0 overflow-y-auto">
           {isReady ? (
             <div className="animate-fadeIn flex-1 flex flex-col min-h-0">
               <Suspense fallback={<BookingFormSkeleton />}>

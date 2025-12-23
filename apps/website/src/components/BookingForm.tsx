@@ -583,44 +583,83 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         onSuccess?.(result.appointmentId);
       } else {
         // Booking failed - cancel the payment authorization
-        console.log('[BookingForm] Booking failed, canceling payment authorization...');
+        console.log('[BookingForm] Booking failed, canceling payment authorization...', { 
+          paymentIntentId: authorizedPaymentIntentId,
+          bookingError: result.error 
+        });
         
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071/api';
-        try {
-          await apiService.post(
-            `${apiUrl}/cancel-payment`,
-            { 
-              paymentIntentId: authorizedPaymentIntentId,
-              reason: 'booking_failed',
+        let cancelSuccess = false;
+        
+        // Retry cancel up to 3 times
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            const cancelResponse = await apiService.post<{ success: boolean }>(
+              `${apiUrl}/cancel-payment`,
+              { 
+                paymentIntentId: authorizedPaymentIntentId,
+                reason: 'booking_failed',
+              }
+            );
+            console.log('[BookingForm] Payment authorization canceled', { attempt, response: cancelResponse });
+            cancelSuccess = true;
+            break;
+          } catch (cancelError) {
+            console.error(`[BookingForm] Failed to cancel payment (attempt ${attempt}/3):`, cancelError);
+            if (attempt < 3) {
+              await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Wait 1s, 2s, 3s
             }
-          );
-          console.log('[BookingForm] Payment authorization canceled');
-        } catch (cancelError) {
-          console.error('[BookingForm] Failed to cancel payment:', cancelError);
+          }
         }
 
-        setErrorMessage(
-          result.error || 'Failed to create booking. Your payment has not been charged. Please try again.'
-        );
+        if (!cancelSuccess) {
+          // Critical: Payment cancel failed - alert user to contact support
+          console.error('[BookingForm] CRITICAL: Failed to cancel payment authorization after 3 attempts');
+          setErrorMessage(
+            'Failed to create booking. There was an issue releasing the payment hold. Please contact support@life-psychology.com.au with reference: ' + authorizedPaymentIntentId
+          );
+        } else {
+          setErrorMessage(
+            result.error || 'Failed to create booking. Your payment has not been charged. Please try again.'
+          );
+        }
         setStep('error');
       }
     } catch (error) {
       console.error('[BookingForm] Submission error:', error);
       
-      // Try to cancel the payment authorization
+      // Try to cancel the payment authorization with retries
+      let cancelSuccess = false;
       if (authorizedPaymentIntentId) {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071/api';
-        try {
-          await apiService.post(
-            `${apiUrl}/cancel-payment`,
-            { 
-              paymentIntentId: authorizedPaymentIntentId,
-              reason: 'booking_error',
+        
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            await apiService.post(
+              `${apiUrl}/cancel-payment`,
+              { 
+                paymentIntentId: authorizedPaymentIntentId,
+                reason: 'booking_error',
+              }
+            );
+            console.log('[BookingForm] Payment authorization canceled after error', { attempt });
+            cancelSuccess = true;
+            break;
+          } catch (cancelError) {
+            console.error(`[BookingForm] Failed to cancel payment after error (attempt ${attempt}/3):`, cancelError);
+            if (attempt < 3) {
+              await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
             }
+          }
+        }
+        
+        if (!cancelSuccess) {
+          console.error('[BookingForm] CRITICAL: Failed to cancel payment authorization after error');
+          setErrorMessage(
+            'An unexpected error occurred. There was an issue releasing the payment hold. Please contact support@life-psychology.com.au with reference: ' + authorizedPaymentIntentId
           );
-          console.log('[BookingForm] Payment authorization canceled after error');
-        } catch (cancelError) {
-          console.error('[BookingForm] Failed to cancel payment after error:', cancelError);
+          setStep('error');
+          return;
         }
       }
       

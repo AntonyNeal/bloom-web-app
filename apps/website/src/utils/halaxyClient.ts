@@ -21,6 +21,7 @@ interface AppointmentDetails {
   endTime: string;
   minutesDuration: number;
   notes?: string;
+  appointmentType?: string; // e.g., 'ndis-psychology-session', 'standard-psychology-session'
 }
 
 interface SessionData {

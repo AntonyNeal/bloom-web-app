@@ -420,12 +420,157 @@ Zoe & The ${BLOOM_NAME} Team
   );
 }
 
+// ============================================================================
+// CLINICIAN BOOKING NOTIFICATION TEMPLATES
+// ============================================================================
+
+interface BookingNotificationContext {
+  practitionerEmail: string;
+  practitionerFirstName: string;
+  patientFirstName: string;
+  patientLastName: string;
+  patientEmail: string;
+  patientPhone?: string;
+  appointmentDateTime: Date;
+  appointmentType?: string;
+}
+
+/**
+ * Send email notification to clinician when a new booking is made
+ */
+export async function sendClinicianBookingNotification(context: BookingNotificationContext) {
+  const {
+    practitionerEmail,
+    practitionerFirstName,
+    patientFirstName,
+    patientLastName,
+    patientEmail,
+    patientPhone,
+    appointmentDateTime,
+    appointmentType,
+  } = context;
+
+  // Format the appointment date/time nicely for Australian timezone
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedDateTime = appointmentDateTime.toLocaleString('en-AU', dateOptions);
+  
+  // Format time only for quick reference
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedTime = appointmentDateTime.toLocaleString('en-AU', timeOptions);
+
+  // Get appointment type display text
+  const appointmentTypeDisplay = appointmentType === 'ndis-psychology-session' 
+    ? '🟢 NDIS Psychology Session'
+    : '💜 Standard Psychology Session';
+
+  const htmlContent = wrapInTemplate(`
+    <h2 style="color: #333; margin-top: 0;">📅 New Booking Alert</h2>
+    
+    <p>Hi ${practitionerFirstName},</p>
+    
+    <p>Great news! You have a new appointment booked through ${BLOOM_NAME}.</p>
+    
+    <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #10b981;">
+      <h3 style="margin: 0 0 15px 0; color: #166534;">Appointment Details</h3>
+      
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #666; width: 120px;"><strong>📅 When:</strong></td>
+          <td style="padding: 8px 0; color: #333;">${formattedDateTime}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #666;"><strong>🏷️ Type:</strong></td>
+          <td style="padding: 8px 0; color: #333;">${appointmentTypeDisplay}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin: 20px 0;">
+      <h3 style="margin: 0 0 15px 0; color: #334155;">Client Information</h3>
+      
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #666; width: 120px;"><strong>👤 Name:</strong></td>
+          <td style="padding: 8px 0; color: #333;">${patientFirstName} ${patientLastName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #666;"><strong>📧 Email:</strong></td>
+          <td style="padding: 8px 0; color: #333;"><a href="mailto:${patientEmail}" style="color: #10b981;">${patientEmail}</a></td>
+        </tr>
+        ${patientPhone ? `
+        <tr>
+          <td style="padding: 8px 0; color: #666;"><strong>📱 Phone:</strong></td>
+          <td style="padding: 8px 0; color: #333;"><a href="tel:${patientPhone}" style="color: #10b981;">${patientPhone}</a></td>
+        </tr>
+        ` : ''}
+      </table>
+    </div>
+    
+    <p style="color: #666; font-size: 14px;">
+      <em>This booking was made through the ${BLOOM_NAME} website. 
+      Please check Halaxy for full appointment details and client history.</em>
+    </p>
+    
+    <p style="margin-top: 30px;">
+      Best regards,<br>
+      <strong>The ${BLOOM_NAME} Team</strong>
+    </p>
+  `);
+
+  const plainTextContent = `
+📅 New Booking Alert
+
+Hi ${practitionerFirstName},
+
+Great news! You have a new appointment booked through ${BLOOM_NAME}.
+
+APPOINTMENT DETAILS
+-------------------
+📅 When: ${formattedDateTime}
+🏷️ Type: ${appointmentTypeDisplay}
+
+CLIENT INFORMATION
+------------------
+👤 Name: ${patientFirstName} ${patientLastName}
+📧 Email: ${patientEmail}
+${patientPhone ? `📱 Phone: ${patientPhone}` : ''}
+
+This booking was made through the ${BLOOM_NAME} website.
+Please check Halaxy for full appointment details and client history.
+
+Best regards,
+The ${BLOOM_NAME} Team
+  `.trim();
+
+  return sendEmail(
+    practitionerEmail,
+    `📅 New Booking: ${patientFirstName} ${patientLastName} - ${formattedTime}`,
+    htmlContent,
+    plainTextContent
+  );
+}
+
 // Export email service
 export const emailService = {
   sendDenialEmail,
   sendWaitlistEmail,
   sendInterviewEmail,
   sendAcceptanceEmail,
+  sendClinicianBookingNotification,
 };
 
 export default emailService;

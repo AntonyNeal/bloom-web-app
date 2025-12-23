@@ -4,6 +4,7 @@
  * Azure Function to create appointments in Halaxy from the website.
  * Creates or finds the patient, then creates the appointment.
  * Stores booking session data for analytics tracking.
+ * Sends notification to clinician when booking is created.
  */
 import {
   app,
@@ -13,6 +14,7 @@ import {
 } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy/client';
 import { getDbConnection } from '../services/database';
+import { sendClinicianBookingNotification } from '../services/email';
 import * as sql from 'mssql';
 
 interface PatientData {
@@ -30,6 +32,7 @@ interface AppointmentDetails {
   minutesDuration: number;
   practitionerId?: string;
   notes?: string;
+  appointmentType?: string; // e.g., 'ndis-psychology-session', 'standard-psychology-session'
 }
 
 interface SessionData {
@@ -54,6 +57,12 @@ interface BookingResponse {
   bookingSessionId?: string;
   message?: string;
   error?: string;
+}
+
+interface PractitionerContact {
+  email: string;
+  firstName: string;
+  phone?: string;
 }
 
 /**
@@ -97,6 +106,41 @@ async function getDefaultPractitionerId(context: InvocationContext): Promise<str
   }
 
   throw new Error('No practitioner configured for bookings. Please set HALAXY_PRACTITIONER_ID environment variable.');
+}
+
+/**
+ * Get practitioner contact info for notifications
+ */
+async function getPractitionerContact(
+  practitionerId: string,
+  context: InvocationContext
+): Promise<PractitionerContact | null> {
+  try {
+    const pool = await getDbConnection();
+    
+    const result = await pool.request()
+      .input('halaxyId', sql.NVarChar, practitionerId)
+      .query<{ email: string; first_name: string; phone: string | null }>(`
+        SELECT email, first_name, phone 
+        FROM practitioners 
+        WHERE halaxy_practitioner_id = @halaxyId
+      `);
+
+    if (result.recordset.length > 0) {
+      const practitioner = result.recordset[0];
+      return {
+        email: practitioner.email,
+        firstName: practitioner.first_name,
+        phone: practitioner.phone || undefined,
+      };
+    }
+    
+    context.warn(`Practitioner not found in database for Halaxy ID: ${practitionerId}`);
+    return null;
+  } catch (error) {
+    context.error('Failed to get practitioner contact:', error);
+    return null;
+  }
 }
 
 /**
@@ -282,6 +326,35 @@ async function createHalaxyBooking(
       body.sessionData,
       context
     );
+
+    // Step 4: Send notification to clinician (non-blocking)
+    try {
+      const practitionerContact = await getPractitionerContact(practitionerId, context);
+      if (practitionerContact) {
+        context.log(`Sending booking notification to: ${practitionerContact.email}`);
+        const notificationResult = await sendClinicianBookingNotification({
+          practitionerEmail: practitionerContact.email,
+          practitionerFirstName: practitionerContact.firstName,
+          patientFirstName: body.patient.firstName,
+          patientLastName: body.patient.lastName,
+          patientEmail: body.patient.email,
+          patientPhone: body.patient.phone,
+          appointmentDateTime: new Date(body.appointmentDetails.startTime),
+          appointmentType: body.appointmentDetails.appointmentType,
+        });
+        
+        if (notificationResult.success) {
+          context.log('Clinician notification sent successfully');
+        } else {
+          context.warn('Clinician notification failed:', notificationResult.error);
+        }
+      } else {
+        context.warn('Could not send notification - practitioner contact not found');
+      }
+    } catch (notifyError) {
+      // Log but don't fail the booking if notification fails
+      context.warn('Error sending clinician notification:', notifyError);
+    }
 
     // Success response
     return {

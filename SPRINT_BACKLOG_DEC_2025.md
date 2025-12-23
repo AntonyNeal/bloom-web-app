@@ -225,14 +225,19 @@ CREATE INDEX idx_practitioners_onboarding_token ON practitioners(onboarding_toke
 
 | Story | Description | Points | Status |
 |-------|-------------|--------|--------|
-| 4.1 | **SMS Service**: Integrate SMS provider (Twilio/Azure Communication Services) | 2 | Not Started |
-| 4.2 | **Email Template**: Create new booking notification email template | 1 | Not Started |
-| 4.3 | **SMS Template**: Create new booking notification SMS template | 1 | Not Started |
-| 4.4 | **Booking API Hook**: Trigger notifications after successful Halaxy booking | 3 | Not Started |
-| 4.5 | **Practitioner Contact Lookup**: Get clinician email/phone from Halaxy practitioner data | 2 | Not Started |
-| 4.6 | **Notification Preferences**: Allow clinicians to opt-in/out of SMS/email (future) | 3 | Not Started |
+| 4.1 | **SMS Service**: Integrate SMS provider (Twilio/Azure Communication Services) | 2 | ⏸️ Deferred |
+| 4.2 | **Email Template**: Create new booking notification email template | 1 | ✅ Complete |
+| 4.3 | **SMS Template**: Create new booking notification SMS template | 1 | ⏸️ Deferred |
+| 4.4 | **Booking API Hook**: Trigger notifications after successful Halaxy booking | 3 | ✅ Complete |
+| 4.5 | **Practitioner Contact Lookup**: Get clinician email/phone from DB practitioner data | 2 | ✅ Complete |
+| 4.6 | **Notification Preferences**: Allow clinicians to opt-in/out of SMS/email (future) | 3 | ⏸️ Deferred |
 
-**Total**: 12 points
+**Total**: 12 points (6 completed, 6 deferred to future sprint)
+
+**Implementation Notes:**
+- Email notifications implemented using Azure Communication Services
+- SMS notifications deferred (requires additional Azure SMS setup/provisioning)
+- Notification preferences deferred as future enhancement
 
 ### Technical Details - Epic 4
 

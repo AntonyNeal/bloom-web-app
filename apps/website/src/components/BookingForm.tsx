@@ -513,10 +513,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         endTime: string;
         minutesDuration: number;
         notes?: string;
+        appointmentType?: string;
       } = {
         startTime: HalaxyClient.formatDateTime(startDateTime),
         endTime: HalaxyClient.formatDateTime(endDateTime),
         minutesDuration: 60,
+        appointmentType, // Pass appointment type for notification email
       };
 
       // Include appointment type and notes

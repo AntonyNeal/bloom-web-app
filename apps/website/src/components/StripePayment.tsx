@@ -224,7 +224,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   };
 
   // Temporarily disable payments
-  const PAYMENTS_DISABLED = true;
+  const PAYMENTS_DISABLED = false;
 
   if (PAYMENTS_DISABLED) {
     return (

@@ -231,9 +231,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         <p className="text-slate-500 text-center max-w-md">
           Our payment system is temporarily undergoing maintenance. We'll be back up and running shortly!
         </p>
-        <p className="text-slate-400 text-sm">
-          Please try again in a few minutes.
-        </p>
         <button
           type="button"
           onClick={onCancel}

@@ -1,3 +1,9 @@
+/**
+ * Cancel Payment Function
+ * 
+ * Cancels a previously authorized payment if booking fails.
+ * Used in the Authorize → Book → Capture flow.
+ */
 import {
   app,
   HttpRequest,
@@ -26,22 +32,16 @@ function getStripeClient(context: InvocationContext): Stripe {
   return stripeClient;
 }
 
-interface CreatePaymentIntentRequest {
-  amount: number;
-  currency: string;
-  customerEmail: string;
-  customerName?: string;
-  serviceType?: string;
+interface CancelPaymentRequest {
+  paymentIntentId: string;
+  reason?: string;
 }
 
-async function createPaymentIntent(
+async function cancelPayment(
   req: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  context.log('Processing create-payment-intent request', {
-    method: req.method,
-    url: req.url,
-  });
+  context.log('Processing cancel-payment request');
 
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -56,11 +56,9 @@ async function createPaymentIntent(
   }
 
   try {
-    // Parse request body
-    const body = (await req.json()) as CreatePaymentIntentRequest;
+    const body = (await req.json()) as CancelPaymentRequest;
 
-    // Validate required fields
-    if (!body.amount || !body.currency || !body.customerEmail) {
+    if (!body.paymentIntentId) {
       return {
         status: 400,
         headers: {
@@ -68,48 +66,26 @@ async function createPaymentIntent(
           'Content-Type': 'application/json',
         },
         jsonBody: {
-          error: 'Missing required fields: amount, currency, customerEmail',
+          error: 'Missing required field: paymentIntentId',
         },
       };
     }
 
-    // Validate amount is positive
-    if (body.amount <= 0) {
-      return {
-        status: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json',
-        },
-        jsonBody: {
-          error: 'Amount must be greater than 0',
-        },
-      };
-    }
-
-    context.log('Creating payment intent', {
-      amount: body.amount,
-      currency: body.currency,
-      customerEmail: body.customerEmail,
+    context.log('Canceling payment', { 
+      paymentIntentId: body.paymentIntentId,
+      reason: body.reason || 'booking_failed',
     });
 
     const stripe = getStripeClient(context);
 
-    // Create PaymentIntent with manual capture (authorize now, capture after booking)
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: body.amount,
-      currency: body.currency,
-      capture_method: 'manual', // Authorize only - capture after booking succeeds
-      metadata: {
-        customer_email: body.customerEmail,
-        customer_name: body.customerName || '',
-        service_type: body.serviceType || 'appointment',
-      },
-      receipt_email: body.customerEmail,
+    // Cancel the authorized payment
+    const paymentIntent = await stripe.paymentIntents.cancel(body.paymentIntentId, {
+      cancellation_reason: 'requested_by_customer',
     });
 
-    context.log('Payment intent created successfully', {
+    context.log('Payment canceled successfully', {
       paymentIntentId: paymentIntent.id,
+      status: paymentIntent.status,
     });
 
     return {
@@ -119,14 +95,14 @@ async function createPaymentIntent(
         'Content-Type': 'application/json',
       },
       jsonBody: {
-        clientSecret: paymentIntent.client_secret,
+        success: true,
         paymentIntentId: paymentIntent.id,
+        status: paymentIntent.status,
       },
     };
   } catch (error) {
-    context.error('Error creating payment intent:', error);
+    context.error('Error canceling payment:', error);
 
-    // Handle Stripe errors
     if (error instanceof Stripe.errors.StripeError) {
       return {
         status: 400,
@@ -135,13 +111,13 @@ async function createPaymentIntent(
           'Content-Type': 'application/json',
         },
         jsonBody: {
+          success: false,
           error: error.message,
           type: error.type,
         },
       };
     }
 
-    // Handle other errors
     return {
       status: 500,
       headers: {
@@ -149,17 +125,17 @@ async function createPaymentIntent(
         'Content-Type': 'application/json',
       },
       jsonBody: {
-        error: 'Failed to create payment intent',
+        success: false,
+        error: 'Failed to cancel payment',
         message: error instanceof Error ? error.message : 'Unknown error',
       },
     };
   }
 }
 
-// Register the function
-app.http('createPaymentIntent', {
+app.http('cancelPayment', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'create-payment-intent',
-  handler: createPaymentIntent,
+  route: 'cancel-payment',
+  handler: cancelPayment,
 });

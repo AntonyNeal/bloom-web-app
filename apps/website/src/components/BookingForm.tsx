@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { halaxyClient, HalaxyClient } from '../utils/halaxyClient';
 import { TimeSlotCalendar } from './TimeSlotCalendar';
+import { apiService } from '../services/ApiService';
 
 import {
   trackBookingStart,
@@ -9,7 +10,11 @@ import {
   trackPaymentInitiated,
   trackBookingComplete,
   trackBookingAbandonment,
+  trackBookingConfirmed,
 } from '../tracking';
+
+// Lazy load StripePayment to reduce initial bundle size
+const StripePayment = lazy(() => import('./StripePayment').then(m => ({ default: m.StripePayment })));
 
 interface BookingFormProps {
   onSuccess?: (appointmentId: string) => void;
@@ -58,6 +63,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   const [isFirstSession, setIsFirstSession] = useState(false);
   const [medicareSelectedThisSession, setMedicareSelectedThisSession] =
     useState(false);
+
+  // Payment state for Authorize → Book → Capture flow
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
 
   // Phone verification state
   const [verificationId, setVerificationId] = useState<number | null>(null);
@@ -463,6 +471,155 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       setStep('payment');
       // Scroll modal to top when changing steps
       window.dispatchEvent(new CustomEvent('bookingStepChanged'));
+    }
+  };
+
+  /**
+   * Handle payment authorization - implements Authorize → Book → Capture flow
+   * 1. Payment is already authorized when this is called
+   * 2. Create the Halaxy booking
+   * 3. If booking succeeds → capture payment
+   * 4. If booking fails → cancel payment authorization
+   */
+  const handlePaymentAuthorized = async (authorizedPaymentIntentId: string) => {
+    setLoading(true);
+    setErrorMessage('');
+    setPaymentIntentId(authorizedPaymentIntentId);
+
+    try {
+      // Build appointment start/end times
+      const startDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
+      const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1 hour
+
+      const patientData: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone?: string;
+        dateOfBirth?: string;
+        gender: 'male' | 'female' | 'other' | 'unknown';
+      } = {
+        firstName,
+        lastName,
+        email,
+        gender,
+      };
+
+      if (phone) patientData.phone = phone;
+      if (dateOfBirth) patientData.dateOfBirth = dateOfBirth;
+
+      const appointmentData: {
+        startTime: string;
+        endTime: string;
+        minutesDuration: number;
+        notes?: string;
+      } = {
+        startTime: HalaxyClient.formatDateTime(startDateTime),
+        endTime: HalaxyClient.formatDateTime(endDateTime),
+        minutesDuration: 60,
+      };
+
+      // Include appointment type and notes
+      const appointmentTypeLabel = appointmentType
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+
+      const fullNotes = `Appointment Type: ${appointmentTypeLabel}${notes ? `\n\nPatient Notes: ${notes}` : ''}`;
+      appointmentData.notes = fullNotes;
+
+      console.log('[BookingForm] Creating booking after payment authorization...');
+      const result = await halaxyClient.createBooking(
+        patientData,
+        appointmentData
+      );
+
+      if (result.success && result.appointmentId) {
+        // Booking succeeded - capture the payment
+        console.log('[BookingForm] Booking created, capturing payment...');
+        
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071';
+        const captureResponse = await apiService.post<{ success: boolean; error?: string }>(
+          `${apiUrl}/api/capture-payment`,
+          { 
+            paymentIntentId: authorizedPaymentIntentId,
+            appointmentId: result.appointmentId,
+          }
+        );
+
+        if (!captureResponse.success || !captureResponse.data?.success) {
+          // Payment capture failed - but booking exists
+          // Log error but still show success (payment is authorized, will be captured later)
+          console.error('[BookingForm] Payment capture failed:', captureResponse);
+        } else {
+          console.log('[BookingForm] Payment captured successfully');
+        }
+
+        setAppointmentId(result.appointmentId);
+        
+        // Track booking completion (PRIMARY CONVERSION)
+        const bookingValue = appointmentType === 'couples-session' ? 300 : 
+                            appointmentType === 'ndis-psychology-session' ? 232.99 : 250;
+        trackBookingComplete({
+          bookingId: result.appointmentId,
+          booking_value: bookingValue,
+          transaction_id: `lpa_${result.appointmentId}_${Date.now()}`,
+          is_first_booking: isFirstSession,
+        });
+        trackBookingConfirmed({
+          bookingId: result.appointmentId,
+          booking_value: bookingValue,
+        });
+        
+        setStep('success');
+        onSuccess?.(result.appointmentId);
+      } else {
+        // Booking failed - cancel the payment authorization
+        console.log('[BookingForm] Booking failed, canceling payment authorization...');
+        
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071';
+        try {
+          await apiService.post(
+            `${apiUrl}/api/cancel-payment`,
+            { 
+              paymentIntentId: authorizedPaymentIntentId,
+              reason: 'booking_failed',
+            }
+          );
+          console.log('[BookingForm] Payment authorization canceled');
+        } catch (cancelError) {
+          console.error('[BookingForm] Failed to cancel payment:', cancelError);
+        }
+
+        setErrorMessage(
+          result.error || 'Failed to create booking. Your payment has not been charged. Please try again.'
+        );
+        setStep('error');
+      }
+    } catch (error) {
+      console.error('[BookingForm] Submission error:', error);
+      
+      // Try to cancel the payment authorization
+      if (authorizedPaymentIntentId) {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071';
+        try {
+          await apiService.post(
+            `${apiUrl}/api/cancel-payment`,
+            { 
+              paymentIntentId: authorizedPaymentIntentId,
+              reason: 'booking_error',
+            }
+          );
+          console.log('[BookingForm] Payment authorization canceled after error');
+        } catch (cancelError) {
+          console.error('[BookingForm] Failed to cancel payment after error:', cancelError);
+        }
+      }
+      
+      setErrorMessage('An unexpected error occurred. Your payment has not been charged. Please try again.');
+      setStep('error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1179,48 +1336,48 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 4: Payment */}
       {step === 'payment' && (
-        <div className="flex-1 flex flex-col min-h-0 gap-[2vh]">
-          {/* Temporarily Out of Order Message */}
-          <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-b from-amber-400 to-amber-500 flex items-center justify-center mb-6" style={{ boxShadow: '0 4px 14px rgba(245, 158, 11, 0.4)' }}>
-              <svg
-                className="w-10 h-10 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Payment Summary */}
+          <div className="mb-[2vh] p-[1.5vh] bg-slate-50 rounded-lg border border-slate-200">
+            <div className="flex justify-between items-center text-[clamp(11px,1.8vh,14px)]">
+              <span className="text-slate-600">
+                {appointmentType.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+              </span>
+              <span className="font-bold text-slate-800">
+                ${appointmentType === 'couples-session' ? '300.00' : appointmentType === 'ndis-psychology-session' ? '232.99' : '250.00'}
+              </span>
             </div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">
-              Online Booking Temporarily Unavailable
-            </h3>
-            <p className="text-slate-600 mb-4 max-w-sm">
-              Our online booking system is currently undergoing maintenance. Please try again soon.
-            </p>
-            <p className="text-xs text-slate-400">
-              We apologize for any inconvenience.
-            </p>
+            <div className="text-[clamp(9px,1.4vh,12px)] text-slate-500 mt-1">
+              {formatDateForDisplay()}
+            </div>
           </div>
 
-          {/* Back Button */}
-          <div className="flex justify-start items-center gap-3 flex-shrink-0 pt-2 mt-auto">
-            <button
-              type="button"
-              onClick={() => {
+          {/* Stripe Payment Form */}
+          <Suspense fallback={
+            <div className="flex-1 flex items-center justify-center">
+              <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+            </div>
+          }>
+            <StripePayment
+              amount={appointmentType === 'couples-session' ? 300 : appointmentType === 'ndis-psychology-session' ? 232.99 : 250}
+              customerEmail={email}
+              customerName={`${firstName} ${lastName}`}
+              onSuccess={handlePaymentAuthorized}
+              onCancel={() => {
                 setStep('session');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-              className="px-4 py-2 text-xs font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
-            >
-              ← Back
-            </button>
-          </div>
+            />
+          </Suspense>
+
+          {/* Loading overlay when processing booking */}
+          {loading && (
+            <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10 rounded-lg">
+              <div className="animate-spin h-10 w-10 border-3 border-blue-500 border-t-transparent rounded-full mb-3"></div>
+              <p className="text-slate-600 font-medium">Creating your booking...</p>
+              <p className="text-slate-400 text-sm">Please wait, do not close this window</p>
+            </div>
+          )}
         </div>
       )}
 

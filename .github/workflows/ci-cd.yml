@@ -798,11 +798,13 @@ jobs:
     name: 🐳 Build Halaxy Sync Worker
     runs-on: ubuntu-latest
     needs: [determine-environment, lint, type-check]
-    if: |
-      always() &&
-      needs.determine-environment.outputs.should-deploy == 'true' &&
-      needs.lint.result == 'success' &&
-      needs.type-check.result == 'success'
+    # Temporarily disabled - uncomment the condition below to re-enable
+    if: false
+    # if: |
+    #   always() &&
+    #   needs.determine-environment.outputs.should-deploy == 'true' &&
+    #   needs.lint.result == 'success' &&
+    #   needs.type-check.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     outputs:
       image-tag: ${{ steps.meta.outputs.tags }}
@@ -1079,9 +1081,11 @@ jobs:
     name: 🐳 Deploy Halaxy Sync Worker
     runs-on: ubuntu-latest
     needs: [determine-environment, build-halaxy-worker]
-    if: |
-      always() &&
-      needs.build-halaxy-worker.result == 'success'
+    # Temporarily disabled - uncomment the condition below to re-enable
+    if: false
+    # if: |
+    #   always() &&
+    #   needs.build-halaxy-worker.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4

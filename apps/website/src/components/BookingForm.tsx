@@ -458,11 +458,23 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   };
 
-  const handleSessionNext = () => {
+  const handleSessionNext = async () => {
     if (validateSessionStep()) {
-      // Track payment initiation
-      const bookingValue = appointmentType === 'couples-session' ? 300 : 
-                          appointmentType === 'ndis-psychology-session' ? 232.99 : 250;
+      // NDIS sessions skip payment - book directly
+      if (appointmentType === 'ndis-psychology-session') {
+        // Track as NDIS booking (no payment)
+        trackPaymentInitiated({
+          payment_method: 'ndis',
+          booking_value: 0,
+        });
+        
+        // Directly submit the booking without payment
+        await handleSubmit();
+        return;
+      }
+      
+      // Track payment initiation for paid sessions
+      const bookingValue = appointmentType === 'couples-session' ? 300 : 250;
       trackPaymentInitiated({
         payment_method: 'card',
         booking_value: bookingValue,
@@ -1320,15 +1332,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <button
               type="button"
               onClick={handleSessionNext}
-              disabled={!isSessionStepValid()}
+              disabled={!isSessionStepValid() || loading}
               className={`px-5 py-2 text-xs font-semibold rounded-md transition-all ${
-                isSessionStepValid()
+                isSessionStepValid() && !loading
                   ? 'text-white bg-blue-500 hover:bg-blue-600 cursor-pointer'
                   : 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
               }`}
-              aria-disabled={!isSessionStepValid()}
+              aria-disabled={!isSessionStepValid() || loading}
             >
-              Continue →
+              {loading ? 'Booking...' : appointmentType === 'ndis-psychology-session' ? 'Book Now →' : 'Continue →'}
             </button>
           </div>
         </div>

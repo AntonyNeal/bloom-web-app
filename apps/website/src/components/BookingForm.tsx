@@ -357,8 +357,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       setVerificationError('');
 
       // Call our verification API
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071';
-      const response = await fetch(`${apiUrl}/api/verify-code`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071/api';
+      const response = await fetch(`${apiUrl}/verify-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -413,8 +413,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       setVerificationError('');
 
       // Resend code by calling our send-verification-code endpoint again
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071';
-      const response = await fetch(`${apiUrl}/api/send-verification-code`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071/api';
+      const response = await fetch(`${apiUrl}/send-verification-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: phone }),
@@ -550,9 +550,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         // Booking succeeded - capture the payment
         console.log('[BookingForm] Booking created, capturing payment...');
         
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071/api';
         const captureResponse = await apiService.post<{ success: boolean; error?: string }>(
-          `${apiUrl}/api/capture-payment`,
+          `${apiUrl}/capture-payment`,
           { 
             paymentIntentId: authorizedPaymentIntentId,
             appointmentId: result.appointmentId,
@@ -589,10 +589,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         // Booking failed - cancel the payment authorization
         console.log('[BookingForm] Booking failed, canceling payment authorization...');
         
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071/api';
         try {
           await apiService.post(
-            `${apiUrl}/api/cancel-payment`,
+            `${apiUrl}/cancel-payment`,
             { 
               paymentIntentId: authorizedPaymentIntentId,
               reason: 'booking_failed',
@@ -613,10 +613,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       
       // Try to cancel the payment authorization
       if (authorizedPaymentIntentId) {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071/api';
         try {
           await apiService.post(
-            `${apiUrl}/api/cancel-payment`,
+            `${apiUrl}/cancel-payment`,
             { 
               paymentIntentId: authorizedPaymentIntentId,
               reason: 'booking_error',

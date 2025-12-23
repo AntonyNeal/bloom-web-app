@@ -119,10 +119,12 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             return;
           }
 
-          if (confirmedIntent?.status === 'succeeded') {
+          // With manual capture, status will be 'requires_capture' instead of 'succeeded'
+          if (confirmedIntent?.status === 'succeeded' || confirmedIntent?.status === 'requires_capture') {
             onSuccess(confirmedIntent.id);
           }
-        } else if (paymentIntent?.status === 'succeeded') {
+        } else if (paymentIntent?.status === 'succeeded' || paymentIntent?.status === 'requires_capture') {
+          // With manual capture, status will be 'requires_capture' instead of 'succeeded'
           onSuccess(paymentIntent.id);
         }
       } catch (err) {
@@ -192,7 +194,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         return;
       }
 
-      if (paymentIntent && paymentIntent.status === 'succeeded') {
+      // With manual capture, status will be 'requires_capture' instead of 'succeeded'
+      if (paymentIntent && (paymentIntent.status === 'succeeded' || paymentIntent.status === 'requires_capture')) {
         onSuccess(paymentIntent.id);
       }
     } catch (err) {

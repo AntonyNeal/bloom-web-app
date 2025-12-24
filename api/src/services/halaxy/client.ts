@@ -476,11 +476,18 @@ export class HalaxyClient {
 
     console.log(`[HalaxyClient] Using PractitionerRole ID: ${practitionerRoleId}`);
     console.log(`[HalaxyClient] Using HealthcareService ID: ${healthcareServiceId}`);
+    console.log(`[HalaxyClient] Practitioner ID from request: ${appointmentData.practitionerId}`);
     
-    // Debug: Fetch available practitioner roles if the configured one fails
+    // Debug: Fetch practitioner roles for the specific practitioner (Zoe = 1304541)
     try {
-      const roles = await this.getAllPractitionerRoles();
-      console.log(`[HalaxyClient] Available PractitionerRoles: ${roles.map(r => r.id).join(', ')}`);
+      const zoesRoles = await this.getPractitionerRolesByPractitioner(appointmentData.practitionerId);
+      console.log(`[HalaxyClient] PractitionerRoles for practitioner ${appointmentData.practitionerId}:`, 
+        JSON.stringify(zoesRoles.map(r => ({ id: r.id, practitioner: r.practitioner, organization: r.organization })), null, 2));
+      
+      // Also fetch all roles for comparison
+      const allRoles = await this.getAllPractitionerRoles();
+      console.log(`[HalaxyClient] All PractitionerRoles with details:`, 
+        JSON.stringify(allRoles.map(r => ({ id: r.id, practitioner: r.practitioner?.reference })), null, 2));
     } catch (roleErr) {
       console.log('[HalaxyClient] Could not fetch PractitionerRoles:', roleErr);
     }

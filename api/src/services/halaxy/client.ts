@@ -61,6 +61,23 @@ export class HalaxyClient {
   }
 
   /**
+   * Get all practitioner roles for the organization
+   * This returns all practitioner-to-clinic associations
+   */
+  async getAllPractitionerRoles(): Promise<FHIRPractitionerRole[]> {
+    return this.getAllPages<FHIRPractitionerRole>('/PractitionerRole', {});
+  }
+
+  /**
+   * Get practitioner roles for a specific practitioner
+   */
+  async getPractitionerRolesByPractitioner(practitionerId: string): Promise<FHIRPractitionerRole[]> {
+    return this.getAllPages<FHIRPractitionerRole>('/PractitionerRole', {
+      practitioner: `Practitioner/${practitionerId}`,
+    });
+  }
+
+  /**
    * Get all practitioners for the organization
    */
   async getAllPractitioners(): Promise<FHIRPractitioner[]> {
@@ -456,6 +473,17 @@ export class HalaxyClient {
     const healthcareServiceId = appointmentData.healthcareServiceId || 
       process.env.HALAXY_HEALTHCARE_SERVICE_ID || '567387';
     const locationType = appointmentData.locationType || 'clinic';
+
+    console.log(`[HalaxyClient] Using PractitionerRole ID: ${practitionerRoleId}`);
+    console.log(`[HalaxyClient] Using HealthcareService ID: ${healthcareServiceId}`);
+    
+    // Debug: Fetch available practitioner roles if the configured one fails
+    try {
+      const roles = await this.getAllPractitionerRoles();
+      console.log(`[HalaxyClient] Available PractitionerRoles: ${roles.map(r => r.id).join(', ')}`);
+    } catch (roleErr) {
+      console.log('[HalaxyClient] Could not fetch PractitionerRoles:', roleErr);
+    }
 
     // Build the $book Parameters resource
     const bookParams = {

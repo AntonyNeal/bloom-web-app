@@ -1,12 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
 
-// TEMPORARY: Booking system disabled - uncomment when fixed
-// import { useState, lazy, Suspense } from 'react';
-// const BookingForm = lazy(() => import('./BookingForm').then(m => ({ default: m.BookingForm })));
+const BookingForm = lazy(() => import('./BookingForm').then(m => ({ default: m.BookingForm })));
 
-// Skeleton loading component for seamless modal open - TEMPORARILY UNUSED
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _BookingFormSkeleton: React.FC = () => (
+// Skeleton loading component for seamless modal open
+const BookingFormSkeleton: React.FC = () => (
   <div className="max-w-xl w-full mx-auto animate-pulse">
     {/* Header skeleton */}
     <div className="mb-4">
@@ -57,21 +54,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 }) => {
   console.log('[BookingModal] Rendered with isOpen:', isOpen);
   const modalContentRef = useRef<HTMLDivElement>(null);
-  // TEMPORARY: Booking system disabled - uncomment when fixed
-  // const [isReady, setIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
-  // Handle form ready state when modal opens/closes - TEMPORARILY DISABLED
-  // useEffect(() => {
-  //   if (isOpen) {
-  //     const timer = setTimeout(() => {
-  //       setIsReady(true);
-  //     }, 100);
-  //     return () => {
-  //       clearTimeout(timer);
-  //       setIsReady(false);
-  //     };
-  //   }
-  // }, [isOpen]);
+  // Handle form ready state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        setIsReady(true);
+      }, 100);
+      return () => {
+        clearTimeout(timer);
+        setIsReady(false);
+      };
+    }
+  }, [isOpen]);
 
   // Prevent body scroll and hide mobile CTA when modal is open
   useEffect(() => {
@@ -118,10 +114,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   // This keeps it in memory for instant display
   console.log('[BookingModal] Rendering modal, isOpen:', isOpen);
 
-  // TEMPORARY: Booking system disabled - uncomment when fixed
-  // const handleSuccess = (appointmentId: string) => {
-  //   console.log('[BookingModal] Booking successful:', appointmentId);
-  // };
+  const handleSuccess = (appointmentId: string) => {
+    console.log('[BookingModal] Booking successful:', appointmentId);
+  };
 
   return (
     <div
@@ -191,36 +186,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
         {/* Booking form - fills available space, content scales */}
         <div className="p-[2vh] flex-1 flex flex-col min-h-0 overflow-y-auto">
-          {/* TEMPORARY: Booking system out of order */}
-          <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-            <div className="w-20 h-20 mb-6 rounded-full bg-amber-100 flex items-center justify-center">
-              <svg className="w-10 h-10 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-3">Online Booking Temporarily Unavailable</h2>
-            <p className="text-slate-600 mb-6 max-w-md">
-              Our online booking system is currently undergoing maintenance. We apologise for any inconvenience.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 max-w-md">
-              <p className="text-blue-800 font-medium mb-2">To book an appointment, please contact us:</p>
-              <a 
-                href="mailto:admin@life-psychology.com.au" 
-                className="text-blue-600 hover:text-blue-700 font-semibold text-lg block mb-2"
-              >
-                admin@life-psychology.com.au
-              </a>
-              <p className="text-blue-600 text-sm">We'll respond within 24 hours</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="mt-8 px-8 py-3 bg-slate-800 text-white rounded-xl font-semibold hover:bg-slate-700 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-          {/* END TEMPORARY */}
-          {/* Original booking form - uncomment when fixed:
           {isReady ? (
             <div className="animate-fadeIn flex-1 flex flex-col min-h-0">
               <Suspense fallback={<BookingFormSkeleton />}>
@@ -230,7 +195,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           ) : (
             <BookingFormSkeleton />
           )}
-          */}
         </div>
       </div>
       

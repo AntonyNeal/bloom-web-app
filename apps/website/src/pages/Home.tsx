@@ -134,49 +134,26 @@ const Home = () => {
           content="Professional psychologist in Newcastle providing anxiety therapy, depression counselling, couples therapy, and NDIS psychology services. Secure telehealth sessions across the Greater Hunter region."
         />
       </Helmet>
-      <div className="min-h-screen relative">
-        {/* Horizon background - earth and sky for the tree to grow from */}
-        <HorizonBackground earthHeight="20%" animated={true} />
-
-        {showBanner && (
-          <div
-            style={{
-              background: 'yellow',
-              padding: '10px',
-              textAlign: 'center',
-              fontWeight: 'bold',
-            }}
-          >
-            Development Mode -{' '}
-            {(() => {
-              const iteration = BUILD_INFO.iteration;
-              const buildTimeStr = BUILD_INFO.time;
-              let result = `Commit #${iteration}`;
-
-              if (buildTimeStr) {
-                const buildTime = parseInt(buildTimeStr);
-                const buildDate = new Date(buildTime);
-                const now = new Date();
-                const timeDiff = now.getTime() - buildTime;
-                const hoursAgo = Math.floor(timeDiff / (1000 * 60 * 60));
-                const minutesAgo = Math.floor(timeDiff / (1000 * 60));
-
-                result += ` - Built ${buildDate.toLocaleString()} (${hoursAgo > 0 ? `${hoursAgo}h ago` : `${minutesAgo}m ago`})`;
-              }
-
-              return result;
-            })()}
+      <div className="min-h-screen relative bg-gradient-to-b from-pink-100 via-purple-100 to-blue-100">
+        {/* Special Demo for Mother-in-Law */}
+        <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center">
+          <div className="text-8xl mb-8 animate-pulse">💐</div>
+          <h1 className="text-5xl md:text-7xl font-bold text-purple-800 mb-6">
+            Welcome, Mum! 💜
+          </h1>
+          <p className="text-2xl md:text-3xl text-purple-600 mb-8 max-w-2xl">
+            We're so grateful to have you in our family.
+          </p>
+          <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-xl">
+            Thank you for being such a wonderful mother-in-law and for all your love and support.
+          </p>
+          <div className="text-6xl space-x-4">
+            ✨ 🌸 💖 🌸 ✨
           </div>
-        )}
-
-        {/* Debug Panel */}
-        <DebugPanel />
-
-        <SmartHeader />
-        <div className="mt-16 lg:mt-24">
-          <ServicesSection {...servicesData} />
+          <p className="mt-12 text-lg text-purple-500 italic">
+            This is Zoe's online booking system - and you're getting a VIP preview!
+          </p>
         </div>
-        {/* Removed PricingSection and AboutSection for better performance - available on dedicated pages */}
       </div>
     </>
   );

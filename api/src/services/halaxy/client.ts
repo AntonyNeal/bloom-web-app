@@ -381,6 +381,21 @@ export class HalaxyClient {
 
     // Create new patient
     console.log('[HalaxyClient] Creating new patient...');
+    
+    // Format phone number to international format (+61...)
+    let formattedPhone: string | undefined;
+    if (patientData.phone) {
+      // Remove all spaces
+      let phone = patientData.phone.replace(/\s/g, '');
+      // Convert Australian numbers starting with 0 to +61 format
+      if (phone.startsWith('0')) {
+        phone = '+61' + phone.substring(1);
+      } else if (!phone.startsWith('+')) {
+        phone = '+61' + phone;
+      }
+      formattedPhone = phone;
+    }
+    
     const fhirPatient = {
       resourceType: 'Patient',
       active: true,
@@ -391,7 +406,7 @@ export class HalaxyClient {
       }],
       telecom: [
         { system: 'email', value: patientData.email, use: 'home' },
-        ...(patientData.phone ? [{ system: 'phone', value: patientData.phone, use: 'mobile' }] : []),
+        ...(formattedPhone ? [{ system: 'phone', value: formattedPhone, use: 'mobile' }] : []),
       ],
       ...(patientData.dateOfBirth && { birthDate: patientData.dateOfBirth }),
       ...(patientData.gender && { gender: patientData.gender }),

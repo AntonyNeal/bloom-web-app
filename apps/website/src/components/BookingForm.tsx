@@ -514,7 +514,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       };
 
       if (phone) patientData.phone = phone;
-      if (dateOfBirth) patientData.dateOfBirth = dateOfBirth;
+      // Convert DD/MM/YYYY to YYYY-MM-DD for Halaxy API
+      if (dateOfBirth) {
+        const dobParts = dateOfBirth.split('/');
+        if (dobParts.length === 3) {
+          patientData.dateOfBirth = `${dobParts[2]}-${dobParts[1]}-${dobParts[0]}`;
+        }
+      }
 
       const appointmentData: {
         startTime: string;
@@ -695,7 +701,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       };
 
       if (phone) patientData.phone = phone;
-      if (dateOfBirth) patientData.dateOfBirth = dateOfBirth;
+      // Convert DD/MM/YYYY to YYYY-MM-DD for Halaxy API
+      if (dateOfBirth) {
+        const dobParts = dateOfBirth.split('/');
+        if (dobParts.length === 3) {
+          patientData.dateOfBirth = `${dobParts[2]}-${dobParts[1]}-${dobParts[0]}`;
+        }
+      }
 
       const appointmentData: {
         startTime: string;

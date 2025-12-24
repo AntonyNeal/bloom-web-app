@@ -406,7 +406,7 @@ export class HalaxyClient {
       }],
       telecom: [
         { system: 'email', value: patientData.email, use: 'home' },
-        ...(formattedPhone ? [{ system: 'phone', value: formattedPhone, use: 'mobile' }] : []),
+        ...(formattedPhone ? [{ system: 'sms', value: formattedPhone, use: 'mobile' }] : []),
       ],
       ...(patientData.dateOfBirth && { birthDate: patientData.dateOfBirth }),
       ...(patientData.gender && { gender: patientData.gender }),

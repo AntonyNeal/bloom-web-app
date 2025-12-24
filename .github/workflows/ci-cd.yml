@@ -772,9 +772,17 @@ jobs:
           cp package.json deploy-package/
           cp package-lock.json deploy-package/
           
-          # Update package.json main entry point
+          # Update package.json for deployment:
+          # 1. Change main entry point from dist/index.js to index.js
+          # 2. Remove build script - code is already compiled, remote build should only install deps
           cd deploy-package
           sed -i 's|"main": "dist/index.js"|"main": "index.js"|' package.json
+          sed -i 's|"build": "tsc"|"build": "echo Code already compiled"|' package.json
+          sed -i 's|"prestart": "npm run build",||' package.json
+          
+          # Verify the package.json changes
+          echo "📄 Updated package.json scripts:"
+          grep -A5 '"scripts"' package.json
           
           # DO NOT install node_modules here - let Azure do remote build
           # This reduces package size from 3000+ files to ~100 files

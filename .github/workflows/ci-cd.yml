@@ -25,6 +25,7 @@ on:
       - main      # Production
       - staging   # Staging
       - develop   # Development
+      - hotfix    # Hotfix -> deploys to Staging
   pull_request:
     branches:
       - main
@@ -133,6 +134,9 @@ jobs:
                 ENV="production"
                 ;;
               refs/heads/staging)
+                ENV="staging"
+                ;;
+              refs/heads/hotfix)
                 ENV="staging"
                 ;;
               refs/heads/develop)

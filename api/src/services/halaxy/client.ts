@@ -612,7 +612,9 @@ export class HalaxyClient {
       );
     }
 
-    return response.json() as Promise<T>;
+    const data = await response.json() as T;
+    console.log(`[HalaxyClient] Response from ${endpoint}:`, JSON.stringify(data, null, 2).substring(0, 2000));
+    return data;
   }
 
   /**

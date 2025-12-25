@@ -126,8 +126,10 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
       <button style={abTestButtonStyle}>🧪 A/B Test</button>
 
       {/* Main header section - optimized for above-the-fold CTA */}
-      <section
-        className="pt-6 pb-10 sm:pt-8 sm:pb-12 lg:pt-10 lg:pb-16 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative overflow-hidden hero-section"
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="pt-6 pb-10 sm:pt-8 sm:pb-12 lg:pt-10 lg:pb-16 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative overflow-hidden hero-section outline-none"
         aria-label="Life Psychology Australia header"
       >
         {/* Subtle background elements */}
@@ -258,7 +260,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
           </div>
         </div>
 
-      </section>
+      </main>
     </>
   );
 };

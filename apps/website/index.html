@@ -2,6 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Redirect non-www to www for SEO consolidation (prevents duplicate content) -->
+    <script>
+      if (window.location.hostname === 'life-psychology.com.au') {
+        window.location.replace('https://www.life-psychology.com.au' + window.location.pathname + window.location.search);
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <meta name="format-detection" content="telephone=no" />

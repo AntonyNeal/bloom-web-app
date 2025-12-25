@@ -21,17 +21,17 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
   // Responsive srcset images for both variants
   const webpSrcSet = isPortraitVariant
     ? '/assets/zoe-380w.webp 380w, /assets/zoe-760w.webp 760w'
-    : '/assets/hero-zoe-main-500w.webp 500w, /assets/hero-zoe-main.webp 800w';
+    : '/assets/hero-zoe-main-380w.webp 380w, /assets/hero-zoe-main-500w.webp 500w, /assets/hero-zoe-main.webp 800w';
   
   const jpgSrcSet = isPortraitVariant
     ? '/assets/zoe-380w.jpg 380w, /assets/zoe-760w.jpg 760w'
-    : '/assets/hero-zoe-main-500w.jpg 500w, /assets/hero-zoe-main.jpg 800w';
+    : '/assets/hero-zoe-main-380w.jpg 380w, /assets/hero-zoe-main-500w.jpg 500w, /assets/hero-zoe-main.jpg 800w';
   
-  // Fallback sources - production photo uses higher quality version
-  const fallbackSrc = isPortraitVariant ? '/assets/zoe-380w.jpg' : '/assets/hero-zoe-main-500w.jpg';
+  // Fallback sources - use smallest size for faster initial load
+  const fallbackSrc = isPortraitVariant ? '/assets/zoe-380w.jpg' : '/assets/hero-zoe-main-380w.jpg';
   const webpFallback = isPortraitVariant 
     ? '/assets/zoe-380w.webp' 
-    : '/assets/hero-zoe-main-500w.webp';
+    : '/assets/hero-zoe-main-380w.webp';
   
   // Image dimensions for CLS prevention - must match actual image sizes
   const imageWidth = isPortraitVariant ? 380 : 500;
@@ -148,7 +148,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     {webpSrcSet ? (
                       <source
                         srcSet={webpSrcSet}
-                        sizes="(max-width: 1024px) 100vw, 500px"
+                        sizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
                         type="image/webp"
                       />
                     ) : (
@@ -158,7 +158,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     {jpgSrcSet && (
                       <source
                         srcSet={jpgSrcSet}
-                        sizes="(max-width: 1024px) 100vw, 500px"
+                        sizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
                         type="image/jpeg"
                       />
                     )}

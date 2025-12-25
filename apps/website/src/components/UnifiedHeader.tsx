@@ -140,7 +140,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
             
             {/* Image - equal column on desktop */}
             <div className="order-1 lg:order-1 hero-image-container">
-              <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-xs lg:max-w-sm'}`}>
+              <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-sm lg:max-w-md'}`}>
                 {/* Hero image container with badge */}
                 <div className="relative">
                   <picture>
@@ -166,7 +166,13 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                       src={fallbackSrc}
                       alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
                       className="w-full rounded-2xl shadow-lg block"
-                      style={{ display: 'block', verticalAlign: 'bottom', aspectRatio: '500 / 731' }}
+                      style={{ 
+                        display: 'block', 
+                        verticalAlign: 'bottom', 
+                        aspectRatio: '500 / 731',
+                        objectFit: 'cover',
+                        objectPosition: 'center top'
+                      }}
                       width={500}
                       height={731}
                       loading="eager"
@@ -175,7 +181,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     />
                   </picture>
                   {/* Floating credential badge - inside image bounds */}
-                  <div className="absolute bottom-8 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
+                  <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
                     <p className="text-xs font-semibold text-slate-700">Registered Psychologist</p>
                     <p className="text-[10px] text-slate-500">Newcastle, NSW</p>
                   </div>

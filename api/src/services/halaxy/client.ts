@@ -61,6 +61,23 @@ export class HalaxyClient {
   }
 
   /**
+   * Get all practitioner roles for the organization
+   * This returns all practitioner-to-clinic associations
+   */
+  async getAllPractitionerRoles(): Promise<FHIRPractitionerRole[]> {
+    return this.getAllPages<FHIRPractitionerRole>('/PractitionerRole', {});
+  }
+
+  /**
+   * Get practitioner roles for a specific practitioner
+   */
+  async getPractitionerRolesByPractitioner(practitionerId: string): Promise<FHIRPractitionerRole[]> {
+    return this.getAllPages<FHIRPractitionerRole>('/PractitionerRole', {
+      practitioner: `Practitioner/${practitionerId}`,
+    });
+  }
+
+  /**
    * Get all practitioners for the organization
    */
   async getAllPractitioners(): Promise<FHIRPractitioner[]> {
@@ -381,6 +398,21 @@ export class HalaxyClient {
 
     // Create new patient
     console.log('[HalaxyClient] Creating new patient...');
+    
+    // Format phone number to international format (+61...)
+    let formattedPhone: string | undefined;
+    if (patientData.phone) {
+      // Remove all spaces
+      let phone = patientData.phone.replace(/\s/g, '');
+      // Convert Australian numbers starting with 0 to +61 format
+      if (phone.startsWith('0')) {
+        phone = '+61' + phone.substring(1);
+      } else if (!phone.startsWith('+')) {
+        phone = '+61' + phone;
+      }
+      formattedPhone = phone;
+    }
+    
     const fhirPatient = {
       resourceType: 'Patient',
       active: true,
@@ -391,7 +423,7 @@ export class HalaxyClient {
       }],
       telecom: [
         { system: 'email', value: patientData.email, use: 'home' },
-        ...(patientData.phone ? [{ system: 'phone', value: patientData.phone }] : []),
+        ...(formattedPhone ? [{ system: 'sms', value: formattedPhone, use: 'mobile' }] : []),
       ],
       ...(patientData.dateOfBirth && { birthDate: patientData.dateOfBirth }),
       ...(patientData.gender && { gender: patientData.gender }),
@@ -441,6 +473,24 @@ export class HalaxyClient {
     const healthcareServiceId = appointmentData.healthcareServiceId || 
       process.env.HALAXY_HEALTHCARE_SERVICE_ID || '567387';
     const locationType = appointmentData.locationType || 'clinic';
+
+    console.log(`[HalaxyClient] Using PractitionerRole ID: ${practitionerRoleId}`);
+    console.log(`[HalaxyClient] Using HealthcareService ID: ${healthcareServiceId}`);
+    console.log(`[HalaxyClient] Practitioner ID from request: ${appointmentData.practitionerId}`);
+    
+    // Debug: Fetch practitioner roles for the specific practitioner (Zoe = 1304541)
+    try {
+      const zoesRoles = await this.getPractitionerRolesByPractitioner(appointmentData.practitionerId);
+      console.log(`[HalaxyClient] PractitionerRoles for practitioner ${appointmentData.practitionerId}:`, 
+        JSON.stringify(zoesRoles.map(r => ({ id: r.id, practitioner: r.practitioner, organization: r.organization })), null, 2));
+      
+      // Also fetch all roles for comparison
+      const allRoles = await this.getAllPractitionerRoles();
+      console.log(`[HalaxyClient] All PractitionerRoles with details:`, 
+        JSON.stringify(allRoles.map(r => ({ id: r.id, practitioner: r.practitioner?.reference })), null, 2));
+    } catch (roleErr) {
+      console.log('[HalaxyClient] Could not fetch PractitionerRoles:', roleErr);
+    }
 
     // Build the $book Parameters resource
     const bookParams = {
@@ -562,7 +612,9 @@ export class HalaxyClient {
       );
     }
 
-    return response.json() as Promise<T>;
+    const data = await response.json() as T;
+    console.log(`[HalaxyClient] Response from ${endpoint}:`, JSON.stringify(data, null, 2).substring(0, 2000));
+    return data;
   }
 
   /**

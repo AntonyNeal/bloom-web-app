@@ -309,6 +309,14 @@ async function createHalaxyBooking(
 
     // Step 2: Create appointment
     context.log('Creating appointment in Halaxy...');
+    context.log('Appointment details:', {
+      patientId: patient.id,
+      practitionerId: practitionerId,
+      start: body.appointmentDetails.startTime,
+      end: body.appointmentDetails.endTime,
+      description: body.appointmentDetails.notes?.substring(0, 100),
+    });
+    
     const appointment = await halaxyClient.createAppointment({
       patientId: patient.id,
       practitionerId: practitionerId,
@@ -317,7 +325,12 @@ async function createHalaxyBooking(
       description: body.appointmentDetails.notes,
     });
 
-    context.log(`Appointment created: ${appointment.id}`);
+    // Log full appointment response for debugging
+    context.log(`Appointment created - Full response:`, JSON.stringify(appointment, null, 2));
+    context.log(`Appointment ID: ${appointment.id}`);
+    context.log(`Appointment status: ${appointment.status}`);
+    context.log(`Appointment start: ${appointment.start}`);
+    context.log(`Appointment participants:`, JSON.stringify(appointment.participant, null, 2));
 
     // Step 3: Store booking session for analytics
     const bookingSessionId = await storeBookingSession(
@@ -375,7 +388,16 @@ async function createHalaxyBooking(
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : '';
     
-    context.error('Error details:', { message: errorMessage, stack: errorStack });
+    // Log detailed error info including Halaxy API response body if available
+    const halaxyResponseBody = (error as { responseBody?: string })?.responseBody;
+    const halaxyStatusCode = (error as { statusCode?: number })?.statusCode;
+    
+    context.error('Error details:', { 
+      message: errorMessage, 
+      stack: errorStack,
+      halaxyStatusCode,
+      halaxyResponseBody 
+    });
 
     // Check for specific error types
     if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {

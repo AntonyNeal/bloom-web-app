@@ -13,15 +13,10 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
   const { isModalOpen, handleBookingClick } = useBookingService();
   const [availabilityText, setAvailabilityText] = useState<string | null>(null);
   
-  // Debug: log which photo is being used
-  console.log('[UnifiedHeader] heroPhoto:', heroPhoto);
-  
   // Determine which image variant we're using
   // photo-standing variant: /assets/zoe.jpg -> has responsive versions zoe-380w, zoe-760w, zoe-1140w
   // photo-current variant: /assets/hero-zoe-main.jpg -> use directly (production sitting photo)
   const isPortraitVariant = heroPhoto === '/assets/zoe.jpg';
-  
-  console.log('[UnifiedHeader] isPortraitVariant:', isPortraitVariant);
   
   // Responsive srcset images for both variants
   const webpSrcSet = isPortraitVariant
@@ -37,8 +32,6 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
   const webpFallback = isPortraitVariant 
     ? '/assets/zoe-380w.webp' 
     : '/assets/hero-zoe-main-500w.webp';
-  
-  console.log('[UnifiedHeader] fallbackSrc:', fallbackSrc, 'webpFallback:', webpFallback);
 
   useEffect(() => {
     log.debug('Component mounted', 'UnifiedHeader', {
@@ -260,13 +253,6 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
           </div>
         </div>
 
-        {/* Debug output */}
-        {(() => {
-          log.debug('Render state', 'UnifiedHeader', {
-            isModalOpen,
-          });
-          return null;
-        })()}
       </section>
     </>
   );

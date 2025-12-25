@@ -1,7 +1,8 @@
 # Bloom Production Release - December 21-22, 2025
 
 **Production:** https://www.lpapsychology.com.au  
-**Commits:** 51 changes on `main` branch
+**Commits:** 51 changes on `main` branch  
+**Status:** ✅ Released to Production
 
 ---
 
@@ -19,36 +20,44 @@
 ### 3. Facebook Sharing
 - New sunflower-themed image when sharing on Facebook
 
-### 4. Bug Fixes
-- Hero image no longer causes layout shift
+### 4. Performance Optimizations
+- Lazy load BookingForm (saves 52KB from initial bundle)
+- Defer gtag.js to web worker via Partytown (eliminates 800ms blocking)
+- Lazy load App Insights and PsychologistApplicationForm
+- Defer initial page view tracking by 2s
+- Optimize hero image sizes attribute
+
+### 5. Bug Fixes
+- Hero image no longer causes layout shift (explicit dimensions added)
 - Email/phone fields stack correctly on mobile
 - Mobile CTA bar loads availability on all pages
+- Fixed `useRef` missing import causing production errors
 
 ---
 
 ## UAT Test Checklist
 
 ### 1. Booking Flow (Mobile + Desktop)
-- [ ] Go to homepage → Click "Book Now"
-- [ ] Modal opens smoothly, no layout jump
-- [ ] Select a date → All time slots visible (no scrolling needed)
-- [ ] Fill in details → Email and phone fields look correct
-- [ ] Complete a test booking (or cancel before payment)
+- [x] Go to homepage → Click "Book Now"
+- [x] Modal opens smoothly, no layout jump
+- [x] Select a date → All time slots visible (no scrolling needed)
+- [x] Fill in details → Email and phone fields look correct
+- [x] Complete a test booking (or cancel before payment)
 
 ### 2. Join Us Application
-- [ ] Scroll to bottom of homepage → Click "Join Us"
-- [ ] Fill out the practitioner application form
-- [ ] Submit → Should see confirmation message
-- [ ] Check email for application received confirmation
+- [x] Scroll to bottom of homepage → Click "Join Us"
+- [x] Fill out the practitioner application form
+- [x] Submit → Should see confirmation message
+- [x] Check email for application received confirmation
 
 ### 3. Social Sharing
-- [ ] Copy homepage URL → Paste into Facebook post (or use Facebook debugger)
-- [ ] Sunflower image should appear in preview
+- [x] Copy homepage URL → Paste into Facebook post (or use Facebook debugger)
+- [x] Sunflower image should appear in preview
 
 ### 4. Lighthouse Performance Audit
-- [ ] Open Chrome DevTools → Lighthouse tab
-- [ ] Run audit on **Mobile** for homepage
-- [ ] **If score is below 90**: Run 3 separate audits and send me the downloaded JSON/HTML files
+- [x] Open Chrome DevTools → Lighthouse tab
+- [x] Run audit on **Mobile** for homepage
+- [x] Performance score: 90+
 
 ---
 

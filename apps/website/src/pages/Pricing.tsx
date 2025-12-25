@@ -274,7 +274,7 @@ const Pricing = () => {
           Psychology Session Fees & Funding Options | Medicare, NDIS, Private
           Health
         </title>
-        <link rel="canonical" href="https://life-psychology.com.au/pricing" />
+        <link rel="canonical" href="https://www.life-psychology.com.au/pricing" />
         <meta
           name="description"
           content="Psychology session fees and funding options. Medicare rebates up to $98.95, NDIS $233, private health insurance. Transparent pricing for therapy sessions."

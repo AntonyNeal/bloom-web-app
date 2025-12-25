@@ -241,7 +241,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     to="/about"
                     className="inline-flex items-center justify-center px-6 py-3.5 border-2 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-semibold transition-all duration-200 text-base"
                   >
-                    Learn more
+                    About our practice
                   </Link>
                 </div>
 

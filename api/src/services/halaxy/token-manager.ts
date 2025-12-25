@@ -45,7 +45,7 @@ export function getHalaxyConfig(): HalaxyConfig {
     organizationId: process.env.HALAXY_ORGANIZATION_ID,
     practitionerId: process.env.HALAXY_PRACTITIONER_ID,
     maxRequestsPerMinute: 60,
-    requestTimeoutMs: 30000,
+    requestTimeoutMs: 15000, // Reduced from 30s for faster failure detection
   };
 }
 

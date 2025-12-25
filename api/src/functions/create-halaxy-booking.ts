@@ -199,6 +199,7 @@ async function createHalaxyBooking(
   req: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
+  const bookingStartTime = Date.now();
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -218,6 +219,7 @@ async function createHalaxyBooking(
       patientEmail: body.patient?.email ? '***' : undefined,
       startTime: body.appointmentDetails?.startTime,
     });
+    context.log(`[PERF] Request parsed at +${Date.now() - bookingStartTime}ms`);
 
     // Validate request
     const validationError = validateRequest(body);
@@ -249,6 +251,7 @@ async function createHalaxyBooking(
       await getDefaultPractitionerId(context);
 
     context.log(`Using practitioner: ${practitionerId}`);
+    context.log(`[PERF] Practitioner resolved at +${Date.now() - bookingStartTime}ms`);
 
     // Step 1: Create or find patient
     context.log('Creating/finding patient in Halaxy...');
@@ -262,6 +265,7 @@ async function createHalaxyBooking(
     });
 
     context.log(`Patient ID: ${patient.id}`);
+    context.log(`[PERF] Patient created/found at +${Date.now() - bookingStartTime}ms`);
 
     // Step 2: Create appointment
     context.log('Creating appointment in Halaxy...');
@@ -275,14 +279,17 @@ async function createHalaxyBooking(
     });
 
     context.log(`Appointment created - ID: ${appointment.id}, Status: ${appointment.status}`);
+    context.log(`[PERF] Appointment created at +${Date.now() - bookingStartTime}ms`);
 
-    // Step 3: Store booking session for analytics
-    const bookingSessionId = await storeBookingSession(
+    // Step 3: Store booking session for analytics (fire and forget - don't await)
+    storeBookingSession(
       appointment.id,
       patient.id,
       body.sessionData,
       context
-    );
+    ).catch(err => context.warn('Failed to store booking session:', err));
+
+    context.log(`[PERF] Total booking time: ${Date.now() - bookingStartTime}ms`);
 
     // Success response
     return {
@@ -292,7 +299,6 @@ async function createHalaxyBooking(
         success: true,
         appointmentId: appointment.id,
         patientId: patient.id,
-        bookingSessionId: bookingSessionId || undefined,
         message: 'Booking created successfully',
       } as BookingResponse,
     };

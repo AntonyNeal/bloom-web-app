@@ -372,11 +372,15 @@ export class HalaxyClient {
     dateOfBirth?: string;
     gender?: 'male' | 'female' | 'other' | 'unknown';
   }): Promise<FHIRPatient> {
-    // First try to find existing patient by email
+    const startTime = Date.now();
+    
+    // First try to find existing patient by email (limit to first page for speed)
     try {
-      const existing = await this.getAllPages<FHIRPatient>('/Patient', {
+      const existing = await this.getFirstPage<FHIRPatient>('/Patient', {
         email: patientData.email,
+        _count: '1', // Only need to find one match
       });
+      console.log(`[HalaxyClient] Patient lookup took ${Date.now() - startTime}ms`);
       
       // Filter out any invalid patient IDs (like 'warning' from FHIR OperationOutcome)
       const validPatients = existing.filter(p => 
@@ -600,6 +604,28 @@ export class HalaxyClient {
     const responseId = (data as { id?: string })?.id;
     console.log(`[HalaxyClient] Response from ${endpoint}${responseId ? ` - ID: ${responseId}` : ''}`);
     return data;
+  }
+
+  /**
+   * Fetch only the first page of results (optimized for lookups)
+   */
+  private async getFirstPage<T>(
+    endpoint: string,
+    params: Record<string, string> = {}
+  ): Promise<T[]> {
+    const url = this.buildUrl(endpoint, params);
+    const bundle = await this.request<FHIRBundle<T>>(
+      url.replace(this.config.apiBaseUrl, '')
+    );
+
+    if (!bundle.entry) return [];
+    
+    return bundle.entry
+      .filter(e => {
+        const resource = e.resource as { id?: string };
+        return resource && resource.id && typeof resource.id === 'string' && resource.id !== 'warning';
+      })
+      .map(e => e.resource);
   }
 
   /**

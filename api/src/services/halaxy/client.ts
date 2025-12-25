@@ -474,23 +474,7 @@ export class HalaxyClient {
       process.env.HALAXY_HEALTHCARE_SERVICE_ID || '567387';
     const locationType = appointmentData.locationType || 'clinic';
 
-    console.log(`[HalaxyClient] Using PractitionerRole ID: ${practitionerRoleId}`);
-    console.log(`[HalaxyClient] Using HealthcareService ID: ${healthcareServiceId}`);
-    console.log(`[HalaxyClient] Practitioner ID from request: ${appointmentData.practitionerId}`);
-    
-    // Debug: Fetch practitioner roles for the specific practitioner (Zoe = 1304541)
-    try {
-      const zoesRoles = await this.getPractitionerRolesByPractitioner(appointmentData.practitionerId);
-      console.log(`[HalaxyClient] PractitionerRoles for practitioner ${appointmentData.practitionerId}:`, 
-        JSON.stringify(zoesRoles.map(r => ({ id: r.id, practitioner: r.practitioner, organization: r.organization })), null, 2));
-      
-      // Also fetch all roles for comparison
-      const allRoles = await this.getAllPractitionerRoles();
-      console.log(`[HalaxyClient] All PractitionerRoles with details:`, 
-        JSON.stringify(allRoles.map(r => ({ id: r.id, practitioner: r.practitioner?.reference })), null, 2));
-    } catch (roleErr) {
-      console.log('[HalaxyClient] Could not fetch PractitionerRoles:', roleErr);
-    }
+    console.log(`[HalaxyClient] Creating appointment - PractitionerRole: ${practitionerRoleId}, HealthcareService: ${healthcareServiceId}`);
 
     // Build the $book Parameters resource
     const bookParams = {
@@ -540,7 +524,6 @@ export class HalaxyClient {
     };
 
     console.log('[HalaxyClient] Booking appointment with $book operation');
-    console.log('[HalaxyClient] $book params:', JSON.stringify(bookParams, null, 2));
 
     return this.request<FHIRAppointment>('/Appointment/$book', {
       method: 'POST',
@@ -613,7 +596,9 @@ export class HalaxyClient {
     }
 
     const data = await response.json() as T;
-    console.log(`[HalaxyClient] Response from ${endpoint}:`, JSON.stringify(data, null, 2).substring(0, 2000));
+    // Log response ID only (avoid logging full response in production)
+    const responseId = (data as { id?: string })?.id;
+    console.log(`[HalaxyClient] Response from ${endpoint}${responseId ? ` - ID: ${responseId}` : ''}`);
     return data;
   }
 

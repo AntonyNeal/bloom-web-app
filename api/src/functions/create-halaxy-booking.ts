@@ -265,13 +265,6 @@ async function createHalaxyBooking(
 
     // Step 2: Create appointment
     context.log('Creating appointment in Halaxy...');
-    context.log('Appointment details:', {
-      patientId: patient.id,
-      practitionerId: practitionerId,
-      start: body.appointmentDetails.startTime,
-      end: body.appointmentDetails.endTime,
-      description: body.appointmentDetails.notes?.substring(0, 100),
-    });
     
     const appointment = await halaxyClient.createAppointment({
       patientId: patient.id,
@@ -281,12 +274,7 @@ async function createHalaxyBooking(
       description: body.appointmentDetails.notes,
     });
 
-    // Log full appointment response for debugging
-    context.log(`Appointment created - Full response:`, JSON.stringify(appointment, null, 2));
-    context.log(`Appointment ID: ${appointment.id}`);
-    context.log(`Appointment status: ${appointment.status}`);
-    context.log(`Appointment start: ${appointment.start}`);
-    context.log(`Appointment participants:`, JSON.stringify(appointment.participant, null, 2));
+    context.log(`Appointment created - ID: ${appointment.id}, Status: ${appointment.status}`);
 
     // Step 3: Store booking session for analytics
     const bookingSessionId = await storeBookingSession(

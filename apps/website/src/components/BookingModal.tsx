@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
 
-// Lazy load BookingForm to reduce initial bundle (~30KB+ savings)
 const BookingForm = lazy(() => import('./BookingForm').then(m => ({ default: m.BookingForm })));
 
 // Skeleton loading component for seamless modal open
@@ -60,7 +59,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   // Handle form ready state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      // Delay showing the actual form to allow skeleton to display briefly
       const timer = setTimeout(() => {
         setIsReady(true);
       }, 100);
@@ -118,7 +116,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const handleSuccess = (appointmentId: string) => {
     console.log('[BookingModal] Booking successful:', appointmentId);
-    // Modal will show success state, user closes it manually
   };
 
   return (
@@ -188,7 +185,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </button>
 
         {/* Booking form - fills available space, content scales */}
-        <div className="p-[2vh] flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className="p-[2vh] flex-1 flex flex-col min-h-0 overflow-y-auto">
           {isReady ? (
             <div className="animate-fadeIn flex-1 flex flex-col min-h-0">
               <Suspense fallback={<BookingFormSkeleton />}>

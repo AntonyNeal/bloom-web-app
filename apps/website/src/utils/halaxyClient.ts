@@ -277,8 +277,39 @@ export class HalaxyClient {
 
   /**
    * Format date for Halaxy API (ISO 8601 with timezone)
+   * Automatically detects Sydney's timezone offset (AEST +10:00 or AEDT +11:00)
    */
-  static formatDateTime(date: Date, timezone = '+10:00'): string {
+  static formatDateTime(date: Date, timezone?: string): string {
+    // If no timezone provided, calculate Sydney's current offset
+    if (!timezone) {
+      // Create a date formatter for Sydney timezone to detect DST
+      const sydneyFormatter = new Intl.DateTimeFormat('en-AU', {
+        timeZone: 'Australia/Sydney',
+        timeZoneName: 'shortOffset'
+      });
+      
+      // Format the date to get the offset (e.g., "GMT+11" or "GMT+10")
+      const parts = sydneyFormatter.formatToParts(date);
+      const tzPart = parts.find(p => p.type === 'timeZoneName');
+      
+      if (tzPart?.value) {
+        // Extract offset from "GMT+11" or "GMT+10"
+        const match = tzPart.value.match(/GMT([+-]\d+)/);
+        if (match) {
+          const offsetHours = parseInt(match[1], 10);
+          timezone = `${offsetHours >= 0 ? '+' : ''}${String(Math.abs(offsetHours)).padStart(2, '0')}:00`;
+        }
+      }
+      
+      // Fallback to +11:00 (AEDT) for Dec-Mar, +10:00 otherwise
+      if (!timezone) {
+        const month = date.getMonth(); // 0-indexed
+        // DST is roughly Oct-Apr in Sydney
+        const isDST = month >= 9 || month <= 3; // Oct(9) to Apr(3)
+        timezone = isDST ? '+11:00' : '+10:00';
+      }
+    }
+    
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');

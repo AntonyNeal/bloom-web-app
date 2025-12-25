@@ -343,6 +343,9 @@ h1 {
 /* CSS Containment for performance */
 .hero-section {
   contain: layout style paint;
+  min-height: 600px; /* Prevent CLS by reserving space */
+  content-visibility: auto;
+  contain-intrinsic-size: 0 600px;
 }
 .hero-container {
   contain: layout style;

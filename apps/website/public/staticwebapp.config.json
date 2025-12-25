@@ -2,6 +2,11 @@
   "trailingSlash": "never",
   "routes": [
     {
+      "route": "/home",
+      "redirect": "/",
+      "statusCode": 301
+    },
+    {
       "route": "/about",
       "headers": {
         "Cache-Control": "no-cache, no-store, must-revalidate"

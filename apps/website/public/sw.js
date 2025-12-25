@@ -2,7 +2,7 @@
 // Optimized for Newcastle users with aggressive caching and performance
 
 // IMPORTANT: Bump version on each deployment to clear stale caches
-const SW_VERSION = '1766103000000'; // Updated: Dec 2025
+const SW_VERSION = '1766735000000'; // Updated: Dec 26 2025 - force cache refresh
 const CACHE_NAME = `life-psychology-v${SW_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 const API_CACHE_NAME = `life-psychology-api-v${SW_VERSION}`;

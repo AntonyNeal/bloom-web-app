@@ -32,6 +32,11 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
   const webpFallback = isPortraitVariant 
     ? '/assets/zoe-380w.webp' 
     : '/assets/hero-zoe-main-500w.webp';
+  
+  // Image dimensions for CLS prevention - must match actual image sizes
+  const imageWidth = isPortraitVariant ? 380 : 500;
+  const imageHeight = isPortraitVariant ? 412 : 731;
+  const aspectRatio = `${imageWidth} / ${imageHeight}`;
 
   useEffect(() => {
     log.debug('Component mounted', 'UnifiedHeader', {
@@ -162,12 +167,12 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                       style={{ 
                         display: 'block', 
                         verticalAlign: 'bottom', 
-                        aspectRatio: '500 / 731',
+                        aspectRatio,
                         objectFit: 'cover',
                         objectPosition: 'center top'
                       }}
-                      width={500}
-                      height={731}
+                      width={imageWidth}
+                      height={imageHeight}
                       loading="eager"
                       decoding="async"
                       fetchPriority="high"

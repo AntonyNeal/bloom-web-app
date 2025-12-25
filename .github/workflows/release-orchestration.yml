@@ -14,9 +14,6 @@
 # - main: Only via approved PR from staging
 # - staging: Via PR from develop (squash) OR direct commits during UAT
 # - develop: Feature development branch
-#
-# POST-DEPLOYMENT CASCADE:
-# main deployed → merge main → staging → merge main → develop
 
 name: Release Orchestration
 
@@ -37,7 +34,6 @@ on:
           - create-staging-pr
           - auto-merge-staging-pr
           - create-production-pr
-          - cascade-main-to-branches
           - check-cycle-status
       force:
         description: 'Force action even if conditions not met'
@@ -308,9 +304,7 @@ jobs:
           
           🕐 **Scheduled deployment:** Saturday 1am AEST
           
-          After merging, the post-deployment cascade will automatically:
-          1. Merge main → staging
-          2. Merge main → develop"
+          After merging, CI/CD will deploy to production."
 
       - name: Report existing PR
         if: steps.check-existing.outputs.has_existing == 'true'

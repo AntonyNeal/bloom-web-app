@@ -1,6 +1,33 @@
-import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-const BookingForm = lazy(() => import('./BookingForm').then(m => ({ default: m.BookingForm })));
+// MAINTENANCE MODE - Set to false to restore normal booking
+const MAINTENANCE_MODE = true;
+
+// Maintenance message component
+const MaintenanceMessage: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+  <div className="flex flex-col items-center justify-center text-center py-12 px-6">
+    <div className="text-6xl mb-6">🔧</div>
+    <h2 className="text-2xl font-semibold text-slate-800 mb-4">
+      Online Booking Temporarily Unavailable
+    </h2>
+    <p className="text-slate-600 mb-6 max-w-md">
+      Our online booking system is currently undergoing maintenance and will be back soon.
+    </p>
+    <p className="text-slate-600 mb-8 max-w-md">
+      In the meantime, please call us on{' '}
+      <a href="tel:0249878254" className="text-blue-600 font-semibold hover:underline">
+        (02) 4987 8254
+      </a>{' '}
+      to book an appointment.
+    </p>
+    <button
+      onClick={onClose}
+      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors"
+    >
+      Close
+    </button>
+  </div>
+);
 
 // Skeleton loading component for seamless modal open
 const BookingFormSkeleton: React.FC = () => (
@@ -190,14 +217,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
         {/* Booking form - fills available space, content scales */}
         <div className="p-[2vh] flex-1 flex flex-col min-h-0 overflow-y-auto">
-          {isReady ? (
-            <div className="animate-fadeIn flex-1 flex flex-col min-h-0">
-              <Suspense fallback={<BookingFormSkeleton />}>
-                <BookingForm onSuccess={handleSuccess} onCancel={onClose} />
-              </Suspense>
-            </div>
+          {MAINTENANCE_MODE ? (
+            <MaintenanceMessage onClose={onClose} />
           ) : (
-            <BookingFormSkeleton />
+            <div className="flex items-center justify-center h-full text-slate-500">
+              Booking form disabled
+            </div>
           )}
         </div>
       </div>

@@ -160,7 +160,7 @@ async function bootstrapApp() {
   );
 
   // Defer Application Insights initialization to reduce TBT
-  // Load after initial paint using requestIdleCallback
+  // Load after initial paint using requestIdleCallback with longer timeout
   if (typeof requestIdleCallback !== 'undefined') {
     requestIdleCallback(
       () => {
@@ -168,14 +168,14 @@ async function bootstrapApp() {
           initializeApplicationInsights();
         });
       },
-      { timeout: 3000 }
+      { timeout: 5000 }
     );
   } else {
     setTimeout(() => {
       import('./utils/applicationInsights').then(({ initializeApplicationInsights }) => {
         initializeApplicationInsights();
       });
-    }, 2000);
+    }, 4000);
   }
 }
 

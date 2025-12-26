@@ -1,0 +1,20 @@
+﻿# ============================================
+# AZURE FRONT DOOR 301 REDIRECT SETUP
+# Run these commands in sequence
+# ============================================
+
+# Step 1: Create a rule set for redirects
+az afd rule-set create --profile-name fdt42kldozqahcu --resource-group rg-lpa-prod-opt --rule-set-name RedirectRules
+
+# Step 2: Create redirect rule (non-www to www)
+az afd rule create --profile-name fdt42kldozqahcu --resource-group rg-lpa-prod-opt --rule-set-name RedirectRules --rule-name RedirectNonWwwToWww --order 1 --match-variable RequestHeader --operator Equal --match-values "life-psychology.com.au" --selector Host --action-name UrlRedirect --redirect-type PermanentRedirect --redirect-protocol Https --destination-hostname "www.life-psychology.com.au"
+
+# Step 3: Add non-www custom domain to Front Door
+az afd custom-domain create --profile-name fdt42kldozqahcu --resource-group rg-lpa-prod-opt --custom-domain-name life-psychology-root --host-name life-psychology.com.au --certificate-type ManagedCertificate
+
+# Step 4: Associate domain with endpoint and rule set
+az afd route update --profile-name fdt42kldozqahcu --resource-group rg-lpa-prod-opt --endpoint-name life-psychology-com-au --route-name default-route --custom-domains life-psychology-root --rule-sets RedirectRules
+
+# NOTE: After this, you need to update DNS:
+# - Point 'life-psychology.com.au' CNAME to Front Door endpoint
+# - Front Door endpoint: life-psychology-com-au-ecebghhhf4credg0.z02.azurefd.net

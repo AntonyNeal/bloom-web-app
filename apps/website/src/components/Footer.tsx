@@ -234,15 +234,15 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-700 pt-6 sm:pt-8">
+        <div className="border-t border-gray-400 pt-6 sm:pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-            <p className="text-gray-400 text-sm text-center sm:text-left">
+            <p className="text-gray-600 text-sm text-center sm:text-left">
               © 2025 Life Psychology Australia. All rights reserved.
             </p>
-            <div className="flex space-x-6 text-sm text-gray-400">
+            <div className="flex space-x-6 text-sm text-gray-600">
               <Link
                 to="/privacy"
-                className="hover:text-blue-400 transition-colors min-h-[44px] flex items-center py-1"
+                className="hover:text-blue-600 transition-colors min-h-[44px] flex items-center py-1"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               >
                 Privacy Policy

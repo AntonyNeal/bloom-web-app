@@ -13,32 +13,30 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
   const { isModalOpen, handleBookingClick } = useBookingService();
   const [availabilityText, setAvailabilityText] = useState<string | null>(null);
   
-  // Debug: log which photo is being used
-  console.log('[UnifiedHeader] heroPhoto:', heroPhoto);
-  
   // Determine which image variant we're using
   // photo-standing variant: /assets/zoe.jpg -> has responsive versions zoe-380w, zoe-760w, zoe-1140w
   // photo-current variant: /assets/hero-zoe-main.jpg -> use directly (production sitting photo)
   const isPortraitVariant = heroPhoto === '/assets/zoe.jpg';
   
-  console.log('[UnifiedHeader] isPortraitVariant:', isPortraitVariant);
-  
   // Responsive srcset images for both variants
   const webpSrcSet = isPortraitVariant
     ? '/assets/zoe-380w.webp 380w, /assets/zoe-760w.webp 760w'
-    : '/assets/hero-zoe-main-500w.webp 500w, /assets/hero-zoe-main.webp 800w';
+    : '/assets/hero-zoe-main-380w.webp 380w, /assets/hero-zoe-main-500w.webp 500w, /assets/hero-zoe-main.webp 800w';
   
   const jpgSrcSet = isPortraitVariant
     ? '/assets/zoe-380w.jpg 380w, /assets/zoe-760w.jpg 760w'
-    : '/assets/hero-zoe-main-500w.jpg 500w, /assets/hero-zoe-main.jpg 800w';
+    : '/assets/hero-zoe-main-380w.jpg 380w, /assets/hero-zoe-main-500w.jpg 500w, /assets/hero-zoe-main.jpg 800w';
   
-  // Fallback sources - production photo uses higher quality version
-  const fallbackSrc = isPortraitVariant ? '/assets/zoe-380w.jpg' : '/assets/hero-zoe-main-500w.jpg';
+  // Fallback sources - use smallest size for faster initial load
+  const fallbackSrc = isPortraitVariant ? '/assets/zoe-380w.jpg' : '/assets/hero-zoe-main-380w.jpg';
   const webpFallback = isPortraitVariant 
     ? '/assets/zoe-380w.webp' 
-    : '/assets/hero-zoe-main-500w.webp';
+    : '/assets/hero-zoe-main-380w.webp';
   
-  console.log('[UnifiedHeader] fallbackSrc:', fallbackSrc, 'webpFallback:', webpFallback);
+  // Image dimensions for CLS prevention - must match actual image sizes
+  const imageWidth = isPortraitVariant ? 380 : 500;
+  const imageHeight = isPortraitVariant ? 412 : 731;
+  const aspectRatio = `${imageWidth} / ${imageHeight}`;
 
   useEffect(() => {
     log.debug('Component mounted', 'UnifiedHeader', {
@@ -128,8 +126,10 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
       <button style={abTestButtonStyle}>🧪 A/B Test</button>
 
       {/* Main header section - optimized for above-the-fold CTA */}
-      <section
-        className="pt-6 pb-10 sm:pt-8 sm:pb-12 lg:pt-10 lg:pb-16 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative overflow-hidden hero-section"
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="pt-6 pb-10 sm:pt-8 sm:pb-12 lg:pt-10 lg:pb-16 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative overflow-hidden hero-section outline-none"
         aria-label="Life Psychology Australia header"
       >
         {/* Subtle background elements */}
@@ -148,7 +148,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     {webpSrcSet ? (
                       <source
                         srcSet={webpSrcSet}
-                        sizes="(max-width: 1024px) 100vw, 500px"
+                        sizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
                         type="image/webp"
                       />
                     ) : (
@@ -158,7 +158,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     {jpgSrcSet && (
                       <source
                         srcSet={jpgSrcSet}
-                        sizes="(max-width: 1024px) 100vw, 500px"
+                        sizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
                         type="image/jpeg"
                       />
                     )}
@@ -169,12 +169,12 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                       style={{ 
                         display: 'block', 
                         verticalAlign: 'bottom', 
-                        aspectRatio: '500 / 731',
+                        aspectRatio,
                         objectFit: 'cover',
                         objectPosition: 'center top'
                       }}
-                      width={500}
-                      height={731}
+                      width={imageWidth}
+                      height={imageHeight}
                       loading="eager"
                       decoding="async"
                       fetchPriority="high"
@@ -241,7 +241,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                     to="/about"
                     className="inline-flex items-center justify-center px-6 py-3.5 border-2 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-semibold transition-all duration-200 text-base"
                   >
-                    Learn more
+                    About our practice
                   </Link>
                 </div>
 
@@ -260,14 +260,7 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
           </div>
         </div>
 
-        {/* Debug output */}
-        {(() => {
-          log.debug('Render state', 'UnifiedHeader', {
-            isModalOpen,
-          });
-          return null;
-        })()}
-      </section>
+      </main>
     </>
   );
 };

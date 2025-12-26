@@ -89,7 +89,7 @@ const Home = () => {
           name="keywords"
           content="psychologist Newcastle, anxiety therapy Newcastle, depression counselling Newcastle, couples therapy Newcastle, marriage therapy Newcastle, autism psychologist Newcastle, ADHD therapy Newcastle, NDIS psychologist Newcastle, telehealth psychology NDIS, mental health services Newcastle"
         />
-        <link rel="canonical" href={`${getEnvVar('VITE_BASE_URL')}/`} />
+        {/* Canonical is handled by SEO component - do not duplicate */}
         <meta
           property="og:title"
           content="Life Psychology Australia | Psychologist Newcastle | Anxiety & Depression Therapy"

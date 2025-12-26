@@ -583,10 +583,13 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       {/* Mobile Calendar - only shows days with availability */}
       {mobileWeekSchedule.length > 0 && (
         <div className="lg:hidden flex flex-col flex-1 min-h-0" role="region" aria-label="Mobile appointment calendar">
-          {/* Day selector - compact to fit on screen without scrolling */}
+          {/* Day selector - horizontal scroll when more than 5 days */}
           <div
-            className="grid gap-1.5 pb-2 flex-shrink-0 sticky top-0 z-10 bg-white/95 backdrop-blur-sm -mx-1 px-1 pt-1"
-            style={{ gridTemplateColumns: `repeat(${Math.min(mobileWeekSchedule.length, 5)}, 1fr)` }}
+            className={`flex gap-1.5 pb-2 flex-shrink-0 sticky top-0 z-10 bg-white/95 backdrop-blur-sm -mx-1 px-1 pt-1 ${mobileWeekSchedule.length > 5 ? 'overflow-x-auto' : ''}`}
+            style={{ 
+              display: mobileWeekSchedule.length > 5 ? 'flex' : 'grid',
+              gridTemplateColumns: mobileWeekSchedule.length <= 5 ? `repeat(${mobileWeekSchedule.length}, 1fr)` : undefined 
+            }}
             role="tablist"
           >
             {mobileWeekSchedule.map((day, index) => {
@@ -605,9 +608,10 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                   }}
                   className={`flex flex-col items-center justify-center rounded-lg text-center transition-all touch-manipulation ${
                     isActive ? 'text-blue-800' : 'text-slate-600'
-                  }`}
+                  } ${mobileWeekSchedule.length > 5 ? 'flex-shrink-0' : ''}`}
                   style={{
                     minHeight: 'clamp(36px, 5.5vh, 52px)',
+                    minWidth: mobileWeekSchedule.length > 5 ? 'clamp(48px, 13vw, 70px)' : undefined,
                     padding: 'clamp(2px, 0.5vh, 6px) clamp(4px, 2vw, 12px)',
                     background: isActive
                       ? 'linear-gradient(135deg, rgba(236,253,245,0.95) 0%, rgba(209,250,229,0.8) 100%)'

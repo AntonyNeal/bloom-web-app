@@ -8,9 +8,6 @@ const SmartHeader = () => {
 
   // If no A/B test context (e.g., during tests), use default photo
   if (!abTestContext) {
-    console.warn(
-      '[SmartHeader] A/B context not available, using default photo'
-    );
     return <UnifiedHeader heroPhoto="/assets/hero-zoe-main.jpg" />;
   }
 
@@ -18,11 +15,8 @@ const SmartHeader = () => {
 
   // Handle case where variant is still loading/initializing
   if (variant === null || variant === undefined) {
-    console.log('[SmartHeader] Variant still initializing, using fallback');
     return <UnifiedHeader heroPhoto="/assets/hero-zoe-main.jpg" />;
   }
-
-  console.log(`[SmartHeader] Rendering variant: ${variant}`);
 
   // A/B Test: Different hero photos
   // photo-current uses the sitting on couch photo (production - proven to work)

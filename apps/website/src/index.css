@@ -72,3 +72,26 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Performance: Prevent CLS from hero section */
+.hero-section {
+  contain: layout style;
+}
+
+.hero-image-container {
+  contain: layout;
+  /* Reserve space before image loads */
+  min-height: 300px;
+}
+
+@media (min-width: 640px) {
+  .hero-image-container {
+    min-height: 400px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-image-container {
+    min-height: 500px;
+  }
+}

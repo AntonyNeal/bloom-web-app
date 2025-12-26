@@ -31,10 +31,10 @@ export function criticalCssInline(): Plugin {
       let modifiedHtml = html;
 
       if (criticalCss) {
-        // Inline critical CSS in the head
+        // Inline critical CSS AFTER charset meta tag (must be within first 1024 bytes per Lighthouse)
         modifiedHtml = modifiedHtml.replace(
-          '<head>',
-          `<head>
+          '<meta charset="UTF-8" />',
+          `<meta charset="UTF-8" />
     <style>${criticalCss}</style>`
         );
       }

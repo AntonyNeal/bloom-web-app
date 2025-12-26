@@ -2,12 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Redirect non-www to www for SEO consolidation (prevents duplicate content) -->
+    <script>
+      if (window.location.hostname === 'life-psychology.com.au') {
+        window.location.replace('https://www.life-psychology.com.au' + window.location.pathname + window.location.search);
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <meta name="format-detection" content="telephone=no" />
 
-    <!-- Canonical URL - Default for root, will be replaced by React Helmet for other pages -->
-    <link rel="canonical" href="https://life-psychology.com.au/" />
+    <!-- Canonical URL is set dynamically by React Helmet SEO component -->
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
@@ -21,8 +26,8 @@
       as="image"
       type="image/webp"
       fetchpriority="high"
-      imagesrcset="/assets/hero-zoe-main-500w.webp 500w, /assets/hero-zoe-main.webp 800w"
-      imagesizes="(max-width: 640px) 320px, (max-width: 1024px) 380px, 400px"
+      imagesrcset="/assets/hero-zoe-main-380w.webp 380w, /assets/hero-zoe-main-500w.webp 500w, /assets/hero-zoe-main.webp 800w"
+      imagesizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
     />
     <!-- Variant B (photo-standing): zoe standing images - uses responsive srcset -->
     <link
@@ -31,7 +36,7 @@
       type="image/webp"
       media="(max-width: 768px)"
       imagesrcset="/assets/zoe-380w.webp 380w, /assets/zoe-760w.webp 760w"
-      imagesizes="(max-width: 640px) 320px, (max-width: 1024px) 380px, 400px"
+      imagesizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
     />
     <!-- Preload critical fonts with async loading and optional display (prevents CLS) -->
     <link
@@ -299,7 +304,7 @@
     <meta name="revisit-after" content="7 days" />
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://life-psychology.com.au" />
+    <link rel="canonical" href="https://www.life-psychology.com.au" />
 
     <!-- Performance Optimizations -->
     <!-- DNS prefetch for additional performance (preconnects defined above) -->
@@ -336,7 +341,7 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://life-psychology.com.au" />
+    <meta property="og:url" content="https://www.life-psychology.com.au" />
     <meta
       property="og:title"
       content="Life Psychology Australia | Psychologist Newcastle | Anxiety & Depression Therapy"
@@ -345,7 +350,7 @@
       property="og:description"
       content="Professional psychologist in Newcastle providing anxiety therapy, depression counselling, couples therapy, and NDIS psychology services. Secure telehealth sessions across the Greater Hunter region."
     />
-    <meta property="og:image" content="https://life-psychology.com.au/og-image-sunflower.png" />
+    <meta property="og:image" content="https://www.life-psychology.com.au/og-image-sunflower.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/png" />
@@ -365,7 +370,7 @@
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://life-psychology.com.au" />
+    <meta property="twitter:url" content="https://www.life-psychology.com.au" />
     <meta
       property="twitter:title"
       content="Life Psychology Australia | Psychologist Newcastle | Anxiety & Depression Therapy"
@@ -374,7 +379,7 @@
       property="twitter:description"
       content="Professional psychologist in Newcastle providing anxiety therapy, depression counselling, couples therapy, and NDIS psychology services. Secure telehealth sessions across the Greater Hunter region."
     />
-    <meta property="twitter:image" content="https://life-psychology.com.au/og-image.png" />
+    <meta property="twitter:image" content="https://www.life-psychology.com.au/og-image.png" />
 
     <!-- Performance Meta Tags -->
     <meta name="format-detection" content="telephone=no" />
@@ -391,7 +396,7 @@
         "@type": "LocalBusiness",
         "name": "Life Psychology Australia",
         "description": "Professional psychologist providing anxiety therapy, depression counselling, couples therapy, and NDIS psychology services in Newcastle and the Greater Hunter region",
-        "url": "https://life-psychology.com.au",
+        "url": "https://www.life-psychology.com.au",
         "telephone": "",
         "email": "info@life-psychology.com.au",
         "address": {
@@ -433,8 +438,8 @@
         "@context": "https://schema.org",
         "@type": "Organisation",
         "name": "Life Psychology Australia",
-        "url": "https://life-psychology.com.au",
-        "logo": "https://life-psychology.com.au/logo.svg",
+        "url": "https://www.life-psychology.com.au",
+        "logo": "https://www.life-psychology.com.au/logo.svg",
         "description": "Professional psychology services in Newcastle including anxiety therapy, depression counselling, couples therapy, and NDIS psychology through secure telehealth",
         "contactPoint": {
           "@type": "ContactPoint",

@@ -30,9 +30,16 @@ export function SEO({
 }: SEOProps) {
   const location = useLocation();
 
-  // Get base URL from environment or use default
-  const baseUrl =
-    import.meta.env.VITE_SITE_URL || 'https://life-psychology.com.au';
+  // Always use production URL for canonical (staging/dev should not be indexed)
+  // Use www subdomain consistently for SEO
+  const baseUrl = 'https://www.life-psychology.com.au';
+  
+  // Auto-detect staging/dev environments and set noindex
+  const isNonProduction = typeof window !== 'undefined' && 
+    (window.location.hostname.includes('staging') || 
+     window.location.hostname === 'localhost' ||
+     window.location.hostname.includes('azurestaticapps.net'));
+  const shouldNoindex = noindex || isNonProduction;
 
   // Normalize path: remove trailing slash except for root
   const normalizePath = (path: string): string => {
@@ -62,8 +69,8 @@ export function SEO({
       {/* Canonical Tag - Critical for SEO */}
       <link rel="canonical" href={fullCanonicalUrl} />
 
-      {/* Robots Meta */}
-      {noindex && <meta name="robots" content="noindex,nofollow" />}
+      {/* Robots Meta - auto-noindex for staging/dev environments */}
+      {shouldNoindex && <meta name="robots" content="noindex,nofollow" />}
 
       {/* Open Graph Tags */}
       <meta property="og:title" content={pageTitle} />

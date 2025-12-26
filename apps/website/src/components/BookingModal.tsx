@@ -118,24 +118,28 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     console.log('[BookingModal] Booking successful:', appointmentId);
   };
 
+  // Don't render the modal at all when closed to avoid aria-hidden focus issues
+  if (!isOpen) {
+    return null;
+  }
+
   return (
     <div
-      className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity duration-200 opacity-100"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
-      aria-hidden={!isOpen}
     >
       {/* Background overlay - frosted glass effect with fade animation */}
       <div
-        className={`fixed inset-0 backdrop-blur-md bg-slate-900/30 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className="fixed inset-0 backdrop-blur-md bg-slate-900/30 transition-opacity duration-200 opacity-100"
         onClick={onClose}
       ></div>
 
       {/* Modal panel - fixed viewport height, content scales to fit */}
       <div
         ref={modalContentRef}
-        className={`relative z-10 w-full h-[92dvh] sm:w-[95vw] sm:h-[90vh] md:max-w-4xl overflow-hidden rounded-t-2xl sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'}`}
+        className="relative z-10 w-full h-[92dvh] sm:w-[95vw] sm:h-[90vh] md:max-w-4xl overflow-hidden rounded-t-2xl sm:rounded-xl bg-gradient-to-b from-slate-50 to-white border-[3px] border-slate-300/40 flex flex-col transition-all duration-200 opacity-100 translate-y-0"
         style={{
           boxShadow: `
             0 0 0 6px rgba(255, 255, 255, 0.15),

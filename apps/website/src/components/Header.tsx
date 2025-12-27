@@ -1,7 +1,17 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { trackBookNowClick } from '../tracking';
 import { useBooking } from '../hooks/useBooking';
+
+// Deferred tracking - only loads when called
+const trackBookNow = async (params: { page_section: string; button_location: string }) => {
+  try {
+    const { trackBookNowClick } = await import('../tracking');
+    trackBookNowClick(params);
+  } catch (e) {
+    // Fail silently - tracking is non-critical
+    console.warn('[Header] Tracking unavailable:', e);
+  }
+};
 
 const Header = () => {
   const location = useLocation();
@@ -108,8 +118,8 @@ const Header = () => {
                   event.preventDefault();
                   console.log('[Header] Desktop Book Now clicked');
 
-                  // GA4 tracking
-                  trackBookNowClick({
+                  // GA4 tracking - deferred to avoid blocking
+                  trackBookNow({
                     page_section: 'header',
                     button_location: 'desktop_navigation',
                   });
@@ -136,8 +146,8 @@ const Header = () => {
                   event.preventDefault();
                   console.log('[Header] Mobile Book Now clicked');
 
-                  // GA4 tracking
-                  trackBookNowClick({
+                  // GA4 tracking - deferred to avoid blocking
+                  trackBookNow({
                     page_section: 'header',
                     button_location: 'mobile_navigation',
                   });

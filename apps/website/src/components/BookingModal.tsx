@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { BookingForm } from './BookingForm';
 
 // MAINTENANCE MODE - Set to false to restore normal booking
 const MAINTENANCE_MODE = false;
@@ -220,9 +221,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           {MAINTENANCE_MODE ? (
             <MaintenanceMessage onClose={onClose} />
           ) : (
-            <div className="flex items-center justify-center h-full text-slate-500">
-              Booking form disabled
-            </div>
+            <BookingForm onCancel={onClose} />
           )}
         </div>
       </div>

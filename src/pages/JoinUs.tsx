@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { API_ENDPOINTS } from '@/config/api';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Tier1Flower, Tier2Flower, Tier3Flower } from '@/components/flowers';
 import type { QualificationData } from '@/components/common/QualificationCheck';
 import { BloomJourneyInfographic } from '@/components/join-us/BloomJourneyInfographic';
@@ -151,23 +150,6 @@ function MarketingContent({
             margin: '0 auto',
           }}
         >
-          {/* Organisation identifier */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            style={{
-              fontSize: isMobile ? '14px' : '16px',
-              fontWeight: 600,
-              color: bloomStyles.colors.softTerracotta,
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              marginBottom: '12px',
-            }}
-          >
-            Life Psychology Australia
-          </motion.p>
-
           <motion.h1
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -181,44 +163,27 @@ function MarketingContent({
               backgroundClip: 'text',
               letterSpacing: '-0.02em',
               lineHeight: 1.2,
-              marginBottom: '16px',
+              marginBottom: '20px',
             }}
           >
             Practice Your Way
           </motion.h1>
-          
-          {/* Prominent Tagline */}
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            style={{
-              fontSize: isMobile ? '24px' : '32px',
-              fontWeight: 700,
-              color: bloomStyles.colors.eucalyptusSage,
-              letterSpacing: '-0.01em',
-              lineHeight: 1.3,
-              marginBottom: '24px',
-            }}
-          >
-            Bloom fits into your life, not the other way around.
-          </motion.p>
-
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
             style={{
-              fontSize: isMobile ? '17px' : '20px',
-              lineHeight: 1.7,
+              fontSize: isMobile ? '18px' : '22px',
+              lineHeight: 1.6,
               color: '#4A4A4A',
-              maxWidth: '680px',
+              maxWidth: '700px',
               margin: '0 auto',
             }}
           >
-            Life Psychology Australia partners with experienced, qualified clinicians—and 
-            Bloom is the platform that supports you. Whether you're building a full practice, 
-            fitting sessions around family, or staying active in retirement—you belong here.
+            <strong>No need to quit your current job.</strong> Bloom can supplement your income or
+            become your full-time career—your choice. Work completely on your schedule.
+            <br />
+            <strong>Bloom fits into your life, not the other way around.</strong>
           </motion.p>
         </motion.section>
 
@@ -331,7 +296,6 @@ function MarketingContent({
 
 export function JoinUs() {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const shouldReduceMotion = useReducedMotion();
 
@@ -357,12 +321,6 @@ export function JoinUs() {
 
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [errorModal, setErrorModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    suggestion?: string;
-  }>({ isOpen: false, title: '', message: '' });
 
   // Calculate form completion percentage for progress indicator
   const completionPercentage = useMemo(() => {
@@ -419,25 +377,6 @@ export function JoinUs() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validate required files before submission
-    if (!files.cv) {
-      toast({
-        title: 'Missing Resume',
-        description: 'Please upload your CV/Resume before submitting.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (!files.certificate) {
-      toast({
-        title: 'Missing AHPRA Certificate',
-        description: 'Please upload your AHPRA Certificate before submitting.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setUploading(true);
 
     try {
@@ -463,32 +402,8 @@ export function JoinUs() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData.error || 'Submission failed';
-        
-        // Check for duplicate email error
-        if (errorMessage.includes('UNIQUE KEY') && errorMessage.includes('email')) {
-          setErrorModal({
-            isOpen: true,
-            title: "We've already received your application",
-            message: `It looks like you've already submitted an application using this email address (${formData.email}).`,
-            suggestion: "If you need to update your application or have any questions, please reach out to us directly at hello@life-psychology.com.au and we'll be happy to help.",
-          });
-          return;
-        }
-        
-        // Check for other database errors
-        if (errorMessage.includes('database') || errorMessage.includes('SQL') || errorMessage.includes('constraint')) {
-          setErrorModal({
-            isOpen: true,
-            title: 'Something went wrong on our end',
-            message: "We're experiencing a technical issue and couldn't process your application right now.",
-            suggestion: "Please try again in a few minutes. If the problem persists, email us at hello@life-psychology.com.au with your details and we'll process your application manually.",
-          });
-          return;
-        }
-        
-        throw new Error(errorMessage);
+        const error = await response.json();
+        throw new Error(error.error || 'Submission failed');
       }
 
       setSubmitted(true);
@@ -496,24 +411,13 @@ export function JoinUs() {
         title: 'Application submitted!',
         description: "We'll review your application and be in touch soon.",
       });
-    } catch (err) {
-      // Network or unexpected errors - show toast for minor issues
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      
-      if (message.includes('fetch') || message.includes('network') || message.includes('Failed to fetch')) {
-        toast({
-          title: 'Connection issue',
-          description: "Please check your internet connection and try again. Your information hasn't been lost.",
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: "We're having a small hiccup",
-          description:
-            "Your application didn't quite make it through. Please try again—we'd love to hear from you! 🌿",
-          variant: 'destructive',
-        });
-      }
+    } catch {
+      toast({
+        title: "We're having a small hiccup",
+        description:
+          "Your application didn't quite make it through. Please check your connection and try again—we'd love to hear from you! 🌿",
+        variant: 'destructive',
+      });
     } finally {
       setUploading(false);
     }
@@ -588,7 +492,19 @@ export function JoinUs() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => {
-            navigate('/');
+            setSubmitted(false);
+            setHasPassedQualificationCheck(false);
+            setFormData({
+              first_name: '',
+              last_name: '',
+              email: '',
+              phone: '',
+              ahpra_registration: '',
+              specializations: [],
+              experience_years: 0,
+              cover_letter: '',
+            });
+            setFiles({ cv: null, certificate: null, photo: null });
           }}
           style={{
             padding: '12px 32px',
@@ -653,132 +569,6 @@ export function JoinUs() {
     <div
       style={{ position: 'relative', minHeight: '100vh', background: bloomStyles.colors.warmCream }}
     >
-      {/* Error Modal for Critical Errors */}
-      <AnimatePresence>
-        {errorModal.isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 9999,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '24px',
-              background: 'rgba(0, 0, 0, 0.5)',
-              backdropFilter: 'blur(4px)',
-            }}
-            onClick={() => setErrorModal({ isOpen: false, title: '', message: '' })}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', bounce: 0.3 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: 'white',
-                borderRadius: '24px',
-                padding: isMobile ? '32px 24px' : '48px 40px',
-                maxWidth: '520px',
-                width: '100%',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                textAlign: 'center',
-              }}
-            >
-              {/* Icon */}
-              <div
-                style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '50%',
-                  background: `${bloomStyles.colors.softTerracotta}15`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 24px',
-                  fontSize: '40px',
-                }}
-              >
-                🌱
-              </div>
-
-              {/* Title */}
-              <h2
-                style={{
-                  fontSize: isMobile ? '22px' : '26px',
-                  fontWeight: 700,
-                  color: bloomStyles.colors.eucalyptusSage,
-                  marginBottom: '16px',
-                  lineHeight: 1.3,
-                }}
-              >
-                {errorModal.title}
-              </h2>
-
-              {/* Message */}
-              <p
-                style={{
-                  fontSize: isMobile ? '16px' : '17px',
-                  color: '#4A4A4A',
-                  lineHeight: 1.7,
-                  marginBottom: errorModal.suggestion ? '20px' : '32px',
-                }}
-              >
-                {errorModal.message}
-              </p>
-
-              {/* Suggestion */}
-              {errorModal.suggestion && (
-                <p
-                  style={{
-                    fontSize: isMobile ? '15px' : '16px',
-                    color: '#666',
-                    lineHeight: 1.7,
-                    marginBottom: '32px',
-                    padding: '16px',
-                    background: `${bloomStyles.colors.eucalyptusSage}08`,
-                    borderRadius: '12px',
-                    borderLeft: `4px solid ${bloomStyles.colors.eucalyptusSage}`,
-                  }}
-                >
-                  {errorModal.suggestion}
-                </p>
-              )}
-
-              {/* Close Button */}
-              <button
-                onClick={() => setErrorModal({ isOpen: false, title: '', message: '' })}
-                style={{
-                  padding: '14px 40px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: bloomStyles.colors.eucalyptusSage,
-                  color: 'white',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(107, 142, 127, 0.3)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                Got it
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Ambient Background Layer - same as qualification check */}
       <div
         style={{
@@ -1413,6 +1203,7 @@ export function JoinUs() {
                     <input
                       id="cv"
                       type="file"
+                      required
                       accept=".pdf,.doc,.docx"
                       onChange={handleFileChange('cv')}
                       style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
@@ -1472,6 +1263,7 @@ export function JoinUs() {
                     <input
                       id="certificate"
                       type="file"
+                      required
                       accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleFileChange('certificate')}
                       style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}

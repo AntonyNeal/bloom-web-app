@@ -2,6 +2,20 @@
   "trailingSlash": "never",
   "routes": [
     {
+      "route": "/robots.txt",
+      "headers": {
+        "Cache-Control": "public, max-age=86400",
+        "Content-Type": "text/plain"
+      }
+    },
+    {
+      "route": "/sitemap.xml",
+      "headers": {
+        "Cache-Control": "public, max-age=86400",
+        "Content-Type": "application/xml"
+      }
+    },
+    {
       "route": "/home",
       "redirect": "/",
       "statusCode": 301

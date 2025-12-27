@@ -183,6 +183,8 @@
     ".js": "text/javascript",
     ".mjs": "text/javascript",
     ".css": "text/css",
+    ".txt": "text/plain",
+    ".xml": "application/xml",
     ".webp": "image/webp",
     ".avif": "image/avif",
     ".jpg": "image/jpeg",

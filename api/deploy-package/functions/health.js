@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+// Force rebuild - 2025-11-24
 const functions_1 = require("@azure/functions");
 async function healthHandler(req, _context) {
     const headers = {

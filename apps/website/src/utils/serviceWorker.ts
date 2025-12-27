@@ -51,11 +51,11 @@ class ServiceWorkerManager {
       });
 
       // Handle controller change (new SW activated)
+      // DISABLED auto-reload - it causes jarring page refreshes after deployments
+      // Users will get updated content on their next navigation or manual refresh
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (this.updateAvailable) {
-          console.log('[SW] New service worker activated, reloading page...');
-          window.location.reload();
-        }
+        console.log('[SW] Controller changed - new service worker is now active');
+        // Do NOT auto-reload - let users continue their session uninterrupted
       });
 
       // Handle messages from service worker

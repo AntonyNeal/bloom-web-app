@@ -180,10 +180,10 @@ const setupPerformanceMonitoring = () => {
 
   // Track Core Web Vitals with Web Vitals library integration
   if (typeof window !== 'undefined') {
-    // Import and use web-vitals if available
+    // Import and use web-vitals if available (v5+ uses onXXX naming)
     import('web-vitals')
-      .then(({ getCLS, getINP, getFCP, getLCP, getTTFB }) => {
-        getCLS((metric) => {
+      .then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
+        onCLS((metric) => {
           trackMetric('CoreWebVitals.CLS', metric.value, {
             name: metric.name,
             rating: metric.rating,
@@ -192,7 +192,7 @@ const setupPerformanceMonitoring = () => {
         });
 
         // INP (Interaction to Next Paint) replaced FID in web-vitals v4+
-        getINP((metric) => {
+        onINP((metric) => {
           trackMetric('CoreWebVitals.INP', metric.value, {
             name: metric.name,
             rating: metric.rating,
@@ -200,7 +200,7 @@ const setupPerformanceMonitoring = () => {
           });
         });
 
-        getFCP((metric) => {
+        onFCP((metric) => {
           trackMetric('CoreWebVitals.FCP', metric.value, {
             name: metric.name,
             rating: metric.rating,
@@ -208,7 +208,7 @@ const setupPerformanceMonitoring = () => {
           });
         });
 
-        getLCP((metric) => {
+        onLCP((metric) => {
           trackMetric('CoreWebVitals.LCP', metric.value, {
             name: metric.name,
             rating: metric.rating,
@@ -216,7 +216,7 @@ const setupPerformanceMonitoring = () => {
           });
         });
 
-        getTTFB((metric) => {
+        onTTFB((metric) => {
           trackMetric('CoreWebVitals.TTFB', metric.value, {
             name: metric.name,
             rating: metric.rating,

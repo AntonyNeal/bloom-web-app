@@ -1,16 +1,59 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 const functions_1 = require("@azure/functions");
-const cosmos_1 = require("@azure/cosmos");
-// Get Cosmos DB client
-function getCosmosClient() {
-    const connectionString = process.env.COSMOS_DB_CONNECTION_STRING;
-    if (!connectionString) {
-        throw new Error('COSMOS_DB_CONNECTION_STRING not configured');
+const sql = __importStar(require("mssql"));
+// SQL connection configuration
+const getConfig = () => {
+    const connectionString = process.env.SQL_CONNECTION_STRING;
+    if (connectionString) {
+        return connectionString;
     }
-    return new cosmos_1.CosmosClient(connectionString);
-}
+    return {
+        server: process.env.SQL_SERVER,
+        database: process.env.SQL_DATABASE,
+        user: process.env.SQL_USER,
+        password: process.env.SQL_PASSWORD,
+        options: {
+            encrypt: true,
+            trustServerCertificate: false,
+        },
+    };
+};
 async function trackABTestEventHandler(req, context) {
+    var _a;
     const method = req.method;
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -23,9 +66,12 @@ async function trackABTestEventHandler(req, context) {
     if (method === 'OPTIONS') {
         return { status: 204, headers };
     }
+    let pool = null;
     try {
+        const config = getConfig();
+        pool = await sql.connect(config);
         if (method === 'POST') {
-            context.log('Tracking A/B test event');
+            context.log('Tracking A/B test event to SQL');
             const body = (await req.json());
             const { testName, variant, sessionId, userId, converted } = body;
             if (!testName || !variant || !sessionId) {
@@ -35,30 +81,28 @@ async function trackABTestEventHandler(req, context) {
                     jsonBody: { error: 'Missing required fields: testName, variant, sessionId' },
                 };
             }
-            const cosmosClient = getCosmosClient();
-            const database = cosmosClient.database('bloom-ab-testing');
-            const container = database.container('test-events');
-            // Create event document
-            const event = {
-                id: `${sessionId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                testName,
-                variant,
-                sessionId,
-                userId: userId || null,
-                converted: converted || false,
-                timestamp: new Date().toISOString(),
-                _partitionKey: testName, // Partition by test name for efficient queries
-            };
-            await container.items.create(event);
-            context.log(`Event tracked for test: ${testName}, variant: ${variant}, converted: ${converted}`);
+            // Insert into SQL
+            const result = await pool.request()
+                .input('testName', sql.NVarChar, testName)
+                .input('variant', sql.NVarChar, variant)
+                .input('sessionId', sql.NVarChar, sessionId)
+                .input('userId', sql.NVarChar, userId || null)
+                .input('converted', sql.Bit, converted ? 1 : 0)
+                .query(`
+          INSERT INTO ab_test_events (test_name, variant, session_id, user_id, converted)
+          OUTPUT INSERTED.id
+          VALUES (@testName, @variant, @sessionId, @userId, @converted)
+        `);
+            const eventId = (_a = result.recordset[0]) === null || _a === void 0 ? void 0 : _a.id;
+            context.log(`Event tracked for test: ${testName}, variant: ${variant}, converted: ${converted}, id: ${eventId}`);
             return {
                 status: 201,
                 headers,
-                jsonBody: { success: true, eventId: event.id },
+                jsonBody: { success: true, eventId },
             };
         }
         if (method === 'GET') {
-            // Get test results in real-time from Cosmos DB
+            // Get test results from SQL
             const testName = req.query.get('testName');
             if (!testName) {
                 return {
@@ -67,39 +111,27 @@ async function trackABTestEventHandler(req, context) {
                     jsonBody: { error: 'testName query parameter is required' },
                 };
             }
-            const cosmosClient = getCosmosClient();
-            const database = cosmosClient.database('bloom-ab-testing');
-            const container = database.container('test-events');
-            const query = {
-                query: 'SELECT c.variant, c.converted FROM c WHERE c.testName = @testName',
-                parameters: [{ name: '@testName', value: testName }],
-            };
-            const { resources } = await container.items.query(query).fetchAll();
-            // Aggregate results by variant
-            const variantStats = {};
-            for (const event of resources) {
-                const variant = event.variant;
-                if (!variantStats[variant]) {
-                    variantStats[variant] = { allocations: 0, conversions: 0 };
-                }
-                variantStats[variant].allocations++;
-                if (event.converted) {
-                    variantStats[variant].conversions++;
-                }
-            }
-            const variants = Object.entries(variantStats).map(([variant, stats]) => ({
-                variant,
-                allocations: stats.allocations,
-                conversions: stats.conversions,
-                conversionRate: stats.conversions / stats.allocations,
+            const result = await pool.request()
+                .input('testName', sql.NVarChar, testName)
+                .query(`
+          SELECT 
+            variant,
+            COUNT(*) as allocations,
+            SUM(CASE WHEN converted = 1 THEN 1 ELSE 0 END) as conversions
+          FROM ab_test_events 
+          WHERE test_name = @testName
+          GROUP BY variant
+        `);
+            const variants = result.recordset.map((row) => ({
+                variant: row.variant,
+                allocations: row.allocations,
+                conversions: row.conversions,
+                conversionRate: row.allocations > 0 ? row.conversions / row.allocations : 0,
             }));
             return {
                 status: 200,
                 headers,
-                jsonBody: {
-                    testName,
-                    variants,
-                },
+                jsonBody: { testName, variants },
             };
         }
         return {
@@ -116,6 +148,11 @@ async function trackABTestEventHandler(req, context) {
             headers,
             jsonBody: { error: errorMessage },
         };
+    }
+    finally {
+        if (pool) {
+            await pool.close();
+        }
     }
 }
 functions_1.app.http('track-ab-test', {

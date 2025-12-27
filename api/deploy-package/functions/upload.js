@@ -60,7 +60,24 @@ async function uploadHandler(req, context) {
         await blockBlobClient.uploadData(buffer, {
             blobHTTPHeaders: { blobContentType: contentType },
         });
-        const url = blockBlobClient.url;
+        // Generate a SAS token for the blob (valid for 1 year)
+        // Parse account name and key from connection string
+        const accountMatch = connectionString.match(/AccountName=([^;]+)/);
+        const keyMatch = connectionString.match(/AccountKey=([^;]+)/);
+        let url = blockBlobClient.url;
+        if (accountMatch && keyMatch) {
+            const accountName = accountMatch[1];
+            const accountKey = keyMatch[1];
+            const sharedKeyCredential = new storage_blob_1.StorageSharedKeyCredential(accountName, accountKey);
+            const sasToken = (0, storage_blob_1.generateBlobSASQueryParameters)({
+                containerName: "applications",
+                blobName: fileName,
+                permissions: storage_blob_1.BlobSASPermissions.parse("r"), // Read only
+                startsOn: new Date(),
+                expiresOn: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+            }, sharedKeyCredential).toString();
+            url = `${blockBlobClient.url}?${sasToken}`;
+        }
         return {
             status: 200,
             headers,

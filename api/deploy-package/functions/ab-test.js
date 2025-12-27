@@ -1,27 +1,79 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 const functions_1 = require("@azure/functions");
-const cosmos_1 = require("@azure/cosmos");
-// Get Cosmos DB client
-function getCosmosClient() {
-    const connectionString = process.env.COSMOS_DB_CONNECTION_STRING;
-    if (!connectionString) {
-        throw new Error('COSMOS_DB_CONNECTION_STRING not configured');
+const sql = __importStar(require("mssql"));
+// SQL connection configuration
+const getConfig = () => {
+    const connectionString = process.env.SQL_CONNECTION_STRING;
+    if (connectionString) {
+        return connectionString;
     }
-    return new cosmos_1.CosmosClient(connectionString);
-}
+    return {
+        server: process.env.SQL_SERVER,
+        database: process.env.SQL_DATABASE,
+        user: process.env.SQL_USER,
+        password: process.env.SQL_PASSWORD,
+        options: {
+            encrypt: true,
+            trustServerCertificate: false,
+        },
+    };
+};
 // Calculate z-score and p-value for statistical significance
 function calculateStatisticalSignificance(control, variant) {
+    // Handle edge cases
+    if (control.allocations === 0 || variant.allocations === 0) {
+        return { zScore: 0, pValue: 1, isSignificant: false, confidenceLevel: '0%' };
+    }
     const p1 = control.conversions / control.allocations;
     const p2 = variant.conversions / variant.allocations;
-    const p = (control.conversions + variant.conversions) / (control.allocations + variant.allocations);
+    const totalConversions = control.conversions + variant.conversions;
+    const totalAllocations = control.allocations + variant.allocations;
+    if (totalConversions === 0) {
+        return { zScore: 0, pValue: 1, isSignificant: false, confidenceLevel: '0%' };
+    }
+    const p = totalConversions / totalAllocations;
     const se = Math.sqrt(p * (1 - p) * (1 / control.allocations + 1 / variant.allocations));
+    if (se === 0) {
+        return { zScore: 0, pValue: 1, isSignificant: false, confidenceLevel: '0%' };
+    }
     const zScore = (p2 - p1) / se;
     const pValue = 2 * (1 - normalCDF(Math.abs(zScore)));
     const isSignificant = pValue < 0.05;
-    const confidenceLevel = isSignificant
-        ? `${Math.round((1 - pValue) * 100)}%`
-        : `${Math.round((1 - pValue) * 100)}%`;
+    const confidenceLevel = `${Math.round((1 - pValue) * 100)}%`;
     return { zScore, pValue, isSignificant, confidenceLevel };
 }
 // Normal distribution CDF approximation
@@ -56,47 +108,48 @@ async function abTestHandler(req, context) {
     if (method === 'OPTIONS') {
         return { status: 204, headers };
     }
+    let pool = null;
     try {
-        const cosmosClient = getCosmosClient();
-        const database = cosmosClient.database('bloom-ab-testing');
-        const container = database.container('test-events');
+        const config = getConfig();
+        pool = await sql.connect(config);
         if (method === 'GET' && testName) {
-            context.log(`Fetching A/B test results for ${testName}`);
-            // Query Cosmos DB for test events
-            const query = {
-                query: 'SELECT c.variant, c.converted FROM c WHERE c.testName = @testName',
-                parameters: [{ name: '@testName', value: testName }],
-            };
-            const { resources } = await container.items.query(query).fetchAll();
-            if (!resources || resources.length === 0) {
+            context.log(`Fetching A/B test results for ${testName} from SQL`);
+            // Query SQL for aggregated test results
+            const result = await pool.request()
+                .input('testName', sql.NVarChar, testName)
+                .query(`
+          SELECT 
+            variant,
+            COUNT(*) as allocations,
+            SUM(CASE WHEN converted = 1 THEN 1 ELSE 0 END) as conversions,
+            MIN(created_at) as first_event,
+            MAX(created_at) as last_event
+          FROM ab_test_events 
+          WHERE test_name = @testName
+          GROUP BY variant
+          ORDER BY variant
+        `);
+            if (!result.recordset || result.recordset.length === 0) {
                 return {
                     status: 404,
                     headers,
                     jsonBody: { error: `No test data found for '${testName}'` },
                 };
             }
-            // Aggregate results by variant
-            const variantStats = {};
-            for (const event of resources) {
-                const variant = event.variant;
-                if (!variantStats[variant]) {
-                    variantStats[variant] = { allocations: 0, conversions: 0 };
-                }
-                variantStats[variant].allocations++;
-                if (event.converted) {
-                    variantStats[variant].conversions++;
-                }
-            }
-            // Build response with test data and calculate statistics
+            // Build variants object
             const variants = {};
-            for (const [variantName, stats] of Object.entries(variantStats)) {
-                variants[variantName] = {
-                    allocations: stats.allocations,
-                    conversions: stats.conversions,
-                    conversionRate: stats.conversions / stats.allocations,
+            let firstEventDate = null;
+            for (const row of result.recordset) {
+                variants[row.variant] = {
+                    allocations: row.allocations,
+                    conversions: row.conversions,
+                    conversionRate: row.allocations > 0 ? row.conversions / row.allocations : 0,
                 };
+                if (!firstEventDate || new Date(row.first_event) < firstEventDate) {
+                    firstEventDate = new Date(row.first_event);
+                }
             }
-            // Calculate improvement (comparing first variant as control to others)
+            // Calculate improvement
             const variantNames = Object.keys(variants);
             const controlVariant = variants[variantNames[0]];
             let winner = variantNames[0];
@@ -107,41 +160,54 @@ async function abTestHandler(req, context) {
                     winner = vName;
                 }
             }
-            const improvement = {
-                percentage: ((maxConversionRate - controlVariant.conversionRate) / controlVariant.conversionRate) *
-                    100,
-                winner,
-            };
+            const improvementPercentage = controlVariant.conversionRate > 0
+                ? ((maxConversionRate - controlVariant.conversionRate) / controlVariant.conversionRate) * 100
+                : 0;
+            const improvement = { percentage: improvementPercentage, winner };
             // Calculate statistical significance
             const statSig = calculateStatisticalSignificance(controlVariant, variants[winner]);
+            // Calculate duration info
+            const totalAllocations = Object.values(variants).reduce((sum, v) => sum + v.allocations, 0);
+            const daysRunning = firstEventDate
+                ? Math.floor((Date.now() - firstEventDate.getTime()) / (1000 * 60 * 60 * 24))
+                : 0;
+            const sampleSizeNeeded = 385 * 2;
+            const visitorsPerDay = daysRunning > 0 ? totalAllocations / daysRunning : 0;
+            const remainingAllocations = Math.max(0, sampleSizeNeeded - totalAllocations);
+            const daysRemaining = visitorsPerDay > 0 ? Math.ceil(remainingAllocations / visitorsPerDay) : 999;
             const testResult = {
                 testName,
                 variants,
                 statisticalSignificance: statSig,
                 improvement,
+                duration: {
+                    startedAt: (firstEventDate === null || firstEventDate === void 0 ? void 0 : firstEventDate.toISOString()) || null,
+                    daysRunning,
+                    daysRemaining,
+                    expectedDurationDays: daysRunning + daysRemaining,
+                    progressPercentage: Math.min(100, (totalAllocations / sampleSizeNeeded) * 100),
+                    status: statSig.isSignificant ? 'significant' : (totalAllocations >= sampleSizeNeeded ? 'complete' : 'running'),
+                },
             };
-            return {
-                status: 200,
-                headers,
-                jsonBody: testResult,
-            };
+            return { status: 200, headers, jsonBody: testResult };
         }
         if (method === 'GET') {
-            // Return all test summaries
-            context.log('Fetching all A/B test summaries');
-            const query = {
-                query: 'SELECT DISTINCT c.testName FROM c',
-            };
-            const { resources } = await container.items.query(query).fetchAll();
-            const summaries = resources.map((row) => ({
-                testName: row.testName,
-                lastUpdated: new Date().toISOString(),
+            context.log('Fetching all A/B test summaries from SQL');
+            const result = await pool.request().query(`
+        SELECT 
+          test_name,
+          COUNT(*) as total_events,
+          MAX(created_at) as last_updated
+        FROM ab_test_events
+        GROUP BY test_name
+        ORDER BY last_updated DESC
+      `);
+            const summaries = result.recordset.map((row) => ({
+                testName: row.test_name,
+                totalEvents: row.total_events,
+                lastUpdated: row.last_updated,
             }));
-            return {
-                status: 200,
-                headers,
-                jsonBody: summaries,
-            };
+            return { status: 200, headers, jsonBody: summaries };
         }
         return {
             status: 405,
@@ -157,6 +223,11 @@ async function abTestHandler(req, context) {
             headers,
             jsonBody: { error: errorMessage },
         };
+    }
+    finally {
+        if (pool) {
+            await pool.close();
+        }
     }
 }
 functions_1.app.http('ab-test', {

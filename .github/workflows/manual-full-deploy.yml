@@ -61,7 +61,7 @@ jobs:
           if [ "$ENV" = "production" ]; then
             echo "bloom-frontend-app=lpa-bloom-prod" >> $GITHUB_OUTPUT
             echo "bloom-frontend-secret=AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD" >> $GITHUB_OUTPUT
-            echo "bloom-api-app=bloom-platform-functions-v2" >> $GITHUB_OUTPUT
+            echo "bloom-api-app=bloom-functions-prod" >> $GITHUB_OUTPUT
             echo "bloom-api-secret=BLOOM_PROD_API_PUBLISH_PROFILE" >> $GITHUB_OUTPUT
             echo "website-frontend-app=lpa-frontend-prod" >> $GITHUB_OUTPUT
             echo "website-frontend-secret=AZURE_STATIC_WEB_APPS_API_TOKEN_WEBSITE_PROD" >> $GITHUB_OUTPUT

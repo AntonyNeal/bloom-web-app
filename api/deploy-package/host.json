@@ -23,6 +23,7 @@
   "cors": {
     "allowedOrigins": [
       "https://bloom.life-psychology.com.au",
+      "https://staging.life-psychology.com.au",
       "http://localhost:5173",
       "http://localhost:4280"
     ],

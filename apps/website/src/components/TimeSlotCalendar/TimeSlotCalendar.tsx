@@ -178,12 +178,18 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
 
   const weekSchedule = generateWeekSchedule();
   
-  // Mobile only shows upcoming days with availability
+  // Mobile only shows upcoming days with availability WITHIN business hours
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const mobileWeekSchedule = weekSchedule.filter((day) => 
-    day.date.getTime() >= today.getTime() && day.slots.length > 0
-  );
+  const mobileWeekSchedule = weekSchedule.filter((day) => {
+    if (day.date.getTime() < today.getTime()) return false;
+    // Check if any slot falls within business hours (8am-6pm)
+    const hasBusinessHourSlots = day.slots.some((slot) => {
+      const slotHour = parseInt(slot.time.split(':')[0]);
+      return BUSINESS_HOURS.includes(slotHour);
+    });
+    return hasBusinessHourSlots;
+  });
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Selection State Management

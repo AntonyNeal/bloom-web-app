@@ -1,7 +1,7 @@
 {
   "name": "bloom-api",
-  "version": "1.0.1",
-  "description": "Proto-Bloom Azure Functions API - A/B Testing with Cosmos DB",
+  "version": "1.0.2",
+  "description": "Bloom Azure Functions API - A/B Testing with Cosmos DB",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
@@ -11,13 +11,18 @@
     "test": "echo \"No tests yet\""
   },
   "dependencies": {
+    "@azure/communication-sms": "^1.2.0-beta.4",
     "@azure/cosmos": "^4.7.0",
     "@azure/functions": "^4.0.0",
     "@azure/storage-blob": "^12.17.0",
-    "parse-multipart": "^1.0.4"
+    "mssql": "^12.1.1",
+    "parse-multipart": "^1.0.4",
+    "stripe": "^17.7.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@types/uuid": "^10.0.0",
     "azure-functions-core-tools": "^4.0.5455",
     "typescript": "^5.3.0"
   }

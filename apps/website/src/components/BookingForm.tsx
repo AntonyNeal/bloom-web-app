@@ -1243,12 +1243,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 3: Session Type & Notes */}
       {step === 'session' && (
-        <div className="flex flex-col flex-1 min-h-0 gap-4 sm:gap-5">
+        <div className="flex flex-col flex-1 min-h-0 gap-[1.5vh]">
           {/* Appointment Type Section */}
           <div>
             <label
               htmlFor="appointmentType-select"
-              className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 uppercase tracking-wide"
+              className="block text-[clamp(10px,1.5vh,14px)] font-semibold text-slate-700 mb-[0.5vh] uppercase tracking-wide"
             >
               Appointment Type <span className="text-red-500">*</span>
             </label>
@@ -1262,7 +1262,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   setMedicareSelectedThisSession(true);
                 }
               }}
-              className={`w-full px-3 py-2.5 sm:py-3 text-base font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['appointmentType'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
+              className={`w-full px-[1.5vh] py-[1.2vh] text-[clamp(14px,2vh,18px)] font-medium bg-white rounded-lg focus:outline-none transition-all border ${errors['appointmentType'] ? 'border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-100'}`}
               aria-required="true"
               aria-invalid={!!errors['appointmentType']}
               aria-describedby={
@@ -1288,64 +1288,50 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             {errors['appointmentType'] && (
               <p
                 id="appointmentType-error"
-                className="text-red-500 text-xs mt-1 font-medium"
+                className="text-red-500 text-[clamp(10px,1.4vh,12px)] mt-[0.5vh] font-medium"
                 role="alert"
               >
                 {errors['appointmentType']}
               </p>
             )}
 
-            {appointmentType === 'medicare-psychologist-session' &&
-              medicareSelectedThisSession && (
-                <div className="mt-2.5 p-2.5 rounded-lg bg-blue-50 border border-blue-200">
-                  <p className="text-sm text-blue-700 font-medium">
-                    💡 Medicare rebates available for eligible appointments ($250 − $98.95 rebate = $151.05 gap)
-                  </p>
-                </div>
-              )}
-
-            {!(
-              appointmentType === 'medicare-psychologist-session' &&
-              medicareSelectedThisSession
-            ) && (
-              <p
-                id="appointmentType-hint"
-                className="mt-2 text-sm text-slate-500 px-1"
-              >
-                💡 Medicare rebates available for eligible appointments ($250 − $98.95 rebate = $151.05 gap)
-              </p>
-            )}
+            <p
+              id="appointmentType-hint"
+              className="mt-[0.8vh] text-[clamp(11px,1.6vh,14px)] text-slate-500 px-1"
+            >
+              💡 Medicare rebates available for eligible appointments ($250 − $98.95 rebate = $151.05 gap)
+            </p>
           </div>
 
           {/* Notes Section */}
-          <div>
+          <div className="flex-1 flex flex-col min-h-0">
             <label
               htmlFor="notes-textarea"
-              className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 uppercase tracking-wide"
+              className="block text-[clamp(10px,1.5vh,14px)] font-semibold text-slate-700 mb-[0.5vh] uppercase tracking-wide"
             >
               Notes <span className="font-normal normal-case text-slate-400">(optional)</span>
             </label>
 
-            <div className="mb-2 flex items-center gap-2.5">
+            <div className="mb-[0.8vh] flex items-center gap-2">
               <input
                 type="checkbox"
                 id="first-session-toggle"
                 checked={isFirstSession}
                 onChange={(e) => setIsFirstSession(e.target.checked)}
-                className="h-5 w-5 cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-1 focus:ring-blue-200"
+                className="h-[2vh] w-[2vh] min-h-[16px] min-w-[16px] cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-1 focus:ring-blue-200"
                 aria-describedby="first-session-hint"
               />
               <label
                 htmlFor="first-session-toggle"
-                className="text-sm text-slate-700 cursor-pointer"
+                className="text-[clamp(12px,1.8vh,14px)] text-slate-700 cursor-pointer"
               >
                 👋 This is my first session with Zoe
               </label>
             </div>
 
             {isFirstSession && (
-              <div className="mb-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm text-slate-600">
-                <p className="font-medium text-slate-700 mb-0.5">What to include:</p>
+              <div className="mb-[0.8vh] p-[1vh] rounded-lg bg-slate-50 border border-slate-200 text-[clamp(11px,1.5vh,13px)] text-slate-600">
+                <p className="font-medium text-slate-700">What to include:</p>
                 <p>Your goals, previous therapy experience, current challenges, and session preferences.</p>
               </div>
             )}
@@ -1354,8 +1340,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               id="notes-textarea"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={isFirstSession ? 4 : 3}
-              className="w-full rounded-lg border border-slate-200 px-3 py-3 text-base focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition-all bg-white resize-none"
+              className="w-full flex-1 min-h-[6vh] rounded-lg border border-slate-200 px-[1.5vh] py-[1vh] text-[clamp(14px,2vh,16px)] focus:border-blue-400 focus:ring-1 focus:ring-blue-100 focus:outline-none transition-all bg-white resize-none"
               placeholder={
                 isFirstSession
                   ? 'Share the top things Zoe should know before your first session...'
@@ -1365,14 +1350,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex justify-between items-center gap-3 flex-shrink-0 pt-2 mt-auto">
+          <div className="flex justify-between items-center gap-3 flex-shrink-0 pt-[0.5vh]">
             <button
               type="button"
               onClick={() => {
                 setStep('datetime');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
-              className="px-4 py-2 text-xs font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
+              className="px-[1.5vh] py-[1vh] text-[clamp(10px,1.5vh,12px)] font-semibold rounded-md text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:outline-none transition-all"
             >
               ← Back
             </button>
@@ -1380,7 +1365,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleSessionNext}
               disabled={!isSessionStepValid() || loading}
-              className={`px-5 py-2 text-xs font-semibold rounded-md transition-all ${
+              className={`px-[2vh] py-[1vh] text-[clamp(10px,1.5vh,12px)] font-semibold rounded-md transition-all ${
                 isSessionStepValid() && !loading
                   ? 'text-white bg-blue-500 hover:bg-blue-600 cursor-pointer'
                   : 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
@@ -1418,7 +1403,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </div>
           }>
             <StripePayment
-              amount={1} // TEMPORARY: $1 for testing - REVERT AFTER TEST
+              amount={appointmentType === 'couples-session' ? 300 : appointmentType === 'ndis-psychology-session' ? 232.99 : 250}
               customerEmail={email}
               customerName={`${firstName} ${lastName}`}
               onSuccess={handlePaymentAuthorized}

@@ -51,20 +51,11 @@ class ServiceWorkerManager {
       });
 
       // Handle controller change (new SW activated)
-      // Only reload if there was a previous controller (actual update scenario)
-      // Do NOT reload on first registration or if page was just opened
-      const hadPreviousController = !!navigator.serviceWorker.controller;
+      // DISABLED auto-reload - it causes jarring page refreshes after deployments
+      // Users will get updated content on their next navigation or manual refresh
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        // Only reload if:
-        // 1. An update was explicitly detected (updateAvailable flag)
-        // 2. AND there was a previous controller before this page loaded
-        // This prevents reload on first-time visits or fresh tab opens
-        if (this.updateAvailable && hadPreviousController) {
-          console.log('[SW] New service worker activated, reloading page...');
-          window.location.reload();
-        } else {
-          console.log('[SW] Controller changed but not reloading (initial registration or no update flag)');
-        }
+        console.log('[SW] Controller changed - new service worker is now active');
+        // Do NOT auto-reload - let users continue their session uninterrupted
       });
 
       // Handle messages from service worker

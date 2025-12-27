@@ -1,165 +1,200 @@
 /**
  * Bloom Journey Infographic
  * 
- * Timeline-based design - warm, inviting professionalism.
- * Cards stay fixed when expanded (no layout shifts).
- * Horizontal timeline connectors between stages.
+ * An interactive, multidirectional infographic showing the complete
+ * practitioner experience at Bloom - from application to daily operations.
+ * 
+ * Features:
+ * - Clickable journey stages that expand with details
+ * - Animated connections between stages
+ * - Mobile-responsive design
+ * - Framer Motion animations
  */
 
 import { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { Tier1Flower, Tier2Flower, Tier3Flower } from '@/components/flowers';
 
-// Bloom design system - warm, organic palette
-const colors = {
-  sage50: '#F7F9F7',
-  sage100: '#EFF3EE',
-  sage200: '#D9E4D7',
-  sage400: '#8FB48E',
-  sage500: '#6B8066',
-  sage600: '#5A6C55',
-  lavender100: '#F2F0F7',
-  lavender300: '#CFC5DC',
-  lavender400: '#B4A7D6',
-  terracotta: '#D4A59A',
-  terracottaLight: '#E8C4BB',
-  amber: '#E8B77D',
-  amberLight: '#FEF7ED',
-  cream: '#FAF8F3',
-  cream100: '#F5F3EE',
-  charcoal: '#3D3D3A',
-  charcoalLight: '#5C5C57',
+// Bloom design system colors
+const bloomColors = {
+  eucalyptusSage: '#6B8E7F',
+  softFern: '#8FA892',
+  paleAmber: '#F5E6D3',
+  softTerracotta: '#D4A28F',
+  honeyAmber: '#E8B77D',
+  clayTerracotta: '#C89B7B',
+  warmCream: '#FAF7F2',
+  paperWhite: '#FEFDFB',
 };
 
-// Journey organized by phases for clearer narrative
-const journeyPhases = [
+// Journey stage data
+interface JourneyStage {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: string;
+  color: string;
+  flowerType: 'tier1' | 'tier2' | 'tier3';
+  details: {
+    title: string;
+    items: string[];
+  }[];
+  timeframe?: string;
+}
+
+const journeyStages: JourneyStage[] = [
   {
-    id: 'start',
-    title: 'Getting Started',
-    color: colors.sage500,
-    stages: [
+    id: 'apply',
+    title: 'Apply',
+    subtitle: 'Quick qualification check',
+    icon: '🌱',
+    color: bloomColors.eucalyptusSage,
+    flowerType: 'tier1',
+    timeframe: '5 mins',
+    details: [
       {
-        id: 'apply',
-        title: 'Apply',
-        subtitle: 'Quick check',
-        icon: '📝',
-        color: colors.sage500,
-        bgColor: colors.sage100,
-        timeframe: '5 mins',
-        details: ['Simple online form', 'Check your eligibility', 'No lengthy interviews', 'Community-minded welcome'],
+        title: 'Who We\'re Looking For',
+        items: [
+          'Clinical Psychologists (AHPRA)',
+          '8+ years Registered Psychologist',
+          'PhD in Psychology with registration',
+        ],
       },
       {
-        id: 'onboard',
-        title: 'Onboard',
-        subtitle: 'Get set up',
-        icon: '⚙️',
-        color: colors.sage600,
-        bgColor: colors.sage50,
-        timeframe: '1-2 days',
-        details: ['Digital verification', 'Platform walkthrough', 'Set your preferences', 'Configure your profile'],
+        title: 'Application Process',
+        items: [
+          'Quick 3-question qualification check',
+          'Share your background & interests',
+          'Upload CV and AHPRA certificate',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'onboard',
+    title: 'Get Set Up',
+    subtitle: 'We handle the admin',
+    icon: '🌿',
+    color: bloomColors.softFern,
+    flowerType: 'tier2',
+    timeframe: '1-2 weeks',
+    details: [
+      {
+        title: 'Practice Setup',
+        items: [
+          'Your own Bloom practice portal',
+          'Telehealth video capability',
+          'Calendar & availability system',
+          'Billing & Medicare integration',
+        ],
+      },
+      {
+        title: 'Bloom Integration',
+        items: [
+          'Professional profile on our site',
+          '@life-psychology.com.au email',
+          'Added to our practitioner network',
+          'Training on Bloom systems',
+        ],
       },
     ],
   },
   {
     id: 'practice',
-    title: 'Practice Your Way',
-    color: colors.lavender400,
-    stages: [
+    title: 'See Clients',
+    subtitle: 'Your schedule, your way',
+    icon: '🌸',
+    color: bloomColors.softTerracotta,
+    flowerType: 'tier3',
+    timeframe: 'Ongoing',
+    details: [
       {
-        id: 'telehealth',
-        title: 'See Clients',
-        subtitle: 'HD video calls',
-        icon: '🎥',
-        color: colors.lavender400,
-        bgColor: colors.lavender100,
-        timeframe: 'Always',
-        details: ['Crystal-clear video', 'Secure screen share', 'Built-in notes', 'Any device'],
+        title: 'Daily Operations',
+        items: [
+          'View appointments in Bloom',
+          'Run telehealth sessions',
+          'Clinical notes & documentation',
+          'Automated billing & invoicing',
+        ],
       },
       {
-        id: 'clients',
-        title: 'Get Matched',
-        subtitle: 'Fit your specialty',
-        icon: '🤝',
-        color: colors.terracotta,
-        bgColor: colors.terracottaLight,
-        timeframe: 'Ongoing',
-        details: ['Matched to specialty', 'Pre-screened clients', 'Streamlined intake', 'Focus on treatment'],
-      },
-      {
-        id: 'flexibility',
-        title: 'Your Hours',
-        subtitle: 'No minimums',
-        icon: '🕐',
-        color: colors.amber,
-        bgColor: colors.amberLight,
-        timeframe: 'Your choice',
-        details: ['No hour requirements', 'Any time of day', 'Pause anytime', 'No contracts'],
+        title: 'Bloom Dashboard',
+        items: [
+          'Real-time session overview',
+          'Client relationship tracking',
+          'Medicare plan monitoring',
+          'Earnings & session stats',
+        ],
       },
     ],
   },
   {
     id: 'earn',
-    title: 'Earn & Grow',
-    color: colors.terracotta,
-    stages: [
+    title: 'Get Paid',
+    subtitle: 'Keep 80% of what you bill',
+    icon: '💰',
+    color: bloomColors.honeyAmber,
+    flowerType: 'tier1',
+    timeframe: 'Monthly',
+    details: [
       {
-        id: 'earnings',
-        title: 'Keep 80%',
-        subtitle: 'Fair split',
-        icon: '💚',
-        color: colors.sage500,
-        bgColor: colors.sage100,
-        timeframe: 'Every session',
-        details: ['Transparent 80/20', 'Weekly deposits', 'No hidden fees', 'Medicare supported'],
+        title: 'Earnings',
+        items: [
+          '$250 session = $200 to you',
+          'No billing targets or quotas',
+          'Monthly invoicing made easy',
+          'Super and tax handled simply',
+        ],
       },
       {
-        id: 'rates',
-        title: 'Set Rates',
-        subtitle: 'Your fees',
-        icon: '⚖️',
-        color: colors.lavender400,
-        bgColor: colors.lavender100,
-        timeframe: 'Your choice',
-        details: ['Full fee control', 'Gap collection built-in', 'Rate guidance', 'Adjust anytime'],
-      },
-      {
-        id: 'development',
-        title: 'Learn',
-        subtitle: 'Free supervision',
-        icon: '📚',
-        color: colors.amber,
-        bgColor: colors.amberLight,
-        timeframe: 'Ongoing',
-        details: ['Free supervision', 'Peer consultation', 'Workshops', 'CPD tracking'],
+        title: 'Transparent Fees',
+        items: [
+          '20% covers platform & marketing',
+          'No hidden costs or lock-ins',
+          'Leave anytime - your clients stay yours',
+        ],
       },
     ],
   },
   {
-    id: 'trust',
-    title: 'Trust & Community',
-    color: colors.sage600,
-    stages: [
+    id: 'grow',
+    title: 'Develop',
+    subtitle: 'Professional growth support',
+    icon: '🌳',
+    color: bloomColors.clayTerracotta,
+    flowerType: 'tier2',
+    timeframe: 'Year-round',
+    details: [
       {
-        id: 'security',
-        title: 'Secure',
-        subtitle: 'Bank-level',
-        icon: '🔒',
-        color: colors.sage600,
-        bgColor: colors.sage100,
-        timeframe: 'Always',
-        details: ['Azure security', 'Encrypted data', 'AU sovereignty', 'Full compliance'],
+        title: 'Professional Development',
+        items: [
+          'Supervision access',
+          'Peer consultation groups',
+          'Training workshops',
+          'CPD tracking & reminders',
+        ],
       },
       {
-        id: 'community',
-        title: 'Shape Bloom',
-        subtitle: 'Your voice',
-        icon: '🌱',
-        color: colors.sage500,
-        bgColor: colors.sage50,
-        timeframe: 'Always',
-        details: ['Feedback matters', 'Vote on features', 'Practitioner-led', 'Grows with you'],
+        title: 'Community',
+        items: [
+          'Connected practitioner network',
+          'Shape Bloom\'s direction',
+          'Refer colleagues (earn rewards)',
+          'Support when you need it',
+        ],
       },
     ],
   },
+];
+
+// Feature highlights for the center
+const featureHighlights = [
+  { icon: '📱', label: 'Telehealth', description: 'See clients from anywhere' },
+  { icon: '📊', label: 'Dashboard', description: 'Real-time practice insights' },
+  { icon: '🔄', label: 'Auto-Sync', description: 'Seamless data management' },
+  { icon: '🏠', label: 'Work from Home', description: 'Full remote capability' },
+  { icon: '⏰', label: 'Flexible Hours', description: 'Mornings, evenings, weekends' },
+  { icon: '🎯', label: 'Marketing', description: 'We bring you clients' },
 ];
 
 interface Props {
@@ -167,400 +202,426 @@ interface Props {
   onApplyClick: () => void;
 }
 
-// Timeline connector between cards
-const TimelineConnector = ({ color, isVisible }: { color: string; isVisible: boolean }) => (
-  <div
-    style={{
-      width: '24px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      opacity: isVisible ? 1 : 0,
-      transition: 'opacity 0.3s ease',
-    }}
-  >
-    <motion.div
-      initial={{ scaleX: 0 }}
-      animate={{ scaleX: 1 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
-      style={{
-        width: '100%',
-        height: '2px',
-        background: `linear-gradient(90deg, ${color}40, ${color}60, ${color}40)`,
-        borderRadius: '1px',
-      }}
-    />
-  </div>
-);
-
-// Stage card component - fixed position, accordion expansion
-const StageCard = ({
-  stage,
-  isExpanded,
-  onClick,
-  index,
-  isMobile,
-  prefersReducedMotion,
-}: {
-  stage: typeof journeyPhases[0]['stages'][0];
-  isExpanded: boolean;
-  onClick: () => void;
-  index: number;
-  isMobile: boolean;
-  prefersReducedMotion: boolean | null;
-}) => (
-  <motion.button
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.4, delay: index * 0.05, ease: 'easeOut' }}
-    onClick={onClick}
-    whileHover={prefersReducedMotion ? {} : { y: -3, boxShadow: `0 8px 24px ${stage.color}15` }}
-    whileTap={{ scale: 0.98 }}
-    style={{
-      width: isMobile ? '100%' : '140px',
-      minWidth: isMobile ? 'unset' : '140px',
-      padding: isMobile ? '16px' : '16px 12px',
-      background: isExpanded
-        ? `linear-gradient(145deg, ${stage.bgColor}, ${colors.cream})`
-        : colors.cream,
-      border: `2px solid ${isExpanded ? stage.color + '60' : colors.sage200}`,
-      borderRadius: '16px',
-      cursor: 'pointer',
-      transition: 'all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
-      boxShadow: isExpanded
-        ? `0 12px 32px ${stage.color}15`
-        : '0 2px 8px rgba(107, 128, 102, 0.08)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      textAlign: 'center',
-      position: 'relative',
-      overflow: 'hidden',
-    }}
-  >
-    {/* Expand indicator */}
-    <motion.div
-      animate={{
-        scale: isExpanded ? 1.1 : 1,
-        backgroundColor: isExpanded ? stage.color : colors.sage100,
-      }}
-      style={{
-        position: 'absolute',
-        top: '8px',
-        right: '8px',
-        width: '22px',
-        height: '22px',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '12px',
-        fontWeight: 600,
-        color: isExpanded ? colors.cream : colors.sage500,
-        transition: 'all 0.3s ease',
-      }}
-    >
-      {isExpanded ? '−' : '+'}
-    </motion.div>
-
-    {/* Icon */}
-    <motion.div
-      animate={
-        prefersReducedMotion
-          ? {}
-          : {
-              y: isExpanded ? 0 : [0, -2, 0],
-            }
-      }
-      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: index * 0.15 }}
-      style={{
-        fontSize: isMobile ? '32px' : '36px',
-        marginBottom: '8px',
-        lineHeight: 1,
-      }}
-    >
-      {stage.icon}
-    </motion.div>
-
-    {/* Title & Subtitle */}
-    <h4
-      style={{
-        fontSize: '14px',
-        fontWeight: 600,
-        color: isExpanded ? stage.color : colors.charcoal,
-        marginBottom: '2px',
-        fontFamily: 'Poppins, sans-serif',
-        transition: 'color 0.3s',
-      }}
-    >
-      {stage.title}
-    </h4>
-    <p
-      style={{
-        fontSize: '11px',
-        color: colors.charcoalLight,
-        margin: 0,
-        lineHeight: 1.3,
-        fontFamily: 'Inter, sans-serif',
-      }}
-    >
-      {stage.subtitle}
-    </p>
-
-    {/* Timeframe badge */}
-    <span
-      style={{
-        display: 'inline-block',
-        marginTop: '8px',
-        padding: '3px 8px',
-        background: isExpanded ? `${stage.color}15` : colors.sage50,
-        color: isExpanded ? stage.color : colors.sage600,
-        fontSize: '10px',
-        fontWeight: 600,
-        borderRadius: '12px',
-        fontFamily: 'Inter, sans-serif',
-        transition: 'all 0.3s',
-      }}
-    >
-      {stage.timeframe}
-    </span>
-
-    {/* Expanded details - appears below card */}
-    <AnimatePresence>
-      {isExpanded && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          style={{
-            marginTop: '12px',
-            width: '100%',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              borderTop: `1px solid ${stage.color}30`,
-              paddingTop: '12px',
-            }}
-          >
-            {stage.details.map((detail, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '6px',
-                  marginBottom: '6px',
-                  fontSize: '12px',
-                  color: colors.charcoal,
-                  lineHeight: 1.4,
-                  fontFamily: 'Inter, sans-serif',
-                  textAlign: 'left',
-                }}
-              >
-                <span style={{ color: stage.color, fontSize: '11px', flexShrink: 0 }}>✓</span>
-                {detail}
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  </motion.button>
-);
-
 export function BloomJourneyInfographic({ isMobile, onApplyClick }: Props) {
-  const [expandedStage, setExpandedStage] = useState<string | null>('apply');
+  const [activeStage, setActiveStage] = useState<string | null>(null);
+  const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
   const prefersReducedMotion = useReducedMotion();
 
-  const handleStageClick = (stageId: string) => {
-    setExpandedStage(expandedStage === stageId ? null : stageId);
+  const FlowerComponent = ({ type, isActive }: { type: 'tier1' | 'tier2' | 'tier3'; isActive: boolean }) => {
+    const props = { isChecked: isActive, isMobile, shouldReduceMotion: prefersReducedMotion ?? false };
+    switch (type) {
+      case 'tier1': return <Tier1Flower {...props} />;
+      case 'tier2': return <Tier2Flower {...props} />;
+      case 'tier3': return <Tier3Flower {...props} />;
+    }
   };
 
   return (
-    <div
-      style={{
-        padding: isMobile ? '32px 16px' : '48px 24px',
-        maxWidth: '1100px',
-        margin: '0 auto',
-        position: 'relative',
-      }}
-    >
+    <div style={{ padding: isMobile ? '40px 16px' : '60px 24px', maxWidth: '1200px', margin: '0 auto' }}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        style={{
-          textAlign: 'center',
-          marginBottom: isMobile ? '32px' : '40px',
-        }}
+        transition={{ duration: 0.6 }}
+        style={{ textAlign: 'center', marginBottom: isMobile ? '40px' : '60px' }}
       >
         <h2
           style={{
-            fontSize: isMobile ? '26px' : '36px',
-            fontWeight: 600,
-            color: colors.charcoal,
-            marginBottom: '12px',
+            fontSize: isMobile ? '28px' : '40px',
+            fontWeight: 700,
+            background: `linear-gradient(135deg, ${bloomColors.eucalyptusSage} 0%, ${bloomColors.softTerracotta} 100%)`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            marginBottom: '16px',
             letterSpacing: '-0.02em',
-            fontFamily: 'Poppins, sans-serif',
           }}
         >
           Your Journey with Bloom
         </h2>
         <p
           style={{
-            fontSize: isMobile ? '15px' : '17px',
-            color: colors.charcoalLight,
-            maxWidth: '400px',
+            fontSize: isMobile ? '16px' : '18px',
+            color: '#4A4A4A',
+            maxWidth: '600px',
             margin: '0 auto',
             lineHeight: 1.6,
-            fontFamily: 'Inter, sans-serif',
           }}
         >
-          Tap any stage to learn more
+          Click each stage to explore what your experience looks like
         </p>
       </motion.div>
 
-      {/* Timeline by phases */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '24px' : '32px' }}>
-        {journeyPhases.map((phase, phaseIndex) => (
+      {/* Journey Timeline - Horizontal on desktop, vertical on mobile */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          justifyContent: 'center',
+          alignItems: isMobile ? 'stretch' : 'flex-start',
+          gap: isMobile ? '16px' : '8px',
+          marginBottom: '48px',
+          position: 'relative',
+        }}
+      >
+        {/* Connection Line */}
+        {!isMobile && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '40px',
+              left: '10%',
+              right: '10%',
+              height: '3px',
+              background: `linear-gradient(90deg, ${bloomColors.eucalyptusSage}40, ${bloomColors.softTerracotta}40)`,
+              borderRadius: '2px',
+              zIndex: 0,
+            }}
+          />
+        )}
+
+        {journeyStages.map((stage, index) => (
           <motion.div
-            key={phase.id}
+            key={stage.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: phaseIndex * 0.1 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            style={{
+              flex: isMobile ? 'none' : 1,
+              maxWidth: isMobile ? '100%' : '200px',
+              zIndex: activeStage === stage.id ? 10 : 1,
+            }}
           >
-            {/* Phase label */}
-            <div
+            {/* Stage Card */}
+            <motion.button
+              onClick={() => setActiveStage(activeStage === stage.id ? null : stage.id)}
+              whileHover={{ scale: 1.02, y: -4 }}
+              whileTap={{ scale: 0.98 }}
               style={{
+                width: '100%',
+                padding: isMobile ? '20px' : '24px 16px',
+                background: activeStage === stage.id
+                  ? `linear-gradient(135deg, ${stage.color}15, ${stage.color}08)`
+                  : 'rgba(255, 255, 255, 0.9)',
+                border: `2px solid ${activeStage === stage.id ? stage.color : stage.color + '30'}`,
+                borderRadius: '16px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: activeStage === stage.id
+                  ? `0 8px 24px ${stage.color}25`
+                  : '0 4px 12px rgba(0,0,0,0.05)',
                 display: 'flex',
+                flexDirection: isMobile ? 'row' : 'column',
                 alignItems: 'center',
-                gap: '12px',
-                marginBottom: '16px',
+                gap: isMobile ? '16px' : '12px',
+                textAlign: isMobile ? 'left' : 'center',
               }}
             >
+              {/* Icon with Flower */}
               <div
                 style={{
-                  width: '4px',
-                  height: '24px',
-                  background: `linear-gradient(180deg, ${phase.color}, ${phase.color}60)`,
-                  borderRadius: '2px',
-                }}
-              />
-              <span
-                style={{
-                  fontSize: isMobile ? '13px' : '14px',
-                  fontWeight: 600,
-                  color: phase.color,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  fontFamily: 'Poppins, sans-serif',
+                  position: 'relative',
+                  width: isMobile ? '48px' : '64px',
+                  height: isMobile ? '48px' : '64px',
+                  flexShrink: 0,
                 }}
               >
-                {phase.title}
-              </span>
-            </div>
-
-            {/* Stage cards in a row with connectors */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
-                alignItems: isMobile ? 'stretch' : 'flex-start',
-                gap: isMobile ? '12px' : '0',
-                paddingLeft: isMobile ? '0' : '16px',
-              }}
-            >
-              {phase.stages.map((stage, stageIndex) => (
                 <div
-                  key={stage.id}
                   style={{
+                    position: 'absolute',
+                    inset: 0,
                     display: 'flex',
-                    alignItems: 'flex-start',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: isMobile ? '28px' : '36px',
+                    zIndex: 1,
                   }}
                 >
-                  <StageCard
-                    stage={stage}
-                    isExpanded={expandedStage === stage.id}
-                    onClick={() => handleStageClick(stage.id)}
-                    index={phaseIndex * 3 + stageIndex}
-                    isMobile={isMobile}
-                    prefersReducedMotion={prefersReducedMotion}
-                  />
-                  {/* Connector (not after last stage in phase) */}
-                  {!isMobile && stageIndex < phase.stages.length - 1 && (
-                    <TimelineConnector color={phase.color} isVisible={true} />
-                  )}
+                  {stage.icon}
                 </div>
-              ))}
-            </div>
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '-8px',
+                    right: '-8px',
+                    width: '28px',
+                    height: '28px',
+                    opacity: activeStage === stage.id ? 1 : 0.5,
+                    transition: 'opacity 0.3s',
+                  }}
+                >
+                  <FlowerComponent type={stage.flowerType} isActive={activeStage === stage.id} />
+                </div>
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <h3
+                  style={{
+                    fontSize: isMobile ? '18px' : '17px',
+                    fontWeight: 700,
+                    color: stage.color,
+                    marginBottom: '4px',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {stage.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: '#666',
+                    margin: 0,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {stage.subtitle}
+                </p>
+                {stage.timeframe && (
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      marginTop: '8px',
+                      padding: '2px 8px',
+                      background: `${stage.color}15`,
+                      color: stage.color,
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      borderRadius: '10px',
+                    }}
+                  >
+                    {stage.timeframe}
+                  </span>
+                )}
+              </div>
+
+              {/* Expand indicator */}
+              <motion.div
+                animate={{ rotate: activeStage === stage.id ? 180 : 0 }}
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: stage.color,
+                  fontSize: '18px',
+                }}
+              >
+                ▾
+              </motion.div>
+            </motion.button>
+
+            {/* Expanded Details */}
+            <AnimatePresence>
+              {activeStage === stage.id && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div
+                    style={{
+                      background: 'white',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      border: `1px solid ${stage.color}25`,
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    {stage.details.map((detail, detailIndex) => (
+                      <div key={detailIndex} style={{ marginBottom: detailIndex < stage.details.length - 1 ? '20px' : 0 }}>
+                        <h4
+                          style={{
+                            fontSize: '14px',
+                            fontWeight: 700,
+                            color: stage.color,
+                            marginBottom: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}
+                        >
+                          <span style={{ width: '6px', height: '6px', background: stage.color, borderRadius: '50%' }} />
+                          {detail.title}
+                        </h4>
+                        <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                          {detail.items.map((item, itemIndex) => (
+                            <li
+                              key={itemIndex}
+                              style={{
+                                fontSize: '13px',
+                                color: '#4A4A4A',
+                                lineHeight: 1.6,
+                                paddingLeft: '14px',
+                                position: 'relative',
+                                marginBottom: '6px',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  position: 'absolute',
+                                  left: 0,
+                                  color: stage.color,
+                                  fontWeight: 'bold',
+                                }}
+                              >
+                                •
+                              </span>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         ))}
       </div>
 
-      {/* Key Stats */}
+      {/* Feature Highlights Grid */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        style={{
+          background: `linear-gradient(135deg, ${bloomColors.eucalyptusSage}08, ${bloomColors.softTerracotta}05)`,
+          borderRadius: '20px',
+          padding: isMobile ? '28px 20px' : '40px',
+          marginBottom: '48px',
+        }}
+      >
+        <h3
+          style={{
+            textAlign: 'center',
+            fontSize: isMobile ? '20px' : '24px',
+            fontWeight: 700,
+            color: bloomColors.eucalyptusSage,
+            marginBottom: '28px',
+          }}
+        >
+          Everything You Need to Practice
+        </h3>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+            gap: isMobile ? '12px' : '20px',
+          }}
+        >
+          {featureHighlights.map((feature, index) => (
+            <motion.div
+              key={index}
+              onHoverStart={() => setHoveredFeature(index)}
+              onHoverEnd={() => setHoveredFeature(null)}
+              whileHover={{ y: -4, scale: 1.02 }}
+              style={{
+                background: 'white',
+                padding: isMobile ? '16px 12px' : '24px 20px',
+                borderRadius: '12px',
+                textAlign: 'center',
+                boxShadow: hoveredFeature === index
+                  ? '0 8px 24px rgba(107, 142, 127, 0.15)'
+                  : '0 2px 8px rgba(0,0,0,0.04)',
+                transition: 'box-shadow 0.3s',
+                cursor: 'default',
+              }}
+            >
+              <div style={{ fontSize: isMobile ? '28px' : '36px', marginBottom: '8px' }}>
+                {feature.icon}
+              </div>
+              <h4
+                style={{
+                  fontSize: isMobile ? '14px' : '16px',
+                  fontWeight: 700,
+                  color: '#3A3A3A',
+                  marginBottom: '4px',
+                }}
+              >
+                {feature.label}
+              </h4>
+              <p
+                style={{
+                  fontSize: isMobile ? '12px' : '13px',
+                  color: '#666',
+                  margin: 0,
+                  lineHeight: 1.4,
+                }}
+              >
+                {feature.description}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Value Proposition Summary */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
+        transition={{ delay: 0.7 }}
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: isMobile ? '12px' : '20px',
-          marginTop: isMobile ? '32px' : '48px',
-          padding: isMobile ? '20px 16px' : '28px 32px',
-          background: `linear-gradient(135deg, ${colors.sage100} 0%, ${colors.lavender100} 50%, ${colors.cream} 100%)`,
-          borderRadius: '20px',
-          border: `1px solid ${colors.sage200}`,
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+          gap: '20px',
+          marginBottom: '48px',
         }}
       >
         {[
-          { value: '80%', label: 'You Keep', sublabel: 'of fees' },
-          { value: '0', label: 'Quotas', sublabel: 'no minimums' },
-          { value: '∞', label: 'Flexibility', sublabel: 'your hours' },
-        ].map((stat, i) => (
-          <motion.div key={i} style={{ textAlign: 'center' }} whileHover={{ scale: 1.02 }}>
+          {
+            icon: '💰',
+            value: '80%',
+            label: 'You Keep',
+            sublabel: 'of what you bill',
+            color: bloomColors.eucalyptusSage,
+          },
+          {
+            icon: '🕐',
+            value: '0',
+            label: 'Quotas',
+            sublabel: 'work your own hours',
+            color: bloomColors.softTerracotta,
+          },
+          {
+            icon: '🔓',
+            value: 'No',
+            label: 'Lock-in',
+            sublabel: 'leave anytime',
+            color: bloomColors.honeyAmber,
+          },
+        ].map((stat, index) => (
+          <motion.div
+            key={index}
+            whileHover={{ y: -4 }}
+            style={{
+              background: 'white',
+              padding: '28px 24px',
+              borderRadius: '16px',
+              textAlign: 'center',
+              border: `2px solid ${stat.color}25`,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+            }}
+          >
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>{stat.icon}</div>
             <div
               style={{
-                fontSize: isMobile ? '28px' : '40px',
-                fontWeight: 700,
-                background: `linear-gradient(135deg, ${colors.sage600} 0%, ${colors.sage500} 100%)`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                fontSize: isMobile ? '36px' : '44px',
+                fontWeight: 800,
+                color: stat.color,
                 lineHeight: 1,
-                marginBottom: '6px',
-                fontFamily: 'Poppins, sans-serif',
+                marginBottom: '4px',
               }}
             >
               {stat.value}
             </div>
-            <div
-              style={{
-                fontSize: isMobile ? '13px' : '15px',
-                fontWeight: 600,
-                color: colors.charcoal,
-                marginBottom: '2px',
-                fontFamily: 'Poppins, sans-serif',
-              }}
-            >
+            <div style={{ fontSize: '18px', fontWeight: 700, color: '#3A3A3A', marginBottom: '4px' }}>
               {stat.label}
             </div>
-            <div
-              style={{
-                fontSize: isMobile ? '11px' : '13px',
-                color: colors.charcoalLight,
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              {stat.sublabel}
-            </div>
+            <div style={{ fontSize: '14px', color: '#666' }}>{stat.sublabel}</div>
           </motion.div>
         ))}
       </motion.div>
@@ -569,42 +630,37 @@ export function BloomJourneyInfographic({ isMobile, onApplyClick }: Props) {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        style={{ textAlign: 'center', marginTop: isMobile ? '28px' : '40px' }}
+        transition={{ delay: 0.9 }}
+        style={{ textAlign: 'center' }}
       >
         <p
           style={{
-            fontSize: isMobile ? '16px' : '18px',
-            color: colors.charcoal,
-            marginBottom: '20px',
-            lineHeight: 1.5,
-            fontFamily: 'Inter, sans-serif',
+            fontSize: isMobile ? '17px' : '19px',
+            color: '#4A4A4A',
+            marginBottom: '24px',
+            lineHeight: 1.6,
           }}
         >
-          Ready to practice psychology on your terms?
+          Ready to practice psychology your way?
         </p>
         <motion.button
-          whileHover={{
-            scale: 1.03,
-            boxShadow: '0 12px 32px rgba(90, 108, 85, 0.3)',
-          }}
+          whileHover={{ scale: 1.05, boxShadow: '0 8px 28px rgba(107, 142, 127, 0.35)' }}
           whileTap={{ scale: 0.98 }}
           onClick={onApplyClick}
           style={{
-            padding: isMobile ? '16px 36px' : '18px 44px',
-            fontSize: isMobile ? '16px' : '17px',
-            fontWeight: 600,
-            color: colors.cream,
-            background: `linear-gradient(135deg, ${colors.sage600} 0%, ${colors.sage500} 100%)`,
+            padding: isMobile ? '18px 44px' : '20px 56px',
+            fontSize: isMobile ? '17px' : '19px',
+            fontWeight: 700,
+            color: '#FEFDFB',
+            background: `linear-gradient(135deg, ${bloomColors.eucalyptusSage} 0%, ${bloomColors.softFern} 100%)`,
             border: 'none',
-            borderRadius: '14px',
+            borderRadius: '16px',
             cursor: 'pointer',
-            boxShadow: '0 6px 20px rgba(90, 108, 85, 0.25)',
-            transition: 'all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
-            fontFamily: 'Poppins, sans-serif',
+            boxShadow: '0 6px 20px rgba(107, 142, 127, 0.3)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
-          Check If You Qualify →
+          Check If You Qualify
         </motion.button>
       </motion.div>
     </div>

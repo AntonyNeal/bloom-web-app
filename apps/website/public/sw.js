@@ -97,8 +97,9 @@ self.addEventListener('install', (event) => {
     })()
   );
 
-  // Force activation of new service worker
-  self.skipWaiting();
+  // Don't call skipWaiting() automatically - let the client decide when to update
+  // This prevents the page refresh issue on first load
+  // The client can call skipWaiting() via postMessage when user chooses to update
 });
 
 // Activate event - clean up old caches

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 // MAINTENANCE MODE - Set to false to restore normal booking
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 
 // Maintenance message component
 const MaintenanceMessage: React.FC<{ onClose: () => void }> = ({ onClose }) => (

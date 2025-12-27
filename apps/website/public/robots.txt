@@ -1,0 +1,21 @@
+# robots.txt for Life Psychology Australia
+# https://www.life-psychology.com.au
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.life-psychology.com.au/sitemap.xml
+
+# Disallow admin and API paths
+Disallow: /admin
+Disallow: /api/
+Disallow: /_api/
+
+# Allow search engines to index all public pages
+Allow: /about
+Allow: /services
+Allow: /faq
+Allow: /pricing
+Allow: /appointments
+Allow: /privacy

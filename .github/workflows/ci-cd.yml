@@ -170,8 +170,8 @@ jobs:
           case "$ENV" in
             production)
               BLOOM_FRONTEND_APP="lpa-bloom-prod"
-              BLOOM_API_APP="bloom-platform-functions-v2"
-              BLOOM_API_URL="https://bloom-platform-functions-v2.azurewebsites.net/api"
+              BLOOM_API_APP="fnt42kldozqahcu"
+              BLOOM_API_URL="https://fnt42kldozqahcu.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_PROD"
               BLOOM_API_SECRET="BLOOM_PROD_API_PUBLISH_PROFILE"
               WEBSITE_FRONTEND_APP="lpa-frontend-prod"

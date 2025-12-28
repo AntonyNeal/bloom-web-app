@@ -778,7 +778,39 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col min-h-0">
+    <div className="w-full h-full flex flex-col min-h-0 relative">
+      {/* Full-screen booking loading overlay */}
+      {loading && (
+        <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center z-50 rounded-xl">
+          {/* Animated flower/bloom loader */}
+          <div className="relative mb-6">
+            {/* Outer spinning ring */}
+            <div className="w-20 h-20 rounded-full border-4 border-blue-100 border-t-blue-500 animate-spin"></div>
+            {/* Inner pulsing circle */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 animate-pulse shadow-lg shadow-blue-300/50"></div>
+            </div>
+            {/* Decorative petals that fade in/out */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-3 h-3 bg-blue-300 rounded-full absolute -top-1 animate-ping" style={{ animationDuration: '1.5s' }}></div>
+              <div className="w-3 h-3 bg-blue-300 rounded-full absolute -bottom-1 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.5s' }}></div>
+              <div className="w-3 h-3 bg-blue-300 rounded-full absolute -left-1 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.25s' }}></div>
+              <div className="w-3 h-3 bg-blue-300 rounded-full absolute -right-1 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.75s' }}></div>
+            </div>
+          </div>
+          <h3 className="text-xl font-bold text-slate-800 mb-2">Creating Your Booking</h3>
+          <p className="text-slate-500 text-center max-w-xs">
+            Please wait while we secure your appointment...
+          </p>
+          <p className="text-slate-400 text-sm mt-4 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Secure connection
+          </p>
+        </div>
+      )}
+      
       {/* Header with integrated progress */}
       {step !== 'success' && step !== 'error' && (
         <div className="flex-shrink-0 mb-[clamp(8px,2vh,24px)]">
@@ -1508,15 +1540,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               }}
             />
           </Suspense>
-
-          {/* Loading overlay when processing booking */}
-          {loading && (
-            <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10 rounded-lg">
-              <div className="animate-spin h-10 w-10 border-3 border-blue-500 border-t-transparent rounded-full mb-3"></div>
-              <p className="text-slate-600 font-medium">Creating your booking...</p>
-              <p className="text-slate-400 text-sm">Please wait, do not close this window</p>
-            </div>
-          )}
         </div>
       )}
 

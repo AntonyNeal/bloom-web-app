@@ -1018,24 +1018,26 @@
           <div style="max-width: 72rem; margin: 0 auto; padding: 0 1rem;">
             <div style="display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: center;">
               
-              <!-- Image -->
-              <div style="max-width: 448px; margin: 0 auto;">
+              <!-- Image - max-w-sm = 384px matches React UnifiedHeader -->
+              <div style="max-width: 384px; margin: 0 auto;">
                 <div style="position: relative;">
                   <picture>
                     <source
-                      srcset="/assets/hero-zoe-main-500w.webp 500w, /assets/hero-zoe-main.webp 800w"
-                      sizes="(max-width: 1024px) 100vw, 500px"
+                      srcset="/assets/hero-zoe-main-380w.webp 380w, /assets/hero-zoe-main-500w.webp 500w"
+                      sizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
                       type="image/webp"
                     />
                     <source
-                      srcset="/assets/hero-zoe-main-500w.jpg 500w, /assets/hero-zoe-main.jpg 800w"
-                      sizes="(max-width: 1024px) 100vw, 500px"
+                      srcset="/assets/hero-zoe-main-380w.jpg 380w, /assets/hero-zoe-main-500w.jpg 500w"
+                      sizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
                       type="image/jpeg"
                     />
                     <img
-                      src="/assets/hero-zoe-main-500w.jpg"
+                      src="/assets/hero-zoe-main-380w.jpg"
                       alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
                       style="width: 100%; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); display: block; aspect-ratio: 500 / 731; object-fit: cover; object-position: center top;"
+                      width="500"
+                      height="731"
                       loading="eager"
                       decoding="async"
                       fetchpriority="high"

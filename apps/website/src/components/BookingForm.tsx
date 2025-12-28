@@ -958,19 +958,27 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 *
               </span>
             </label>
-            <input
-              id="phone-input"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
-              placeholder="0412 345 678"
-              aria-required="true"
-              aria-invalid={!!errors['phone']}
-              aria-describedby={errors['phone'] ? 'phone-error' : undefined}
-            />
+            <div className="relative">
+              <input
+                id="phone-input"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
+                placeholder="0412 345 678"
+                aria-required="true"
+                aria-invalid={!!errors['phone']}
+                aria-describedby={errors['phone'] ? 'phone-error' : undefined}
+              />
+              {phone && HalaxyClient.validatePhone(phone) && !errors['phone'] && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">✓</span>
+              )}
+            </div>
             {errors['phone'] && (
               <p id="phone-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['phone']}</p>
+            )}
+            {phone && !HalaxyClient.validatePhone(phone) && !errors['phone'] && (
+              <p className="text-amber-600 text-xs mt-1">Australian format: 04XX XXX XXX (10 digits)</p>
             )}
           </div>
 

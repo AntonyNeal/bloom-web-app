@@ -330,14 +330,15 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         type="button"
         onClick={() => handleSlotClick(day, slot)}
         className={`w-full flex items-center justify-center transition-all duration-150 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-20 touch-manipulation rounded-lg ${
+          isMobile ? 'flex-1 min-h-0' : ''
+        } ${
           selected
             ? 'bg-blue-500 text-white shadow-md'
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200'
         }`}
         style={{ 
-          height: isMobile ? 'auto' : '90%',
-          padding: isMobile ? 'clamp(6px, 1.2vh, 10px) 12px' : undefined,
-          fontSize: isMobile ? 'clamp(12px, 2.8vw, 14px)' : 'clamp(9px, 1vw, 11px)',
+          height: isMobile ? undefined : '90%',
+          fontSize: isMobile ? 'clamp(11px, 2.5vw, 13px)' : 'clamp(9px, 1vw, 11px)',
           margin: isMobile ? '0' : '0 2px' 
         }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}

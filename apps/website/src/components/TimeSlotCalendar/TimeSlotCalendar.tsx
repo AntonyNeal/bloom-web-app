@@ -336,8 +336,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         }`}
         style={{ 
           height: isMobile ? 'auto' : '90%',
-          padding: isMobile ? 'clamp(10px, 2vh, 14px) 16px' : undefined,
-          fontSize: isMobile ? 'clamp(14px, 3.5vw, 16px)' : 'clamp(9px, 1vw, 11px)',
+          padding: isMobile ? 'clamp(6px, 1.2vh, 10px) 12px' : undefined,
+          fontSize: isMobile ? 'clamp(12px, 2.8vw, 14px)' : 'clamp(9px, 1vw, 11px)',
           margin: isMobile ? '0' : '0 2px' 
         }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
@@ -679,11 +679,11 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                 </div>
 
                 <div
-                  className="rounded-lg p-2 flex-1 overflow-y-auto"
+                  className="rounded-lg p-1.5 flex-1 overflow-hidden"
                   style={{ border: '1px solid rgba(226,232,240,0.5)', background: 'rgba(255,255,255,0.6)' }}
                 >
                   {/* Single column - show all business hours for consistent layout */}
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex flex-col gap-1 h-full">
                     {BUSINESS_HOURS.map((hour) => {
                       const slot = mobileActiveDay.slots.find((s) => parseSlotHour(s) === hour);
                       
@@ -695,8 +695,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                       return (
                         <div
                           key={`empty-${hour}`}
-                          className="w-full flex items-center justify-center font-medium text-slate-300 rounded-lg bg-slate-50/50"
-                          style={{ padding: 'clamp(8px, 1.5vh, 12px) 16px', fontSize: 'clamp(13px, 3vw, 15px)' }}
+                          className="w-full flex-1 flex items-center justify-center font-medium text-slate-300 rounded bg-slate-50/50"
+                          style={{ fontSize: 'clamp(11px, 2.5vw, 13px)' }}
                         >
                           {formatHourLabel(hour)}
                         </div>

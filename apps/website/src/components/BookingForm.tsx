@@ -974,24 +974,24 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             )}
           </div>
 
-          {/* DOB and Gender row */}
-          <div className="grid grid-cols-2 gap-[clamp(8px,1.5vw,12px)]">
+          {/* DOB and Gender row - stacks on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[clamp(12px,2vh,16px)] sm:gap-[clamp(8px,1.5vw,12px)]">
             <div>
               <label className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1">
                 Date of Birth <span className="text-red-500" aria-label="required">*</span>
               </label>
-              <div className="flex gap-1">
+              <div className="flex gap-2">
                 <select
                   id="dob-day"
                   value={dateOfBirth.split('/')[0] || ''}
                   onChange={(e) => handleDayChange(e.target.value)}
-                  className={`flex-1 min-w-0 px-1 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.75rem,1.5vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-[60px] px-2 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.8rem,1.6vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 2px center',
-                    backgroundSize: '14px',
-                    paddingRight: '18px'
+                    backgroundPosition: 'right 4px center',
+                    backgroundSize: '16px',
+                    paddingRight: '22px'
                   }}
                   aria-label="Day of birth"
                 >
@@ -1004,13 +1004,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-month"
                   value={dateOfBirth.split('/')[1] || ''}
                   onChange={(e) => handleMonthChange(e.target.value)}
-                  className={`flex-1 min-w-0 px-1 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.75rem,1.5vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-[60px] px-2 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.8rem,1.6vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 2px center',
-                    backgroundSize: '14px',
-                    paddingRight: '18px'
+                    backgroundPosition: 'right 4px center',
+                    backgroundSize: '16px',
+                    paddingRight: '22px'
                   }}
                   aria-label="Month of birth"
                 >
@@ -1032,13 +1032,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-year"
                   value={dateOfBirth.split('/')[2] || ''}
                   onChange={(e) => handleYearChange(e.target.value)}
-                  className={`flex-1 min-w-0 px-1 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.75rem,1.5vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-[70px] px-2 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.8rem,1.6vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 2px center',
-                    backgroundSize: '14px',
-                    paddingRight: '18px'
+                    backgroundPosition: 'right 4px center',
+                    backgroundSize: '16px',
+                    paddingRight: '22px'
                   }}
                   aria-label="Year of birth"
                 >

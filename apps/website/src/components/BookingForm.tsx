@@ -1025,11 +1025,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-year"
                   value={dateOfBirth.split('/')[2] || ''}
                   onChange={(e) => handleYearChange(e.target.value)}
-                  className={`w-full px-[0.8vh] py-[1.2vh] text-[clamp(12px,1.8vh,16px)] font-normal bg-white rounded-lg focus:outline-none transition-all border ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`w-full px-[0.5vh] py-[1.2vh] text-[clamp(12px,1.8vh,16px)] font-normal bg-white rounded-lg focus:outline-none transition-all border appearance-none bg-no-repeat bg-[right_0.3rem_center] bg-[length:0.8em] ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, paddingRight: '1.5em' }}
                   aria-label="Year of birth"
                 >
                   <option value="">Year</option>
-                  {Array.from({ length: 101 }, (_, i) => 2025 - i).map((year) => (
+                  {Array.from({ length: 101 }, (_, i) => new Date().getFullYear() - i).map((year) => (
                     <option key={year} value={year}>{year}</option>
                   ))}
                 </select>
@@ -1427,10 +1428,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Success State */}
       {step === 'success' && (
-        <div className="text-center py-4 sm:py-6 overflow-y-auto flex-1">
-          <div className="mb-4 w-20 h-20 mx-auto rounded-2xl bg-gradient-to-b from-blue-400 to-blue-500 flex items-center justify-center border-4 border-blue-300" style={{ boxShadow: '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 2px 0 rgba(255,255,255,0.3)' }}>
+        <div className="flex flex-col items-center justify-center flex-1 min-h-0 px-2">
+          <div className="mb-[2vh] rounded-2xl bg-gradient-to-b from-blue-400 to-blue-500 flex items-center justify-center border-4 border-blue-300" style={{ width: 'clamp(48px, 10vh, 80px)', height: 'clamp(48px, 10vh, 80px)', boxShadow: '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 2px 0 rgba(255,255,255,0.3)' }}>
             <svg
-              className="w-10 h-10 text-white"
+              className="text-white"
+              style={{ width: 'clamp(24px, 5vh, 40px)', height: 'clamp(24px, 5vh, 40px)' }}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -1443,29 +1445,29 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               />
             </svg>
           </div>
-          <h3 className="text-xl sm:text-2xl font-extrabold text-slate-800 mb-2">
+          <h3 className="font-extrabold text-slate-800 mb-[0.5vh] text-center" style={{ fontSize: 'clamp(16px, 3vh, 24px)' }}>
             Booking Confirmed!
           </h3>
-          <p className="text-slate-500 text-base mb-4 font-medium">
+          <p className="text-slate-500 font-medium text-center mb-[1.5vh]" style={{ fontSize: 'clamp(12px, 2vh, 16px)' }}>
             Your appointment has been successfully booked.
           </p>
-          <div className="rounded-xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 to-white p-4 sm:p-6 text-left mb-4" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}>
-            <div className="space-y-2 text-base">
-              <div className="flex flex-col sm:flex-row sm:gap-2 py-2 border-b border-slate-200">
-                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
+          <div className="w-full rounded-xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 to-white text-left mb-[2vh]" style={{ padding: 'clamp(8px, 2vh, 24px)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}>
+            <div className="space-y-[0.5vh]">
+              <div className="flex flex-col sm:flex-row sm:gap-2 py-[0.5vh] border-b border-slate-200">
+                <span className="font-bold text-slate-600 min-w-[100px] uppercase tracking-wide" style={{ fontSize: 'clamp(10px, 1.5vh, 14px)' }}>
                   Appointment ID
                 </span>
-                <span className="text-slate-800 font-mono font-semibold">{appointmentId}</span>
+                <span className="text-slate-800 font-mono font-semibold" style={{ fontSize: 'clamp(11px, 1.8vh, 14px)' }}>{appointmentId}</span>
               </div>
-              <div className="flex flex-col sm:flex-row sm:gap-2 py-2">
-                <span className="font-bold text-slate-600 min-w-[140px] uppercase text-sm tracking-wide">
+              <div className="flex flex-col sm:flex-row sm:gap-2 py-[0.5vh]">
+                <span className="font-bold text-slate-600 min-w-[100px] uppercase tracking-wide" style={{ fontSize: 'clamp(10px, 1.5vh, 14px)' }}>
                   Date & Time
                 </span>
-                <span className="text-slate-800 font-semibold">{formatDateForDisplay()}</span>
+                <span className="text-slate-800 font-semibold" style={{ fontSize: 'clamp(11px, 1.8vh, 14px)' }}>{formatDateForDisplay()}</span>
               </div>
             </div>
-            <div className="mt-4 pt-4 border-t-2 border-slate-200">
-              <p className="text-sm text-slate-600 leading-relaxed font-medium">
+            <div className="mt-[1vh] pt-[1vh] border-t-2 border-slate-200">
+              <p className="text-slate-600 leading-relaxed font-medium" style={{ fontSize: 'clamp(10px, 1.5vh, 14px)' }}>
                 A confirmation email has been sent to{' '}
                 <strong className="text-slate-800">{email}</strong> with your
                 appointment details and telehealth link.
@@ -1474,8 +1476,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
           <button
             onClick={onCancel}
-            className="px-8 py-3 bg-gradient-to-b from-blue-500 to-blue-600 text-white text-base font-bold rounded-lg border-2 border-blue-400 hover:from-blue-400 hover:to-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
-            style={{ boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
+            className="bg-gradient-to-b from-blue-500 to-blue-600 text-white font-bold rounded-lg border-2 border-blue-400 hover:from-blue-400 hover:to-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-300 focus:ring-offset-2 transition-all active:scale-[0.98]"
+            style={{ padding: 'clamp(8px, 1.5vh, 12px) clamp(24px, 5vw, 32px)', fontSize: 'clamp(12px, 2vh, 16px)', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255,255,255,0.25)' }}
           >
             Done
           </button>
@@ -1509,7 +1511,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => {
-                setStep('confirm');
+                setStep('details');
+                setErrorMessage('');
                 window.dispatchEvent(new CustomEvent('bookingStepChanged'));
               }}
               className="px-6 sm:px-8 md:px-10 py-2 sm:py-3 md:py-4 bg-gradient-to-b from-blue-500 to-blue-600 text-white text-xs sm:text-sm md:text-base font-bold rounded-lg border-2 border-blue-400 hover:from-blue-400 hover:to-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-300 focus:ring-offset-2 transition-all active:scale-[0.98]"

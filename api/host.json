@@ -24,6 +24,7 @@
     "allowedOrigins": [
       "https://bloom.life-psychology.com.au",
       "https://staging.life-psychology.com.au",
+      "https://ambitious-mud-058a66f00.1.azurestaticapps.net",
       "http://localhost:5173",
       "http://localhost:4280"
     ],

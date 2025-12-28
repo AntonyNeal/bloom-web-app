@@ -245,16 +245,18 @@ const UnifiedHeader = ({ heroPhoto = '/assets/hero-zoe-main.jpg' }: UnifiedHeade
                   </Link>
                 </div>
 
-                {/* Availability indicator */}
-                {availabilityText && (
-                  <div className="flex items-center gap-2 justify-center lg:justify-start text-sm text-emerald-700">
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                    </span>
-                    <span className="font-medium">{availabilityText}</span>
-                  </div>
-                )}
+                {/* Availability indicator - min-height reserves space to prevent CLS */}
+                <div className="min-h-[24px] flex items-center gap-2 justify-center lg:justify-start text-sm text-emerald-700">
+                  {availabilityText && (
+                    <>
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                      </span>
+                      <span className="font-medium">{availabilityText}</span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>

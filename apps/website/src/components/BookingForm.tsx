@@ -61,7 +61,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   const [notes, setNotes] = useState('');
   const [appointmentId, setAppointmentId] = useState('');
   const [isFirstSession, setIsFirstSession] = useState(false);
-  const [medicareSelectedThisSession, setMedicareSelectedThisSession] =
+  const [_medicareSelectedThisSession, setMedicareSelectedThisSession] =
     useState(false);
 
   // Phone verification state

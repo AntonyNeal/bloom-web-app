@@ -935,18 +935,55 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
-                  placeholder="john@example.com"
+                  placeholder="you@email.com"
                   aria-required="true"
                   aria-invalid={!!errors['email']}
-                  aria-describedby={errors['email'] ? 'email-error' : undefined}
+                  aria-describedby={errors['email'] ? 'email-error' : 'email-hint'}
                 />
-                {email && email.includes('@') && email.includes('.') && !errors['email'] && (
+                {email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !errors['email'] && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">✓</span>
                 )}
               </div>
               {errors['email'] && (
                 <p id="email-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['email']}</p>
               )}
+              {/* Smart email validation hint */}
+              {email && email.length >= 3 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !errors['email'] && (() => {
+                let message = '';
+                let icon = '💡';
+                
+                const hasAt = email.includes('@');
+                const atIndex = email.indexOf('@');
+                const afterAt = hasAt ? email.slice(atIndex + 1) : '';
+                const hasDot = afterAt.includes('.');
+                const beforeAt = hasAt ? email.slice(0, atIndex) : email;
+                
+                if (!hasAt) {
+                  message = 'Add @ followed by your email provider';
+                  icon = '📧';
+                } else if (beforeAt.length === 0) {
+                  message = 'Add your name before the @';
+                  icon = '✏️';
+                } else if (afterAt.length === 0) {
+                  message = 'Add your email provider after @';
+                  icon = '🌐';
+                } else if (!hasDot) {
+                  message = 'Add .com, .au, etc. after the provider';
+                  icon = '🌐';
+                } else if (afterAt.endsWith('.')) {
+                  message = 'Complete the domain (e.g. .com)';
+                  icon = '✏️';
+                }
+                
+                if (!message) return null;
+                
+                return (
+                  <div id="email-hint" className="flex items-center gap-1.5 mt-1.5 px-2 py-1 bg-amber-50 border border-amber-200 rounded-md">
+                    <span className="text-sm">{icon}</span>
+                    <span className="text-amber-700 text-xs font-medium">{message}</span>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Phone field */}
@@ -967,10 +1004,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
-                  placeholder="0412 345 678"
+                  placeholder="0412345678"
                   aria-required="true"
                   aria-invalid={!!errors['phone']}
-                  aria-describedby={errors['phone'] ? 'phone-error' : undefined}
+                  aria-describedby={errors['phone'] ? 'phone-error' : 'phone-hint'}
                 />
                 {phone && HalaxyClient.validatePhone(phone) && !errors['phone'] && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">✓</span>
@@ -979,9 +1016,40 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               {errors['phone'] && (
                 <p id="phone-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['phone']}</p>
               )}
-              {phone && phone.length >= 6 && !HalaxyClient.validatePhone(phone) && !errors['phone'] && (
-                <p className="text-amber-600 text-xs mt-1">10 digits starting with 04 (e.g. 0412345678)</p>
-              )}
+              {/* Smart phone validation hint */}
+              {phone && !HalaxyClient.validatePhone(phone) && !errors['phone'] && (() => {
+                const digitsOnly = phone.replace(/\D/g, '');
+                const digitCount = digitsOnly.length;
+                
+                // Don't show hint until they've typed at least 4 characters
+                if (digitCount < 4) return null;
+                
+                // Determine what's wrong and give helpful guidance
+                let message = '';
+                let icon = '💡';
+                
+                if (!digitsOnly.startsWith('04')) {
+                  message = 'Australian mobiles start with 04';
+                  icon = '📱';
+                } else if (digitCount < 10) {
+                  const remaining = 10 - digitCount;
+                  message = `${remaining} more digit${remaining === 1 ? '' : 's'} needed`;
+                  icon = '✏️';
+                } else if (digitCount > 10) {
+                  const extra = digitCount - 10;
+                  message = `${extra} digit${extra === 1 ? '' : 's'} too many`;
+                  icon = '⚠️';
+                }
+                
+                if (!message) return null;
+                
+                return (
+                  <div id="phone-hint" className="flex items-center gap-1.5 mt-1.5 px-2 py-1 bg-amber-50 border border-amber-200 rounded-md">
+                    <span className="text-sm">{icon}</span>
+                    <span className="text-amber-700 text-xs font-medium">{message}</span>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 

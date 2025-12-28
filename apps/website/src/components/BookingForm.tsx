@@ -980,18 +980,17 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               <label className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1">
                 Date of Birth <span className="text-red-500" aria-label="required">*</span>
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <select
                   id="dob-day"
                   value={dateOfBirth.split('/')[0] || ''}
                   onChange={(e) => handleDayChange(e.target.value)}
-                  className={`flex-1 min-w-[60px] px-2 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.8rem,1.6vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-0 pl-3 pr-7 py-[clamp(10px,1.8vh,12px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 4px center',
-                    backgroundSize: '16px',
-                    paddingRight: '22px'
+                    backgroundPosition: 'right 6px center',
+                    backgroundSize: '12px'
                   }}
                   aria-label="Day of birth"
                 >
@@ -1004,13 +1003,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-month"
                   value={dateOfBirth.split('/')[1] || ''}
                   onChange={(e) => handleMonthChange(e.target.value)}
-                  className={`flex-1 min-w-[60px] px-2 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.8rem,1.6vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-0 pl-3 pr-7 py-[clamp(10px,1.8vh,12px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 4px center',
-                    backgroundSize: '16px',
-                    paddingRight: '22px'
+                    backgroundPosition: 'right 6px center',
+                    backgroundSize: '12px'
                   }}
                   aria-label="Month of birth"
                 >
@@ -1032,13 +1030,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-year"
                   value={dateOfBirth.split('/')[2] || ''}
                   onChange={(e) => handleYearChange(e.target.value)}
-                  className={`flex-1 min-w-[70px] px-2 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.8rem,1.6vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-0 pl-3 pr-7 py-[clamp(10px,1.8vh,12px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 4px center',
-                    backgroundSize: '16px',
-                    paddingRight: '22px'
+                    backgroundPosition: 'right 6px center',
+                    backgroundSize: '12px'
                   }}
                   aria-label="Year of birth"
                 >
@@ -1060,13 +1057,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 id="gender-select"
                 value={gender}
                 onChange={(e) => setGender(e.target.value as typeof gender)}
-                className="w-full px-2 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.75rem,1.5vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400 appearance-none"
+                className="w-full pl-3 pr-8 py-[clamp(10px,1.8vh,12px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400 appearance-none"
                 style={{ 
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 6px center',
-                  backgroundSize: '14px',
-                  paddingRight: '24px'
+                  backgroundPosition: 'right 8px center',
+                  backgroundSize: '12px'
                 }}
               >
                 <option value="unknown">Prefer not to say</option>

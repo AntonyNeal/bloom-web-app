@@ -915,71 +915,74 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
             </div>
 
-          {/* Email field */}
-          <div>
-            <label
-              htmlFor="email-input"
-              className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
-            >
-              Email{' '}
-              <span className="text-red-500" aria-label="required">
-                *
-              </span>
-            </label>
-            <div className="relative">
-              <input
-                id="email-input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
-                placeholder="john@example.com"
-                aria-required="true"
-                aria-invalid={!!errors['email']}
-                aria-describedby={errors['email'] ? 'email-error' : undefined}
-              />
-              {email && email.includes('@') && email.includes('.') && !errors['email'] && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">✓</span>
+          {/* Email and Phone row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[clamp(12px,2vh,16px)] sm:gap-[clamp(8px,1.5vw,12px)]">
+            {/* Email field */}
+            <div>
+              <label
+                htmlFor="email-input"
+                className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
+              >
+                Email{' '}
+                <span className="text-red-500" aria-label="required">
+                  *
+                </span>
+              </label>
+              <div className="relative">
+                <input
+                  id="email-input"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
+                  placeholder="john@example.com"
+                  aria-required="true"
+                  aria-invalid={!!errors['email']}
+                  aria-describedby={errors['email'] ? 'email-error' : undefined}
+                />
+                {email && email.includes('@') && email.includes('.') && !errors['email'] && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">✓</span>
+                )}
+              </div>
+              {errors['email'] && (
+                <p id="email-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['email']}</p>
               )}
             </div>
-            {errors['email'] && (
-              <p id="email-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['email']}</p>
-            )}
-          </div>
 
-          {/* Phone field */}
-          <div>
-            <label
-              htmlFor="phone-input"
-              className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
-            >
-              Phone{' '}
-              <span className="text-red-500" aria-label="required">
-                *
-              </span>
-            </label>
-            <div className="relative">
-              <input
-                id="phone-input"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
-                placeholder="0412 345 678"
-                aria-required="true"
-                aria-invalid={!!errors['phone']}
-                aria-describedby={errors['phone'] ? 'phone-error' : undefined}
-              />
-              {phone && HalaxyClient.validatePhone(phone) && !errors['phone'] && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">✓</span>
+            {/* Phone field */}
+            <div>
+              <label
+                htmlFor="phone-input"
+                className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
+              >
+                Phone{' '}
+                <span className="text-red-500" aria-label="required">
+                  *
+                </span>
+              </label>
+              <div className="relative">
+                <input
+                  id="phone-input"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
+                  placeholder="0412 345 678"
+                  aria-required="true"
+                  aria-invalid={!!errors['phone']}
+                  aria-describedby={errors['phone'] ? 'phone-error' : undefined}
+                />
+                {phone && HalaxyClient.validatePhone(phone) && !errors['phone'] && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">✓</span>
+                )}
+              </div>
+              {errors['phone'] && (
+                <p id="phone-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['phone']}</p>
+              )}
+              {phone && !HalaxyClient.validatePhone(phone) && !errors['phone'] && (
+                <p className="text-amber-600 text-xs mt-1">Format: 04XX XXX XXX</p>
               )}
             </div>
-            {errors['phone'] && (
-              <p id="phone-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['phone']}</p>
-            )}
-            {phone && !HalaxyClient.validatePhone(phone) && !errors['phone'] && (
-              <p className="text-amber-600 text-xs mt-1">Australian format: 04XX XXX XXX (10 digits)</p>
-            )}
           </div>
 
           {/* DOB and Gender row - stacks on mobile */}

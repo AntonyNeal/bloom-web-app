@@ -235,7 +235,8 @@ function App() {
             )}
           </Routes>
         </Suspense>
-        <Suspense fallback={null}>
+        {/* Footer with height reservation to prevent CLS */}
+        <Suspense fallback={<div style={{ minHeight: '650px' }} />}>
           <Footer />
         </Suspense>
 

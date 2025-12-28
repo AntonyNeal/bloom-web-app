@@ -356,14 +356,14 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       <div
         role="grid"
         aria-label="Available appointment time slots"
-        className="bg-white flex-1 flex flex-col overflow-y-auto"
+        className="bg-white flex-1 flex flex-col overflow-hidden"
         style={{ minHeight: '0' }}
       >
         {BUSINESS_HOURS.map((hour, rowIndex) => (
           <div
             key={hour}
-            className={`grid items-center border-b border-slate-100 last:border-b-0 flex-shrink-0 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
-            style={{ gridTemplateColumns: gridCols, height: 'clamp(28px, 3.5vh, 36px)' }}
+            className={`grid items-center border-b border-slate-100 last:border-b-0 flex-1 min-h-0 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
+            style={{ gridTemplateColumns: gridCols }}
             role="row"
           >
             <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)' }} className="font-medium text-slate-400 text-right pr-1.5">

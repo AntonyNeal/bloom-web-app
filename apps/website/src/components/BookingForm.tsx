@@ -838,7 +838,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 1: Patient Details - scales to fit viewport */}
       {step === 'details' && (
-        <div className="flex-1 flex flex-col min-h-0" onKeyDown={(e) => {
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden" onKeyDown={(e) => {
           if (e.key === 'Enter' && isDetailsStepValid() && !loading) {
             e.preventDefault();
             handleDetailsNext();
@@ -1282,9 +1282,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 2: Date & Time */}
       {step === 'datetime' && (
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {/* Calendar Section - takes all available space */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <TimeSlotCalendar
               onSelectSlot={(date, time) => {
                 setAppointmentDate(date);

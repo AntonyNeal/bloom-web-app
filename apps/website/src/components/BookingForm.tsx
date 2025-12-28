@@ -979,8 +979,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               {errors['phone'] && (
                 <p id="phone-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['phone']}</p>
               )}
-              {phone && !HalaxyClient.validatePhone(phone) && !errors['phone'] && (
-                <p className="text-amber-600 text-xs mt-1">Format: 04XX XXX XXX</p>
+              {phone && phone.length >= 6 && !HalaxyClient.validatePhone(phone) && !errors['phone'] && (
+                <p className="text-amber-600 text-xs mt-1">10 digits starting with 04 (e.g. 0412345678)</p>
               )}
             </div>
           </div>

@@ -31,6 +31,7 @@ import {
   getWeekDateRange,
   isToday,
   createSlotLookup,
+  parseSlotHour,
 } from './utils';
 
 export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
@@ -185,8 +186,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     if (day.date.getTime() < today.getTime()) return false;
     // Check if any slot falls within business hours (8am-6pm)
     const hasBusinessHourSlots = day.slots.some((slot) => {
-      const slotHour = parseInt(slot.time.split(':')[0]);
-      return BUSINESS_HOURS.includes(slotHour);
+      const hour = parseSlotHour(slot);
+      return BUSINESS_HOURS.includes(hour);
     });
     return hasBusinessHourSlots;
   });
@@ -355,14 +356,14 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       <div
         role="grid"
         aria-label="Available appointment time slots"
-        className="bg-white flex-1 flex flex-col"
+        className="bg-white flex-1 flex flex-col overflow-y-auto"
         style={{ minHeight: '0' }}
       >
         {BUSINESS_HOURS.map((hour, rowIndex) => (
           <div
             key={hour}
-            className={`grid items-center border-b border-slate-100 last:border-b-0 flex-1 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
-            style={{ gridTemplateColumns: gridCols, minHeight: 'clamp(20px, 2.5vh, 28px)' }}
+            className={`grid items-center border-b border-slate-100 last:border-b-0 flex-shrink-0 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
+            style={{ gridTemplateColumns: gridCols, height: 'clamp(28px, 3.5vh, 36px)' }}
             role="row"
           >
             <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)' }} className="font-medium text-slate-400 text-right pr-1.5">
@@ -686,8 +687,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                     {BUSINESS_HOURS.map((hour) => {
                       // Find if there's an available slot for this hour
                       const slot = mobileActiveDay.slots.find((s) => {
-                        const slotHour = parseInt(s.time.split(':')[0]);
-                        return slotHour === hour;
+                        return parseSlotHour(s) === hour;
                       });
                       
                       if (slot) {

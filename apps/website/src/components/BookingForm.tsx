@@ -778,16 +778,16 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col min-h-0 overflow-hidden">
+    <div className="w-full h-full flex flex-col min-h-0">
       {/* Header with integrated progress */}
       {step !== 'success' && step !== 'error' && (
-        <div className="flex-shrink-0 mb-4 sm:mb-6">
+        <div className="flex-shrink-0 mb-[clamp(8px,2vh,24px)]">
           {/* Title */}
-          <div className="text-center mb-4 sm:mb-5">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
+          <div className="text-center mb-[clamp(8px,1.5vh,20px)]">
+            <h2 className="text-[clamp(1.1rem,2.5vh,1.5rem)] font-bold text-slate-800 tracking-tight">
               Book Your Appointment
             </h2>
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-slate-500 text-[clamp(0.75rem,1.5vh,0.875rem)] mt-1">
               Telehealth with Zoe Semmler
             </p>
           </div>
@@ -808,9 +808,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 (key === 'payment' && step === 'success');
               return (
                 <React.Fragment key={key}>
-                  <div className="flex flex-col items-center min-w-[48px] sm:min-w-[60px]">
+                  <div className="flex flex-col items-center min-w-[clamp(40px,8vw,60px)]">
                     <div
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all ${
+                      className={`w-[clamp(28px,4vh,40px)] h-[clamp(28px,4vh,40px)] rounded-full flex items-center justify-center text-[clamp(0.75rem,1.5vh,1rem)] font-bold transition-all ${
                         isActive
                           ? 'bg-blue-500 text-white shadow-lg ring-4 ring-blue-100'
                           : isPast
@@ -821,13 +821,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                       {isPast ? '✓' : num}
                     </div>
                     <span 
-                      className={`mt-1.5 text-xs sm:text-sm font-medium ${isActive ? 'text-blue-600' : isPast ? 'text-emerald-600' : 'text-slate-400'}`}
+                      className={`mt-1 text-[clamp(0.65rem,1.2vh,0.875rem)] font-medium ${isActive ? 'text-blue-600' : isPast ? 'text-emerald-600' : 'text-slate-400'}`}
                     >
                       {label}
                     </span>
                   </div>
                   {index < 3 && (
-                    <div className={`w-8 sm:w-12 h-1 rounded-full mx-1 sm:mx-2 ${isPast ? 'bg-emerald-400' : isActive ? 'bg-blue-200' : 'bg-slate-200'}`} />
+                    <div className={`w-[clamp(24px,4vw,48px)] h-1 rounded-full mx-1 ${isPast ? 'bg-emerald-400' : isActive ? 'bg-blue-200' : 'bg-slate-200'}`} />
                   )}
                 </React.Fragment>
               );
@@ -838,19 +838,19 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 1: Patient Details - scales to fit viewport */}
       {step === 'details' && (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden" onKeyDown={(e) => {
+        <div className="flex-1 flex flex-col min-h-0" onKeyDown={(e) => {
           if (e.key === 'Enter' && isDetailsStepValid() && !loading) {
             e.preventDefault();
             handleDetailsNext();
           }
         }}>
-          <div className="flex flex-col gap-5 flex-1">
+          <div className="flex flex-col gap-[clamp(12px,2vh,20px)] flex-1">
             {/* Name row - side by side */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-[clamp(8px,1.5vw,12px)]">
               <div>
                 <label
                   htmlFor="firstName-input"
-                  className="block text-sm font-semibold text-slate-700 mb-1.5"
+                  className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
                 >
                   First Name{' '}
                   <span className="text-red-500" aria-label="required">
@@ -862,7 +862,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className={`w-full px-3 py-2.5 text-base bg-white rounded-lg focus:outline-none transition-all border ${errors['firstName'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
+                  className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['firstName'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
                   placeholder="John"
                   aria-required="true"
                   aria-invalid={!!errors['firstName']}
@@ -883,7 +883,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               <div>
                 <label
                   htmlFor="lastName-input"
-                  className="block text-sm font-semibold text-slate-700 mb-1.5"
+                  className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
                 >
                   Last Name{' '}
                   <span className="text-red-500" aria-label="required">
@@ -895,7 +895,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className={`w-full px-3 py-2.5 text-base bg-white rounded-lg focus:outline-none transition-all border ${errors['lastName'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
+                  className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['lastName'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
                   placeholder="Smith"
                   aria-required="true"
                   aria-invalid={!!errors['lastName']}
@@ -919,7 +919,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <div>
             <label
               htmlFor="email-input"
-              className="block text-sm font-semibold text-slate-700 mb-1.5"
+              className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
             >
               Email{' '}
               <span className="text-red-500" aria-label="required">
@@ -932,7 +932,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`w-full px-3 py-2.5 text-base bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
+                className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
                 placeholder="john@example.com"
                 aria-required="true"
                 aria-invalid={!!errors['email']}
@@ -951,7 +951,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <div>
             <label
               htmlFor="phone-input"
-              className="block text-sm font-semibold text-slate-700 mb-1.5"
+              className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
             >
               Phone{' '}
               <span className="text-red-500" aria-label="required">
@@ -963,7 +963,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className={`w-full px-3 py-2.5 text-base bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
+              className={`w-full px-3 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.875rem,1.8vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
               placeholder="0412 345 678"
               aria-required="true"
               aria-invalid={!!errors['phone']}
@@ -975,23 +975,23 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
 
           {/* DOB and Gender row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-[clamp(8px,1.5vw,12px)]">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1">
                 Date of Birth <span className="text-red-500" aria-label="required">*</span>
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-1">
                 <select
                   id="dob-day"
                   value={dateOfBirth.split('/')[0] || ''}
                   onChange={(e) => handleDayChange(e.target.value)}
-                  className={`flex-1 min-w-0 px-2 py-2.5 text-sm bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-0 px-1 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.75rem,1.5vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 4px center',
-                    backgroundSize: '16px',
-                    paddingRight: '24px'
+                    backgroundPosition: 'right 2px center',
+                    backgroundSize: '14px',
+                    paddingRight: '18px'
                   }}
                   aria-label="Day of birth"
                 >
@@ -1004,13 +1004,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-month"
                   value={dateOfBirth.split('/')[1] || ''}
                   onChange={(e) => handleMonthChange(e.target.value)}
-                  className={`flex-1 min-w-0 px-2 py-2.5 text-sm bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-0 px-1 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.75rem,1.5vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 4px center',
-                    backgroundSize: '16px',
-                    paddingRight: '24px'
+                    backgroundPosition: 'right 2px center',
+                    backgroundSize: '14px',
+                    paddingRight: '18px'
                   }}
                   aria-label="Month of birth"
                 >
@@ -1032,13 +1032,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-year"
                   value={dateOfBirth.split('/')[2] || ''}
                   onChange={(e) => handleYearChange(e.target.value)}
-                  className={`flex-1 min-w-0 px-2 py-2.5 text-sm bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-0 px-1 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.75rem,1.5vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 4px center',
-                    backgroundSize: '16px',
-                    paddingRight: '24px'
+                    backgroundPosition: 'right 2px center',
+                    backgroundSize: '14px',
+                    paddingRight: '18px'
                   }}
                   aria-label="Year of birth"
                 >
@@ -1053,20 +1053,20 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               )}
             </div>
             <div>
-              <label htmlFor="gender-select" className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label htmlFor="gender-select" className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1">
                 Gender
               </label>
               <select
                 id="gender-select"
                 value={gender}
                 onChange={(e) => setGender(e.target.value as typeof gender)}
-                className="w-full px-3 py-2.5 text-sm bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400 appearance-none"
+                className="w-full px-2 py-[clamp(8px,1.5vh,10px)] text-[clamp(0.75rem,1.5vh,0.875rem)] bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400 appearance-none"
                 style={{ 
                   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 8px center',
-                  backgroundSize: '16px',
-                  paddingRight: '32px'
+                  backgroundPosition: 'right 6px center',
+                  backgroundSize: '14px',
+                  paddingRight: '24px'
                 }}
               >
                 <option value="unknown">Prefer not to say</option>
@@ -1080,21 +1080,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
           {/* DOB Warning */}
           {dobWarning && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-start gap-2">
-                <span className="text-lg flex-shrink-0" role="img" aria-label="info">👋</span>
-                <p className="text-sm font-medium text-blue-900">{dobWarning}</p>
+                <span className="text-base flex-shrink-0" role="img" aria-label="info">👋</span>
+                <p className="text-[clamp(0.7rem,1.3vh,0.875rem)] font-medium text-blue-900">{dobWarning}</p>
               </div>
             </div>
           )}
 
           {/* Action button - pushed to bottom */}
-          <div className="flex justify-center pt-2 mt-auto">
+          <div className="flex justify-center pt-[clamp(4px,1vh,8px)] mt-auto">
             <button
               type="button"
               onClick={handleDetailsNext}
               disabled={!isDetailsStepValid()}
-              className={`w-full sm:w-auto px-8 py-3 text-base font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              className={`w-full sm:w-auto px-6 py-[clamp(10px,2vh,14px)] text-[clamp(0.875rem,1.8vh,1rem)] font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                 isDetailsStepValid()
                   ? 'bg-blue-500 hover:bg-blue-600 text-white focus:ring-blue-400 cursor-pointer shadow-lg hover:shadow-xl'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'

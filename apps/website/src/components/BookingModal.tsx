@@ -217,7 +217,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </button>
 
         {/* Booking form - fills available space, content scales */}
-        <div className="p-[2vh] flex-1 flex flex-col min-h-0 overflow-y-auto">
+        <div className="p-[clamp(8px,2vh,24px)] flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
           {MAINTENANCE_MODE ? (
             <MaintenanceMessage onClose={onClose} />
           ) : (

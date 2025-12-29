@@ -34,6 +34,10 @@ const APP_INSIGHTS_CONFIG = {
     samplingPercentage: 100, // Full sampling for detailed insights
     maxBatchInterval: 15000, // Send data every 15 seconds
     maxBatchSizeInBytes: 1024 * 64, // 64KB batch size
+
+    // FIX: Disable deprecated unload event listener (fixes Best Practices audit)
+    // Uses visibilitychange + pagehide instead (modern, bfcache-friendly)
+    disablePageUnloadEvents: true,
   },
 };
 

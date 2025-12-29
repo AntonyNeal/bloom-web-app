@@ -314,7 +314,8 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
   const touchEndX = useRef<number>(0);
 
   // Active stage is locked stage if set, otherwise hovered stage
-  const activeStage = lockedStage || hoveredStage;
+  // When locked, ONLY show locked content (ignore hover completely)
+  const activeStage = lockedStage ? lockedStage : hoveredStage;
   
   const currentStage = activeStage 
     ? journeyStages.find(s => s.id === activeStage) 
@@ -326,6 +327,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
       setLockedStage(null);
     } else {
       setLockedStage(stageId);
+      setHoveredStage(null); // Clear hover state when locking
     }
   };
 

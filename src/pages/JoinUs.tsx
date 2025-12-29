@@ -289,6 +289,76 @@ function MarketingContent({
             </div>
           </motion.div>
         </motion.section>
+
+        {/* Final CTA Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          style={{
+            maxWidth: '700px',
+            margin: '0 auto',
+            padding: isMobile ? '0 20px 80px' : '0 40px 120px',
+            textAlign: 'center',
+          }}
+        >
+          <motion.div
+            whileHover={isMobile ? {} : { scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              padding: isMobile ? '36px 24px' : '48px 40px',
+              background: `linear-gradient(145deg, ${bloomStyles.colors.eucalyptusSage}12, ${bloomStyles.colors.softTerracotta}08)`,
+              borderRadius: '24px',
+              border: `2px solid ${bloomStyles.colors.eucalyptusSage}20`,
+            }}
+          >
+            <h3
+              style={{
+                fontSize: isMobile ? '24px' : '30px',
+                fontWeight: 700,
+                color: bloomStyles.colors.eucalyptusSage,
+                marginBottom: '12px',
+              }}
+            >
+              Ready to See If You Qualify?
+            </h3>
+            <p
+              style={{
+                fontSize: isMobile ? '15px' : '17px',
+                color: '#666',
+                marginBottom: '28px',
+                lineHeight: 1.6,
+              }}
+            >
+              Quick eligibility check, then a short application.
+            </p>
+            <motion.button
+              onClick={onApplyClick}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              style={{
+                padding: isMobile ? '16px 40px' : '18px 48px',
+                fontSize: isMobile ? '16px' : '18px',
+                fontWeight: 600,
+                color: 'white',
+                background: `linear-gradient(135deg, ${bloomStyles.colors.eucalyptusSage} 0%, ${bloomStyles.colors.softFern} 100%)`,
+                border: 'none',
+                borderRadius: '30px',
+                cursor: 'pointer',
+                boxShadow: `0 4px 20px ${bloomStyles.colors.eucalyptusSage}40`,
+                transition: 'box-shadow 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = `0 6px 28px ${bloomStyles.colors.eucalyptusSage}50`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = `0 4px 20px ${bloomStyles.colors.eucalyptusSage}40`;
+              }}
+            >
+              See If You Qualify
+            </motion.button>
+          </motion.div>
+        </motion.section>
       </div>
     </div>
   );

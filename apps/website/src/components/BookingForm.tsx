@@ -1403,7 +1403,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </div>
           }>
             <StripePayment
-              amount={appointmentType === 'couples-session' ? 300 : appointmentType === 'ndis-psychology-session' ? 232.99 : 1}
+              amount={appointmentType === 'couples-session' ? 300 : appointmentType === 'ndis-psychology-session' ? 232.99 : 250}
               customerEmail={email}
               customerName={`${firstName} ${lastName}`}
               onSuccess={handlePaymentAuthorized}

@@ -127,6 +127,27 @@ async function applicationsHandler(
         };
       }
 
+      // Check for existing application with this email
+      const existingApp = await pool
+        .request()
+        .input('email', sql.NVarChar, email)
+        .query('SELECT id, status, created_at FROM applications WHERE email = @email');
+
+      if (existingApp.recordset.length > 0) {
+        const existing = existingApp.recordset[0];
+        context.log(`Duplicate application attempt for email: ${email}, existing status: ${existing.status}`);
+        return {
+          status: 409,
+          headers,
+          jsonBody: {
+            error: 'An application with this email address already exists.',
+            existingStatus: existing.status,
+            submittedAt: existing.created_at,
+            message: 'If you need to update your application or have questions, please contact us at support@life-psychology.com.au',
+          },
+        };
+      }
+
       const result = await pool
         .request()
         .input('first_name', sql.NVarChar, first_name)
@@ -266,6 +287,19 @@ async function applicationsHandler(
   } catch (error) {
     context.error('Error in applications handler:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    
+    // Handle duplicate key constraint violation (race condition fallback)
+    if (errorMessage.includes('UNIQUE KEY constraint') && errorMessage.includes('email')) {
+      return {
+        status: 409,
+        headers,
+        jsonBody: {
+          error: 'An application with this email address already exists.',
+          message: 'If you need to update your application or have questions, please contact us at support@life-psychology.com.au',
+        },
+      };
+    }
+    
     return {
       status: 500,
       headers,

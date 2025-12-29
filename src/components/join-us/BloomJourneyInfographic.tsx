@@ -73,11 +73,23 @@ const StageIcons = {
       <path d="M9 12L11 14L15 10" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
+  marketing: (color: string) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Megaphone/spotlight icon */}
+      <path d="M3 11V13C3 14.1 3.9 15 5 15H6L9 19H11V15H12C13.1 15 14 14.1 14 13V11C14 9.9 13.1 9 12 9H5C3.9 9 3 9.9 3 11Z" fill={color} opacity="0.35"/>
+      <path d="M14 10L19 6V18L14 14" fill={color} opacity="0.5"/>
+      <circle cx="20" cy="12" r="2" fill={color} opacity="0.6"/>
+      {/* Sparkle/attention lines */}
+      <path d="M17 5L18 4" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M20 7L21.5 6" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M17 19L18 20" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  ),
 };
 
 // Journey stage data with story-like copy
 interface JourneyStage {
-  id: 'apply' | 'setup' | 'practice' | 'earn' | 'grow' | 'security';
+  id: 'apply' | 'setup' | 'marketing' | 'practice' | 'earn' | 'grow' | 'security';
   title: string;
   timeframe: string;
   color: string;
@@ -109,9 +121,23 @@ const journeyStages: JourneyStage[] = [
     story: "We handle the admin. Your portal, your calendar, your billing—all ready before your first client.",
     details: [
       'Your own Bloom practice portal',
-      'Australia-wide online marketing',
       'Medicare billing handled',
       '@life-psychology email',
+      'Calendar & booking system',
+    ],
+  },
+  {
+    id: 'marketing',
+    title: 'Get Noticed',
+    timeframe: 'Ongoing',
+    color: '#9B7BB8', // Soft purple for creativity/visibility
+    lightColor: 'rgba(155, 123, 184, 0.15)',
+    story: "We invest in your visibility. A professional profile, a professional photoshoot, and sophisticated marketing—all covered.",
+    details: [
+      'Professional profile on Life Psychology Australia',
+      'Professional photoshoot (we pay)',
+      'SEO-optimised online presence',
+      'Google & Instagram ad campaigns',
     ],
   },
   {

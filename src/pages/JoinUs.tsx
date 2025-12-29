@@ -472,8 +472,25 @@ export function JoinUs() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Submission failed');
+        const errorData = await response.json();
+        
+        // Handle duplicate application (409 Conflict)
+        if (response.status === 409) {
+          const statusText = errorData.existingStatus === 'interview_scheduled' 
+            ? "Your interview is already scheduled" 
+            : errorData.existingStatus === 'accepted'
+            ? "Your application has already been accepted"
+            : "We already have your application on file";
+          
+          toast({
+            title: "You've already applied! 🌱",
+            description: `${statusText}. ${errorData.message || "If you have questions, please contact us at support@life-psychology.com.au"}`,
+            variant: 'default',
+          });
+          return;
+        }
+        
+        throw new Error(errorData.error || 'Submission failed');
       }
 
       setSubmitted(true);
@@ -481,7 +498,8 @@ export function JoinUs() {
         title: 'Application submitted!',
         description: "We'll review your application and be in touch soon.",
       });
-    } catch {
+    } catch (error) {
+      console.error('Application submission error:', error);
       toast({
         title: "We're having a small hiccup",
         description:

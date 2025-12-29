@@ -4,7 +4,7 @@
  * Azure Function to create appointments in Halaxy from the website.
  * Creates or finds the patient, then creates the appointment.
  * Stores booking session data for analytics tracking.
- * Sends notification to clinician when booking is created.
+ * Sends email and SMS notification to clinician when booking is created.
  */
 import {
   app,
@@ -15,6 +15,7 @@ import {
 import { getHalaxyClient } from '../services/halaxy/client';
 import { getDbConnection } from '../services/database';
 import { sendClinicianBookingNotification } from '../services/email';
+import { sendClinicianBookingSms, isSmsNotificationEnabled } from '../services/sms';
 import * as sql from 'mssql';
 
 interface PatientData {
@@ -63,6 +64,8 @@ interface PractitionerContact {
   email: string;
   firstName: string;
   phone?: string;
+  smsNotificationsEnabled: boolean;
+  emailNotificationsEnabled: boolean;
 }
 
 /**
@@ -109,7 +112,7 @@ async function getDefaultPractitionerId(context: InvocationContext): Promise<str
 }
 
 /**
- * Get practitioner contact info for notifications
+ * Get practitioner contact info and notification preferences
  */
 async function getPractitionerContact(
   practitionerId: string,
@@ -120,8 +123,19 @@ async function getPractitionerContact(
     
     const result = await pool.request()
       .input('halaxyId', sql.NVarChar, practitionerId)
-      .query<{ email: string; first_name: string; phone: string | null }>(`
-        SELECT email, first_name, phone 
+      .query<{ 
+        email: string; 
+        first_name: string; 
+        phone: string | null;
+        sms_notifications_enabled: boolean | null;
+        email_notifications_enabled: boolean | null;
+      }>(`
+        SELECT 
+          email, 
+          first_name, 
+          phone,
+          COALESCE(sms_notifications_enabled, 1) as sms_notifications_enabled,
+          COALESCE(email_notifications_enabled, 1) as email_notifications_enabled
         FROM practitioners 
         WHERE halaxy_practitioner_id = @halaxyId
       `);
@@ -132,6 +146,8 @@ async function getPractitionerContact(
         email: practitioner.email,
         firstName: practitioner.first_name,
         phone: practitioner.phone || undefined,
+        smsNotificationsEnabled: practitioner.sms_notifications_enabled !== false,
+        emailNotificationsEnabled: practitioner.email_notifications_enabled !== false,
       };
     }
     
@@ -335,26 +351,58 @@ async function createHalaxyBooking(
 
     context.log(`[PERF] Total booking time: ${Date.now() - bookingStartTime}ms`);
 
-    // Step 4: Send notification to clinician (non-blocking)
+    // Step 4: Send notifications to clinician (non-blocking)
     try {
       const practitionerContact = await getPractitionerContact(practitionerId, context);
       if (practitionerContact) {
-        context.log(`Sending booking notification to: ${practitionerContact.email}`);
-        const notificationResult = await sendClinicianBookingNotification({
-          practitionerEmail: practitionerContact.email,
-          practitionerFirstName: practitionerContact.firstName,
-          patientFirstName: body.patient.firstName,
-          patientLastName: body.patient.lastName,
-          patientEmail: body.patient.email,
-          patientPhone: body.patient.phone,
-          appointmentDateTime: new Date(body.appointmentDetails.startTime),
-          appointmentType: body.appointmentDetails.appointmentType,
-        });
-        
-        if (notificationResult.success) {
-          context.log('Clinician notification sent successfully');
+        // Send email notification if enabled
+        if (practitionerContact.emailNotificationsEnabled) {
+          context.log(`Sending email notification to: ${practitionerContact.email}`);
+          const emailResult = await sendClinicianBookingNotification({
+            practitionerEmail: practitionerContact.email,
+            practitionerFirstName: practitionerContact.firstName,
+            patientFirstName: body.patient.firstName,
+            patientLastName: body.patient.lastName,
+            patientEmail: body.patient.email,
+            patientPhone: body.patient.phone,
+            appointmentDateTime: new Date(body.appointmentDetails.startTime),
+            appointmentType: body.appointmentDetails.appointmentType,
+          });
+          
+          if (emailResult.success) {
+            context.log('Clinician email notification sent successfully');
+          } else {
+            context.warn('Clinician email notification failed:', emailResult.error);
+          }
         } else {
-          context.warn('Clinician notification failed:', notificationResult.error);
+          context.log('Email notification skipped - disabled by practitioner preferences');
+        }
+
+        // Send SMS notification if enabled globally, by practitioner preference, and phone is available
+        const shouldSendSms = isSmsNotificationEnabled() && 
+                              practitionerContact.smsNotificationsEnabled && 
+                              practitionerContact.phone;
+        
+        if (shouldSendSms) {
+          context.log(`Sending SMS notification to: ${practitionerContact.phone}`);
+          const smsResult = await sendClinicianBookingSms({
+            clinicianPhone: practitionerContact.phone!,
+            clinicianFirstName: practitionerContact.firstName,
+            patientFirstName: body.patient.firstName,
+            patientLastName: body.patient.lastName,
+            appointmentDateTime: new Date(body.appointmentDetails.startTime),
+            appointmentType: body.appointmentDetails.appointmentType,
+          });
+
+          if (smsResult.success) {
+            context.log('Clinician SMS notification sent successfully');
+          } else {
+            context.warn('Clinician SMS notification failed:', smsResult.error);
+          }
+        } else if (!practitionerContact.phone) {
+          context.log('SMS notification skipped - no phone number for practitioner');
+        } else if (!practitionerContact.smsNotificationsEnabled) {
+          context.log('SMS notification skipped - disabled by practitioner preferences');
         }
       } else {
         context.warn('Could not send notification - practitioner contact not found');

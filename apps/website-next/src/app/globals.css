@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  
+  /* Life Psychology brand colors */
+  --life-psychology-primary: #2563eb;
+  --life-psychology-secondary: #64748b;
+  --life-psychology-accent: #059669;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  
+  /* Brand colors */
+  --color-life-psychology-primary: var(--life-psychology-primary);
+  --color-life-psychology-secondary: var(--life-psychology-secondary);
+  --color-life-psychology-accent: var(--life-psychology-accent);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}

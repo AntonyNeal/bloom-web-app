@@ -778,16 +778,48 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col min-h-0 overflow-hidden">
+    <div className="w-full h-full flex flex-col min-h-0 relative">
+      {/* Full-screen booking loading overlay */}
+      {loading && (
+        <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center z-50 rounded-xl">
+          {/* Animated flower/bloom loader */}
+          <div className="relative mb-6">
+            {/* Outer spinning ring */}
+            <div className="w-20 h-20 rounded-full border-4 border-blue-100 border-t-blue-500 animate-spin"></div>
+            {/* Inner pulsing circle */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 animate-pulse shadow-lg shadow-blue-300/50"></div>
+            </div>
+            {/* Decorative petals that fade in/out */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-3 h-3 bg-blue-300 rounded-full absolute -top-1 animate-ping" style={{ animationDuration: '1.5s' }}></div>
+              <div className="w-3 h-3 bg-blue-300 rounded-full absolute -bottom-1 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.5s' }}></div>
+              <div className="w-3 h-3 bg-blue-300 rounded-full absolute -left-1 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.25s' }}></div>
+              <div className="w-3 h-3 bg-blue-300 rounded-full absolute -right-1 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.75s' }}></div>
+            </div>
+          </div>
+          <h3 className="text-xl font-bold text-slate-800 mb-2">Creating Your Booking</h3>
+          <p className="text-slate-500 text-center max-w-xs">
+            Please wait while we secure your appointment...
+          </p>
+          <p className="text-slate-400 text-sm mt-4 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Secure connection
+          </p>
+        </div>
+      )}
+      
       {/* Header with integrated progress */}
       {step !== 'success' && step !== 'error' && (
-        <div className="flex-shrink-0 mb-4 sm:mb-6">
+        <div className="flex-shrink-0 mb-[clamp(8px,2vh,24px)]">
           {/* Title */}
-          <div className="text-center mb-4 sm:mb-5">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
+          <div className="text-center mb-[clamp(8px,1.5vh,20px)]">
+            <h2 className="text-[clamp(1.1rem,2.5vh,1.5rem)] font-bold text-slate-800 tracking-tight">
               Book Your Appointment
             </h2>
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-slate-500 text-[clamp(0.75rem,1.5vh,0.875rem)] mt-1">
               Telehealth with Zoe Semmler
             </p>
           </div>
@@ -808,9 +840,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 (key === 'payment' && step === 'success');
               return (
                 <React.Fragment key={key}>
-                  <div className="flex flex-col items-center min-w-[48px] sm:min-w-[60px]">
+                  <div className="flex flex-col items-center min-w-[clamp(40px,8vw,60px)]">
                     <div
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all ${
+                      className={`w-[clamp(28px,4vh,40px)] h-[clamp(28px,4vh,40px)] rounded-full flex items-center justify-center text-[clamp(0.75rem,1.5vh,1rem)] font-bold transition-all ${
                         isActive
                           ? 'bg-blue-500 text-white shadow-lg ring-4 ring-blue-100'
                           : isPast
@@ -821,13 +853,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                       {isPast ? '✓' : num}
                     </div>
                     <span 
-                      className={`mt-1.5 text-xs sm:text-sm font-medium ${isActive ? 'text-blue-600' : isPast ? 'text-emerald-600' : 'text-slate-400'}`}
+                      className={`mt-1 text-[clamp(0.65rem,1.2vh,0.875rem)] font-medium ${isActive ? 'text-blue-600' : isPast ? 'text-emerald-600' : 'text-slate-400'}`}
                     >
                       {label}
                     </span>
                   </div>
                   {index < 3 && (
-                    <div className={`w-8 sm:w-12 h-1 rounded-full mx-1 sm:mx-2 ${isPast ? 'bg-emerald-400' : isActive ? 'bg-blue-200' : 'bg-slate-200'}`} />
+                    <div className={`w-[clamp(24px,4vw,48px)] h-1 rounded-full mx-1 ${isPast ? 'bg-emerald-400' : isActive ? 'bg-blue-200' : 'bg-slate-200'}`} />
                   )}
                 </React.Fragment>
               );
@@ -838,19 +870,19 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 1: Patient Details - scales to fit viewport */}
       {step === 'details' && (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden" onKeyDown={(e) => {
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden" onKeyDown={(e) => {
           if (e.key === 'Enter' && isDetailsStepValid() && !loading) {
             e.preventDefault();
             handleDetailsNext();
           }
         }}>
-          <div className="flex flex-col gap-5 flex-1">
+          <div className="flex flex-col gap-[clamp(8px,1.5vh,20px)] flex-1">
             {/* Name row - side by side */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-[clamp(6px,1.5vw,12px)]">
               <div>
                 <label
                   htmlFor="firstName-input"
-                  className="block text-sm font-semibold text-slate-700 mb-1.5"
+                  className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
                 >
                   First Name{' '}
                   <span className="text-red-500" aria-label="required">
@@ -862,7 +894,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className={`w-full px-3 py-2.5 text-base bg-white rounded-lg focus:outline-none transition-all border ${errors['firstName'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
+                  className={`w-full px-2 py-[clamp(6px,1.2vh,10px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['firstName'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
                   placeholder="John"
                   aria-required="true"
                   aria-invalid={!!errors['firstName']}
@@ -883,7 +915,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               <div>
                 <label
                   htmlFor="lastName-input"
-                  className="block text-sm font-semibold text-slate-700 mb-1.5"
+                  className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
                 >
                   Last Name{' '}
                   <span className="text-red-500" aria-label="required">
@@ -895,7 +927,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className={`w-full px-3 py-2.5 text-base bg-white rounded-lg focus:outline-none transition-all border ${errors['lastName'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
+                  className={`w-full px-2 py-[clamp(6px,1.2vh,10px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['lastName'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
                   placeholder="Smith"
                   aria-required="true"
                   aria-invalid={!!errors['lastName']}
@@ -915,69 +947,148 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
             </div>
 
-          {/* Email field */}
-          <div>
-            <label
-              htmlFor="email-input"
-              className="block text-sm font-semibold text-slate-700 mb-1.5"
-            >
-              Email{' '}
-              <span className="text-red-500" aria-label="required">
-                *
-              </span>
-            </label>
-            <div className="relative">
-              <input
-                id="email-input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`w-full px-3 py-2.5 text-base bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
-                placeholder="john@example.com"
-                aria-required="true"
-                aria-invalid={!!errors['email']}
-                aria-describedby={errors['email'] ? 'email-error' : undefined}
-              />
-              {email && email.includes('@') && email.includes('.') && !errors['email'] && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">✓</span>
-              )}
-            </div>
-            {errors['email'] && (
-              <p id="email-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['email']}</p>
-            )}
-          </div>
-
-          {/* Phone field */}
-          <div>
-            <label
-              htmlFor="phone-input"
-              className="block text-sm font-semibold text-slate-700 mb-1.5"
-            >
-              Phone{' '}
-              <span className="text-red-500" aria-label="required">
-                *
-              </span>
-            </label>
-            <input
-              id="phone-input"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className={`w-full px-3 py-2.5 text-base bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
-              placeholder="0412 345 678"
-              aria-required="true"
-              aria-invalid={!!errors['phone']}
-              aria-describedby={errors['phone'] ? 'phone-error' : undefined}
-            />
-            {errors['phone'] && (
-              <p id="phone-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['phone']}</p>
-            )}
-          </div>
-
-          {/* DOB and Gender row */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Email and Phone row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[clamp(12px,2vh,16px)] sm:gap-[clamp(8px,1.5vw,12px)]">
+            {/* Email field */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label
+                htmlFor="email-input"
+                className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
+              >
+                Email{' '}
+                <span className="text-red-500" aria-label="required">
+                  *
+                </span>
+              </label>
+              <div className="relative">
+                <input
+                  id="email-input"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full px-2 py-[clamp(6px,1.2vh,10px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['email'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
+                  placeholder="you@email.com"
+                  aria-required="true"
+                  aria-invalid={!!errors['email']}
+                  aria-describedby={errors['email'] ? 'email-error' : 'email-hint'}
+                />
+                {email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !errors['email'] && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">✓</span>
+                )}
+              </div>
+              {errors['email'] && (
+                <p id="email-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['email']}</p>
+              )}
+              {/* Smart email validation hint */}
+              {email && email.length >= 3 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !errors['email'] && (() => {
+                let message = '';
+                let icon = '💡';
+                
+                const hasAt = email.includes('@');
+                const atIndex = email.indexOf('@');
+                const afterAt = hasAt ? email.slice(atIndex + 1) : '';
+                const hasDot = afterAt.includes('.');
+                const beforeAt = hasAt ? email.slice(0, atIndex) : email;
+                
+                if (!hasAt) {
+                  message = 'Add @ followed by your email provider';
+                  icon = '📧';
+                } else if (beforeAt.length === 0) {
+                  message = 'Add your name before the @';
+                  icon = '✏️';
+                } else if (afterAt.length === 0) {
+                  message = 'Add your email provider after @';
+                  icon = '🌐';
+                } else if (!hasDot) {
+                  message = 'Add .com, .au, etc. after the provider';
+                  icon = '🌐';
+                } else if (afterAt.endsWith('.')) {
+                  message = 'Complete the domain (e.g. .com)';
+                  icon = '✏️';
+                }
+                
+                if (!message) return null;
+                
+                return (
+                  <div id="email-hint" className="flex items-center gap-1.5 mt-1.5 px-2 py-1 bg-amber-50 border border-amber-200 rounded-md">
+                    <span className="text-sm">{icon}</span>
+                    <span className="text-amber-700 text-xs font-medium">{message}</span>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Phone field */}
+            <div>
+              <label
+                htmlFor="phone-input"
+                className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
+              >
+                Phone{' '}
+                <span className="text-red-500" aria-label="required">
+                  *
+                </span>
+              </label>
+              <div className="relative">
+                <input
+                  id="phone-input"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className={`w-full px-2 py-[clamp(6px,1.2vh,10px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border ${errors['phone'] ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'}`}
+                  placeholder="0412345678"
+                  aria-required="true"
+                  aria-invalid={!!errors['phone']}
+                  aria-describedby={errors['phone'] ? 'phone-error' : 'phone-hint'}
+                />
+                {phone && HalaxyClient.validatePhone(phone) && !errors['phone'] && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">✓</span>
+                )}
+              </div>
+              {errors['phone'] && (
+                <p id="phone-error" className="text-red-500 text-xs mt-1 font-medium" role="alert">{errors['phone']}</p>
+              )}
+              {/* Smart phone validation hint */}
+              {phone && !HalaxyClient.validatePhone(phone) && !errors['phone'] && (() => {
+                const digitsOnly = phone.replace(/\D/g, '');
+                const digitCount = digitsOnly.length;
+                
+                // Don't show hint until they've typed at least 4 characters
+                if (digitCount < 4) return null;
+                
+                // Determine what's wrong and give helpful guidance
+                let message = '';
+                let icon = '💡';
+                
+                if (!digitsOnly.startsWith('04')) {
+                  message = 'Australian mobiles start with 04';
+                  icon = '📱';
+                } else if (digitCount < 10) {
+                  const remaining = 10 - digitCount;
+                  message = `${remaining} more digit${remaining === 1 ? '' : 's'} needed`;
+                  icon = '✏️';
+                } else if (digitCount > 10) {
+                  const extra = digitCount - 10;
+                  message = `${extra} digit${extra === 1 ? '' : 's'} too many`;
+                  icon = '⚠️';
+                }
+                
+                if (!message) return null;
+                
+                return (
+                  <div id="phone-hint" className="flex items-center gap-1.5 mt-1.5 px-2 py-1 bg-amber-50 border border-amber-200 rounded-md">
+                    <span className="text-sm">{icon}</span>
+                    <span className="text-amber-700 text-xs font-medium">{message}</span>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* DOB and Gender row - stacks on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[clamp(8px,1.5vh,16px)] sm:gap-[clamp(6px,1.5vw,12px)]">
+            <div>
+              <label className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1">
                 Date of Birth <span className="text-red-500" aria-label="required">*</span>
               </label>
               <div className="flex gap-2">
@@ -985,13 +1096,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-day"
                   value={dateOfBirth.split('/')[0] || ''}
                   onChange={(e) => handleDayChange(e.target.value)}
-                  className={`flex-1 min-w-0 px-2 py-2.5 text-sm bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-0 pl-2 pr-6 py-[clamp(6px,1.2vh,12px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 4px center',
-                    backgroundSize: '16px',
-                    paddingRight: '24px'
+                    backgroundPosition: 'right 6px center',
+                    backgroundSize: '12px'
                   }}
                   aria-label="Day of birth"
                 >
@@ -1004,13 +1114,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-month"
                   value={dateOfBirth.split('/')[1] || ''}
                   onChange={(e) => handleMonthChange(e.target.value)}
-                  className={`flex-1 min-w-0 px-2 py-2.5 text-sm bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-0 pl-2 pr-6 py-[clamp(6px,1.2vh,12px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 4px center',
-                    backgroundSize: '16px',
-                    paddingRight: '24px'
+                    backgroundPosition: 'right 6px center',
+                    backgroundSize: '12px'
                   }}
                   aria-label="Month of birth"
                 >
@@ -1032,13 +1141,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   id="dob-year"
                   value={dateOfBirth.split('/')[2] || ''}
                   onChange={(e) => handleYearChange(e.target.value)}
-                  className={`flex-1 min-w-0 px-2 py-2.5 text-sm bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
+                  className={`flex-1 min-w-0 pl-2 pr-6 py-[clamp(6px,1.2vh,12px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border appearance-none ${errors['dateOfBirth'] ? 'border-red-300' : 'border-slate-200 focus:border-blue-400'}`}
                   style={{ 
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 4px center',
-                    backgroundSize: '16px',
-                    paddingRight: '24px'
+                    backgroundPosition: 'right 6px center',
+                    backgroundSize: '12px'
                   }}
                   aria-label="Year of birth"
                 >
@@ -1053,20 +1161,19 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               )}
             </div>
             <div>
-              <label htmlFor="gender-select" className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label htmlFor="gender-select" className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1">
                 Gender
               </label>
               <select
                 id="gender-select"
                 value={gender}
                 onChange={(e) => setGender(e.target.value as typeof gender)}
-                className="w-full px-3 py-2.5 text-sm bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400 appearance-none"
+                className="w-full pl-2 pr-6 py-[clamp(6px,1.2vh,12px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400 appearance-none"
                 style={{ 
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 8px center',
-                  backgroundSize: '16px',
-                  paddingRight: '32px'
+                  backgroundPosition: 'right 6px center',
+                  backgroundSize: '12px'
                 }}
               >
                 <option value="unknown">Prefer not to say</option>
@@ -1080,21 +1187,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
           {/* DOB Warning */}
           {dobWarning && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-start gap-2">
-                <span className="text-lg flex-shrink-0" role="img" aria-label="info">👋</span>
-                <p className="text-sm font-medium text-blue-900">{dobWarning}</p>
+                <span className="text-base flex-shrink-0" role="img" aria-label="info">👋</span>
+                <p className="text-[clamp(0.7rem,1.3vh,0.875rem)] font-medium text-blue-900">{dobWarning}</p>
               </div>
             </div>
           )}
 
           {/* Action button - pushed to bottom */}
-          <div className="flex justify-center pt-2 mt-auto">
+          <div className="flex justify-center pt-[clamp(4px,1vh,8px)] mt-auto">
             <button
               type="button"
               onClick={handleDetailsNext}
               disabled={!isDetailsStepValid()}
-              className={`w-full sm:w-auto px-8 py-3 text-base font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              className={`w-full sm:w-auto px-6 py-[clamp(10px,2vh,14px)] text-[clamp(0.875rem,1.8vh,1rem)] font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                 isDetailsStepValid()
                   ? 'bg-blue-500 hover:bg-blue-600 text-white focus:ring-blue-400 cursor-pointer shadow-lg hover:shadow-xl'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
@@ -1207,9 +1314,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Step 2: Date & Time */}
       {step === 'datetime' && (
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {/* Calendar Section - takes all available space */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <TimeSlotCalendar
               onSelectSlot={(date, time) => {
                 setAppointmentDate(date);
@@ -1433,15 +1540,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               }}
             />
           </Suspense>
-
-          {/* Loading overlay when processing booking */}
-          {loading && (
-            <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10 rounded-lg">
-              <div className="animate-spin h-10 w-10 border-3 border-blue-500 border-t-transparent rounded-full mb-3"></div>
-              <p className="text-slate-600 font-medium">Creating your booking...</p>
-              <p className="text-slate-400 text-sm">Please wait, do not close this window</p>
-            </div>
-          )}
         </div>
       )}
 

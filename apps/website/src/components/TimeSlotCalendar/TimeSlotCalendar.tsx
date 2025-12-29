@@ -31,6 +31,7 @@ import {
   getWeekDateRange,
   isToday,
   createSlotLookup,
+  parseSlotHour,
 } from './utils';
 
 export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
@@ -185,8 +186,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     if (day.date.getTime() < today.getTime()) return false;
     // Check if any slot falls within business hours (8am-6pm)
     const hasBusinessHourSlots = day.slots.some((slot) => {
-      const slotHour = parseInt(slot.time.split(':')[0]);
-      return BUSINESS_HOURS.includes(slotHour);
+      const hour = parseSlotHour(slot);
+      return BUSINESS_HOURS.includes(hour);
     });
     return hasBusinessHourSlots;
   });
@@ -329,15 +330,16 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
         type="button"
         onClick={() => handleSlotClick(day, slot)}
         className={`w-full flex items-center justify-center transition-all duration-150 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 focus:z-20 touch-manipulation rounded-lg ${
+          isMobile ? 'flex-1 min-h-0' : ''
+        } ${
           selected
             ? 'bg-blue-500 text-white shadow-md'
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200'
         }`}
         style={{ 
-          height: isMobile ? '100%' : '90%',
-          minHeight: isMobile ? 'clamp(28px, 3.5vh, 38px)' : undefined,
-          fontSize: isMobile ? 'clamp(11px, 2.5vw, 14px)' : 'clamp(9px, 1vw, 11px)',
-          margin: isMobile ? '1px 0' : '0 2px' 
+          height: isMobile ? undefined : '90%',
+          fontSize: isMobile ? 'clamp(11px, 2.5vw, 13px)' : 'clamp(9px, 1vw, 11px)',
+          margin: isMobile ? '0' : '0 2px' 
         }}
         aria-label={`${day.dayName} ${day.month} ${day.dayNumber} at ${slot.time}${selected ? ' (selected)' : ''}`}
         aria-pressed={selected}
@@ -355,14 +357,14 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
       <div
         role="grid"
         aria-label="Available appointment time slots"
-        className="bg-white flex-1 flex flex-col"
+        className="bg-white flex-1 flex flex-col overflow-hidden"
         style={{ minHeight: '0' }}
       >
         {BUSINESS_HOURS.map((hour, rowIndex) => (
           <div
             key={hour}
-            className={`grid items-center border-b border-slate-100 last:border-b-0 flex-1 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
-            style={{ gridTemplateColumns: gridCols, minHeight: 'clamp(20px, 2.5vh, 28px)' }}
+            className={`grid items-center border-b border-slate-100 last:border-b-0 flex-1 min-h-0 ${rowIndex % 2 === 0 ? 'bg-slate-50/30' : ''}`}
+            style={{ gridTemplateColumns: gridCols }}
             role="row"
           >
             <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)' }} className="font-medium text-slate-400 text-right pr-1.5">
@@ -678,28 +680,24 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
                 </div>
 
                 <div
-                  className="rounded-lg p-1 flex-1"
+                  className="rounded-lg p-1.5 flex-1 overflow-hidden"
                   style={{ border: '1px solid rgba(226,232,240,0.5)', background: 'rgba(255,255,255,0.6)' }}
                 >
-                  {/* Two columns for compact display - evenly fill available space */}
-                  <div className="grid grid-cols-2 gap-0.5 h-full" style={{ gridAutoRows: '1fr' }}>
+                  {/* Single column - show all business hours for consistent layout */}
+                  <div className="flex flex-col gap-1 h-full">
                     {BUSINESS_HOURS.map((hour) => {
-                      // Find if there's an available slot for this hour
-                      const slot = mobileActiveDay.slots.find((s) => {
-                        const slotHour = parseInt(s.time.split(':')[0]);
-                        return slotHour === hour;
-                      });
+                      const slot = mobileActiveDay.slots.find((s) => parseSlotHour(s) === hour);
                       
                       if (slot) {
                         return renderSlotButton(mobileActiveDay, slot, hour, true);
                       }
                       
-                      // Render empty/unavailable slot
+                      // Empty slot - maintains spatial consistency
                       return (
                         <div
                           key={`empty-${hour}`}
-                          className="w-full h-full flex items-center justify-center font-medium text-slate-300 rounded-lg"
-                          style={{ minHeight: 'clamp(24px, 3.5vh, 36px)', fontSize: 'clamp(10px, 2.5vw, 14px)' }}
+                          className="w-full flex-1 flex items-center justify-center font-medium text-slate-300 rounded bg-slate-50/50"
+                          style={{ fontSize: 'clamp(11px, 2.5vw, 13px)' }}
                         >
                           {formatHourLabel(hour)}
                         </div>

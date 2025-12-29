@@ -279,24 +279,49 @@ interface Props {
 
 export function BloomJourneyInfographic({ isMobile }: Props) {
   const [activeStage, setActiveStage] = useState<string | null>(null);
-  const [mobileIndex, setMobileIndex] = useState(0);
+  // Start at -1 for intro card, 0-5 for stages
+  const [mobileIndex, setMobileIndex] = useState(-1);
   const prefersReducedMotion = useReducedMotion();
   const carouselRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
 
   const currentStage = activeStage 
     ? journeyStages.find(s => s.id === activeStage) 
     : null;
 
   const handleSwipe = (direction: 'left' | 'right') => {
+    // -1 is intro, 0 to journeyStages.length - 1 are stages
     if (direction === 'left' && mobileIndex < journeyStages.length - 1) {
       setMobileIndex(mobileIndex + 1);
-    } else if (direction === 'right' && mobileIndex > 0) {
+    } else if (direction === 'right' && mobileIndex > -1) {
       setMobileIndex(mobileIndex - 1);
     }
   };
 
-  const currentMobileStage = journeyStages[mobileIndex];
-  const IconComponent = StageIcons[currentMobileStage.id];
+  // Touch handlers for better mobile swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    const threshold = 50;
+    if (diff > threshold) {
+      handleSwipe('left');
+    } else if (diff < -threshold) {
+      handleSwipe('right');
+    }
+  };
+
+  // mobileIndex -1 = intro card, 0+ = stages
+  const currentMobileStage = mobileIndex >= 0 ? journeyStages[mobileIndex] : null;
+  const IconComponent = currentMobileStage ? StageIcons[currentMobileStage.id] : null;
+  const isIntroCard = mobileIndex === -1;
 
   return (
     <section
@@ -985,31 +1010,27 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
           {/* Swipeable Carousel */}
           <div
             ref={carouselRef}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             style={{
               position: 'relative',
               overflow: 'hidden',
               borderRadius: '24px',
               marginBottom: '24px',
+              touchAction: 'pan-y', // Allow vertical scroll, capture horizontal
             }}
           >
-            <motion.div
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.2}
-              onDragEnd={(_, info) => {
-                if (info.offset.x < -50) handleSwipe('left');
-                if (info.offset.x > 50) handleSwipe('right');
-              }}
+            <div
               style={{
                 background: `linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, ${bloomColors.warmCream} 100%)`,
                 borderRadius: '24px',
-                border: `2px solid ${currentMobileStage.color}30`,
+                border: `2px solid ${isIntroCard ? bloomColors.eucalyptusSage : currentMobileStage?.color}30`,
                 padding: '36px 24px 28px',
-                minHeight: '380px',
+                minHeight: '420px',
                 display: 'flex',
                 flexDirection: 'column',
-                cursor: 'grab',
-                boxShadow: `0 8px 24px ${currentMobileStage.color}15`,
+                boxShadow: `0 8px 24px ${isIntroCard ? bloomColors.eucalyptusSage : currentMobileStage?.color}15`,
                 position: 'relative',
                 overflow: 'hidden',
               }}
@@ -1022,114 +1043,255 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
                   left: 0,
                   right: 0,
                   height: '4px',
-                  background: `linear-gradient(90deg, ${currentMobileStage.color}60, ${currentMobileStage.color}20)`,
+                  background: `linear-gradient(90deg, ${isIntroCard ? bloomColors.eucalyptusSage : currentMobileStage?.color}60, ${isIntroCard ? bloomColors.honeyAmber : currentMobileStage?.color}20)`,
                 }}
               />
 
               <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentMobileStage.id}
-                  initial={{ opacity: 0, x: 30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -30 }}
-                  transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
-                  style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-                >
-                  {/* Header with icon */}
-                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                    <div
-                      style={{
-                        width: '56px',
-                        height: '56px',
-                        margin: '0 auto 16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: `${currentMobileStage.color}15`,
-                        borderRadius: '16px',
-                        transform: 'scale(1.5)',
-                      }}
-                    >
-                      {IconComponent(currentMobileStage.color)}
-                    </div>
-                    <h3
-                      style={{
-                        fontSize: '26px',
-                        fontWeight: 700,
-                        color: currentMobileStage.color,
-                        marginBottom: '6px',
-                      }}
-                    >
-                      {currentMobileStage.title}
-                    </h3>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '5px 14px',
-                        background: `${currentMobileStage.color}15`,
-                        color: currentMobileStage.color,
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        borderRadius: '14px',
-                      }}
-                    >
-                      {currentMobileStage.timeframe}
-                    </span>
-                  </div>
-
-                  {/* Story */}
-                  <p
-                    style={{
-                      fontSize: '17px',
-                      lineHeight: 1.7,
-                      color: '#3A3A3A',
-                      textAlign: 'center',
-                      marginBottom: '24px',
-                    }}
+                {isIntroCard ? (
+                  /* INTRO CARD - 80% value proposition */
+                  <motion.div
+                    key="intro"
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+                    style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
                   >
-                    {currentMobileStage.story}
-                  </p>
+                    {/* Value proposition - 80% */}
+                    <motion.div
+                      animate={prefersReducedMotion ? {} : { scale: [1, 1.02, 1] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                      style={{
+                        display: 'block',
+                        padding: '20px 24px',
+                        background: 'linear-gradient(135deg, #2D5A4A 0%, #3D7A5A 100%)',
+                        borderRadius: '18px',
+                        boxShadow: '0 8px 28px rgba(45, 90, 74, 0.35)',
+                        marginBottom: '24px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <p style={{
+                        fontSize: '52px',
+                        fontWeight: 700,
+                        color: '#FFFFFF',
+                        margin: 0,
+                        lineHeight: 1,
+                      }}>
+                        80%
+                      </p>
+                      <p style={{
+                        fontSize: '15px',
+                        color: 'rgba(255,255,255,0.92)',
+                        margin: '6px 0 0 0',
+                        fontWeight: 500,
+                      }}>
+                        of session fees to you
+                      </p>
+                    </motion.div>
 
-                  {/* Details */}
-                  <div
-                    style={{
+                    {/* Industry comparison */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      gap: '24px',
+                      marginBottom: '24px',
+                    }}>
+                      <div style={{ textAlign: 'center' }}>
+                        <p style={{ fontSize: '12px', color: '#999', margin: 0 }}>Industry avg</p>
+                        <p style={{ 
+                          fontSize: '22px', 
+                          fontWeight: 600, 
+                          color: '#aaa',
+                          margin: '4px 0 0 0',
+                          textDecoration: 'line-through',
+                          textDecorationColor: bloomColors.softTerracotta,
+                        }}>
+                          40-55%
+                        </p>
+                      </div>
+                      <div style={{ 
+                        width: '1px', 
+                        background: 'rgba(0,0,0,0.1)',
+                      }} />
+                      <div style={{ textAlign: 'center' }}>
+                        <p style={{ fontSize: '12px', color: bloomColors.eucalyptusSage, margin: 0, fontWeight: 500 }}>With Bloom</p>
+                        <p style={{ 
+                          fontSize: '22px', 
+                          fontWeight: 700, 
+                          color: bloomColors.eucalyptusSage,
+                          margin: '4px 0 0 0',
+                        }}>
+                          80%
+                        </p>
+                      </div>
+                    </div>
+
+                    <p
+                      style={{
+                        fontSize: '15px',
+                        color: '#555',
+                        lineHeight: 1.7,
+                        textAlign: 'center',
+                        marginBottom: '20px',
+                      }}
+                    >
+                      Join <strong style={{ color: '#3A3A3A' }}>Life Psychology Australia</strong>, our telehealth clinic.
+                      <br />
+                      <span style={{ color: bloomColors.eucalyptusSage }}>Bloom</span> is the app that powers your practice.
+                    </p>
+                    
+                    {/* Minimum criteria */}
+                    <div style={{
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '10px',
-                      marginTop: 'auto',
-                    }}
+                      gap: '8px',
+                      alignItems: 'center',
+                    }}>
+                      <span style={{
+                        padding: '8px 16px',
+                        background: `${bloomColors.eucalyptusSage}12`,
+                        color: bloomColors.eucalyptusSage,
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        borderRadius: '16px',
+                        border: `1px solid ${bloomColors.eucalyptusSage}30`,
+                      }}>
+                        Clinical Psych
+                      </span>
+                      <span style={{ color: '#999', fontSize: '12px' }}>or</span>
+                      <span style={{
+                        padding: '8px 16px',
+                        background: `${bloomColors.softFern}12`,
+                        color: bloomColors.softFern,
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        borderRadius: '16px',
+                        border: `1px solid ${bloomColors.softFern}30`,
+                      }}>
+                        8+ yrs General Psych
+                      </span>
+                      <span style={{ color: '#999', fontSize: '12px' }}>or</span>
+                      <span style={{
+                        padding: '8px 16px',
+                        background: `${bloomColors.honeyAmber}12`,
+                        color: bloomColors.clayTerracotta,
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        borderRadius: '16px',
+                        border: `1px solid ${bloomColors.honeyAmber}30`,
+                      }}>
+                        PhD + AHPRA
+                      </span>
+                    </div>
+                  </motion.div>
+                ) : currentMobileStage && IconComponent && (
+                  /* STAGE CARDS */
+                  <motion.div
+                    key={currentMobileStage.id}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+                    style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
                   >
-                    {currentMobileStage.details.map((detail, i) => (
-                      <span
-                        key={i}
+                    {/* Header with icon */}
+                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                      <div
                         style={{
-                          padding: '12px 16px',
-                          background: `${currentMobileStage.color}08`,
-                          color: '#4A4A4A',
-                          fontSize: '14px',
-                          borderRadius: '14px',
-                          borderLeft: `3px solid ${currentMobileStage.color}`,
+                          width: '56px',
+                          height: '56px',
+                          margin: '0 auto 16px',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '10px',
+                          justifyContent: 'center',
+                          background: `${currentMobileStage.color}15`,
+                          borderRadius: '16px',
+                          transform: 'scale(1.5)',
                         }}
                       >
-                        <span
-                          style={{
-                            width: '6px',
-                            height: '6px',
-                            borderRadius: '50%',
-                            background: currentMobileStage.color,
-                            flexShrink: 0,
-                          }}
-                        />
-                        {detail}
+                        {IconComponent(currentMobileStage.color)}
+                      </div>
+                      <h3
+                        style={{
+                          fontSize: '26px',
+                          fontWeight: 700,
+                          color: currentMobileStage.color,
+                          marginBottom: '6px',
+                        }}
+                      >
+                        {currentMobileStage.title}
+                      </h3>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          padding: '5px 14px',
+                          background: `${currentMobileStage.color}15`,
+                          color: currentMobileStage.color,
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          borderRadius: '14px',
+                        }}
+                      >
+                        {currentMobileStage.timeframe}
                       </span>
-                    ))}
-                  </div>
-                </motion.div>
+                    </div>
+
+                    {/* Story */}
+                    <p
+                      style={{
+                        fontSize: '17px',
+                        lineHeight: 1.7,
+                        color: '#3A3A3A',
+                        textAlign: 'center',
+                        marginBottom: '24px',
+                      }}
+                    >
+                      {currentMobileStage.story}
+                    </p>
+
+                    {/* Details */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                        marginTop: 'auto',
+                      }}
+                    >
+                      {currentMobileStage.details.map((detail, i) => (
+                        <span
+                          key={i}
+                          style={{
+                            padding: '12px 16px',
+                            background: `${currentMobileStage.color}08`,
+                            color: '#4A4A4A',
+                            fontSize: '14px',
+                            borderRadius: '14px',
+                            borderLeft: `3px solid ${currentMobileStage.color}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: '6px',
+                              height: '6px',
+                              borderRadius: '50%',
+                              background: currentMobileStage.color,
+                              flexShrink: 0,
+                            }}
+                          />
+                          {detail}
+                        </span>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
               </AnimatePresence>
-            </motion.div>
+            </div>
 
             {/* Swipe hint */}
             <motion.div
@@ -1141,7 +1303,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
                 left: '50%',
                 transform: 'translateX(-50%)',
                 fontSize: '13px',
-                color: currentMobileStage.color,
+                color: isIntroCard ? bloomColors.eucalyptusSage : currentMobileStage?.color,
                 pointerEvents: 'none',
                 fontWeight: 500,
               }}
@@ -1150,15 +1312,32 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
             </motion.div>
           </div>
 
-          {/* Dot indicators with stage colors */}
+          {/* Dot indicators with stage colors - includes intro dot */}
           <div
             style={{
               display: 'flex',
               justifyContent: 'center',
-              gap: '10px',
+              gap: '8px',
               marginBottom: '12px',
             }}
           >
+            {/* Intro dot */}
+            <button
+              onClick={() => setMobileIndex(-1)}
+              style={{
+                width: mobileIndex === -1 ? '28px' : '10px',
+                height: '10px',
+                borderRadius: '5px',
+                background: mobileIndex === -1 
+                  ? `linear-gradient(90deg, ${bloomColors.eucalyptusSage}, ${bloomColors.honeyAmber})`
+                  : '#D1D5DB',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: mobileIndex === -1 ? `0 2px 8px ${bloomColors.eucalyptusSage}40` : 'none',
+              }}
+              aria-label="Go to intro"
+            />
             {journeyStages.map((stage, index) => (
               <button
                 key={stage.id}
@@ -1178,14 +1357,35 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
             ))}
           </div>
 
-          {/* Stage labels below dots */}
+          {/* Stage labels below dots - scrollable */}
           <div
             style={{
               display: 'flex',
-              justifyContent: 'space-between',
-              padding: '0 4px',
+              overflowX: 'auto',
+              gap: '4px',
+              padding: '0 4px 8px',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
             }}
           >
+            <button
+              onClick={() => setMobileIndex(-1)}
+              style={{
+                fontSize: '11px',
+                fontWeight: mobileIndex === -1 ? 700 : 400,
+                color: mobileIndex === -1 ? bloomColors.eucalyptusSage : '#999',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '6px 8px',
+                transition: 'all 0.3s',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              80%
+            </button>
             {journeyStages.map((stage, index) => (
               <button
                 key={stage.id}
@@ -1197,8 +1397,10 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  padding: '6px 4px',
+                  padding: '6px 8px',
                   transition: 'all 0.3s',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
               >
                 {stage.title}

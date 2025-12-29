@@ -304,7 +304,8 @@ interface Props {
 }
 
 export function BloomJourneyInfographic({ isMobile }: Props) {
-  const [activeStage, setActiveStage] = useState<string | null>(null);
+  const [hoveredStage, setHoveredStage] = useState<string | null>(null);
+  const [lockedStage, setLockedStage] = useState<string | null>(null);
   // Start at -1 for intro card, 0-5 for stages
   const [mobileIndex, setMobileIndex] = useState(-1);
   const prefersReducedMotion = useReducedMotion();
@@ -312,9 +313,21 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
 
+  // Active stage is locked stage if set, otherwise hovered stage
+  const activeStage = lockedStage || hoveredStage;
+  
   const currentStage = activeStage 
     ? journeyStages.find(s => s.id === activeStage) 
     : null;
+
+  const handleStageClick = (stageId: string) => {
+    // Toggle lock: if already locked on this stage, unlock; otherwise lock to this stage
+    if (lockedStage === stageId) {
+      setLockedStage(null);
+    } else {
+      setLockedStage(stageId);
+    }
+  };
 
   const handleSwipe = (direction: 'left' | 'right') => {
     // -1 is intro, 0 to journeyStages.length - 1 are stages
@@ -501,13 +514,14 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
             {journeyStages.map((stage) => {
               const Icon = StageIcons[stage.id];
               const isActive = activeStage === stage.id;
+              const isLocked = lockedStage === stage.id;
               
               return (
                 <motion.button
                   key={stage.id}
-                  onMouseEnter={() => setActiveStage(stage.id)}
-                  onMouseLeave={() => setActiveStage(null)}
-                  onClick={() => setActiveStage(activeStage === stage.id ? null : stage.id)}
+                  onMouseEnter={() => !lockedStage && setHoveredStage(stage.id)}
+                  onMouseLeave={() => !lockedStage && setHoveredStage(null)}
+                  onClick={() => handleStageClick(stage.id)}
                   whileHover={{ y: -3, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   style={{
@@ -525,8 +539,29 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
                     boxShadow: isActive 
                       ? `0 8px 24px ${stage.color}45`
                       : `0 4px 16px ${stage.color}25`,
+                    position: 'relative',
                   }}
                 >
+                  {/* Lock indicator */}
+                  {isLocked && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-6px',
+                      right: '-6px',
+                      width: '18px',
+                      height: '18px',
+                      background: stage.color,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                    }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                      </svg>
+                    </div>
+                  )}
                   <div style={{ 
                     opacity: 1,
                     transition: 'transform 0.3s',
@@ -1021,7 +1056,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
                       fontStyle: 'italic',
                     }}
                   >
-                    Hover over each stage to learn more
+                    Click any stage to explore
                   </p>
                 </motion.div>
               )}

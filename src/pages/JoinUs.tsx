@@ -486,6 +486,7 @@ export function JoinUs() {
             title: "You've already applied! 🌱",
             description: `${statusText}. ${errorData.message || "If you have questions, please contact us at support@life-psychology.com.au"}`,
             variant: 'default',
+            duration: Infinity,
           });
           return;
         }
@@ -505,6 +506,7 @@ export function JoinUs() {
         description:
           "Your application didn't quite make it through. Please check your connection and try again—we'd love to hear from you! 🌿",
         variant: 'destructive',
+        duration: Infinity,
       });
     } finally {
       setUploading(false);

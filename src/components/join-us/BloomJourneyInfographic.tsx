@@ -118,7 +118,7 @@ const journeyStages: JourneyStage[] = [
     timeframe: '1-2 weeks',
     color: bloomColors.softFern,
     lightColor: `${bloomColors.softFern}15`,
-    story: "We handle the admin. Your portal, your calendar, your billing—all ready before your first client.",
+    story: "No wrestling with software. No chasing provider numbers. No building systems from scratch. We set up your practice portal, calendar, Medicare billing, and professional email—so your first session can just be about the client in front of you.",
     details: [
       'Your own Bloom practice portal',
       'Medicare billing handled',

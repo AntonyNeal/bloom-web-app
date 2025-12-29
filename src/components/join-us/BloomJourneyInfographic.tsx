@@ -160,11 +160,11 @@ const journeyStages: JourneyStage[] = [
     timeframe: 'Monthly',
     color: bloomColors.honeyAmber,
     lightColor: `${bloomColors.honeyAmber}15`,
-    story: "No targets. No quotas. Set your own rate—$250, $280, $310, or $340 per session. You keep 80%.",
+    story: "A path to being one of the highest-paid psychologists in the country. No targets. No quotas. Set your own rate—$250, $280, $310, or $340 per session. You keep 80%. That's $50–80K more per year than most clinic roles.",
     details: [
       '80% to you, 20% covers everything',
-      'Set your own session rate',
-      'No hidden fees or lock-in',
+      'Set your own session rate ($250–$340)',
+      'No hidden fees or lock-in contracts',
     ],
   },
   {

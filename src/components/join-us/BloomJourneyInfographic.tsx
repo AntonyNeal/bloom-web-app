@@ -105,7 +105,7 @@ const journeyStages: JourneyStage[] = [
     timeframe: '10-15 mins',
     color: bloomColors.eucalyptusSage,
     lightColor: `${bloomColors.eucalyptusSage}15`,
-    story: "We're looking for principled, community-minded clinicians who want to build something special together. A quick eligibility check, your CV and a short cover letter. Every application gets a reply.",
+    story: "We're not just hiring—we're building a community of clinicians who care deeply about their craft and each other. If you value autonomy, collaboration, and doing meaningful work on your own terms, we'd love to hear from you. The application is simple: a quick eligibility check, your CV, and a short note about why Bloom feels right. Every application is read. Every applicant gets a reply.",
     details: [
       'Clinical Psychologist',
       '8+ years registered General Psych',

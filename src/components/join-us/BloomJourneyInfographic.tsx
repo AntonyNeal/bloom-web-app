@@ -127,20 +127,6 @@ const journeyStages: JourneyStage[] = [
     ],
   },
   {
-    id: 'marketing',
-    title: 'Get Noticed',
-    timeframe: 'Ongoing',
-    color: '#9B7BB8', // Soft purple for creativity/visibility
-    lightColor: 'rgba(155, 123, 184, 0.15)',
-    story: "We invest in your visibility. A professional profile, a professional photoshoot, and sophisticated marketing—all covered.",
-    details: [
-      'Professional profile on Life Psychology Australia',
-      'Professional photoshoot (we pay)',
-      'SEO-optimised online presence',
-      'Google & Instagram ad campaigns',
-    ],
-  },
-  {
     id: 'practice',
     title: 'See Clients',
     timeframe: 'Your schedule',
@@ -152,6 +138,20 @@ const journeyStages: JourneyStage[] = [
       'Work evenings & weekends if you like',
       'Clinical notes in one place',
       'Automated reminders & invoicing',
+    ],
+  },
+  {
+    id: 'marketing',
+    title: 'Get Noticed',
+    timeframe: 'Ongoing',
+    color: '#9B7BB8', // Soft purple for creativity/visibility
+    lightColor: 'rgba(155, 123, 184, 0.15)',
+    story: "We invest in your visibility. A professional profile, a professional photoshoot, and sophisticated marketing—all covered.",
+    details: [
+      'Professional profile on Life Psychology Australia',
+      'Professional photoshoot (we pay)',
+      'SEO-optimised online presence',
+      'Google & Instagram ad campaigns',
     ],
   },
   {

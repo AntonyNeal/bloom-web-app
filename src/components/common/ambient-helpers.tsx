@@ -68,20 +68,22 @@ export const FloatingParticle = memo(({
   xSequence = [0, 30, -20, 15, 0],
   ySequence = [0, -40, -80, -120, -160],
 }: FloatingParticleProps) => {
+  // Position can be handled by parent wrapper or applied directly
+  const positionStyles = position ? { position: 'absolute' as const, ...position } : {};
+  
   return (
     <motion.div
       style={{
-        position: 'absolute',
         width: size,
         height: size,
         background: color,
         opacity: opacity,
         filter: `blur(${blur}px)`,
         borderRadius: '50%',
-        ...position,
         pointerEvents: 'none',
         zIndex: 0,
         willChange: 'transform',
+        ...positionStyles,
       }}
       initial={{ x: xSequence[0], y: ySequence[0], rotate: 0 }}
       animate={{

@@ -6,7 +6,7 @@
  * botanical illustrations and soft gradients.
  */
 
-import { useState, useRef, Fragment } from 'react';
+import React, { useState, useRef, Fragment, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 // Bloom design system colors
@@ -312,6 +312,18 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
+  const [showPeekHint, setShowPeekHint] = useState(true);
+
+  // Peek animation to hint at swipeability - only on first load
+  useEffect(() => {
+    if (!isMobile || prefersReducedMotion || mobileIndex !== -1) return;
+    
+    const peekTimer = setTimeout(() => {
+      setShowPeekHint(false);
+    }, 4000); // Stop peeking after 4 seconds
+    
+    return () => clearTimeout(peekTimer);
+  }, [isMobile, prefersReducedMotion, mobileIndex]);
 
   // Active stage is locked stage if set, otherwise hovered stage
   // When locked, ONLY show locked content (ignore hover completely)
@@ -1084,12 +1096,21 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
               touchAction: 'pan-y', // Allow vertical scroll, capture horizontal
             }}
           >
-            <div
+            <motion.div
+              animate={showPeekHint && mobileIndex === -1 && !prefersReducedMotion ? {
+                x: [0, -20, 0],
+              } : { x: 0 }}
+              transition={{
+                duration: 1.5,
+                repeat: showPeekHint ? 2 : 0,
+                repeatDelay: 1,
+                ease: 'easeInOut',
+              }}
               style={{
                 background: `linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, ${bloomColors.warmCream} 100%)`,
                 borderRadius: '24px',
                 border: `2px solid ${isIntroCard ? bloomColors.eucalyptusSage : currentMobileStage?.color}30`,
-                padding: '36px 24px 28px',
+                padding: '36px 24px 48px',
                 minHeight: '420px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1354,24 +1375,40 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
 
-            {/* Swipe hint */}
-            <motion.div
-              animate={{ opacity: [0.4, 0.7, 0.4] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              style={{
-                position: 'absolute',
-                bottom: '16px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                fontSize: '13px',
-                color: isIntroCard ? bloomColors.eucalyptusSage : currentMobileStage?.color,
-                pointerEvents: 'none',
-                fontWeight: 500,
-              }}
-            >
-              ← swipe →
+              {/* Swipe hint - positioned inside card at bottom */}
+              <motion.div
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                style={{
+                  position: 'absolute',
+                  bottom: '12px',
+                  left: 0,
+                  right: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontSize: '13px',
+                  color: isIntroCard ? bloomColors.eucalyptusSage : currentMobileStage?.color,
+                  pointerEvents: 'none',
+                  fontWeight: 500,
+                }}
+              >
+                <motion.span
+                  animate={{ x: [-3, 0, -3] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  ‹
+                </motion.span>
+                <span>swipe to explore</span>
+                <motion.span
+                  animate={{ x: [3, 0, 3] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  ›
+                </motion.span>
+              </motion.div>
             </motion.div>
           </div>
 

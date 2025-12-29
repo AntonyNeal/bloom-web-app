@@ -143,15 +143,15 @@ const journeyStages: JourneyStage[] = [
   {
     id: 'practice',
     title: 'See Clients',
-    timeframe: 'Ongoing',
+    timeframe: 'Your schedule',
     color: bloomColors.softTerracotta,
     lightColor: `${bloomColors.softTerracotta}15`,
-    story: "Your mornings look different now. Check your calendar over coffee. See clients from your couch. Notes done before dinner.",
+    story: "Your mornings look different now. Check your calendar over coffee. See clients from your couch. Evenings, weekends, school hours—you decide.",
     details: [
       'Run sessions from anywhere',
+      'Work evenings & weekends if you like',
       'Clinical notes in one place',
       'Automated reminders & invoicing',
-      'Work as much or little as you like',
     ],
   },
   {
@@ -365,7 +365,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
   return (
     <section
       style={{
-        padding: isMobile ? '48px 20px 64px' : '72px 24px 80px',
+        padding: isMobile ? '32px 20px 40px' : '40px 24px 48px',
         maxWidth: '1000px',
         margin: '0 auto',
         position: 'relative',
@@ -423,7 +423,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
         transition={{ duration: 0.6 }}
         style={{
           textAlign: 'center',
-          marginBottom: isMobile ? '36px' : '48px',
+          marginBottom: isMobile ? '24px' : '28px',
           position: 'relative',
           zIndex: 2,
         }}
@@ -473,7 +473,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
         </div>
         <h2
           style={{
-            fontSize: isMobile ? '32px' : '42px',
+            fontSize: isMobile ? '28px' : '34px',
             fontWeight: 700,
             background: `linear-gradient(135deg, ${bloomColors.eucalyptusSage} 0%, ${bloomColors.clayTerracotta} 100%)`,
             WebkitBackgroundClip: 'text',
@@ -487,11 +487,11 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
         </h2>
         <p
           style={{
-            fontSize: isMobile ? '16px' : '18px',
+            fontSize: isMobile ? '14px' : '16px',
             color: '#666',
             maxWidth: '450px',
             margin: '0 auto',
-            lineHeight: 1.6,
+            lineHeight: 1.5,
           }}
         >
           From application to thriving practice
@@ -506,8 +506,8 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
             style={{
               display: 'flex',
               justifyContent: 'center',
-              gap: '12px',
-              marginBottom: '32px',
+              gap: '8px',
+              marginBottom: '20px',
               flexWrap: 'wrap',
             }}
           >
@@ -525,12 +525,12 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
                   whileHover={{ y: -3, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   style={{
-                    padding: '14px 22px',
+                    padding: '10px 16px',
                     background: isActive 
                       ? `linear-gradient(135deg, ${stage.color}40, ${stage.color}25)`
                       : `linear-gradient(135deg, white, ${stage.color}15)`,
                     border: `2px solid ${isActive ? stage.color : stage.color + '80'}`,
-                    borderRadius: '28px',
+                    borderRadius: '24px',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
                     display: 'flex',
@@ -573,7 +573,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
                   </div>
                   <span
                     style={{
-                      fontSize: '15px',
+                      fontSize: '13px',
                       fontWeight: 600,
                       color: isActive ? stage.color : '#3A3A3A',
                       transition: 'color 0.3s',
@@ -583,9 +583,9 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
                   </span>
                   <span
                     style={{
-                      fontSize: '11px',
+                      fontSize: '10px',
                       fontWeight: 600,
-                      padding: '4px 12px',
+                      padding: '3px 8px',
                       background: isActive ? stage.color : `${stage.color}50`,
                       color: isActive ? 'white' : stage.color,
                       borderRadius: '12px',
@@ -602,12 +602,12 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
           {/* Fixed-Height Content Area - Miyazaki-style window */}
           <div
             style={{
-              minHeight: '340px',
+              minHeight: '260px',
               background: `linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, ${bloomColors.warmCream} 100%)`,
               backdropFilter: 'blur(10px)',
-              borderRadius: '28px',
+              borderRadius: '20px',
               border: `2px solid ${currentStage ? currentStage.color + '40' : 'rgba(107, 142, 127, 0.2)'}`,
-              padding: '56px 48px',
+              padding: '32px 36px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

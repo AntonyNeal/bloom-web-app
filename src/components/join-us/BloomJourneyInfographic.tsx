@@ -122,7 +122,7 @@ const journeyStages: JourneyStage[] = [
     details: [
       'Your own Bloom practice portal',
       'Medicare billing handled',
-      '@life-psychology email',
+      '@life-psychology.com.au email',
       'Calendar & booking system',
     ],
   },
@@ -1457,31 +1457,28 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
             ))}
           </div>
 
-          {/* Stage labels below dots - scrollable */}
+          {/* Stage labels below dots - centered and wrapped to fit screen */}
           <div
             style={{
               display: 'flex',
-              overflowX: 'auto',
-              gap: '4px',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: '2px 4px',
               padding: '0 4px 8px',
-              WebkitOverflowScrolling: 'touch',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
             }}
           >
             <button
               onClick={() => setMobileIndex(-1)}
               style={{
-                fontSize: '11px',
+                fontSize: '10px',
                 fontWeight: mobileIndex === -1 ? 700 : 400,
                 color: mobileIndex === -1 ? bloomColors.eucalyptusSage : '#999',
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                padding: '6px 8px',
+                padding: '4px 6px',
                 transition: 'all 0.3s',
                 whiteSpace: 'nowrap',
-                flexShrink: 0,
               }}
             >
               80%
@@ -1491,16 +1488,15 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
                 key={stage.id}
                 onClick={() => setMobileIndex(index)}
                 style={{
-                  fontSize: '11px',
+                  fontSize: '10px',
                   fontWeight: index === mobileIndex ? 700 : 400,
                   color: index === mobileIndex ? stage.color : '#999',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  padding: '6px 8px',
+                  padding: '4px 6px',
                   transition: 'all 0.3s',
                   whiteSpace: 'nowrap',
-                  flexShrink: 0,
                 }}
               >
                 {stage.title}
@@ -1527,15 +1523,15 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
         }}
       >
         {[
-          { value: '80%', label: 'You keep', color: bloomColors.eucalyptusSage, icon: '💰' },
-          { value: '0', label: 'Quotas', color: bloomColors.softTerracotta, icon: '🎯' },
-          { value: 'No', label: 'Lock-in', color: bloomColors.honeyAmber, icon: '🔓' },
+          { value: '$200K+', label: 'Earning potential', color: bloomColors.eucalyptusSage, icon: '🌱' },
+          { value: 'Yours', label: 'Set your schedule', color: bloomColors.softTerracotta, icon: '☀️' },
+          { value: 'Real', label: 'Peers who get it', color: bloomColors.honeyAmber, icon: '🤝' },
         ].map((stat, i) => (
           <div key={i} style={{ textAlign: 'center', flex: 1, maxWidth: '120px' }}>
             <div style={{ fontSize: '20px', marginBottom: '4px' }}>{stat.icon}</div>
             <div
               style={{
-                fontSize: isMobile ? '32px' : '40px',
+                fontSize: isMobile ? '28px' : '36px',
                 fontWeight: 700,
                 color: stat.color,
                 lineHeight: 1,
@@ -1545,7 +1541,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
             </div>
             <div
               style={{
-                fontSize: isMobile ? '13px' : '14px',
+                fontSize: isMobile ? '12px' : '13px',
                 color: '#666',
                 marginTop: '6px',
                 fontWeight: 500,

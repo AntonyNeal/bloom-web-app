@@ -113,6 +113,7 @@ async function getDefaultPractitionerId(context: InvocationContext): Promise<str
 
 /**
  * Get practitioner contact info directly from Halaxy API
+ * First fetches PractitionerRole to get the Practitioner reference, then fetches Practitioner details
  */
 async function getPractitionerContact(
   practitionerId: string,
@@ -120,16 +121,39 @@ async function getPractitionerContact(
   context: InvocationContext
 ): Promise<PractitionerContact | null> {
   try {
-    // Halaxy API expects PR- prefix for practitioner IDs
-    const fhirPractitionerId = practitionerId.startsWith('PR-') 
-      ? practitionerId 
-      : `PR-${practitionerId}`;
+    // First, try to get the PractitionerRole ID from env (more reliable)
+    const practitionerRoleId = process.env.HALAXY_PRACTITIONER_ROLE_ID;
     
-    context.log(`Fetching practitioner ${fhirPractitionerId} from Halaxy API...`);
-    const practitioner = await halaxyClient.getPractitioner(fhirPractitionerId);
+    let actualPractitionerId: string | undefined;
+    
+    if (practitionerRoleId) {
+      // Fetch PractitionerRole to get the actual Practitioner reference
+      context.log(`Fetching PractitionerRole ${practitionerRoleId} from Halaxy API...`);
+      try {
+        const practitionerRole = await halaxyClient.getPractitionerRole(practitionerRoleId);
+        // Extract practitioner ID from reference (format: "Practitioner/PR-123456")
+        const practitionerRef = practitionerRole.practitioner?.reference;
+        if (practitionerRef) {
+          actualPractitionerId = practitionerRef.replace('Practitioner/', '');
+          context.log(`Got practitioner reference from role: ${actualPractitionerId}`);
+        }
+      } catch (roleError) {
+        context.warn('Failed to fetch PractitionerRole, falling back to direct practitioner fetch');
+      }
+    }
+    
+    // If we couldn't get practitioner ID from role, try the provided ID with PR- prefix
+    if (!actualPractitionerId) {
+      actualPractitionerId = practitionerId.startsWith('PR-') 
+        ? practitionerId 
+        : `PR-${practitionerId}`;
+    }
+    
+    context.log(`Fetching practitioner ${actualPractitionerId} from Halaxy API...`);
+    const practitioner = await halaxyClient.getPractitioner(actualPractitionerId);
     
     if (!practitioner) {
-      context.warn(`Practitioner not found in Halaxy: ${practitionerId}`);
+      context.warn(`Practitioner not found in Halaxy: ${actualPractitionerId}`);
       return null;
     }
 
@@ -154,7 +178,7 @@ async function getPractitionerContact(
     }
 
     if (!email) {
-      context.warn(`No email found for practitioner ${practitionerId}`);
+      context.warn(`No email found for practitioner ${actualPractitionerId}`);
       return null;
     }
 

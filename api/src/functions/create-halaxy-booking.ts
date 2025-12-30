@@ -131,11 +131,18 @@ async function getPractitionerContact(
       context.log(`Fetching PractitionerRole ${practitionerRoleId} from Halaxy API...`);
       try {
         const practitionerRole = await halaxyClient.getPractitionerRole(practitionerRoleId);
-        // Extract practitioner ID from reference (format: "Practitioner/PR-123456")
+        // Extract practitioner ID from reference
+        // Can be: "Practitioner/PR-123456" or full URL like "https://au-api.halaxy.com/main/PR-123456"
         const practitionerRef = practitionerRole.practitioner?.reference;
         if (practitionerRef) {
-          actualPractitionerId = practitionerRef.replace('Practitioner/', '');
-          context.log(`Got practitioner reference from role: ${actualPractitionerId}`);
+          // Extract PR-XXXXX from the reference (handles both formats)
+          const prMatch = practitionerRef.match(/PR-\d+/);
+          if (prMatch) {
+            actualPractitionerId = prMatch[0];
+            context.log(`Got practitioner reference from role: ${actualPractitionerId}`);
+          } else {
+            context.warn(`Could not parse practitioner reference: ${practitionerRef}`);
+          }
         }
       } catch (roleError) {
         context.warn('Failed to fetch PractitionerRole, falling back to direct practitioner fetch');

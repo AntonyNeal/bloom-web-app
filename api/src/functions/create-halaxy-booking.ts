@@ -112,49 +112,59 @@ async function getDefaultPractitionerId(context: InvocationContext): Promise<str
 }
 
 /**
- * Get practitioner contact info and notification preferences
+ * Get practitioner contact info directly from Halaxy API
  */
 async function getPractitionerContact(
   practitionerId: string,
+  halaxyClient: ReturnType<typeof getHalaxyClient>,
   context: InvocationContext
 ): Promise<PractitionerContact | null> {
   try {
-    const pool = await getDbConnection();
+    context.log(`Fetching practitioner ${practitionerId} from Halaxy API...`);
+    const practitioner = await halaxyClient.getPractitioner(practitionerId);
     
-    const result = await pool.request()
-      .input('halaxyId', sql.NVarChar, practitionerId)
-      .query<{ 
-        email: string; 
-        first_name: string; 
-        phone: string | null;
-        sms_notifications_enabled: boolean | null;
-        email_notifications_enabled: boolean | null;
-      }>(`
-        SELECT 
-          email, 
-          first_name, 
-          phone,
-          COALESCE(sms_notifications_enabled, 1) as sms_notifications_enabled,
-          COALESCE(email_notifications_enabled, 1) as email_notifications_enabled
-        FROM practitioners 
-        WHERE halaxy_practitioner_id = @halaxyId
-      `);
-
-    if (result.recordset.length > 0) {
-      const practitioner = result.recordset[0];
-      return {
-        email: practitioner.email,
-        firstName: practitioner.first_name,
-        phone: practitioner.phone || undefined,
-        smsNotificationsEnabled: practitioner.sms_notifications_enabled !== false,
-        emailNotificationsEnabled: practitioner.email_notifications_enabled !== false,
-      };
+    if (!practitioner) {
+      context.warn(`Practitioner not found in Halaxy: ${practitionerId}`);
+      return null;
     }
-    
-    context.warn(`Practitioner not found in database for Halaxy ID: ${practitionerId}`);
-    return null;
+
+    // Extract name
+    const name = practitioner.name?.[0];
+    const firstName = name?.given?.[0] || 'Practitioner';
+
+    // Extract email and phone from telecom
+    let email: string | undefined;
+    let phone: string | undefined;
+
+    for (const contact of practitioner.telecom || []) {
+      if (contact.system === 'email' && !email) {
+        email = contact.value;
+      }
+      if (contact.system === 'phone' && !phone) {
+        // Prefer mobile, then work, then any
+        if (contact.use === 'mobile' || !phone) {
+          phone = contact.value;
+        }
+      }
+    }
+
+    if (!email) {
+      context.warn(`No email found for practitioner ${practitionerId}`);
+      return null;
+    }
+
+    context.log(`Found practitioner: ${firstName}, email: ${email ? '***' : 'none'}, phone: ${phone ? '***' : 'none'}`);
+
+    return {
+      email,
+      firstName,
+      phone,
+      // Default to enabled - can be overridden by database preferences if needed
+      smsNotificationsEnabled: true,
+      emailNotificationsEnabled: true,
+    };
   } catch (error) {
-    context.error('Failed to get practitioner contact:', error);
+    context.error('Failed to get practitioner from Halaxy:', error);
     return null;
   }
 }
@@ -353,7 +363,7 @@ async function createHalaxyBooking(
 
     // Step 4: Send notifications to clinician (non-blocking)
     try {
-      const practitionerContact = await getPractitionerContact(practitionerId, context);
+      const practitionerContact = await getPractitionerContact(practitionerId, halaxyClient, context);
       if (practitionerContact) {
         // Send email notification if enabled
         if (practitionerContact.emailNotificationsEnabled) {

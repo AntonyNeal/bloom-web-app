@@ -15,7 +15,7 @@ import {
 import { getHalaxyClient } from '../services/halaxy/client';
 import { getDbConnection } from '../services/database';
 import { sendClinicianBookingNotification } from '../services/email';
-import { sendClinicianBookingSms, isSmsNotificationEnabled } from '../services/sms';
+import { sendClinicianBookingSms } from '../services/sms';
 import * as sql from 'mssql';
 
 interface PatientData {

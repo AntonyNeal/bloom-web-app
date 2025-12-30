@@ -1,11 +1,9 @@
 /**
  * SMS Service
  * 
- * Handles SMS notifications using Azure Communication Services.
+ * Handles SMS notifications using Infobip.
  * Used for sending booking notifications to clinicians.
  */
-
-import { SmsClient } from '@azure/communication-sms';
 
 interface SmsResult {
   success: boolean;
@@ -22,6 +20,27 @@ interface ClinicianBookingSmsContext {
   appointmentType?: string;
 }
 
+interface InfobipResponse {
+  bulkId?: string;
+  messages?: Array<{
+    messageId: string;
+    to: string;
+    status: {
+      groupId: number;
+      groupName: string;
+      id: number;
+      name: string;
+      description: string;
+    };
+  }>;
+  requestError?: {
+    serviceException?: {
+      messageId: string;
+      text: string;
+    };
+  };
+}
+
 /**
  * Normalize phone number to E.164 format
  * Handles Australian phone numbers
@@ -30,56 +49,85 @@ function normalizePhoneNumber(phone: string): string {
   // Remove all non-digits
   let normalized = phone.replace(/\D/g, '');
   
-  // If starts with 0, replace with +61 (Australia)
+  // If starts with 0, replace with 61 (Australia)
   if (normalized.startsWith('0')) {
     normalized = '61' + normalized.substring(1);
   }
   
-  // Add + if not present
-  if (!normalized.startsWith('+')) {
-    normalized = '+' + normalized;
+  // Remove + if present (Infobip prefers without +)
+  if (normalized.startsWith('+')) {
+    normalized = normalized.substring(1);
   }
   
   return normalized;
 }
 
 /**
- * Send an SMS message via Azure Communication Services
+ * Send an SMS message via Infobip
  */
 async function sendSms(to: string, message: string): Promise<SmsResult> {
-  const connectionString = process.env.AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING;
-  const fromNumber = process.env.AZURE_COMMUNICATION_SERVICES_PHONE_NUMBER;
+  const apiKey = process.env.INFOBIP_API_KEY;
+  const baseUrl = process.env.INFOBIP_BASE_URL; // e.g., https://xxxxx.api.infobip.com
+  const fromNumber = process.env.INFOBIP_SENDER_ID || 'LifePsych'; // Alphanumeric sender ID or phone number
 
-  if (!connectionString) {
-    console.error('[SMS] Azure Communication Services not configured');
+  if (!apiKey) {
+    console.error('[SMS] Infobip API key not configured');
     return { success: false, error: 'SMS service not configured' };
   }
 
-  if (!fromNumber) {
-    console.error('[SMS] No phone number configured');
-    return { success: false, error: 'SMS sender number not configured' };
+  if (!baseUrl) {
+    console.error('[SMS] Infobip base URL not configured');
+    return { success: false, error: 'SMS service not configured' };
   }
 
   try {
-    const smsClient = new SmsClient(connectionString);
     const normalizedTo = normalizePhoneNumber(to);
     
-    const sendResults = await smsClient.send({
-      from: fromNumber,
-      to: [normalizedTo],
-      message,
+    const response = await fetch(`${baseUrl}/sms/2/text/advanced`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `App ${apiKey}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            destinations: [{ to: normalizedTo }],
+            from: fromNumber,
+            text: message,
+          },
+        ],
+      }),
     });
 
-    const result = sendResults[0];
-    
-    if (!result.successful) {
-      console.error('[SMS] Send failed:', result.errorMessage);
-      return { success: false, error: result.errorMessage || 'SMS send failed' };
+    const data = await response.json() as InfobipResponse;
+
+    if (!response.ok) {
+      const errorText = data.requestError?.serviceException?.text || 'SMS send failed';
+      console.error('[SMS] Infobip error:', errorText);
+      return { success: false, error: errorText };
     }
 
+    const messageResult = data.messages?.[0];
+    if (!messageResult) {
+      console.error('[SMS] No message result from Infobip');
+      return { success: false, error: 'No message result' };
+    }
+
+    // Check if message was accepted (groupId 1 = PENDING, which is good)
+    if (messageResult.status.groupId === 1 || messageResult.status.groupId === 3) {
+      console.log('[SMS] Message sent successfully:', messageResult.messageId);
+      return { 
+        success: true, 
+        messageId: messageResult.messageId 
+      };
+    }
+
+    console.error('[SMS] Message failed:', messageResult.status.description);
     return { 
-      success: true, 
-      messageId: result.messageId 
+      success: false, 
+      error: messageResult.status.description 
     };
   } catch (error) {
     console.error('[SMS] Error sending:', error);

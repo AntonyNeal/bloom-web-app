@@ -120,8 +120,13 @@ async function getPractitionerContact(
   context: InvocationContext
 ): Promise<PractitionerContact | null> {
   try {
-    context.log(`Fetching practitioner ${practitionerId} from Halaxy API...`);
-    const practitioner = await halaxyClient.getPractitioner(practitionerId);
+    // Halaxy API expects PR- prefix for practitioner IDs
+    const fhirPractitionerId = practitionerId.startsWith('PR-') 
+      ? practitionerId 
+      : `PR-${practitionerId}`;
+    
+    context.log(`Fetching practitioner ${fhirPractitionerId} from Halaxy API...`);
+    const practitioner = await halaxyClient.getPractitioner(fhirPractitionerId);
     
     if (!practitioner) {
       context.warn(`Practitioner not found in Halaxy: ${practitionerId}`);

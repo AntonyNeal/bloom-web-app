@@ -16,6 +16,7 @@ import {
   FHIRSchedule,
   FHIRBundle,
   FHIRLocation,
+  FHIROrganization,
   HalaxyConfig,
 } from './types';
 import { getAccessToken, invalidateToken, getHalaxyConfig } from './token-manager';
@@ -69,6 +70,13 @@ export class HalaxyClient {
   }
 
   /**
+   * Get an organization by ID
+   */
+  async getOrganization(organizationId: string): Promise<FHIROrganization> {
+    return this.request<FHIROrganization>(`/Organization/${organizationId}`);
+  }
+
+  /**
    * Get all practitioner roles for the organization
    * This returns all practitioner-to-clinic associations
    */
@@ -82,6 +90,17 @@ export class HalaxyClient {
   async getPractitionerRolesByPractitioner(practitionerId: string): Promise<FHIRPractitionerRole[]> {
     return this.getAllPages<FHIRPractitionerRole>('/PractitionerRole', {
       practitioner: `Practitioner/${practitionerId}`,
+    });
+  }
+
+  /**
+   * Search practitioners by Halaxy Profile ID (identifier)
+   * Use this when you have a numeric profile ID (e.g. "1304541") instead of
+   * the resource ID (e.g. "PR-1439411")
+   */
+  async searchPractitionersByIdentifier(identifier: string): Promise<FHIRPractitioner[]> {
+    return this.getAllPages<FHIRPractitioner>('/Practitioner', {
+      identifier: identifier,
     });
   }
 

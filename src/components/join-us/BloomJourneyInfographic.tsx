@@ -1525,7 +1525,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
           { value: 'Freedom', label: 'Set your schedule', color: bloomColors.softTerracotta, icon: '☀️' },
           { value: 'Community', label: 'Built for psychologists', color: bloomColors.honeyAmber, icon: '🤝' },
         ].map((stat, i) => (
-          <div key={i} style={{ textAlign: 'center', flex: 1, maxWidth: '140px' }}>
+          <div key={i} style={{ textAlign: 'center', flex: 1, maxWidth: '160px' }}>
             <div style={{ fontSize: '20px', marginBottom: '4px' }}>{stat.icon}</div>
             <div
               style={{
@@ -1543,6 +1543,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
                 color: '#666',
                 marginTop: '6px',
                 fontWeight: 500,
+                textAlign: 'center',
               }}
             >
               {stat.label}

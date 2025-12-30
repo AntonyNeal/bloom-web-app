@@ -414,26 +414,6 @@ async function createHalaxyBooking(
         if (smsResult.success) {
           context.log('Clinician SMS notification sent successfully');
           smsSent = true;
-          
-          // Send email notification as well (optional, non-blocking)
-          if (practitionerContact.emailNotificationsEnabled) {
-            sendClinicianBookingNotification({
-              practitionerEmail: practitionerContact.email,
-              practitionerFirstName: practitionerContact.firstName,
-              patientFirstName: body.patient.firstName,
-              patientLastName: body.patient.lastName,
-              patientEmail: body.patient.email,
-              patientPhone: body.patient.phone,
-              appointmentDateTime: new Date(body.appointmentDetails.startTime),
-              appointmentType: body.appointmentDetails.appointmentType,
-            }).then(result => {
-              if (result.success) {
-                context.log('Clinician email notification sent successfully');
-              } else {
-                context.warn('Clinician email notification failed:', result.error);
-              }
-            }).catch(err => context.warn('Email notification error:', err));
-          }
         } else {
           smsError = smsResult.error || 'SMS send failed';
           context.error('SMS notification failed:', smsError);
@@ -465,9 +445,69 @@ async function createHalaxyBooking(
       };
     }
 
+    // Step 4: Send email notification to clinician (MANDATORY)
+    let emailSent = false;
+    let emailError: string | undefined;
+
+    try {
+      const practitionerContact = await getPractitionerContact(practitionerId, halaxyClient, context);
+      
+      if (!practitionerContact) {
+        emailError = 'Could not retrieve practitioner contact information';
+        context.error(emailError);
+      } else if (!practitionerContact.email) {
+        emailError = 'Practitioner has no email configured';
+        context.error(emailError);
+      } else {
+        context.log(`Sending email notification to: ${practitionerContact.email}`);
+        const emailResult = await sendClinicianBookingNotification({
+          practitionerEmail: practitionerContact.email,
+          practitionerFirstName: practitionerContact.firstName,
+          patientFirstName: body.patient.firstName,
+          patientLastName: body.patient.lastName,
+          patientEmail: body.patient.email,
+          patientPhone: body.patient.phone,
+          appointmentDateTime: new Date(body.appointmentDetails.startTime),
+          appointmentType: body.appointmentDetails.appointmentType,
+        });
+
+        if (emailResult.success) {
+          context.log('Clinician email notification sent successfully');
+          emailSent = true;
+        } else {
+          emailError = emailResult.error || 'Email send failed';
+          context.error('Email notification failed:', emailError);
+        }
+      }
+    } catch (emailErr) {
+      emailError = emailErr instanceof Error ? emailErr.message : 'Unknown email error';
+      context.error('Error sending email notification:', emailErr);
+    }
+
+    // If email failed, cancel the appointment and return error
+    if (!emailSent) {
+      context.error(`Email notification failed - cancelling appointment ${appointment.id}`);
+      
+      try {
+        await halaxyClient.cancelAppointment(appointment.id, 'Email notification to clinician failed');
+        context.log(`Appointment ${appointment.id} cancelled successfully`);
+      } catch (cancelError) {
+        context.error('Failed to cancel appointment after email failure:', cancelError);
+      }
+
+      return {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        jsonBody: {
+          success: false,
+          error: 'Unable to complete booking - please try again or contact us directly',
+        } as BookingResponse,
+      };
+    }
+
     context.log(`[PERF] Total booking time: ${Date.now() - bookingStartTime}ms`);
 
-    // Step 4: Store booking session for analytics (fire and forget - don't await)
+    // Step 5: Store booking session for analytics (fire and forget - don't await)
     storeBookingSession(
       appointment.id,
       patient.id,

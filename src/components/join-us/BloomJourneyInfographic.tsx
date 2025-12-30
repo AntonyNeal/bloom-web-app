@@ -1524,7 +1524,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
       >
         {[
           { value: '$200K+', label: 'Earning potential', color: bloomColors.eucalyptusSage, icon: '🌱' },
-          { value: 'Yours', label: 'Set your schedule', color: bloomColors.softTerracotta, icon: '☀️' },
+          { value: 'Freedom', label: 'Set your schedule', color: bloomColors.softTerracotta, icon: '☀️' },
           { value: 'Community', label: 'Built for psychologists', color: bloomColors.honeyAmber, icon: '🤝' },
         ].map((stat, i) => (
           <div key={i} style={{ textAlign: 'center', flex: 1, maxWidth: '120px' }}>

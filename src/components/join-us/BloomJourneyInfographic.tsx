@@ -1525,11 +1525,11 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
           { value: 'Freedom', label: 'Set your schedule', color: bloomColors.softTerracotta, icon: '☀️' },
           { value: 'Community', label: 'Built for psychologists', color: bloomColors.honeyAmber, icon: '🤝' },
         ].map((stat, i) => (
-          <div key={i} style={{ textAlign: 'center', minWidth: isMobile ? '90px' : '120px' }}>
-            <div style={{ fontSize: '20px', marginBottom: '4px' }}>{stat.icon}</div>
+          <div key={i} style={{ textAlign: 'center', minWidth: isMobile ? '80px' : '120px' }}>
+            <div style={{ fontSize: isMobile ? '18px' : '20px', marginBottom: '4px' }}>{stat.icon}</div>
             <div
               style={{
-                fontSize: isMobile ? '28px' : '36px',
+                fontSize: isMobile ? '20px' : '36px',
                 fontWeight: 700,
                 color: stat.color,
                 lineHeight: 1,

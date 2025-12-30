@@ -387,76 +387,93 @@ async function createHalaxyBooking(
     context.log(`Appointment created - ID: ${appointment.id}, Status: ${appointment.status}`);
     context.log(`[PERF] Appointment created at +${Date.now() - bookingStartTime}ms`);
 
-    // Step 3: Store booking session for analytics (fire and forget - don't await)
+    // Step 3: Send SMS notification to clinician (MANDATORY - booking fails if SMS fails)
+    let smsSent = false;
+    let smsError: string | undefined;
+    
+    try {
+      const practitionerContact = await getPractitionerContact(practitionerId, halaxyClient, context);
+      
+      if (!practitionerContact) {
+        smsError = 'Could not retrieve practitioner contact information';
+        context.error(smsError);
+      } else if (!practitionerContact.phone) {
+        smsError = 'Practitioner has no phone number configured';
+        context.error(smsError);
+      } else {
+        context.log(`Sending SMS notification to practitioner...`);
+        const smsResult = await sendClinicianBookingSms({
+          clinicianPhone: practitionerContact.phone,
+          clinicianFirstName: practitionerContact.firstName,
+          patientFirstName: body.patient.firstName,
+          patientLastName: body.patient.lastName,
+          appointmentDateTime: new Date(body.appointmentDetails.startTime),
+          appointmentType: body.appointmentDetails.appointmentType,
+        });
+
+        if (smsResult.success) {
+          context.log('Clinician SMS notification sent successfully');
+          smsSent = true;
+          
+          // Send email notification as well (optional, non-blocking)
+          if (practitionerContact.emailNotificationsEnabled) {
+            sendClinicianBookingNotification({
+              practitionerEmail: practitionerContact.email,
+              practitionerFirstName: practitionerContact.firstName,
+              patientFirstName: body.patient.firstName,
+              patientLastName: body.patient.lastName,
+              patientEmail: body.patient.email,
+              patientPhone: body.patient.phone,
+              appointmentDateTime: new Date(body.appointmentDetails.startTime),
+              appointmentType: body.appointmentDetails.appointmentType,
+            }).then(result => {
+              if (result.success) {
+                context.log('Clinician email notification sent successfully');
+              } else {
+                context.warn('Clinician email notification failed:', result.error);
+              }
+            }).catch(err => context.warn('Email notification error:', err));
+          }
+        } else {
+          smsError = smsResult.error || 'SMS send failed';
+          context.error('SMS notification failed:', smsError);
+        }
+      }
+    } catch (notifyError) {
+      smsError = notifyError instanceof Error ? notifyError.message : 'Unknown notification error';
+      context.error('Error sending SMS notification:', notifyError);
+    }
+
+    // If SMS failed, cancel the appointment and return error
+    if (!smsSent) {
+      context.error(`SMS notification failed - cancelling appointment ${appointment.id}`);
+      
+      try {
+        await halaxyClient.cancelAppointment(appointment.id, 'SMS notification to clinician failed');
+        context.log(`Appointment ${appointment.id} cancelled successfully`);
+      } catch (cancelError) {
+        context.error('Failed to cancel appointment after SMS failure:', cancelError);
+      }
+
+      return {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        jsonBody: {
+          success: false,
+          error: 'Unable to complete booking - please try again or contact us directly',
+        } as BookingResponse,
+      };
+    }
+
+    context.log(`[PERF] Total booking time: ${Date.now() - bookingStartTime}ms`);
+
+    // Step 4: Store booking session for analytics (fire and forget - don't await)
     storeBookingSession(
       appointment.id,
       patient.id,
       body.sessionData,
       context
     ).catch(err => context.warn('Failed to store booking session:', err));
-
-    context.log(`[PERF] Total booking time: ${Date.now() - bookingStartTime}ms`);
-
-    // Step 4: Send notifications to clinician (non-blocking)
-    try {
-      const practitionerContact = await getPractitionerContact(practitionerId, halaxyClient, context);
-      if (practitionerContact) {
-        // Send email notification if enabled
-        if (practitionerContact.emailNotificationsEnabled) {
-          context.log(`Sending email notification to: ${practitionerContact.email}`);
-          const emailResult = await sendClinicianBookingNotification({
-            practitionerEmail: practitionerContact.email,
-            practitionerFirstName: practitionerContact.firstName,
-            patientFirstName: body.patient.firstName,
-            patientLastName: body.patient.lastName,
-            patientEmail: body.patient.email,
-            patientPhone: body.patient.phone,
-            appointmentDateTime: new Date(body.appointmentDetails.startTime),
-            appointmentType: body.appointmentDetails.appointmentType,
-          });
-          
-          if (emailResult.success) {
-            context.log('Clinician email notification sent successfully');
-          } else {
-            context.warn('Clinician email notification failed:', emailResult.error);
-          }
-        } else {
-          context.log('Email notification skipped - disabled by practitioner preferences');
-        }
-
-        // Send SMS notification if enabled globally, by practitioner preference, and phone is available
-        const shouldSendSms = isSmsNotificationEnabled() && 
-                              practitionerContact.smsNotificationsEnabled && 
-                              practitionerContact.phone;
-        
-        if (shouldSendSms) {
-          context.log(`Sending SMS notification to: ${practitionerContact.phone}`);
-          const smsResult = await sendClinicianBookingSms({
-            clinicianPhone: practitionerContact.phone!,
-            clinicianFirstName: practitionerContact.firstName,
-            patientFirstName: body.patient.firstName,
-            patientLastName: body.patient.lastName,
-            appointmentDateTime: new Date(body.appointmentDetails.startTime),
-            appointmentType: body.appointmentDetails.appointmentType,
-          });
-
-          if (smsResult.success) {
-            context.log('Clinician SMS notification sent successfully');
-          } else {
-            context.warn('Clinician SMS notification failed:', smsResult.error);
-          }
-        } else if (!practitionerContact.phone) {
-          context.log('SMS notification skipped - no phone number for practitioner');
-        } else if (!practitionerContact.smsNotificationsEnabled) {
-          context.log('SMS notification skipped - disabled by practitioner preferences');
-        }
-      } else {
-        context.warn('Could not send notification - practitioner contact not found');
-      }
-    } catch (notifyError) {
-      // Log but don't fail the booking if notification fails
-      context.warn('Error sending clinician notification:', notifyError);
-    }
 
     // Success response
     return {

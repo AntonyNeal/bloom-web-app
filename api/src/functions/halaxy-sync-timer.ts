@@ -96,12 +96,13 @@ async function halaxySyncTimerHandler(
   }
 }
 
+// DISABLED: Halaxy sync is no longer used - website fetches directly from Halaxy API
 // Register the Azure Function timer
 // Runs every 15 minutes: second 0, every 15 minutes, every hour, every day
-app.timer('halaxySyncTimer', {
-  schedule: '0 */15 * * * *',
-  handler: halaxySyncTimerHandler,
-  runOnStartup: false, // Don't run immediately on function app start
-});
+// app.timer('halaxySyncTimer', {
+//   schedule: '0 */15 * * * *',
+//   handler: halaxySyncTimerHandler,
+//   runOnStartup: false, // Don't run immediately on function app start
+// });
 
 export default halaxySyncTimerHandler;

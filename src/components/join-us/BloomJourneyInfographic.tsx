@@ -613,10 +613,10 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
             })}
           </div>
 
-          {/* Fixed-Height Content Area - Miyazaki-style window */}
+          {/* Content Area - Miyazaki-style window - auto-height to show all text */}
           <div
             style={{
-              minHeight: '260px',
+              minHeight: 'auto',
               background: `linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, ${bloomColors.warmCream} 100%)`,
               backdropFilter: 'blur(10px)',
               borderRadius: '20px',
@@ -626,7 +626,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative',
-              overflow: 'hidden',
+              overflow: 'visible',
               boxShadow: currentStage 
                 ? `0 12px 40px ${currentStage.color}20, inset 0 1px 0 rgba(255,255,255,0.8)`
                 : '0 8px 32px rgba(107, 142, 127, 0.1), inset 0 1px 0 rgba(255,255,255,0.8)',

@@ -533,10 +533,8 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
               return (
                 <motion.button
                   key={stage.id}
-                  onMouseEnter={() => !lockedStage && setHoveredStage(stage.id)}
-                  onMouseLeave={() => !lockedStage && setHoveredStage(null)}
                   onClick={() => handleStageClick(stage.id)}
-                  whileHover={{ y: -3, scale: 1.02 }}
+                  whileHover={{ y: -4, scale: 1.03, boxShadow: `0 12px 32px ${stage.color}50` }}
                   whileTap={{ scale: 0.98 }}
                   style={{
                     padding: '10px 16px',

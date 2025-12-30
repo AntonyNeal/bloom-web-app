@@ -113,7 +113,7 @@ async function getDefaultPractitionerId(context: InvocationContext): Promise<str
 
 /**
  * Get practitioner contact info directly from Halaxy API
- * First fetches PractitionerRole to get the Practitioner reference, then fetches Practitioner details
+ * Checks multiple sources for phone: Practitioner.telecom, PractitionerRole.telecom, Location.telecom
  */
 async function getPractitionerContact(
   practitionerId: string,
@@ -125,12 +125,13 @@ async function getPractitionerContact(
     const practitionerRoleId = process.env.HALAXY_PRACTITIONER_ROLE_ID;
     
     let actualPractitionerId: string | undefined;
+    let practitionerRole: Awaited<ReturnType<typeof halaxyClient.getPractitionerRole>> | undefined;
     
     if (practitionerRoleId) {
       // Fetch PractitionerRole to get the actual Practitioner reference
       context.log(`Fetching PractitionerRole ${practitionerRoleId} from Halaxy API...`);
       try {
-        const practitionerRole = await halaxyClient.getPractitionerRole(practitionerRoleId);
+        practitionerRole = await halaxyClient.getPractitionerRole(practitionerRoleId);
         // Extract practitioner ID from reference
         // Can be: "Practitioner/PR-123456" or full URL like "https://au-api.halaxy.com/main/PR-123456"
         const practitionerRef = practitionerRole.practitioner?.reference;
@@ -168,7 +169,7 @@ async function getPractitionerContact(
     const name = practitioner.name?.[0];
     const firstName = name?.given?.[0] || 'Practitioner';
 
-    // Extract email and phone from telecom
+    // Extract email and phone from Practitioner.telecom
     let email: string | undefined;
     let phone: string | undefined;
 
@@ -177,9 +178,44 @@ async function getPractitionerContact(
         email = contact.value;
       }
       if (contact.system === 'phone' && !phone) {
-        // Prefer mobile, then work, then any
         if (contact.use === 'mobile' || !phone) {
           phone = contact.value;
+        }
+      }
+    }
+
+    // If no phone on Practitioner, check PractitionerRole.telecom
+    if (!phone && practitionerRole?.telecom) {
+      context.log('No phone on Practitioner, checking PractitionerRole.telecom...');
+      for (const contact of practitionerRole.telecom) {
+        if (contact.system === 'phone') {
+          if (contact.use === 'mobile' || !phone) {
+            phone = contact.value;
+          }
+        }
+      }
+    }
+
+    // If still no phone, check Location.telecom (from PractitionerRole.location)
+    if (!phone && practitionerRole?.location?.[0]) {
+      const locationRef = practitionerRole.location[0].reference;
+      context.log(`No phone on PractitionerRole, checking Location: ${locationRef}...`);
+      
+      // Extract location ID from reference (e.g., "Location/123" or full URL)
+      const locationMatch = locationRef.match(/Location\/(\d+)/i) || locationRef.match(/\/(\d+)$/);
+      if (locationMatch) {
+        try {
+          const location = await halaxyClient.getLocation(locationMatch[1]);
+          for (const contact of location.telecom || []) {
+            if (contact.system === 'phone') {
+              if (contact.use === 'mobile' || !phone) {
+                phone = contact.value;
+                context.log(`Found phone on Location: ${phone ? '***' : 'none'}`);
+              }
+            }
+          }
+        } catch (locError) {
+          context.warn('Failed to fetch Location:', locError);
         }
       }
     }

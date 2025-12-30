@@ -15,6 +15,7 @@ import {
   FHIRSlot,
   FHIRSchedule,
   FHIRBundle,
+  FHIRLocation,
   HalaxyConfig,
 } from './types';
 import { getAccessToken, invalidateToken, getHalaxyConfig } from './token-manager';
@@ -58,6 +59,13 @@ export class HalaxyClient {
    */
   async getPractitionerRole(roleId: string): Promise<FHIRPractitionerRole> {
     return this.request<FHIRPractitionerRole>(`/PractitionerRole/${roleId}`);
+  }
+
+  /**
+   * Get a location by ID
+   */
+  async getLocation(locationId: string): Promise<FHIRLocation> {
+    return this.request<FHIRLocation>(`/Location/${locationId}`);
   }
 
   /**

@@ -70,6 +70,15 @@ export interface FHIRPractitionerRole {
     reference: string;
     display?: string;
   };
+  location?: Array<{
+    reference: string; // 'Location/{id}'
+    display?: string;
+  }>;
+  telecom?: Array<{
+    system: 'phone' | 'email' | 'fax' | 'sms' | 'other';
+    value: string;
+    use?: 'work' | 'home' | 'mobile';
+  }>;
   specialty?: Array<{
     coding: Array<{
       system?: string;
@@ -77,6 +86,34 @@ export interface FHIRPractitionerRole {
       display?: string;
     }>;
   }>;
+}
+
+/**
+ * FHIR Location resource
+ * Physical location where services are provided
+ */
+export interface FHIRLocation {
+  resourceType: 'Location';
+  id: string;
+  status?: 'active' | 'suspended' | 'inactive';
+  name?: string;
+  description?: string;
+  telecom?: Array<{
+    system: 'phone' | 'email' | 'fax' | 'sms' | 'other';
+    value: string;
+    use?: 'work' | 'home' | 'mobile';
+  }>;
+  address?: {
+    use?: 'home' | 'work' | 'temp' | 'old';
+    type?: 'postal' | 'physical' | 'both';
+    text?: string;
+    line?: string[];
+    city?: string;
+    district?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  };
 }
 
 /**

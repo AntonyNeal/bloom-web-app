@@ -184,6 +184,9 @@
       }
       window.gtag = gtag;
       
+      // Track whether gtag script has been loaded
+      window.__gtagLoaded = false;
+      
       // Defer gtag configuration to avoid blocking initial render
       function initGtagConfig() {
         gtag('js', new Date());
@@ -218,16 +221,47 @@
         console.log('[GA4] Initialized with Partytown - ID:', measurementId);
       }
       
-      // Run config after first paint to not block LCP
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(initGtagConfig, { timeout: 2000 });
-      } else {
-        setTimeout(initGtagConfig, 100);
+      // Load gtag script lazily (only after first user interaction OR idle time)
+      // This defers the 80KB+ Google script until it's actually needed
+      function loadGtagScript() {
+        if (window.__gtagLoaded) return;
+        window.__gtagLoaded = true;
+        
+        var script = document.createElement('script');
+        script.type = 'text/partytown';
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-XGGBRLPBKK';
+        script.async = true;
+        document.head.appendChild(script);
+        
+        // Initialize config after script is queued
+        initGtagConfig();
+        console.log('[GA4] Script loaded on user interaction');
       }
+      
+      // Load on first user interaction (click, scroll, keypress, touch)
+      var interactionEvents = ['click', 'scroll', 'keydown', 'touchstart'];
+      function onFirstInteraction() {
+        loadGtagScript();
+        // Remove all listeners after first trigger
+        interactionEvents.forEach(function(event) {
+          document.removeEventListener(event, onFirstInteraction, { passive: true });
+        });
+      }
+      interactionEvents.forEach(function(event) {
+        document.addEventListener(event, onFirstInteraction, { passive: true, once: true });
+      });
+      
+      // Fallback: Load after 4 seconds if no interaction (important for SEO/analytics accuracy)
+      setTimeout(function() {
+        if (!window.__gtagLoaded) {
+          loadGtagScript();
+          console.log('[GA4] Script loaded on timeout fallback');
+        }
+      }, 4000);
     </script>
     
-    <!-- Load gtag.js via Partytown (runs in web worker, not main thread) -->
-    <script type="text/partytown" src="https://www.googletagmanager.com/gtag/js?id=G-XGGBRLPBKK"></script>
+    <!-- REMOVED: gtag.js now loads lazily via JavaScript above -->
+    <!-- Previously: <script type="text/partytown" src="https://www.googletagmanager.com/gtag/js?id=G-XGGBRLPBKK"></script> -->
     <!-- EARLY RUNTIME ENV CHECK - only enabled when VITE_DEBUG_PANEL is set to 'true' -->
     <script>
       try {

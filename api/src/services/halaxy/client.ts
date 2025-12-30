@@ -535,6 +535,40 @@ export class HalaxyClient {
     });
   }
 
+  /**
+   * Cancel an appointment in Halaxy
+   * Updates the appointment status to 'cancelled'
+   */
+  async cancelAppointment(appointmentId: string, reason?: string): Promise<void> {
+    console.log(`[HalaxyClient] Cancelling appointment ${appointmentId}`);
+    
+    // FHIR PATCH to update status to cancelled
+    const patchBody = [{
+      op: 'replace',
+      path: '/status',
+      value: 'cancelled'
+    }];
+
+    // If reason provided, add cancellation reason
+    if (reason) {
+      patchBody.push({
+        op: 'add',
+        path: '/cancelationReason',
+        value: { text: reason } as unknown as string
+      });
+    }
+
+    await this.request<FHIRAppointment>(`/Appointment/${appointmentId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json-patch+json',
+      },
+      body: JSON.stringify(patchBody),
+    });
+
+    console.log(`[HalaxyClient] Appointment ${appointmentId} cancelled successfully`);
+  }
+
   // ===========================================================================
   // Request Helpers
   // ===========================================================================

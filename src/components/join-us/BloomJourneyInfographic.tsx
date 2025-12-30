@@ -1512,9 +1512,9 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
         style={{
           display: 'flex',
           justifyContent: 'center',
-          gap: isMobile ? '32px' : '64px',
+          gap: isMobile ? '24px' : '64px',
           marginTop: isMobile ? '48px' : '64px',
-          padding: isMobile ? '28px 16px' : '36px 48px',
+          padding: isMobile ? '28px 12px' : '36px 48px',
           background: `linear-gradient(135deg, ${bloomColors.warmCream} 0%, white 100%)`,
           borderRadius: '20px',
           border: '1px solid rgba(107, 142, 127, 0.1)',
@@ -1525,7 +1525,7 @@ export function BloomJourneyInfographic({ isMobile }: Props) {
           { value: 'Freedom', label: 'Set your schedule', color: bloomColors.softTerracotta, icon: '☀️' },
           { value: 'Community', label: 'Built for psychologists', color: bloomColors.honeyAmber, icon: '🤝' },
         ].map((stat, i) => (
-          <div key={i} style={{ textAlign: 'center', flex: 1, maxWidth: '160px' }}>
+          <div key={i} style={{ textAlign: 'center', minWidth: isMobile ? '90px' : '120px' }}>
             <div style={{ fontSize: '20px', marginBottom: '4px' }}>{stat.icon}</div>
             <div
               style={{

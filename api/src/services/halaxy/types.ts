@@ -117,6 +117,32 @@ export interface FHIRLocation {
 }
 
 /**
+ * FHIR Organization resource
+ * Practice/clinic organization
+ */
+export interface FHIROrganization {
+  resourceType: 'Organization';
+  id: string;
+  active?: boolean;
+  name?: string;
+  telecom?: Array<{
+    system: 'phone' | 'email' | 'fax' | 'sms' | 'other';
+    value: string;
+    use?: 'work' | 'home' | 'mobile';
+  }>;
+  address?: Array<{
+    use?: 'home' | 'work' | 'temp' | 'old';
+    type?: 'postal' | 'physical' | 'both';
+    text?: string;
+    line?: string[];
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  }>;
+}
+
+/**
  * FHIR Patient resource
  * https://www.hl7.org/fhir/patient.html
  */

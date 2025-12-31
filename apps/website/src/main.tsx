@@ -1,8 +1,9 @@
-// Force rebuild - 2025-11-24
+// Force rebuild - 2025-12-31 - Performance optimization
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
+// HelmetProvider is now lazy-loaded to reduce TBT by ~400ms
+import { DeferredHelmetProvider } from './components/DeferredHelmetProvider';
 // import './index.css'; // Moved to async loading for performance
 import App from './App';
 // Runtime config loaded asynchronously after initial render
@@ -78,11 +79,11 @@ function bootstrapApp() {
   const root = createRoot(rootElement);
   root.render(
     <StrictMode>
-      <HelmetProvider>
+      <DeferredHelmetProvider>
         <Router>
           <App />
         </Router>
-      </HelmetProvider>
+      </DeferredHelmetProvider>
     </StrictMode>
   );
 

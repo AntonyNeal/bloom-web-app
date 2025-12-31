@@ -1044,137 +1044,22 @@
   </head>
   <body>
     <div id="root">
-      <!-- 
-        CRITICAL LCP OPTIMIZATION: Static hero placeholder
-        This renders immediately (before React) to enable fast LCP.
-        React will hydrate over this content. The image matches what 
-        UnifiedHeader renders, preventing CLS during hydration.
-      -->
-      <div id="app-placeholder" style="min-height: 100vh; background: linear-gradient(to bottom right, #f8fafc, #fff, rgba(239,246,255,0.3));">
-        <!-- Skip to content link for accessibility -->
-        <a href="#main-content" class="sr-only">Skip to main content</a>
-        
-        <!-- Static Header Bar Placeholder -->
-        <header style="background: white; padding: 1rem 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; z-index: 50;">
-          <div style="max-width: 80rem; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
-            <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
-              <img src="/logo.svg" alt="Life Psychology Australia" width="32" height="32" style="width: 2rem; height: 2rem;" />
-              <span style="font-weight: 600; color: #1e40af; font-size: 1.125rem;">Life Psychology</span>
-            </a>
-          </div>
-        </header>
-
-        <!-- Static Hero Section - matches UnifiedHeader layout -->
-        <main id="main-content" style="padding: 1.5rem 0 2.5rem; background: linear-gradient(to bottom right, #f8fafc, #fff, rgba(239,246,255,0.3)); position: relative; overflow: hidden;">
-          <div style="max-width: 72rem; margin: 0 auto; padding: 0 1rem;">
-            <div style="display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: center;">
-              <!-- Hero Image - THE LCP ELEMENT -->
-              <div style="order: 1; max-width: 24rem; margin: 0 auto;">
-                <div style="position: relative;">
-                  <picture>
-                    <source 
-                      srcset="/assets/hero-zoe-main-380w.webp 380w, /assets/hero-zoe-main-500w.webp 500w, /assets/hero-zoe-main.webp 800w"
-                      sizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
-                      type="image/webp"
-                    />
-                    <source 
-                      srcset="/assets/hero-zoe-main-380w.jpg 380w, /assets/hero-zoe-main-500w.jpg 500w, /assets/hero-zoe-main.jpg 800w"
-                      sizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
-                      type="image/jpeg"
-                    />
-                    <img
-                      id="static-hero-img"
-                      src="/assets/hero-zoe-main-380w.jpg"
-                      alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
-                      width="500"
-                      height="731"
-                      loading="eager"
-                      decoding="async"
-                      fetchpriority="high"
-                      style="width: 100%; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: block; aspect-ratio: 500/731;"
-                    />
-                  </picture>
-                  <!-- Floating credential badge -->
-                  <div style="position: absolute; bottom: 1rem; left: 1rem; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); border-radius: 0.5rem; padding: 0.5rem 0.75rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                    <p style="font-size: 0.75rem; font-weight: 600; color: #334155; margin: 0;">Registered Psychologist</p>
-                    <p style="font-size: 0.625rem; color: #64748b; margin: 0;">Newcastle, NSW</p>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Hero Content -->
-              <div style="order: 2; text-align: center;">
-                <div style="margin-bottom: 1rem;">
-                  <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0 0 0.5rem;">Zoe Semmler</h1>
-                  <p style="color: #2563eb; font-weight: 500; font-size: 1.125rem; margin: 0;">Psychologist • Newcastle & Australia-wide</p>
-                </div>
-                <p style="color: #475569; font-size: 1rem; margin: 0 0 1.5rem; max-width: 32rem; margin-left: auto; margin-right: auto;">
-                  Supporting you through anxiety, depression, and life transitions with warm, evidence-based telehealth therapy.
-                </p>
-                <!-- CTA Button -->
-                <a href="/appointments" style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 1rem 2rem; border-radius: 0.5rem; font-weight: 600; text-decoration: none; box-shadow: 0 4px 14px rgba(59,130,246,0.3);">
-                  Book Now
-                </a>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
+      <!-- Simple placeholder with reserved space to prevent CLS -->
+      <div id="app-placeholder" style="min-height: 100vh; background: linear-gradient(to bottom right, #f8fafc, #fff);"></div>
     </div>
-    <!-- Hide placeholder when React hydrates - using opacity to prevent CLS -->
+    <!-- Remove placeholder when React mounts -->
     <script type="module">
-      // CRITICAL: Use opacity transition instead of remove() to prevent CLS
       const placeholder = document.getElementById('app-placeholder');
-      const heroImg = document.getElementById('static-hero-img');
-      
-      if (placeholder && heroImg) {
-        // Add transition CSS
-        placeholder.style.transition = 'opacity 0.2s ease-out';
-        placeholder.style.position = 'absolute';
-        placeholder.style.top = '0';
-        placeholder.style.left = '0';
-        placeholder.style.right = '0';
-        placeholder.style.zIndex = '10';
-        
-        // Wait for the static image to fully load
-        const waitForImageLoad = () => {
-          return new Promise(resolve => {
-            if (heroImg.complete && heroImg.naturalWidth > 0) {
-              resolve();
-            } else {
-              heroImg.onload = resolve;
-              heroImg.onerror = resolve;
-            }
-          });
-        };
-        
-        // Observer for when React renders
-        const observer = new MutationObserver(async (mutations, obs) => {
+      if (placeholder) {
+        const observer = new MutationObserver((_, obs) => {
           const root = document.getElementById('root');
-          // Check for React content (any element besides our placeholder)
-          const hasReactContent = [...root.children].some(child => child.id !== 'app-placeholder');
-          if (hasReactContent) {
-            // Ensure image is loaded first
-            await waitForImageLoad();
-            // Wait for paint
-            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-            // Fade out placeholder
-            placeholder.style.opacity = '0';
-            // Remove after transition
-            setTimeout(() => placeholder.remove(), 250);
+          if (root && root.children.length > 1) {
+            placeholder.remove();
             obs.disconnect();
           }
         });
-        observer.observe(document.getElementById('root'), { childList: true, subtree: true });
-        
-        // Fallback: fade out after 10s max
-        setTimeout(() => {
-          if (placeholder && placeholder.parentNode) {
-            placeholder.style.opacity = '0';
-            setTimeout(() => placeholder.remove(), 250);
-            observer.disconnect();
-          }
-        }, 10000);
+        observer.observe(document.getElementById('root'), { childList: true });
+        setTimeout(() => { placeholder?.remove(); observer.disconnect(); }, 5000);
       }
     </script>
   </body>

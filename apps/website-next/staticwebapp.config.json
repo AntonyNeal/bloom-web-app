@@ -8,7 +8,7 @@
     "exclude": [
       "/_next/*",
       "/api/*",
-      "*.{css,js,json,png,jpg,jpeg,gif,ico,svg,webp,woff,woff2}"
+      "*.{css,js,json,png,jpg,jpeg,gif,ico,svg,webp,avif,woff,woff2}"
     ]
   },
   "routes": [
@@ -21,7 +21,9 @@
     "X-Frame-Options": "DENY",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
-    "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://life-psychology.au2.halaxy.com https://*.azure-api.net; frame-src https://life-psychology.au2.halaxy.com https://js.stripe.com",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
   },
   "mimeTypes": {
     ".webp": "image/webp",

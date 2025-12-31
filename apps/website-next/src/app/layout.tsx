@@ -1,13 +1,22 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
+import { Navigation } from "@/components/Navigation";
+import { AnalyticsProvider, BookingProvider } from "@/components/providers";
 
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
+  preload: true,
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#2563eb",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -41,8 +50,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased bg-white text-gray-900">
-        {children}
-        <Footer />
+        <AnalyticsProvider>
+          <BookingProvider>
+            <Navigation />
+            {children}
+            <Footer />
+          </BookingProvider>
+        </AnalyticsProvider>
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
 import { HeroSection } from "@/components/HeroSection";
+import { HorizonBackground } from "@/components/HorizonBackground";
 import { ServicesSection } from "@/components/ServicesSection";
 import type { Metadata } from "next";
 
@@ -74,7 +75,10 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       
-      <main className="min-h-screen">
+      <div className="min-h-screen relative">
+        {/* Horizon background - earth and sky for the tree to grow from */}
+        <HorizonBackground earthHeight="20%" animated={true} />
+        
         {/* Hero Section - Server-rendered for instant LCP */}
         <HeroSection />
         
@@ -82,7 +86,7 @@ export default function HomePage() {
         <div className="mt-16 lg:mt-24">
           <ServicesSection {...servicesData} />
         </div>
-      </main>
+      </div>
     </>
   );
 }

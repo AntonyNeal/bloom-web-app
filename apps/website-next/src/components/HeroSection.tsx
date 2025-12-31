@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { BookingButton } from './BookingButton';
+import { AvailabilityIndicator } from './AvailabilityIndicator';
 
 interface HeroSectionProps {
   heroPhoto?: string;
@@ -94,10 +95,8 @@ export function HeroSection({ heroPhoto = '/assets/hero-zoe-main.webp' }: HeroSe
                 </Link>
               </div>
 
-              {/* Availability indicator placeholder */}
-              <div className="min-h-[24px] flex items-center gap-2 justify-center lg:justify-start text-sm text-emerald-700">
-                {/* Client component will hydrate this with real availability data */}
-              </div>
+              {/* Availability indicator */}
+              <AvailabilityIndicator />
             </div>
           </div>
         </div>

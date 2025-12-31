@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { Navigation } from "@/components/Navigation";
@@ -10,6 +10,14 @@ const inter = Inter({
   display: "swap",
   variable: "--font-inter",
   preload: true,
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-playfair",
+  preload: true,
+  style: ["normal", "italic"],
 });
 
 export const viewport: Viewport = {
@@ -48,7 +56,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${inter.variable} ${playfairDisplay.variable}`}>
       <body className="font-sans antialiased bg-white text-gray-900">
         <AnalyticsProvider>
           <BookingProvider>

@@ -12,6 +12,8 @@ export function Navigation() {
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
     { name: 'Services', path: '/services' },
+    { name: 'How to Book', path: '/appointments' },
+    { name: 'Fees & Funding', path: '/pricing' },
   ];
 
   return (
@@ -20,7 +22,15 @@ export function Navigation() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
-              <h1 className="text-lg sm:text-xl font-black text-gray-900 hover:text-blue-700 transition-colors duration-200">
+              <h1 
+                className="text-xl sm:text-2xl lg:text-3xl font-normal text-gray-800 hover:text-blue-700 transition-colors duration-200"
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontStyle: 'italic',
+                  letterSpacing: '0.5px',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                }}
+              >
                 <span className="hidden sm:inline">
                   Life Psychology Australia
                 </span>

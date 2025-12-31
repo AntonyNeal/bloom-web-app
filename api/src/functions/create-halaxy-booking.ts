@@ -4,7 +4,12 @@
  * Azure Function to create appointments in Halaxy from the website.
  * Creates or finds the patient, then creates the appointment.
  * Stores booking session data for analytics tracking.
- * Sends email and SMS notification to clinician when booking is created.
+ * Queues clinician notification (SMS/email) for async processing.
+ * 
+ * Architecture:
+ * - Booking creation is synchronous (returns immediately)
+ * - Notifications are queued and processed async (fire-and-forget)
+ * - Notification failures do NOT affect booking success
  */
 import {
   app,
@@ -14,8 +19,7 @@ import {
 } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy/client';
 import { getDbConnection } from '../services/database';
-import { sendClinicianBookingNotification } from '../services/email';
-import { sendClinicianBookingSms } from '../services/sms';
+import { queueBookingNotification } from '../services/notifications/queue';
 import * as sql from 'mssql';
 
 interface PatientData {
@@ -60,14 +64,6 @@ interface BookingResponse {
   error?: string;
 }
 
-interface PractitionerContact {
-  email: string;
-  firstName: string;
-  phone?: string;
-  smsNotificationsEnabled: boolean;
-  emailNotificationsEnabled: boolean;
-}
-
 /**
  * Get the default practitioner ID from environment or database
  */
@@ -109,104 +105,6 @@ async function getDefaultPractitionerId(context: InvocationContext): Promise<str
   }
 
   throw new Error('No practitioner configured for bookings. Please set HALAXY_PRACTITIONER_ID environment variable.');
-}
-
-/**
- * Get practitioner contact info for notifications
- * 
- * Phone: Fetched from PractitionerRole.telecom (set in Halaxy staff/role settings)
- * Email/Name: Fetched from Practitioner.telecom and Practitioner.name
- * 
- * Note: practitionerId can be either:
- *   - A Halaxy Profile ID (numeric, e.g. "1304541") - needs identifier search
- *   - A Practitioner resource ID (e.g. "PR-1439411") - direct lookup
- */
-async function getPractitionerContact(
-  practitionerId: string,
-  halaxyClient: ReturnType<typeof getHalaxyClient>,
-  context: InvocationContext
-): Promise<PractitionerContact | null> {
-  try {
-    let actualPractitionerId: string;
-    
-    // If already in PR-XXXXX format, use directly
-    if (practitionerId.startsWith('PR-') || practitionerId.startsWith('EP-')) {
-      actualPractitionerId = practitionerId;
-    } else {
-      // Otherwise it's a Halaxy Profile ID - need to search for the practitioner
-      context.log(`Searching for Practitioner by identifier ${practitionerId}...`);
-      const practitioners = await halaxyClient.searchPractitionersByIdentifier(practitionerId);
-      
-      if (!practitioners || practitioners.length === 0) {
-        context.warn(`No practitioner found with identifier: ${practitionerId}`);
-        return null;
-      }
-      
-      actualPractitionerId = practitioners[0].id;
-      context.log(`Found Practitioner resource ID: ${actualPractitionerId}`);
-    }
-    
-    // Fetch PractitionerRole to get phone number
-    // Phone is stored on PractitionerRole.telecom in Halaxy
-    context.log(`Fetching PractitionerRole for ${actualPractitionerId}...`);
-    const roles = await halaxyClient.getPractitionerRolesByPractitioner(actualPractitionerId);
-    
-    let phone: string | undefined;
-    if (roles && roles.length > 0) {
-      // Get phone from the first role's telecom
-      for (const contact of roles[0].telecom || []) {
-        if (contact.system === 'phone' || contact.system === 'sms') {
-          phone = contact.value;
-          context.log(`Found phone on PractitionerRole: ***`);
-          break;
-        }
-      }
-    }
-    
-    if (!phone) {
-      context.warn(`No phone found on PractitionerRole for ${actualPractitionerId}`);
-    }
-
-    // Fetch Practitioner to get name and email
-    context.log(`Fetching Practitioner ${actualPractitionerId}...`);
-    const practitioner = await halaxyClient.getPractitioner(actualPractitionerId);
-    
-    if (!practitioner) {
-      context.warn(`Practitioner not found in Halaxy: ${actualPractitionerId}`);
-      return null;
-    }
-
-    // Extract name
-    const name = practitioner.name?.[0];
-    const firstName = name?.given?.[0] || 'Practitioner';
-
-    // Extract email from Practitioner.telecom
-    let email: string | undefined;
-    for (const contact of practitioner.telecom || []) {
-      if (contact.system === 'email') {
-        email = contact.value;
-        break;
-      }
-    }
-
-    if (!email) {
-      context.warn(`No email found for practitioner ${actualPractitionerId}`);
-      return null;
-    }
-
-    context.log(`Found practitioner: ${firstName}, email: ***, phone: ${phone ? '***' : 'none'}`);
-
-    return {
-      email,
-      firstName,
-      phone,
-      smsNotificationsEnabled: !!phone,
-      emailNotificationsEnabled: true,
-    };
-  } catch (error) {
-    context.error('Failed to get practitioner from Halaxy:', error);
-    return null;
-  }
 }
 
 /**
@@ -391,127 +289,35 @@ async function createHalaxyBooking(
     context.log(`Appointment created - ID: ${appointment.id}, Status: ${appointment.status}`);
     context.log(`[PERF] Appointment created at +${Date.now() - bookingStartTime}ms`);
 
-    // Step 3: Send SMS notification to clinician (MANDATORY - booking fails if SMS fails)
-    let smsSent = false;
-    let smsError: string | undefined;
-    
+    // Step 3: Queue notification for async processing (fire-and-forget)
+    // Notification failures do NOT block the booking - it's already confirmed in Halaxy
     try {
-      const practitionerContact = await getPractitionerContact(practitionerId, halaxyClient, context);
-      
-      if (!practitionerContact) {
-        smsError = 'Could not retrieve practitioner contact information';
-        context.error(smsError);
-      } else if (!practitionerContact.phone) {
-        smsError = 'Practitioner has no phone number configured';
-        context.error(smsError);
-      } else {
-        context.log(`Sending SMS notification to practitioner...`);
-        const smsResult = await sendClinicianBookingSms({
-          clinicianPhone: practitionerContact.phone,
-          clinicianFirstName: practitionerContact.firstName,
-          patientFirstName: body.patient.firstName,
-          patientLastName: body.patient.lastName,
-          appointmentDateTime: new Date(body.appointmentDetails.startTime),
-          appointmentType: body.appointmentDetails.appointmentType,
-        });
-
-        if (smsResult.success) {
-          context.log('Clinician SMS notification sent successfully');
-          smsSent = true;
-        } else {
-          smsError = smsResult.error || 'SMS send failed';
-          context.error('SMS notification failed:', smsError);
-        }
-      }
-    } catch (notifyError) {
-      smsError = notifyError instanceof Error ? notifyError.message : 'Unknown notification error';
-      context.error('Error sending SMS notification:', notifyError);
-    }
-
-    // If SMS failed, cancel the appointment and return error
-    if (!smsSent) {
-      context.error(`SMS notification failed - cancelling appointment ${appointment.id}`);
-      
-      try {
-        await halaxyClient.cancelAppointment(appointment.id, 'SMS notification to clinician failed');
-        context.log(`Appointment ${appointment.id} cancelled successfully`);
-      } catch (cancelError) {
-        context.error('Failed to cancel appointment after SMS failure:', cancelError);
-      }
-
-      return {
-        status: 503,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        jsonBody: {
-          success: false,
-          error: 'Unable to complete booking - please try again or contact us directly',
-        } as BookingResponse,
-      };
-    }
-
-    // Step 4: Send email notification to clinician (MANDATORY)
-    let emailSent = false;
-    let emailError: string | undefined;
-
-    try {
-      const practitionerContact = await getPractitionerContact(practitionerId, halaxyClient, context);
-      
-      if (!practitionerContact) {
-        emailError = 'Could not retrieve practitioner contact information';
-        context.error(emailError);
-      } else if (!practitionerContact.email) {
-        emailError = 'Practitioner has no email configured';
-        context.error(emailError);
-      } else {
-        context.log(`Sending email notification to: ${practitionerContact.email}`);
-        const emailResult = await sendClinicianBookingNotification({
-          practitionerEmail: practitionerContact.email,
-          practitionerFirstName: practitionerContact.firstName,
+      const notificationId = await queueBookingNotification(
+        practitionerId,
+        {
+          appointmentId: appointment.id,
           patientFirstName: body.patient.firstName,
           patientLastName: body.patient.lastName,
           patientEmail: body.patient.email,
           patientPhone: body.patient.phone,
           appointmentDateTime: new Date(body.appointmentDetails.startTime),
           appointmentType: body.appointmentDetails.appointmentType,
-        });
-
-        if (emailResult.success) {
-          context.log('Clinician email notification sent successfully');
-          emailSent = true;
-        } else {
-          emailError = emailResult.error || 'Email send failed';
-          context.error('Email notification failed:', emailError);
         }
-      }
-    } catch (emailErr) {
-      emailError = emailErr instanceof Error ? emailErr.message : 'Unknown email error';
-      context.error('Error sending email notification:', emailErr);
-    }
+      );
 
-    // If email failed, cancel the appointment and return error
-    if (!emailSent) {
-      context.error(`Email notification failed - cancelling appointment ${appointment.id}`);
-      
-      try {
-        await halaxyClient.cancelAppointment(appointment.id, 'Email notification to clinician failed');
-        context.log(`Appointment ${appointment.id} cancelled successfully`);
-      } catch (cancelError) {
-        context.error('Failed to cancel appointment after email failure:', cancelError);
+      if (notificationId) {
+        context.log(`Notification queued successfully: ${notificationId}`);
+      } else {
+        context.warn('Failed to queue notification - clinician will not be notified');
       }
-
-      return {
-        status: 503,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        jsonBody: {
-          success: false,
-          error: 'Unable to complete booking - please try again or contact us directly',
-        } as BookingResponse,
-      };
+    } catch (queueError) {
+      // Log but don't fail the booking
+      context.warn('Error queuing notification:', queueError);
     }
 
     context.log(`[PERF] Total booking time: ${Date.now() - bookingStartTime}ms`);
 
-    // Step 5: Store booking session for analytics (fire and forget - don't await)
+    // Step 4: Store booking session for analytics (fire and forget - don't await)
     storeBookingSession(
       appointment.id,
       patient.id,

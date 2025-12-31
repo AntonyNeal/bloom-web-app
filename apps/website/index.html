@@ -1083,6 +1083,7 @@
                       type="image/jpeg"
                     />
                     <img
+                      id="static-hero-img"
                       src="/assets/hero-zoe-main-380w.jpg"
                       alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
                       width="500"
@@ -1122,21 +1123,43 @@
     </div>
     <!-- Remove placeholder when React hydrates to prevent duplicate content -->
     <script type="module">
-      // Remove placeholder once React's first paint completes
-      // This uses a MutationObserver to detect when React adds content
+      // CRITICAL: Wait for static hero image to paint as LCP before allowing React to replace
       const placeholder = document.getElementById('app-placeholder');
-      if (placeholder) {
-        const observer = new MutationObserver((mutations, obs) => {
-          // Check if React has rendered real content (not our placeholder)
+      const heroImg = document.getElementById('static-hero-img');
+      
+      if (placeholder && heroImg) {
+        // Wait for the static image to fully load and paint
+        const waitForImagePaint = () => {
+          return new Promise(resolve => {
+            if (heroImg.complete && heroImg.naturalWidth > 0) {
+              // Image already loaded, wait for next paint
+              requestAnimationFrame(() => requestAnimationFrame(resolve));
+            } else {
+              heroImg.onload = () => {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+              };
+              heroImg.onerror = resolve; // Don't block forever on error
+            }
+          });
+        };
+        
+        // Observer for when React renders
+        const observer = new MutationObserver(async (mutations, obs) => {
           const root = document.getElementById('root');
           if (root && root.children.length > 1) {
-            placeholder.remove();
-            obs.disconnect();
+            // React is ready - ensure LCP image has painted first
+            await waitForImagePaint();
+            // Small delay to ensure LCP is recorded
+            setTimeout(() => {
+              placeholder.remove();
+              obs.disconnect();
+            }, 50);
           }
         });
         observer.observe(document.getElementById('root'), { childList: true, subtree: true });
-        // Fallback: remove after 5s even if React hasn't loaded
-        setTimeout(() => { placeholder?.remove(); observer.disconnect(); }, 5000);
+        
+        // Fallback: remove after 8s max
+        setTimeout(() => { placeholder?.remove(); observer.disconnect(); }, 8000);
       }
     </script>
   </body>

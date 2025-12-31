@@ -113,19 +113,38 @@ export async function queueBookingNotification(
 
 /**
  * Parse a queue message back to BookingNotificationMessage
+ * Azure Functions runtime may pass the message as:
+ * - Already parsed object (when message is valid JSON)
+ * - Base64 encoded string
+ * - Plain JSON string
  */
-export function parseQueueMessage(messageText: string): BookingNotificationMessage | null {
+export function parseQueueMessage(queueItem: unknown): BookingNotificationMessage | null {
   try {
-    // Try to decode from base64 first
-    let decodedText: string;
-    try {
-      decodedText = Buffer.from(messageText, 'base64').toString('utf-8');
-    } catch {
-      // If base64 decode fails, assume it's plain JSON
-      decodedText = messageText;
+    // If already an object (Azure Functions auto-parsed it), return directly
+    if (typeof queueItem === 'object' && queueItem !== null) {
+      return queueItem as BookingNotificationMessage;
     }
     
-    return JSON.parse(decodedText) as BookingNotificationMessage;
+    // If it's a string, try to decode/parse
+    if (typeof queueItem === 'string') {
+      // Try to decode from base64 first
+      let decodedText: string;
+      try {
+        decodedText = Buffer.from(queueItem, 'base64').toString('utf-8');
+        // Check if it looks like valid JSON after decode
+        if (!decodedText.startsWith('{')) {
+          decodedText = queueItem;
+        }
+      } catch {
+        // If base64 decode fails, assume it's plain JSON
+        decodedText = queueItem;
+      }
+      
+      return JSON.parse(decodedText) as BookingNotificationMessage;
+    }
+    
+    console.error('[NotificationQueue] Unknown queue item type:', typeof queueItem);
+    return null;
   } catch (error) {
     console.error('[NotificationQueue] Failed to parse queue message:', error);
     return null;

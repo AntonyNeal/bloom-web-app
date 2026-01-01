@@ -7,25 +7,42 @@ import Script from 'next/script';
 const GA4_MEASUREMENT_ID = 'G-QZ3CJMXV5P';
 const GOOGLE_ADS_ID = 'AW-16753733973';
 
-// AnalyticsProvider defers loading until after the page is fully interactive
-// This prevents analytics from blocking LCP and TBT
+// AnalyticsProvider uses interaction-based loading for mobile-first performance
+// Analytics only loads after user interaction (scroll, click, touch) to prevent TBT impact
 export function AnalyticsProvider() {
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
-    // Wait for page to be fully loaded and idle before loading analytics
-    const loadAnalytics = () => setShouldLoad(true);
+    if (typeof window === 'undefined') return;
 
-    if (typeof window !== 'undefined') {
-      // Use requestIdleCallback if available, otherwise use a longer timeout
-      if ('requestIdleCallback' in window) {
-        (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => void })
-          .requestIdleCallback(loadAnalytics, { timeout: 4000 });
-      } else {
-        // Fallback: wait 3 seconds after load
-        setTimeout(loadAnalytics, 3000);
-      }
-    }
+    let loaded = false;
+    const loadAnalytics = () => {
+      if (loaded) return;
+      loaded = true;
+      setShouldLoad(true);
+      // Clean up listeners
+      window.removeEventListener('scroll', loadAnalytics);
+      window.removeEventListener('click', loadAnalytics);
+      window.removeEventListener('touchstart', loadAnalytics);
+      window.removeEventListener('keydown', loadAnalytics);
+    };
+
+    // Load on first user interaction - mobile-first approach
+    window.addEventListener('scroll', loadAnalytics, { once: true, passive: true });
+    window.addEventListener('click', loadAnalytics, { once: true });
+    window.addEventListener('touchstart', loadAnalytics, { once: true, passive: true });
+    window.addEventListener('keydown', loadAnalytics, { once: true });
+
+    // Fallback: load after 5 seconds if no interaction (for bounced users)
+    const fallbackTimer = setTimeout(loadAnalytics, 5000);
+
+    return () => {
+      clearTimeout(fallbackTimer);
+      window.removeEventListener('scroll', loadAnalytics);
+      window.removeEventListener('click', loadAnalytics);
+      window.removeEventListener('touchstart', loadAnalytics);
+      window.removeEventListener('keydown', loadAnalytics);
+    };
   }, []);
 
   if (!shouldLoad) {
@@ -34,12 +51,12 @@ export function AnalyticsProvider() {
 
   return (
     <>
-      {/* Google Analytics 4 - load after page is interactive */}
+      {/* Google Analytics 4 - load after user interaction */}
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       />
-      <Script id="google-analytics" strategy="afterInteractive">
+      <Script id="google-analytics" strategy="lazyOnload">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}

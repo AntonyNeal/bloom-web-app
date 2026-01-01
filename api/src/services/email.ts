@@ -564,6 +564,177 @@ The ${BLOOM_NAME} Team
   );
 }
 
+// ============================================================================
+// PATIENT BOOKING CONFIRMATION EMAIL
+// ============================================================================
+
+interface PatientBookingConfirmationContext {
+  patientFirstName: string;
+  patientLastName: string;
+  patientEmail: string;
+  practitionerName: string;
+  appointmentDateTime: Date;
+  appointmentType?: string;
+  appointmentId?: string;
+}
+
+/**
+ * Send booking confirmation email to patient/client
+ */
+export async function sendPatientBookingConfirmation(context: PatientBookingConfirmationContext) {
+  const {
+    patientFirstName,
+    patientEmail,
+    practitionerName,
+    appointmentDateTime,
+    appointmentType,
+  } = context;
+
+  // Format the appointment date/time nicely for Australian timezone
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedDate = appointmentDateTime.toLocaleString('en-AU', dateOptions);
+  
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedTime = appointmentDateTime.toLocaleString('en-AU', timeOptions);
+
+  // Get appointment type display text
+  const appointmentTypeDisplay = appointmentType === 'ndis-psychology-session' 
+    ? 'NDIS Psychology Session'
+    : 'Psychology Session';
+
+  const htmlContent = wrapInTemplate(`
+    <h2 style="color: #333; margin-top: 0;">🎉 Your Appointment is Confirmed!</h2>
+    
+    <p>Hi ${patientFirstName},</p>
+    
+    <p>Great news! Your appointment with ${COMPANY_NAME} has been successfully booked.</p>
+    
+    <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 24px; border-radius: 16px; margin: 24px 0; border: 1px solid #a7f3d0;">
+      <h3 style="margin: 0 0 16px 0; color: #065f46; font-size: 18px;">📅 Appointment Details</h3>
+      
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 10px 0; color: #047857; font-weight: 600; width: 100px;">Date:</td>
+          <td style="padding: 10px 0; color: #065f46; font-size: 16px;">${formattedDate}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; color: #047857; font-weight: 600;">Time:</td>
+          <td style="padding: 10px 0; color: #065f46; font-size: 16px; font-weight: 600;">${formattedTime}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; color: #047857; font-weight: 600;">Type:</td>
+          <td style="padding: 10px 0; color: #065f46;">${appointmentTypeDisplay}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; color: #047857; font-weight: 600;">With:</td>
+          <td style="padding: 10px 0; color: #065f46;">${practitionerName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; color: #047857; font-weight: 600;">Format:</td>
+          <td style="padding: 10px 0; color: #065f46;">Telehealth (Video Call)</td>
+        </tr>
+      </table>
+    </div>
+    
+    <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #0ea5e9;">
+      <h3 style="margin: 0 0 12px 0; color: #0369a1; font-size: 16px;">📹 How to Join Your Session</h3>
+      <p style="margin: 0; color: #0c4a6e; font-size: 14px;">
+        You'll receive a Telehealth link closer to your appointment time. 
+        Please ensure you have a quiet, private space with a stable internet connection.
+      </p>
+    </div>
+    
+    <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #f59e0b;">
+      <h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 16px;">📋 Before Your Appointment</h3>
+      <ul style="margin: 0; padding-left: 20px; color: #78350f; font-size: 14px;">
+        <li style="margin-bottom: 8px;">Ensure you're in a private, comfortable space</li>
+        <li style="margin-bottom: 8px;">Test your video and audio before the session</li>
+        <li style="margin-bottom: 8px;">Have a glass of water nearby</li>
+        <li style="margin-bottom: 0;">Feel free to jot down any topics you'd like to discuss</li>
+      </ul>
+    </div>
+    
+    <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin: 24px 0;">
+      <h3 style="margin: 0 0 12px 0; color: #334155; font-size: 16px;">💡 Medicare Rebates</h3>
+      <p style="margin: 0; color: #475569; font-size: 14px;">
+        If you have a valid GP Mental Health Treatment Plan, you may be eligible for Medicare rebates. 
+        Please have your referral ready for your first session.
+      </p>
+    </div>
+    
+    <p style="color: #666; font-size: 14px; margin-top: 24px;">
+      Need to reschedule or have questions? Simply reply to this email or contact us at 
+      <a href="mailto:hello@life-psychology.com.au" style="color: #10b981;">hello@life-psychology.com.au</a>
+    </p>
+    
+    <p style="margin-top: 30px;">
+      We look forward to seeing you!<br><br>
+      <strong>Warm regards,</strong><br>
+      <strong style="color: #10b981;">${practitionerName}</strong><br>
+      <span style="color: #666;">& The ${BLOOM_NAME} Team</span>
+    </p>
+  `);
+
+  const plainTextContent = `
+🎉 Your Appointment is Confirmed!
+
+Hi ${patientFirstName},
+
+Great news! Your appointment with ${COMPANY_NAME} has been successfully booked.
+
+APPOINTMENT DETAILS
+-------------------
+📅 Date: ${formattedDate}
+⏰ Time: ${formattedTime}
+🏷️ Type: ${appointmentTypeDisplay}
+👩‍⚕️ With: ${practitionerName}
+📹 Format: Telehealth (Video Call)
+
+HOW TO JOIN YOUR SESSION
+------------------------
+You'll receive a Telehealth link closer to your appointment time.
+Please ensure you have a quiet, private space with a stable internet connection.
+
+BEFORE YOUR APPOINTMENT
+-----------------------
+• Ensure you're in a private, comfortable space
+• Test your video and audio before the session
+• Have a glass of water nearby
+• Feel free to jot down any topics you'd like to discuss
+
+MEDICARE REBATES
+----------------
+If you have a valid GP Mental Health Treatment Plan, you may be eligible for Medicare rebates.
+Please have your referral ready for your first session.
+
+Need to reschedule or have questions? Reply to this email or contact us at hello@life-psychology.com.au
+
+We look forward to seeing you!
+
+Warm regards,
+${practitionerName}
+& The ${BLOOM_NAME} Team
+  `.trim();
+
+  return sendEmail(
+    patientEmail,
+    `✅ Booking Confirmed - ${formattedDate} at ${formattedTime}`,
+    htmlContent,
+    plainTextContent
+  );
+}
+
 // Export email service
 export const emailService = {
   sendDenialEmail,
@@ -571,6 +742,7 @@ export const emailService = {
   sendInterviewEmail,
   sendAcceptanceEmail,
   sendClinicianBookingNotification,
+  sendPatientBookingConfirmation,
 };
 
 export default emailService;

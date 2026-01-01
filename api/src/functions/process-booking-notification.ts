@@ -2,19 +2,20 @@
  * Process Booking Notifications Queue Trigger
  * 
  * Azure Function that processes booking notification messages from the queue.
- * Fetches practitioner contact from Halaxy and sends SMS/email notifications.
+ * Handles two types of notifications:
+ * 1. Clinician alerts - fetches contact from Halaxy, sends SMS/email
+ * 2. Patient confirmations - sends booking confirmation email to client
  * 
  * Architecture:
  * - Triggered by messages in 'booking-notifications' Azure Storage Queue
- * - Fetches practitioner phone/email from Halaxy (source of truth)
- * - Attempts to send both SMS and email (failures logged, not re-queued)
+ * - Notification failures are logged, not re-queued
  * - Logs all results to Application Insights
  */
 
 import { app, InvocationContext } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy/client';
 import { sendClinicianBookingSms } from '../services/sms';
-import { sendClinicianBookingNotification } from '../services/email';
+import { sendClinicianBookingNotification, sendPatientBookingConfirmation } from '../services/email';
 import { parseQueueMessage } from '../services/notifications/queue';
 import type { 
   BookingNotificationMessage, 
@@ -183,6 +184,39 @@ async function sendEmailNotification(
 }
 
 /**
+ * Send patient booking confirmation email
+ */
+async function sendPatientConfirmationEmail(
+  message: BookingNotificationMessage,
+  context: InvocationContext
+): Promise<ChannelResult> {
+  try {
+    const result = await sendPatientBookingConfirmation({
+      patientFirstName: message.booking.patientFirstName,
+      patientLastName: message.booking.patientLastName,
+      patientEmail: message.booking.patientEmail,
+      practitionerName: message.practitionerName || 'Your Psychologist',
+      appointmentDateTime: new Date(message.booking.appointmentDateTime),
+      appointmentType: message.booking.appointmentType,
+      appointmentId: message.booking.appointmentId,
+    });
+
+    return {
+      success: result.success,
+      messageId: result.messageId,
+      error: result.error,
+      provider: 'acs-email',
+    };
+  } catch (error) {
+    context.error('[NotificationQueue] Patient confirmation email error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
  * Main queue trigger handler
  */
 async function processBookingNotification(
@@ -203,11 +237,36 @@ async function processBookingNotification(
 
   context.log(`[NotificationQueue] Processing notification`, {
     messageId: message.messageId,
+    type: message.type,
     practitionerId: message.practitionerId,
     appointmentId: message.booking.appointmentId,
     channels: message.channels,
     retryCount: message.retryCount || 0,
   });
+
+  // Handle patient booking confirmation
+  if (message.type === 'patient_booking_confirmation') {
+    context.log('[NotificationQueue] Sending patient booking confirmation...');
+    
+    const emailResult = await sendPatientConfirmationEmail(message, context);
+    
+    const duration = Date.now() - startTime;
+    context.log('[NotificationQueue] Patient confirmation complete', {
+      messageId: message.messageId,
+      patientEmail: message.booking.patientEmail,
+      appointmentId: message.booking.appointmentId,
+      success: emailResult.success,
+      error: emailResult.error,
+      duration: `${duration}ms`,
+    });
+    return;
+  }
+
+  // Handle clinician booking alert (existing logic)
+  if (!message.practitionerId) {
+    context.error('[NotificationQueue] No practitioner ID for clinician alert');
+    return;
+  }
 
   // Initialize result
   const result: NotificationProcessResult = {

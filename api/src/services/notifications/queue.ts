@@ -5,7 +5,7 @@
  * Messages are processed asynchronously by the queue trigger function.
  */
 import { QueueClient, QueueServiceClient } from '@azure/storage-queue';
-import { BookingNotificationMessage, NotificationChannel } from './types';
+import { BookingNotificationMessage, NotificationChannel, NotificationType } from './types';
 
 // Singleton queue client
 let queueClient: QueueClient | null = null;
@@ -107,6 +107,73 @@ export async function queueBookingNotification(
     return messageId;
   } catch (error) {
     console.error('[NotificationQueue] Failed to queue message:', error);
+    return null;
+  }
+}
+
+/**
+ * Queue a patient booking confirmation email
+ * 
+ * @param booking - Booking details for the confirmation email
+ * @param practitionerName - Name of the practitioner for the email
+ * @returns Message ID if queued successfully, null otherwise
+ */
+export async function queuePatientConfirmation(
+  booking: {
+    appointmentId: string;
+    patientFirstName: string;
+    patientLastName: string;
+    patientEmail: string;
+    patientPhone?: string;
+    appointmentDateTime: Date;
+    appointmentType?: string;
+  },
+  practitionerName: string
+): Promise<string | null> {
+  const client = await getQueueClient();
+  
+  if (!client) {
+    console.error('[NotificationQueue] Queue not available - patient confirmation will not be sent');
+    return null;
+  }
+
+  const messageId = crypto.randomUUID();
+  
+  const message: BookingNotificationMessage = {
+    messageId,
+    type: 'patient_booking_confirmation',
+    practitionerName,
+    booking: {
+      appointmentId: booking.appointmentId,
+      patientFirstName: booking.patientFirstName,
+      patientLastName: booking.patientLastName,
+      patientEmail: booking.patientEmail,
+      patientPhone: booking.patientPhone,
+      appointmentDateTime: booking.appointmentDateTime.toISOString(),
+      appointmentType: booking.appointmentType,
+    },
+    channels: ['email'], // Patient confirmations are email only
+    queuedAt: new Date().toISOString(),
+    retryCount: 0,
+  };
+
+  try {
+    // Encode message as base64 (required by Azure Storage Queue)
+    const messageText = JSON.stringify(message);
+    const base64Message = Buffer.from(messageText).toString('base64');
+    
+    const result = await client.sendMessage(base64Message);
+    
+    console.log(`[NotificationQueue] Patient confirmation queued`, {
+      messageId,
+      queueMessageId: result.messageId,
+      patientEmail: booking.patientEmail,
+      appointmentId: booking.appointmentId,
+    });
+    
+    return messageId;
+  } catch (error) {
+    console.error('[NotificationQueue] Failed to queue patient confirmation:', error);
     return null;
   }
 }

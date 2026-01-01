@@ -12,6 +12,9 @@ const FROM_EMAIL = process.env.ACS_EMAIL_FROM || 'donotreply@life-psychology.com
 const COMPANY_NAME = 'Life Psychology Australia';
 const BLOOM_NAME = 'Bloom';
 
+// Admin email for booking notifications (always CC'd on clinician alerts)
+const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'julian.dellabosca@gmail.com';
+
 // Interview booking link (Calendly, Cal.com, or similar)
 const INTERVIEW_BOOKING_URL = process.env.INTERVIEW_BOOKING_URL || 'https://calendly.com/zoe-lifepsychology/interview';
 
@@ -48,12 +51,16 @@ function getEmailClient(): EmailClient | null {
  * Send an email using Azure Communication Services
  */
 async function sendEmail(
-  to: string,
+  to: string | string[],
   subject: string,
   htmlContent: string,
-  plainTextContent: string
+  plainTextContent: string,
+  cc?: string | string[]
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  console.log(`[EmailService] Sending email to: ${to}, subject: ${subject}`);
+  const toAddresses = Array.isArray(to) ? to : [to];
+  const ccAddresses = cc ? (Array.isArray(cc) ? cc : [cc]) : [];
+  
+  console.log(`[EmailService] Sending email to: ${toAddresses.join(', ')}, cc: ${ccAddresses.join(', ') || 'none'}, subject: ${subject}`);
   console.log(`[EmailService] From address: ${FROM_EMAIL}`);
   
   const client = getEmailClient();
@@ -67,7 +74,8 @@ async function sendEmail(
     const message: EmailMessage = {
       senderAddress: FROM_EMAIL,
       recipients: {
-        to: [{ address: to }],
+        to: toAddresses.map(addr => ({ address: addr })),
+        ...(ccAddresses.length > 0 && { cc: ccAddresses.map(addr => ({ address: addr })) }),
       },
       content: {
         subject,
@@ -556,11 +564,13 @@ Best regards,
 The ${BLOOM_NAME} Team
   `.trim();
 
+  // Send to practitioner with admin CC'd
   return sendEmail(
     practitionerEmail,
     `📅 New Booking: ${patientFirstName} ${patientLastName} - ${formattedTime}`,
     htmlContent,
-    plainTextContent
+    plainTextContent,
+    ADMIN_NOTIFICATION_EMAIL // CC admin on all booking alerts
   );
 }
 

@@ -36,6 +36,8 @@ export function HeroSection({ heroPhoto = '/assets/hero-zoe-main.webp' }: HeroSe
                   width={imageWidth}
                   height={imageHeight}
                   priority
+                  fetchPriority="high"
+                  loading="eager"
                   className="w-full rounded-2xl shadow-lg object-cover object-top"
                   sizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
                 />

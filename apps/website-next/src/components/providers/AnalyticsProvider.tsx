@@ -1,22 +1,45 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Script from 'next/script';
 
 // Google Analytics and Ads configuration
 const GA4_MEASUREMENT_ID = 'G-QZ3CJMXV5P';
 const GOOGLE_ADS_ID = 'AW-16753733973';
 
-// AnalyticsProvider now renders scripts only, no children wrapper
-// This allows it to be placed at the end of body for deferred loading
+// AnalyticsProvider defers loading until after the page is fully interactive
+// This prevents analytics from blocking LCP and TBT
 export function AnalyticsProvider() {
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    // Wait for page to be fully loaded and idle before loading analytics
+    const loadAnalytics = () => setShouldLoad(true);
+
+    if (typeof window !== 'undefined') {
+      // Use requestIdleCallback if available, otherwise use a longer timeout
+      if ('requestIdleCallback' in window) {
+        (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => void })
+          .requestIdleCallback(loadAnalytics, { timeout: 4000 });
+      } else {
+        // Fallback: wait 3 seconds after load
+        setTimeout(loadAnalytics, 3000);
+      }
+    }
+  }, []);
+
+  if (!shouldLoad) {
+    return null;
+  }
+
   return (
     <>
-      {/* Google Analytics 4 - load with lazyOnload for best performance */}
+      {/* Google Analytics 4 - load after page is interactive */}
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
-        strategy="lazyOnload"
+        strategy="afterInteractive"
       />
-      <Script id="google-analytics" strategy="lazyOnload">
+      <Script id="google-analytics" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}

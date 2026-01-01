@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { BookingButton } from './BookingButton';
 import { AvailabilityIndicatorClient } from './AvailabilityIndicatorClient';
@@ -10,9 +9,11 @@ interface HeroSectionProps {
 export function HeroSection({ heroPhoto = '/assets/hero-zoe-main.webp' }: HeroSectionProps) {
   const isPortraitVariant = heroPhoto.includes('zoe.jpg') || heroPhoto.includes('zoe.webp');
   
-  // Image dimensions for CLS prevention
-  const imageWidth = isPortraitVariant ? 380 : 500;
-  const imageHeight = isPortraitVariant ? 412 : 731;
+  // Image dimensions for CLS prevention - use mobile-first dimensions
+  const mobileWidth = 380;
+  const mobileHeight = 412;
+  const desktopWidth = 500;
+  const desktopHeight = isPortraitVariant ? 543 : 731;
 
   return (
     <main
@@ -30,17 +31,36 @@ export function HeroSection({ heroPhoto = '/assets/hero-zoe-main.webp' }: HeroSe
           <div className="order-1 lg:order-1">
             <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-sm lg:max-w-md'}`}>
               <div className="relative">
-                <Image
-                  src={heroPhoto}
-                  alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
-                  width={imageWidth}
-                  height={imageHeight}
-                  priority
-                  fetchPriority="high"
-                  loading="eager"
-                  className="w-full rounded-2xl shadow-lg object-cover object-top"
-                  sizes="(max-width: 640px) 380px, (max-width: 1024px) 500px, 500px"
-                />
+                {/* Mobile-first responsive image using picture element for optimal loading */}
+                <picture>
+                  {/* Mobile: smaller 380w image (16KB vs 70KB) */}
+                  <source
+                    media="(max-width: 639px)"
+                    srcSet="/assets/hero-zoe-main-380w.webp"
+                    type="image/webp"
+                    width={mobileWidth}
+                    height={mobileHeight}
+                  />
+                  {/* Desktop: full size image */}
+                  <source
+                    media="(min-width: 640px)"
+                    srcSet="/assets/hero-zoe-main.webp"
+                    type="image/webp"
+                    width={desktopWidth}
+                    height={desktopHeight}
+                  />
+                  {/* Fallback */}
+                  <img
+                    src="/assets/hero-zoe-main.webp"
+                    alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
+                    width={mobileWidth}
+                    height={mobileHeight}
+                    fetchPriority="high"
+                    loading="eager"
+                    decoding="async"
+                    className="w-full rounded-2xl shadow-lg object-cover object-top"
+                  />
+                </picture>
                 {/* Floating credential badge */}
                 <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
                   <p className="text-xs font-semibold text-slate-700">Registered Psychologist</p>

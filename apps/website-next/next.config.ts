@@ -37,6 +37,17 @@ const nextConfig: NextConfig = {
   
   // Compress output
   compress: true,
+  
+  // Experimental features for performance
+  experimental: {
+    // Optimize package imports - tree-shake large packages
+    optimizePackageImports: ['lucide-react', '@heroicons/react'],
+  },
+  
+  // Turbopack configuration (Next.js 16+ default bundler)
+  turbopack: {
+    // Empty config to acknowledge we're using Turbopack
+  },
 };
 
 export default nextConfig;

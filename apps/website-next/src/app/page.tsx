@@ -1,7 +1,16 @@
+import dynamic from 'next/dynamic';
 import { HeroSection } from "@/components/HeroSection";
 import { HorizonBackground } from "@/components/HorizonBackground";
-import { ServicesSection } from "@/components/ServicesSection";
 import type { Metadata } from "next";
+
+// Lazy load below-fold components to reduce initial bundle
+const ServicesSection = dynamic(
+  () => import('@/components/ServicesSection').then(mod => mod.ServicesSection),
+  { 
+    loading: () => <div className="py-16 lg:py-24 bg-white" aria-hidden="true" />,
+    ssr: true // Keep SSR for SEO
+  }
+);
 
 export const metadata: Metadata = {
   title: "Psychologist Newcastle | Anxiety & Depression Therapy",

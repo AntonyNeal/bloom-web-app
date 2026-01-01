@@ -1,0 +1,9 @@
+# Allow all web crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://life-psychology.com.au/sitemap.xml
+
+# Disallow administrative paths (none currently)
+# Disallow: /admin/

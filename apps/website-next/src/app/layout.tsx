@@ -5,11 +5,14 @@ import { Footer } from "@/components/Footer";
 import { Navigation } from "@/components/Navigation";
 import { AnalyticsProvider, BookingProvider } from "@/components/providers";
 
+// Optimize fonts - only load what's needed
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
   preload: true,
+  // Only load weights actually used
+  weight: ["400", "500", "600", "700"],
 });
 
 const playfairDisplay = Playfair_Display({
@@ -17,7 +20,9 @@ const playfairDisplay = Playfair_Display({
   display: "swap",
   variable: "--font-playfair",
   preload: true,
-  style: ["normal", "italic"],
+  style: ["italic"],
+  // Only load the weight used for the logo
+  weight: ["400"],
 });
 
 export const viewport: Viewport = {
@@ -57,14 +62,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${playfairDisplay.variable}`}>
+      <head>
+        {/* Preconnect to critical third-party origins */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://life-psychology.au2.halaxy.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+      </head>
       <body className="font-sans antialiased bg-white text-gray-900">
-        <AnalyticsProvider>
-          <BookingProvider>
-            <Navigation />
-            {children}
-            <Footer />
-          </BookingProvider>
-        </AnalyticsProvider>
+        <BookingProvider>
+          <Navigation />
+          {children}
+          <Footer />
+        </BookingProvider>
+        {/* Analytics loaded last to not block rendering */}
+        <AnalyticsProvider />
       </body>
     </html>
   );

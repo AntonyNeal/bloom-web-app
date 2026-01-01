@@ -6,15 +6,17 @@ import Script from 'next/script';
 const GA4_MEASUREMENT_ID = 'G-QZ3CJMXV5P';
 const GOOGLE_ADS_ID = 'AW-16753733973';
 
-export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+// AnalyticsProvider now renders scripts only, no children wrapper
+// This allows it to be placed at the end of body for deferred loading
+export function AnalyticsProvider() {
   return (
     <>
-      {/* Google Analytics 4 */}
+      {/* Google Analytics 4 - load with lazyOnload for best performance */}
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       />
-      <Script id="google-analytics" strategy="afterInteractive">
+      <Script id="google-analytics" strategy="lazyOnload">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
@@ -23,7 +25,6 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
           gtag('config', '${GOOGLE_ADS_ID}');
         `}
       </Script>
-      {children}
     </>
   );
 }

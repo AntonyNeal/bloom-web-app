@@ -1,9 +1,5 @@
-'use client';
-
-import { useMemo } from 'react';
-
 /**
- * HorizonBackground Component
+ * HorizonBackground Component (Server Component)
  *
  * Creates a scenic horizon background with:
  * - Gradient sky from soft blue/teal to warm golden sunset tones
@@ -23,33 +19,34 @@ interface HorizonBackgroundProps {
   className?: string;
 }
 
+// Deterministic pseudo-random for consistent SSR
 const pseudoRandom = (seed: number) => {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
 };
+
+// Pre-compute particle configs at module level for zero runtime cost
+const PARTICLE_COUNT = 8;
+const particleConfigs = Array.from({ length: PARTICLE_COUNT }, (_, i) => {
+  const width = 3 + pseudoRandom(i + 1) * 4;
+  const height = 3 + pseudoRandom(i + 11) * 4;
+  const topOffset = 20 + pseudoRandom(i + 21) * 40;
+  const animationDuration = 15 + i * 2;
+  return {
+    width,
+    height,
+    left: 10 + i * 12,
+    top: topOffset,
+    animation: animationDuration,
+    delay: i * -2,
+  };
+});
 
 export function HorizonBackground({
   earthHeight = '25%',
   animated = true,
   className = '',
 }: HorizonBackgroundProps) {
-  const particleConfigs = useMemo(() => {
-    const count = 8;
-    return Array.from({ length: count }, (_, i) => {
-      const width = 3 + pseudoRandom(i + 1) * 4;
-      const height = 3 + pseudoRandom(i + 11) * 4;
-      const topOffset = 20 + pseudoRandom(i + 21) * 40;
-      const animationDuration = 15 + i * 2;
-      return {
-        width,
-        height,
-        left: 10 + i * 12,
-        top: topOffset,
-        animation: animationDuration,
-        delay: i * -2,
-      };
-    });
-  }, []);
 
   return (
     <div

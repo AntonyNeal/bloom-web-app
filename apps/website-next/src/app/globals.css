@@ -10,6 +10,9 @@
   --life-psychology-primary: #2563eb;
   --life-psychology-secondary: #64748b;
   --life-psychology-accent: #059669;
+  
+  /* Safe area for mobile devices with notch/home indicator */
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @layer base {
@@ -33,6 +36,11 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Safe area utilities for iOS devices */
+.pb-safe {
+  padding-bottom: var(--safe-area-inset-bottom);
 }
 
 @layer utilities {

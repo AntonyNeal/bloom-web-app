@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { Navigation } from "@/components/NavigationServer";
+import { MobileCTABar } from "@/components/MobileCTABar";
 import { AnalyticsProvider, BookingProvider } from "@/components/providers";
 
 // Optimize fonts - only load what's needed
@@ -76,11 +77,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://life-psychology.au2.halaxy.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
       </head>
-      <body className="font-sans antialiased bg-white text-gray-900">
+      <body className="font-sans antialiased bg-white text-gray-900 pb-[72px] md:pb-0">
         <BookingProvider>
           <Navigation />
           {children}
           <Footer />
+          {/* Mobile floating CTA bar */}
+          <MobileCTABar />
         </BookingProvider>
         {/* Analytics loaded last to not block rendering */}
         <AnalyticsProvider />

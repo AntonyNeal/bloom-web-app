@@ -18,11 +18,10 @@ const inter = Inter({
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
-  display: "swap",
+  display: "optional", // Don't block rendering for decorative font
   variable: "--font-playfair",
-  preload: true,
+  preload: false, // Not critical - logo has fallback
   style: ["italic"],
-  // Only load the weight used for the logo
   weight: ["400"],
 });
 

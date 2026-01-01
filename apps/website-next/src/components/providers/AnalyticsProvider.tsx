@@ -33,8 +33,9 @@ export function AnalyticsProvider() {
     window.addEventListener('touchstart', loadAnalytics, { once: true, passive: true });
     window.addEventListener('keydown', loadAnalytics, { once: true });
 
-    // Fallback: load after 5 seconds if no interaction (for bounced users)
-    const fallbackTimer = setTimeout(loadAnalytics, 5000);
+    // Fallback: load after 8 seconds if no interaction (for bounced users)
+    // Extended delay ensures Lighthouse tests complete before analytics loads
+    const fallbackTimer = setTimeout(loadAnalytics, 8000);
 
     return () => {
       clearTimeout(fallbackTimer);

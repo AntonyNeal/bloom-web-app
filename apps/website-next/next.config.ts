@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   // Enable React compiler for better performance
   reactCompiler: true,
   
+  // Disable strict mode for production (reduces double renders)
+  reactStrictMode: false,
+  
   // Image optimization configuration
   images: {
     // Use unoptimized for static export (images pre-optimized in public folder)

@@ -20,10 +20,3 @@ export function BookingButton({ children, className = '' }: BookingButtonProps) 
     </button>
   );
 }
-
-// Declare gtag for TypeScript
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-  }
-}

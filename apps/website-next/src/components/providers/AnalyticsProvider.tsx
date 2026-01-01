@@ -107,11 +107,3 @@ export function trackContactFormSubmit(formData: {
     window.gtag('event', 'contact_form_submit', formData);
   }
 }
-
-// Declare gtag for TypeScript
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-    dataLayer?: unknown[];
-  }
-}

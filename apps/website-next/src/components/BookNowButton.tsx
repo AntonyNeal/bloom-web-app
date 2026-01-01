@@ -37,10 +37,3 @@ export function BookNowButton({ variant }: BookNowButtonProps) {
     </button>
   );
 }
-
-// TypeScript declaration for gtag
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-  }
-}

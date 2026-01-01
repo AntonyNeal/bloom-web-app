@@ -18,10 +18,3 @@ export function FooterBookingButton() {
     </button>
   );
 }
-
-// TypeScript declaration for gtag
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-  }
-}

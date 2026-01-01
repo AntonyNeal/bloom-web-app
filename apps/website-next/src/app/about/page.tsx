@@ -3,8 +3,9 @@ import type { Metadata } from 'next';
 import { AboutBookingCTA } from '@/components/AboutBookingCTA';
 
 export const metadata: Metadata = {
-  title: 'About Zoe Semmler | Registered Psychologist Newcastle',
+  title: 'About Zoe Semmler | Registered Psychologist Newcastle | Life Psychology Australia',
   description: 'Meet Zoe Semmler, registered psychologist in Newcastle NSW. Professional support for anxiety, depression, couples therapy, neurodiversity, and NDIS services. Telehealth psychology across Greater Hunter region.',
+  keywords: 'Zoe Semmler psychologist, registered psychologist Newcastle, psychology services Newcastle, telehealth psychologist, Greater Hunter psychologist',
   alternates: {
     canonical: '/about',
   },
@@ -14,6 +15,11 @@ export const metadata: Metadata = {
     url: '/about',
     type: 'website',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Zoe Semmler | Registered Psychologist Newcastle',
+    description: 'Meet Zoe Semmler, registered psychologist in Newcastle NSW. Professional support for anxiety, depression, couples therapy, neurodiversity, and NDIS services.',
+  },
 };
 
 // JSON-LD structured data
@@ -21,7 +27,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'MedicalBusiness',
   name: 'Life Psychology Australia',
-  description: 'Professional psychology services in Newcastle and Greater Hunter region',
+  description: 'Professional psychology services in Newcastle and Greater Hunter region, specializing in anxiety, depression, couples therapy, neurodiversity support, and NDIS services.',
   url: 'https://www.life-psychology.com.au',
   address: {
     '@type': 'PostalAddress',
@@ -30,10 +36,33 @@ const jsonLd = {
     addressCountry: 'AU',
   },
   medicalSpecialty: 'Psychology',
+  availableService: [
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Individual Therapy',
+      description: 'Personalised therapy for mental health concerns',
+    },
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Couples Therapy',
+      description: 'Relationship counselling and therapy',
+    },
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Anxiety & Depression Support',
+      description: 'Specialised treatment for anxiety and depression',
+    },
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Neurodiversity Support',
+      description: 'Support for neurodivergent individuals',
+    },
+  ],
   founder: {
     '@type': 'Person',
     name: 'Zoe Semmler',
     jobTitle: 'Registered Psychologist',
+    description: 'AHPRA registered psychologist providing professional psychology services',
   },
 };
 
@@ -107,7 +136,11 @@ export default function AboutPage() {
                   people find their way through life&apos;s most challenging moments.
                   After completing my Master of Clinical Psychology and working in
                   various settings, I established Life Psychology Australia to
-                  make quality mental health care more accessible to everyone.
+                  make quality mental health care more accessible to everyone. I
+                  believe that when we address our mental health with intention
+                  and support, we open doors to greater personal fulfillment,
+                  stronger relationships, and the courage that comes from facing
+                  our challenges.
                 </p>
 
                 <p>
@@ -136,51 +169,310 @@ export default function AboutPage() {
               <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
                 My Approach to Therapy
               </h2>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Evidence-Based Practice</h3>
-                  <p className="text-gray-600">
-                    I use proven therapeutic approaches including CBT, ACT, and Schema Therapy 
-                    to ensure you receive effective, research-backed treatment.
-                  </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                      <span className="text-blue-600 font-bold text-sm">✓</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Evidence-Based Methods
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        CBT, ACT, mindfulness, and EMDR techniques
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                      <span className="text-blue-600 font-bold text-sm">✓</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Collaborative Partnership
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Working together to achieve your goals
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                      <span className="text-blue-600 font-bold text-sm">✓</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Holistic Growth Focus
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Supporting your journey toward health and fulfillment
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Client-Centred Care</h3>
-                  <p className="text-gray-600">
-                    Your unique experiences and goals guide our work together. 
-                    I tailor my approach to what works best for you.
-                  </p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Safe & Supportive Space</h3>
-                  <p className="text-gray-600">
-                    Creating a non-judgmental environment where you can explore 
-                    your thoughts and feelings openly is my priority.
-                  </p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Neurodiversity-Affirming</h3>
-                  <p className="text-gray-600">
-                    I celebrate neurodiversity and provide affirming support for 
-                    autistic and neurodivergent individuals.
-                  </p>
+
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                      <span className="text-blue-600 font-bold text-sm">✓</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Safe Environment
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Non-judgmental, confidential space
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                      <span className="text-blue-600 font-bold text-sm">✓</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Individualised Care
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Treatment plans tailored to you
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                      <span className="text-blue-600 font-bold text-sm">✓</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Ongoing Support
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Flexible sessions including evenings, with ongoing follow-up care
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
+          {/* Qualifications & Registrations Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            <div className="bg-white rounded-lg shadow-sm p-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                Qualifications
+              </h3>
+              <ul className="space-y-4">
+                <li className="flex items-start">
+                  <span className="text-green-500 mr-3 mt-1">✓</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      Master of Clinical Psychology
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      Advanced training and practice
+                    </div>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-green-500 mr-3 mt-1">✓</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      Bachelor of Psychology (Honours)
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      Foundation in psychological science
+                    </div>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-green-500 mr-3 mt-1">✓</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      Graduate Diploma of Psychology
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      Professional psychology qualification
+                    </div>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-green-500 mr-3 mt-1">✓</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      Advanced Training
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      CBT, ACT, EMDR, and trauma-informed care
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                Professional Memberships
+              </h3>
+              <ul className="space-y-4">
+                <li className="flex items-start">
+                  <span className="text-blue-500 mr-3 mt-1">✓</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      AHPRA Registered (PsyBA)
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      Psychology Board of Australia
+                    </div>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-500 mr-3 mt-1">✓</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      APS Full Member (MAPS)
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      Australian Psychological Society
+                    </div>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-500 mr-3 mt-1">✓</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      Medicare Provider
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      Rebates available for eligible clients
+                    </div>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-500 mr-3 mt-1">✓</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      NDIS Provider
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      Approved disability support provider
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Values Section */}
+          <div className="mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+              My Core Values
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white rounded-lg shadow-sm p-6 text-center hover:shadow-md transition-shadow">
+                <div className="text-4xl mb-4">💙</div>
+                <h3 className="font-semibold text-lg text-gray-900 mb-3">
+                  Compassion
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Every person deserves understanding, respect, and genuine care
+                  in their journey toward healing.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm p-6 text-center hover:shadow-md transition-shadow">
+                <div className="text-4xl mb-4">🧠</div>
+                <h3 className="font-semibold text-lg text-gray-900 mb-3">
+                  Evidence-Based
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Using proven therapeutic approaches backed by research and
+                  experience.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm p-6 text-center hover:shadow-md transition-shadow">
+                <div className="text-4xl mb-4">🏠</div>
+                <h3 className="font-semibold text-lg text-gray-900 mb-3">
+                  Accessibility
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Quality mental health care from the comfort of your own home.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm p-6 text-center hover:shadow-md transition-shadow">
+                <div className="text-4xl mb-4">🌱</div>
+                <h3 className="font-semibold text-lg text-gray-900 mb-3">
+                  Growth &amp; Hope
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Believing in every person&apos;s capacity for positive change and
+                  personal growth.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Personal Touch Section - Centered */}
+          <div className="text-center mb-16">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold text-gray-900 mb-8">
+                A Personal Connection
+              </h2>
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8 lg:p-12">
+                <p className="text-lg text-gray-700 leading-relaxed mb-6">
+                  Living and working in the beautiful Newcastle and Greater
+                  Hunter region, I understand the unique challenges and
+                  opportunities that come with life in our community. Whether
+                  you&apos;re dealing with work-related stress, family changes, or
+                  simply seeking greater peace of mind, I&apos;m here to support you.
+                </p>
+                <p className="text-lg text-gray-700 leading-relaxed">
+                  My passion for telehealth comes from a genuine belief that
+                  mental health support should fit into your life, not the other
+                  way around. Through secure, convenient online sessions, we can
+                  work together to help you build the life you deserve, with the
+                  flexibility and accessibility that modern life demands.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* CTA Section */}
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <section className="text-center bg-gray-50 rounded-lg p-8 lg:p-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Ready to Start Your Journey?
             </h2>
-            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-              Take the first step towards positive change. Book a session and let&apos;s 
-              work together on your path to wellbeing.
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              Take the first step toward positive change with compassionate,
+              professional support tailored to your unique needs and
+              circumstances.
             </p>
-            <AboutBookingCTA />
-          </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+              <AboutBookingCTA />
+            </div>
+            <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500">
+              <span className="flex items-center">
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                Medicare rebates available
+              </span>
+              <span className="flex items-center">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                NDIS participants welcome
+              </span>
+              <span className="flex items-center">
+                <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                Private health covered
+              </span>
+            </div>
+          </section>
         </div>
       </main>
     </>

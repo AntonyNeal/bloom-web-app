@@ -40,12 +40,12 @@ export function MobileCTABar() {
   useEffect(() => {
     const fetchAvailability = async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL || '/api';
+        const baseUrl = process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL || '';
         const startDate = new Date();
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + 7);
         
-        const url = `${baseUrl}/availability/slots?start=${startDate.toISOString()}&end=${endDate.toISOString()}&duration=60`;
+        const url = `${baseUrl}/api/halaxy/availability?from=${startDate.toISOString()}&to=${endDate.toISOString()}`;
         const response = await fetch(url);
         
         if (!response.ok) return;

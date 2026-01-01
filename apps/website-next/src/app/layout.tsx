@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
-import { Navigation } from "@/components/Navigation";
+import { Navigation } from "@/components/NavigationServer";
 import { AnalyticsProvider, BookingProvider } from "@/components/providers";
 
 // Optimize fonts - only load what's needed
@@ -63,6 +63,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfairDisplay.variable}`}>
       <head>
+        {/* Preload LCP image for faster rendering */}
+        <link
+          rel="preload"
+          href="/assets/hero-zoe-main.webp"
+          as="image"
+          type="image/webp"
+          fetchPriority="high"
+        />
         {/* Preconnect to critical third-party origins */}
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://life-psychology.au2.halaxy.com" crossOrigin="anonymous" />

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useBooking } from './providers';
 
 interface AvailableSlot {
   start: string;
@@ -34,6 +35,7 @@ function getTimeUntilAvailability(startTime: string): string {
 
 export function MobileCTABar() {
   const [availabilityText, setAvailabilityText] = useState<string | null>(null);
+  const { openBookingModal } = useBooking('mobile_cta_bar');
 
   useEffect(() => {
     const fetchAvailability = async () => {
@@ -78,17 +80,6 @@ export function MobileCTABar() {
     }
   }, []);
 
-  const handleBookingClick = () => {
-    // Track the click
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'booking_cta_click', {
-        event_category: 'Booking',
-        event_label: 'mobile_cta_bar',
-      });
-    }
-    window.open('https://life-psychology.au2.halaxy.com/book', '_blank');
-  };
-
   return (
     <>
       {/* Mobile-only conversion-optimized CTA bar */}
@@ -109,9 +100,9 @@ export function MobileCTABar() {
 
             {/* Primary CTA */}
             <button
-              onClick={handleBookingClick}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-5 rounded-lg shadow-md active:scale-95 transition-all duration-200 flex items-center gap-2"
               type="button"
+              onClick={() => openBookingModal('mobile_cta_bar')}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-5 rounded-lg shadow-md active:scale-95 transition-all duration-200 flex items-center gap-2"
             >
               <span className="text-base">📅</span>
               <span className="text-sm">Book Now</span>
@@ -124,11 +115,4 @@ export function MobileCTABar() {
       </div>
     </>
   );
-}
-
-// TypeScript declaration for gtag
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-  }
 }

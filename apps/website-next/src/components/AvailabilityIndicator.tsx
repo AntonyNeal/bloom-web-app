@@ -77,9 +77,12 @@ export function AvailabilityIndicator() {
           slots = data;
         }
         
-        // Get the next available slot
-        if (slots.length > 0) {
-          const nextSlot = slots[0];
+        // Filter out past slots and get the next available one
+        const now = new Date();
+        const futureSlots = slots.filter(slot => new Date(slot.start) > now);
+        
+        if (futureSlots.length > 0) {
+          const nextSlot = futureSlots[0];
           setAvailabilityText(getTimeUntilAvailability(nextSlot.start));
         }
       } catch (error) {

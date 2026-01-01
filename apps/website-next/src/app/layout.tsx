@@ -64,7 +64,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfairDisplay.variable}`}>
       <head>
-        {/* Preload LCP image for faster rendering */}
+        {/* Preload LCP image for faster rendering on mobile */}
         <link
           rel="preload"
           href="/assets/hero-zoe-main.webp"
@@ -72,9 +72,10 @@ export default function RootLayout({
           type="image/webp"
           fetchPriority="high"
         />
-        {/* Preconnect to critical third-party origins */}
-        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        {/* Preconnect to booking system - critical for conversion */}
         <link rel="preconnect" href="https://life-psychology.au2.halaxy.com" crossOrigin="anonymous" />
+        {/* DNS prefetch for analytics - loaded on interaction */}
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
       </head>
       <body className="font-sans antialiased bg-white text-gray-900 pb-[72px] md:pb-0">

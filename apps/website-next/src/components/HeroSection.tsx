@@ -1,18 +1,7 @@
-'use client';
-
-import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import { BookingButton } from './BookingButton';
-
-// Lazy load AvailabilityIndicator - it fetches API data and is not critical for LCP
-const AvailabilityIndicator = dynamic(
-  () => import('./AvailabilityIndicator').then(mod => mod.AvailabilityIndicator),
-  { 
-    ssr: false, // Skip SSR since it depends on client-side fetch
-    loading: () => <div className="min-h-[24px]" /> // Reserve space to prevent CLS
-  }
-);
+import { AvailabilityIndicatorClient } from './AvailabilityIndicatorClient';
 
 interface HeroSectionProps {
   heroPhoto?: string;
@@ -107,7 +96,7 @@ export function HeroSection({ heroPhoto = '/assets/hero-zoe-main.webp' }: HeroSe
               </div>
 
               {/* Availability indicator */}
-              <AvailabilityIndicator />
+              <AvailabilityIndicatorClient />
             </div>
           </div>
         </div>

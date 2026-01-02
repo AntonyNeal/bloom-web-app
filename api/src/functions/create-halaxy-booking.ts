@@ -4,6 +4,12 @@
  * Azure Function to create appointments in Halaxy from the website.
  * Creates or finds the patient, then creates the appointment.
  * Stores booking session data for analytics tracking.
+ * Queues clinician notification (SMS/email) for async processing.
+ * 
+ * Architecture:
+ * - Booking creation is synchronous (returns immediately)
+ * - Notifications are queued and processed async (fire-and-forget)
+ * - Notification failures do NOT affect booking success
  */
 import {
   app,
@@ -13,6 +19,7 @@ import {
 } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy/client';
 import { getDbConnection } from '../services/database';
+import { queueBookingNotification, queuePatientConfirmation } from '../services/notifications/queue';
 import * as sql from 'mssql';
 
 interface PatientData {
@@ -30,6 +37,7 @@ interface AppointmentDetails {
   minutesDuration: number;
   practitionerId?: string;
   notes?: string;
+  appointmentType?: string; // e.g., 'ndis-psychology-session', 'standard-psychology-session'
 }
 
 interface SessionData {
@@ -281,15 +289,67 @@ async function createHalaxyBooking(
     context.log(`Appointment created - ID: ${appointment.id}, Status: ${appointment.status}`);
     context.log(`[PERF] Appointment created at +${Date.now() - bookingStartTime}ms`);
 
-    // Step 3: Store booking session for analytics (fire and forget - don't await)
+    // Step 3: Queue notifications for async processing (fire-and-forget)
+    // Notification failures do NOT block the booking - it's already confirmed in Halaxy
+    
+    // 3a: Queue clinician notification (email only - no SMS without phone numbers)
+    try {
+      const notificationId = await queueBookingNotification(
+        practitionerId,
+        {
+          appointmentId: appointment.id,
+          patientFirstName: body.patient.firstName,
+          patientLastName: body.patient.lastName,
+          patientEmail: body.patient.email,
+          patientPhone: body.patient.phone,
+          appointmentDateTime: new Date(body.appointmentDetails.startTime),
+          appointmentType: body.appointmentDetails.appointmentType,
+        },
+        ['email'] // Email only - SMS disabled until phone numbers available
+      );
+
+      if (notificationId) {
+        context.log(`Clinician notification queued: ${notificationId}`);
+      } else {
+        context.warn('Failed to queue clinician notification');
+      }
+    } catch (queueError) {
+      context.warn('Error queuing clinician notification:', queueError);
+    }
+
+    // 3b: Queue patient booking confirmation email
+    try {
+      const patientNotificationId = await queuePatientConfirmation(
+        {
+          appointmentId: appointment.id,
+          patientFirstName: body.patient.firstName,
+          patientLastName: body.patient.lastName,
+          patientEmail: body.patient.email,
+          patientPhone: body.patient.phone,
+          appointmentDateTime: new Date(body.appointmentDetails.startTime),
+          appointmentType: body.appointmentDetails.appointmentType,
+        },
+        'Zoe Semmler' // TODO: Fetch practitioner name from Halaxy or database
+      );
+
+      if (patientNotificationId) {
+        context.log(`Patient confirmation queued: ${patientNotificationId}`);
+      } else {
+        context.warn('Failed to queue patient confirmation');
+      }
+    } catch (queueError) {
+      context.warn('Error queuing patient confirmation:', queueError);
+    }
+
+    context.log(`[PERF] Total booking time: ${Date.now() - bookingStartTime}ms`);
+
+    // Step 4: Store booking session for analytics (fire and forget - don't await)
     storeBookingSession(
       appointment.id,
       patient.id,
       body.sessionData,
       context
     ).catch(err => context.warn('Failed to store booking session:', err));
-
-    context.log(`[PERF] Total booking time: ${Date.now() - bookingStartTime}ms`);
 
     // Success response
     return {

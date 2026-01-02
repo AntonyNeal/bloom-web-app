@@ -1,8 +1,17 @@
 # Sprint Backlog: December 22, 2025 - January 4, 2026
 
-> **Last Updated**: December 22, 2025
+> **Last Updated**: December 26, 2025
 > **Sprint Goal**: Application Review Workflow + Practitioner Onboarding
 > **Release Date**: January 4, 2026
+
+---
+
+## Quick Fixes (Added Dec 26)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| Dropdown Arrow Fix | Fix select dropdown arrow overlapping with option text in booking form | ✅ Complete |
+| Azure Resource Audit | Audit all Azure resources and delete/disable unused ones | Not Started |
 
 ---
 

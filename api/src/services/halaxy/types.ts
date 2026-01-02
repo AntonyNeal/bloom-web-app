@@ -70,12 +70,75 @@ export interface FHIRPractitionerRole {
     reference: string;
     display?: string;
   };
+  location?: Array<{
+    reference: string; // 'Location/{id}'
+    display?: string;
+  }>;
+  telecom?: Array<{
+    system: 'phone' | 'email' | 'fax' | 'sms' | 'other';
+    value: string;
+    use?: 'work' | 'home' | 'mobile';
+  }>;
   specialty?: Array<{
     coding: Array<{
       system?: string;
       code?: string;
       display?: string;
     }>;
+  }>;
+}
+
+/**
+ * FHIR Location resource
+ * Physical location where services are provided
+ */
+export interface FHIRLocation {
+  resourceType: 'Location';
+  id: string;
+  status?: 'active' | 'suspended' | 'inactive';
+  name?: string;
+  description?: string;
+  telecom?: Array<{
+    system: 'phone' | 'email' | 'fax' | 'sms' | 'other';
+    value: string;
+    use?: 'work' | 'home' | 'mobile';
+  }>;
+  address?: {
+    use?: 'home' | 'work' | 'temp' | 'old';
+    type?: 'postal' | 'physical' | 'both';
+    text?: string;
+    line?: string[];
+    city?: string;
+    district?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  };
+}
+
+/**
+ * FHIR Organization resource
+ * Practice/clinic organization
+ */
+export interface FHIROrganization {
+  resourceType: 'Organization';
+  id: string;
+  active?: boolean;
+  name?: string;
+  telecom?: Array<{
+    system: 'phone' | 'email' | 'fax' | 'sms' | 'other';
+    value: string;
+    use?: 'work' | 'home' | 'mobile';
+  }>;
+  address?: Array<{
+    use?: 'home' | 'work' | 'temp' | 'old';
+    type?: 'postal' | 'physical' | 'both';
+    text?: string;
+    line?: string[];
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
   }>;
 }
 

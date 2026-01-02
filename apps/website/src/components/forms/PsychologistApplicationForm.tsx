@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { FormField } from './FormField';
 import { FileUpload } from './FileUpload';
 import { FormProgress } from './FormProgress';
@@ -19,6 +19,16 @@ import {
   getErrorMessage,
 } from '../../services/applicationApi';
 
+// Local storage key for auto-save
+const AUTO_SAVE_KEY = 'lpa-psychologist-application-draft';
+const AUTO_SAVE_STEP_KEY = 'lpa-psychologist-application-step';
+
+// Auto-save debounce delay (ms)
+const AUTO_SAVE_DELAY = 1000;
+
+// Fields that should not be saved (sensitive or file data)
+const EXCLUDED_FIELDS = ['cvFile', 'cvUploadStatus', 'applicationId', 'submittedAt'];
+
 export const PsychologistApplicationForm: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -27,6 +37,9 @@ export const PsychologistApplicationForm: React.FC = () => {
   const [qualificationPassed, setQualificationPassed] = useState<
     boolean | null
   >(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [showDraftRestored, setShowDraftRestored] = useState(false);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [formData, setFormData] = useState<Partial<PsychologistApplication>>({
     // Initialize with sensible defaults for booleans and arrays
@@ -46,6 +59,93 @@ export const PsychologistApplicationForm: React.FC = () => {
     privacyConsent: false,
     backgroundCheckConsent: false,
   });
+
+  // Load saved draft on mount
+  useEffect(() => {
+    try {
+      const savedDraft = localStorage.getItem(AUTO_SAVE_KEY);
+      const savedStep = localStorage.getItem(AUTO_SAVE_STEP_KEY);
+      
+      if (savedDraft) {
+        const parsedDraft = JSON.parse(savedDraft);
+        // Merge saved data with defaults (in case new fields were added)
+        setFormData(prev => ({ ...prev, ...parsedDraft }));
+        
+        // Check if they passed qualification gate
+        if (validateQualificationGate(parsedDraft)) {
+          setQualificationPassed(true);
+        }
+        
+        // Restore step if valid
+        if (savedStep) {
+          const step = parseInt(savedStep, 10);
+          if (step >= 1 && step <= 7) {
+            setCurrentStep(step);
+          }
+        }
+        
+        setShowDraftRestored(true);
+        // Auto-hide the notification after 5 seconds
+        setTimeout(() => setShowDraftRestored(false), 5000);
+        
+        console.log('[ApplicationForm] Draft restored from local storage');
+      }
+    } catch (error) {
+      console.error('[ApplicationForm] Failed to load draft:', error);
+    }
+  }, []);
+
+  // Auto-save form data with debounce
+  const saveToLocalStorage = useCallback((data: Partial<PsychologistApplication>, step: number) => {
+    try {
+      // Filter out excluded fields
+      const dataToSave = Object.entries(data).reduce((acc, [key, value]) => {
+        if (!EXCLUDED_FIELDS.includes(key)) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, unknown>);
+
+      localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(dataToSave));
+      localStorage.setItem(AUTO_SAVE_STEP_KEY, String(step));
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error('[ApplicationForm] Failed to save draft:', error);
+    }
+  }, []);
+
+  // Trigger auto-save when form data or step changes
+  useEffect(() => {
+    // Don't save if form is submitted
+    if (submitted) return;
+    
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    
+    // Set new debounced save
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      saveToLocalStorage(formData, currentStep);
+    }, AUTO_SAVE_DELAY);
+    
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [formData, currentStep, submitted, saveToLocalStorage]);
+
+  // Clear draft on successful submission
+  const clearSavedDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(AUTO_SAVE_KEY);
+      localStorage.removeItem(AUTO_SAVE_STEP_KEY);
+      console.log('[ApplicationForm] Draft cleared after submission');
+    } catch (error) {
+      console.error('[ApplicationForm] Failed to clear draft:', error);
+    }
+  }, []);
 
   const steps = [
     { number: 1, title: 'Qualification', completed: currentStep > 1 },
@@ -178,6 +278,8 @@ export const PsychologistApplicationForm: React.FC = () => {
         submittedAt: new Date(),
       }));
       setSubmitted(true);
+      // Clear the saved draft on successful submission
+      clearSavedDraft();
     } catch (error) {
       console.error('Submission error:', error);
       const errorMessage = getErrorMessage(error);
@@ -226,13 +328,45 @@ export const PsychologistApplicationForm: React.FC = () => {
 
   return (
     <>
+      {/* Draft restored notification */}
+      {showDraftRestored && (
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between animate-fade-in">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className="text-blue-700 text-sm">
+              <strong>Draft restored!</strong> Your previous progress has been loaded.
+            </span>
+          </div>
+          <button 
+            onClick={() => setShowDraftRestored(false)}
+            className="text-blue-400 hover:text-blue-600"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Progress indicator - sits on background at natural width */}
       {qualificationPassed !== false && (
         <FormProgress steps={steps} currentStep={currentStep} />
       )}
 
       {/* Form container with gradient background */}
-      <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl shadow-xl p-8 lg:p-12 border border-blue-100">
+      <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl shadow-xl p-8 lg:p-12 border border-blue-100 relative">
+        {/* Auto-save indicator */}
+        {lastSaved && !submitted && (
+          <div className="absolute top-4 right-4 text-xs text-gray-400 flex items-center">
+            <svg className="w-3 h-3 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <span>Auto-saved</span>
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit}>
           {/* Step 1: Qualification Gate */}
           {currentStep === 1 && qualificationPassed === null && (

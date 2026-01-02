@@ -62,6 +62,8 @@ Each ticket in this document includes:
 
 ### Epic 10: Database & Data Management
 
+### Epic 11: A/B Testing & Experimentation
+
 ---
 
 ## 🔐 EPIC 1: Security & Authentication Enhancement
@@ -2034,6 +2036,165 @@ Each ticket in this document includes:
 
 ---
 
+## 🧪 EPIC 11: A/B Testing & Experimentation
+
+**Epic Description**: Migrate and enhance A/B testing infrastructure from the legacy website to website-next, enabling data-driven optimization of user experience and conversion rates.
+
+**Business Value**: Enables evidence-based design decisions, improves conversion rates, allows safe experimentation with new features without full rollout.
+
+**Background**: A/B testing system existed in `apps/website` (React/Vite) but was not migrated to `apps/website-next` (Next.js). The original system supported homepage hero photo testing with 50/50 weighted distribution.
+
+### Tickets
+
+#### BLOOM-1101: Migrate A/B Testing Provider to Next.js
+
+**Story**: As a developer, I want the A/B testing infrastructure migrated to website-next so that we can run experiments on the production site.
+
+**Acceptance Criteria**:
+
+- [ ] ABTestProvider component created for Next.js App Router
+- [ ] Compatible with server components (client-side only execution)
+- [ ] User ID generation and persistence via localStorage
+- [ ] Weighted variant allocation algorithm
+- [ ] URL parameter override (`?variant=xxx`) for testing
+- [ ] Cookie-based persistence for consistent experience across sessions
+- [ ] TypeScript types for test configurations
+
+**Story Points**: 8
+
+**Priority**: P1 (High)
+
+**Dependencies**: None
+
+**Technical Notes**:
+
+- Must be a client component ('use client')
+- Use React Context for variant distribution
+- Consider edge middleware for server-side allocation (future enhancement)
+- Ensure no hydration mismatch between server and client
+
+**Labels**: frontend, experimentation, migration
+
+---
+
+#### BLOOM-1102: Homepage Hero Photo A/B Test
+
+**Story**: As a marketing manager, I want to A/B test different hero photos on the homepage so that we can identify which image drives more conversions.
+
+**Acceptance Criteria**:
+
+- [ ] HeroSection component accepts variant prop
+- [ ] Two variants configured: 'photo-current' (sitting) and 'photo-standing'
+- [ ] Both photo variants optimized for performance (WebP, proper sizing)
+- [ ] Variant assignment tracked in analytics
+- [ ] Conversion events (booking clicks) attributed to variants
+- [ ] Test can be enabled/disabled via configuration
+
+**Story Points**: 5
+
+**Priority**: P1 (High)
+
+**Dependencies**: BLOOM-1101
+
+**Technical Notes**:
+
+- Reuse existing hero-zoe-main.webp for current variant
+- Need standing photo asset for alternate variant
+- Ensure both variants have same aspect ratio to prevent CLS
+- Track variant in GA4 custom dimensions
+
+**Labels**: frontend, experimentation, conversion-optimization
+
+---
+
+#### BLOOM-1103: A/B Test Analytics Integration
+
+**Story**: As a data analyst, I want A/B test variants tracked in Google Analytics so that we can measure conversion rates per variant.
+
+**Acceptance Criteria**:
+
+- [ ] Variant assignment sent to GA4 on page load
+- [ ] Custom dimension configured for test variant
+- [ ] Conversion events include variant attribution
+- [ ] Dashboard/report template for comparing variants
+- [ ] Statistical significance calculator or integration
+
+**Story Points**: 5
+
+**Priority**: P2 (Medium)
+
+**Dependencies**: BLOOM-1101, BLOOM-1102
+
+**Technical Notes**:
+
+- Use gtag('set', {'experiment_variant': variant})
+- Create GA4 exploration report for A/B analysis
+- Consider minimum sample size for statistical significance
+- Document how to interpret results
+
+**Labels**: analytics, experimentation, reporting
+
+---
+
+#### BLOOM-1104: A/B Test Admin Dashboard
+
+**Story**: As an administrator, I want a dashboard to view A/B test results so that I can make data-driven decisions about which variants to keep.
+
+**Acceptance Criteria**:
+
+- [ ] Dashboard shows active tests and their status
+- [ ] Displays variant distribution (actual vs expected)
+- [ ] Shows conversion rates per variant
+- [ ] Calculates statistical significance
+- [ ] Ability to end test and select winner
+- [ ] Historical test results archived
+
+**Story Points**: 13
+
+**Priority**: P3 (Low)
+
+**Dependencies**: BLOOM-1101, BLOOM-1103
+
+**Technical Notes**:
+
+- Could integrate with existing admin portal
+- Pull data from GA4 API or Cosmos DB
+- Consider using existing ABTestDashboard.tsx from src/pages/admin
+- May need backend API for aggregating results
+
+**Labels**: admin, analytics, experimentation, dashboard
+
+---
+
+#### BLOOM-1105: Feature Flag System Integration
+
+**Story**: As a developer, I want A/B tests to integrate with a feature flag system so that we can gradually roll out features and run experiments.
+
+**Acceptance Criteria**:
+
+- [ ] Feature flags can target specific user segments
+- [ ] Percentage-based rollout support
+- [ ] Integration with A/B test variant allocation
+- [ ] Flags configurable without code deployment
+- [ ] Audit log of flag changes
+
+**Story Points**: 8
+
+**Priority**: P3 (Low)
+
+**Dependencies**: BLOOM-1101
+
+**Technical Notes**:
+
+- Consider Azure App Configuration for feature flags
+- Could use LaunchDarkly or similar SaaS
+- Or build simple JSON-based configuration
+- Ensure flags work with static export (client-side only)
+
+**Labels**: infrastructure, experimentation, devops
+
+---
+
 ## 📊 Estimation Summary
 
 **Total Story Points by Epic:**
@@ -2050,9 +2211,10 @@ Each ticket in this document includes:
 | Epic 8: Email         | 37           | 7.4            |
 | Epic 9: Documentation | 34           | 6.8            |
 | Epic 10: Database     | 41           | 6.8            |
+| Epic 11: A/B Testing  | 39           | 7.8            |
 | Cross-Cutting         | 58           | 11.6           |
 
-**Total: ~500 Story Points** (approximately 10-15 developer-months of work)
+**Total: ~539 Story Points** (approximately 11-16 developer-months of work)
 
 ---
 

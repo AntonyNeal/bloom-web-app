@@ -64,6 +64,21 @@ export default function JoinUs() {
               <p className="text-2xl text-gray-700 font-semibold mb-8">
                 Keep 80% of everything you bill. We handle the rest.
               </p>
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={() => document.getElementById('application-form')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 text-lg"
+                >
+                  Apply Now →
+                </button>
+                <button
+                  onClick={() => document.getElementById('faq-section')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="bg-white hover:bg-gray-50 text-blue-600 font-bold py-4 px-8 rounded-lg shadow-md hover:shadow-lg border-2 border-blue-200 transition-all duration-200 text-lg"
+                >
+                  Learn More
+                </button>
+              </div>
             </div>
 
             {/* Right Column: Hero Image */}
@@ -93,7 +108,7 @@ export default function JoinUs() {
           </div>
 
           {/* Value Proposition Grid */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <div className="grid md:grid-cols-3 gap-6 mb-12 mt-12">
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="text-3xl font-bold text-blue-600 mb-2">80%</div>
               <div className="text-lg font-semibold mb-2">Revenue Share</div>
@@ -385,8 +400,142 @@ export default function JoinUs() {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section id="faq-section" className="py-16 lg:py-24 bg-white">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xl text-gray-600">
+              Everything you need to know about joining our team
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {/* FAQ Item 1 */}
+            <details className="group bg-gray-50 rounded-xl p-6 cursor-pointer">
+              <summary className="flex items-center justify-between font-semibold text-lg text-gray-900 list-none">
+                <span>What does the 80% revenue share actually mean?</span>
+                <span className="transform group-open:rotate-180 transition-transform duration-200">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </summary>
+              <p className="mt-4 text-gray-600">
+                It's simple: for every $100 you bill, you take home $80. No hidden fees, 
+                no "admin deductions," no surprise costs. Your sessions are your earnings. 
+                Industry standard is typically 50-60%, so you're keeping significantly more 
+                with Life Psychology.
+              </p>
+            </details>
+
+            {/* FAQ Item 2 */}
+            <details className="group bg-gray-50 rounded-xl p-6 cursor-pointer">
+              <summary className="flex items-center justify-between font-semibold text-lg text-gray-900 list-none">
+                <span>How much admin work will I actually have to do?</span>
+                <span className="transform group-open:rotate-180 transition-transform duration-200">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </summary>
+              <p className="mt-4 text-gray-600">
+                Almost none. We handle Medicare claims, invoicing, payment processing, 
+                client scheduling, reminders, and intake paperwork. You focus on therapy 
+                and clinical notes—we handle everything else. Our technology platform 
+                automates what other practices do manually.
+              </p>
+            </details>
+
+            {/* FAQ Item 3 */}
+            <details className="group bg-gray-50 rounded-xl p-6 cursor-pointer">
+              <summary className="flex items-center justify-between font-semibold text-lg text-gray-900 list-none">
+                <span>Can I really work as few as 5 hours per week?</span>
+                <span className="transform group-open:rotate-180 transition-transform duration-200">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </summary>
+              <p className="mt-4 text-gray-600">
+                Absolutely. Some practitioners work full caseloads, others work just a few 
+                hours to supplement other income or maintain clinical skills while raising 
+                children. You set your availability, and we fill your calendar accordingly. 
+                No minimums, no pressure.
+              </p>
+            </details>
+
+            {/* FAQ Item 4 */}
+            <details className="group bg-gray-50 rounded-xl p-6 cursor-pointer">
+              <summary className="flex items-center justify-between font-semibold text-lg text-gray-900 list-none">
+                <span>What if I want to leave?</span>
+                <span className="transform group-open:rotate-180 transition-transform duration-200">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </summary>
+              <p className="mt-4 text-gray-600">
+                No lock-in contracts. We believe in earning your partnership through value, 
+                not legal binding. If you decide Life Psychology isn't right for you, there 
+                are no penalties or exit fees. We're confident you'll stay because you want 
+                to, not because you have to.
+              </p>
+            </details>
+
+            {/* FAQ Item 5 */}
+            <details className="group bg-gray-50 rounded-xl p-6 cursor-pointer">
+              <summary className="flex items-center justify-between font-semibold text-lg text-gray-900 list-none">
+                <span>How do you find clients for me?</span>
+                <span className="transform group-open:rotate-180 transition-transform duration-200">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </summary>
+              <p className="mt-4 text-gray-600">
+                We invest heavily in marketing and client acquisition—Google Ads, SEO, 
+                referral networks, and community partnerships. When clients book through 
+                our website, we match them with the best-fit practitioner based on 
+                specialization and availability. You don't need to market yourself.
+              </p>
+            </details>
+
+            {/* FAQ Item 6 */}
+            <details className="group bg-gray-50 rounded-xl p-6 cursor-pointer">
+              <summary className="flex items-center justify-between font-semibold text-lg text-gray-900 list-none">
+                <span>What equipment do I need?</span>
+                <span className="transform group-open:rotate-180 transition-transform duration-200">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </summary>
+              <p className="mt-4 text-gray-600">
+                Just a computer with a webcam, a decent headset, reliable internet, and a 
+                quiet, private space for sessions. We provide the secure telehealth platform, 
+                practice management software, and all the digital tools you need.
+              </p>
+            </details>
+          </div>
+
+          {/* CTA after FAQ */}
+          <div className="mt-12 text-center">
+            <p className="text-gray-600 mb-4">Ready to take the next step?</p>
+            <button
+              onClick={() => document.getElementById('application-form')?.scrollIntoView({ behavior: 'smooth' })}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 text-lg"
+            >
+              Start Your Application →
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Application Form Section */}
-      <section className="py-16 lg:py-24 bg-gray-50">
+      <section id="application-form" className="py-16 lg:py-24 bg-gray-50 scroll-mt-8">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -395,6 +544,9 @@ export default function JoinUs() {
             <p className="text-xl text-gray-600">
               Ready to transform your psychology practice? Complete the
               application below.
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              ⏱️ Takes about 10 minutes • 📱 Mobile friendly • 💾 Progress auto-saved
             </p>
           </div>
 

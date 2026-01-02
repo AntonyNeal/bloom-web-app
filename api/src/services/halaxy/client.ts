@@ -15,6 +15,8 @@ import {
   FHIRSlot,
   FHIRSchedule,
   FHIRBundle,
+  FHIRLocation,
+  FHIROrganization,
   HalaxyConfig,
 } from './types';
 import { getAccessToken, invalidateToken, getHalaxyConfig } from './token-manager';
@@ -61,6 +63,20 @@ export class HalaxyClient {
   }
 
   /**
+   * Get a location by ID
+   */
+  async getLocation(locationId: string): Promise<FHIRLocation> {
+    return this.request<FHIRLocation>(`/Location/${locationId}`);
+  }
+
+  /**
+   * Get an organization by ID
+   */
+  async getOrganization(organizationId: string): Promise<FHIROrganization> {
+    return this.request<FHIROrganization>(`/Organization/${organizationId}`);
+  }
+
+  /**
    * Get all practitioner roles for the organization
    * This returns all practitioner-to-clinic associations
    */
@@ -74,6 +90,17 @@ export class HalaxyClient {
   async getPractitionerRolesByPractitioner(practitionerId: string): Promise<FHIRPractitionerRole[]> {
     return this.getAllPages<FHIRPractitionerRole>('/PractitionerRole', {
       practitioner: `Practitioner/${practitionerId}`,
+    });
+  }
+
+  /**
+   * Search practitioners by Halaxy Profile ID (identifier)
+   * Use this when you have a numeric profile ID (e.g. "1304541") instead of
+   * the resource ID (e.g. "PR-1439411")
+   */
+  async searchPractitionersByIdentifier(identifier: string): Promise<FHIRPractitioner[]> {
+    return this.getAllPages<FHIRPractitioner>('/Practitioner', {
+      identifier: identifier,
     });
   }
 
@@ -533,6 +560,34 @@ export class HalaxyClient {
       method: 'POST',
       body: JSON.stringify(bookParams),
     });
+  }
+
+  /**
+   * Cancel an appointment in Halaxy
+   * Updates the appointment status to 'cancelled'
+   */
+  async cancelAppointment(appointmentId: string, reason?: string): Promise<void> {
+    console.log(`[HalaxyClient] Cancelling appointment ${appointmentId}`);
+    
+    // FHIR merge-patch to update status to cancelled
+    const patchBody: Record<string, unknown> = {
+      status: 'cancelled'
+    };
+
+    // If reason provided, add cancellation reason
+    if (reason) {
+      patchBody.cancelationReason = { text: reason };
+    }
+
+    await this.request<FHIRAppointment>(`/Appointment/${appointmentId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/merge-patch+json',
+      },
+      body: JSON.stringify(patchBody),
+    });
+
+    console.log(`[HalaxyClient] Appointment ${appointmentId} cancelled successfully`);
   }
 
   // ===========================================================================

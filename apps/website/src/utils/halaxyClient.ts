@@ -21,6 +21,7 @@ interface AppointmentDetails {
   endTime: string;
   minutesDuration: number;
   notes?: string;
+  appointmentType?: string; // e.g., 'ndis-psychology-session', 'standard-psychology-session'
 }
 
 interface SessionData {
@@ -270,8 +271,21 @@ export class HalaxyClient {
    */
   static validatePhone(phone: string): boolean {
     // Allow Australian mobile and landline formats
-    const phoneRegex = /^(\+61|0)[2-478](\s?\d){8}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ''));
+    // Mobile: 04XX XXX XXX (10 digits) or +614XXXXXXXX
+    // Landline: 02/03/07/08 XXXX XXXX (10 digits)
+    const cleanPhone = phone.replace(/[\s\-()]/g, '');
+    
+    // +61 format: +61 followed by 9 digits (mobile drops leading 0)
+    if (cleanPhone.startsWith('+61')) {
+      return /^\+61[2-478]\d{8}$/.test(cleanPhone);
+    }
+    
+    // 0 format: 0 followed by area code and 8 digits = 10 total
+    if (cleanPhone.startsWith('0')) {
+      return /^0[2-478]\d{8}$/.test(cleanPhone);
+    }
+    
+    return false;
   }
 
   /**

@@ -255,9 +255,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Install Dependencies
+      - name: Install Root Dependencies
         run: npm ci
-      - name: Run ESLint
+      - name: Run Root ESLint
+        run: npm run lint
+      - name: Install Website-Next Dependencies
+        working-directory: apps/website-next
+        run: npm ci
+      - name: Run Website-Next ESLint
+        working-directory: apps/website-next
         run: npm run lint
 
   type-check:
@@ -270,9 +276,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Install Dependencies
+      - name: Install Root Dependencies
         run: npm ci
-      - name: Type Check
+      - name: Root Type Check
+        run: npx tsc --noEmit
+      - name: Install Website-Next Dependencies
+        working-directory: apps/website-next
+        run: npm ci
+      - name: Website-Next Type Check
+        working-directory: apps/website-next
         run: npx tsc --noEmit
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -608,11 +620,11 @@ jobs:
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Build Website Frontend
+  # Build Website Frontend (Next.js)
   # ─────────────────────────────────────────────────────────────────────────────
 
   build-website-frontend:
-    name: 🌐 Build Website Frontend
+    name: 🌐 Build Website Frontend (Next.js)
     runs-on: ubuntu-latest
     needs: [determine-environment, lint, type-check]
     if: |
@@ -630,39 +642,45 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install Root Dependencies
+      - name: Install Website Dependencies
+        working-directory: apps/website-next
         run: npm ci
 
-      - name: Install Website Dependencies
-        working-directory: apps/website
-        run: npm install
-
-      - name: Build Website Application
+      - name: Build Next.js Application
+        working-directory: apps/website-next
         run: |
-          echo "🌐 Building Website Frontend..."
-          npm run build:website
+          echo "🌐 Building Website Frontend (Next.js Static Export)..."
+          npm run build
           echo "✅ Build complete"
         env:
-          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-          VITE_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
-          VITE_FUNCTIONS_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
-          VITE_AZURE_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
-          VITE_AVAILABILITY_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/halaxy/availability
-          VITE_HALAXY_BOOKING_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/create-halaxy-booking
+          NEXT_PUBLIC_SITE_URL: https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net
+          # Use test Stripe key for dev, live key for staging/prod
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ needs.determine-environment.outputs.environment == 'development' && secrets.STRIPE_PUBLISHABLE_KEY_TEST || secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
+          NEXT_PUBLIC_AZURE_FUNCTION_URL: ${{ vars.NEXT_PUBLIC_AZURE_FUNCTION_URL }}
+          NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL: ${{ vars.NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL }}
+          NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL: ${{ vars.NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL }}
+
+      - name: Copy Static Web App Config
+        run: |
+          cp apps/website-next/staticwebapp.config.json apps/website-next/out/
+          echo "✅ staticwebapp.config.json copied to output"
 
       - name: Verify Build Output
         run: |
-          if [ ! -f "apps/website/dist/index.html" ]; then
-            echo "❌ Build failed!"
+          if [ ! -f "apps/website-next/out/index.html" ]; then
+            echo "❌ Build failed - index.html not found!"
             exit 1
           fi
-          echo "✅ Build verified"
+          # Count generated pages
+          PAGE_COUNT=$(find apps/website-next/out -name "index.html" | wc -l)
+          echo "✅ Build verified - $PAGE_COUNT pages generated"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: website-frontend-${{ needs.determine-environment.outputs.environment }}
-          path: apps/website/dist/
+          path: apps/website-next/out/
           if-no-files-found: error
           retention-days: 7
 

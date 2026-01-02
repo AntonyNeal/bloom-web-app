@@ -67,11 +67,12 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react')) {
             return 'icons';
           }
-          // React utilities that create contexts
-          if (
-            id.includes('node_modules/react-helmet-async') ||
-            id.includes('node_modules/prop-types/')
-          ) {
+          // React Helmet - separate chunk, now lazy-loaded for better TBT
+          if (id.includes('node_modules/react-helmet-async')) {
+            return 'helmet';
+          }
+          // React utilities that create contexts (prop-types only now)
+          if (id.includes('node_modules/prop-types/')) {
             return 'react-utils';
           }
           // Defer analytics - BUT ApplicationInsights vendor-misc

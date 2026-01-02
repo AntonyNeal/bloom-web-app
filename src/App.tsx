@@ -32,6 +32,7 @@ const SmokeTestDashboard = lazy(() =>
 );
 const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
 const BusinessCoach = lazy(() => import('./pages/BusinessCoach'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
 
 // Lazy-loaded flower components with preloading
 const Tier1Flower = lazy(() =>
@@ -437,6 +438,18 @@ function AnimatedRoutes() {
 
         {/* Login redirect - triggers Azure AD authentication */}
         <Route path="/login" element={<LoginRedirect />} />
+
+        {/* Practitioner onboarding - complete account setup after acceptance */}
+        <Route
+          path="/onboarding/:token"
+          element={
+            <ErrorBoundary>
+              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+                <Onboarding />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
 
         {/* Bloom Homepage - Practice dashboard with blossom tree */}
         <Route

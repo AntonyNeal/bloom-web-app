@@ -511,15 +511,19 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
           <motion.div
             key={`particle-${index}`}
             initial={{ opacity: 0 }}
-            animate={{ opacity: particle.opacity }}
+            animate={{ opacity: 1 }}
             transition={{
               duration: animationConfig.particleDuration,
               delay: animationConfig.particleDelay + index * 0.05,
               ease: 'easeOut',
             }}
-            style={{ willChange: 'opacity' }}
+            style={{ 
+              position: 'absolute',
+              ...particle.position,
+              willChange: 'opacity',
+            }}
             onAnimationComplete={(definition: { opacity?: number }) => {
-              if (definition.opacity === particle.opacity) {
+              if (definition.opacity === 1) {
                 const element = document.querySelector(`[data-particle="${index}"]`);
                 if (element instanceof HTMLElement) {
                   element.style.willChange = 'auto';

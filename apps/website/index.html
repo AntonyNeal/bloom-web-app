@@ -184,6 +184,9 @@
       }
       window.gtag = gtag;
       
+      // Track whether gtag script has been loaded
+      window.__gtagLoaded = false;
+      
       // Defer gtag configuration to avoid blocking initial render
       function initGtagConfig() {
         gtag('js', new Date());
@@ -218,16 +221,47 @@
         console.log('[GA4] Initialized with Partytown - ID:', measurementId);
       }
       
-      // Run config after first paint to not block LCP
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(initGtagConfig, { timeout: 2000 });
-      } else {
-        setTimeout(initGtagConfig, 100);
+      // Load gtag script lazily (only after first user interaction OR idle time)
+      // This defers the 80KB+ Google script until it's actually needed
+      function loadGtagScript() {
+        if (window.__gtagLoaded) return;
+        window.__gtagLoaded = true;
+        
+        var script = document.createElement('script');
+        script.type = 'text/partytown';
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-XGGBRLPBKK';
+        script.async = true;
+        document.head.appendChild(script);
+        
+        // Initialize config after script is queued
+        initGtagConfig();
+        console.log('[GA4] Script loaded on user interaction');
       }
+      
+      // Load on first user interaction (click, scroll, keypress, touch)
+      var interactionEvents = ['click', 'scroll', 'keydown', 'touchstart'];
+      function onFirstInteraction() {
+        loadGtagScript();
+        // Remove all listeners after first trigger
+        interactionEvents.forEach(function(event) {
+          document.removeEventListener(event, onFirstInteraction, { passive: true });
+        });
+      }
+      interactionEvents.forEach(function(event) {
+        document.addEventListener(event, onFirstInteraction, { passive: true, once: true });
+      });
+      
+      // Fallback: Load after 4 seconds if no interaction (important for SEO/analytics accuracy)
+      setTimeout(function() {
+        if (!window.__gtagLoaded) {
+          loadGtagScript();
+          console.log('[GA4] Script loaded on timeout fallback');
+        }
+      }, 4000);
     </script>
     
-    <!-- Load gtag.js via Partytown (runs in web worker, not main thread) -->
-    <script type="text/partytown" src="https://www.googletagmanager.com/gtag/js?id=G-XGGBRLPBKK"></script>
+    <!-- REMOVED: gtag.js now loads lazily via JavaScript above -->
+    <!-- Previously: <script type="text/partytown" src="https://www.googletagmanager.com/gtag/js?id=G-XGGBRLPBKK"></script> -->
     <!-- EARLY RUNTIME ENV CHECK - only enabled when VITE_DEBUG_PANEL is set to 'true' -->
     <script>
       try {
@@ -1010,89 +1044,23 @@
   </head>
   <body>
     <div id="root">
-      <!-- Static Hero Shell - Displays instantly before React hydrates -->
-      <!-- React will replace this entire content when it mounts -->
-      <div id="static-hero-shell" style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <!-- Hero Section -->
-        <section style="padding: 1.5rem 0 2.5rem; background: linear-gradient(to bottom right, #f8fafc, #fff, rgba(239, 246, 255, 0.3)); position: relative; overflow: hidden;">
-          <div style="max-width: 72rem; margin: 0 auto; padding: 0 1rem;">
-            <div style="display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: center;">
-              
-              <!-- Image -->
-              <div style="max-width: 448px; margin: 0 auto;">
-                <div style="position: relative;">
-                  <picture>
-                    <source
-                      srcset="/assets/hero-zoe-main-500w.webp 500w, /assets/hero-zoe-main.webp 800w"
-                      sizes="(max-width: 1024px) 100vw, 500px"
-                      type="image/webp"
-                    />
-                    <source
-                      srcset="/assets/hero-zoe-main-500w.jpg 500w, /assets/hero-zoe-main.jpg 800w"
-                      sizes="(max-width: 1024px) 100vw, 500px"
-                      type="image/jpeg"
-                    />
-                    <img
-                      src="/assets/hero-zoe-main-500w.jpg"
-                      alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
-                      style="width: 100%; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); display: block; aspect-ratio: 500 / 731; object-fit: cover; object-position: center top;"
-                      loading="eager"
-                      decoding="async"
-                      fetchpriority="high"
-                    />
-                  </picture>
-                  <!-- Credential badge -->
-                  <div style="position: absolute; bottom: 1rem; left: 1rem; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); border-radius: 0.5rem; padding: 0.5rem 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                    <p style="font-size: 0.75rem; font-weight: 600; color: #334155; margin: 0;">Registered Psychologist</p>
-                    <p style="font-size: 0.625rem; color: #64748b; margin: 0;">Newcastle, NSW</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Content -->
-              <div style="text-align: center;">
-                <div style="margin-bottom: 1rem;">
-                  <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0 0 0.5rem 0;">Zoe Semmler</h1>
-                  <p style="color: #2563eb; font-weight: 500; font-size: 1.125rem; margin: 0;">Psychologist • Newcastle & Australia-wide</p>
-                </div>
-                <p style="color: #475569; font-size: 1rem; line-height: 1.625; margin: 0 0 1.5rem 0; max-width: 36rem; margin-left: auto; margin-right: auto;">
-                  Supporting you through anxiety, depression, and life transitions with warm, evidence-based telehealth therapy.
-                </p>
-                <!-- Trust badges -->
-                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem;">
-                  <span style="display: inline-flex; align-items: center; gap: 0.375rem; background: #f0fdf4; color: #15803d; padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; border: 1px solid #bbf7d0;">
-                    <svg style="width: 1rem; height: 1rem;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                    Medicare rebates
-                  </span>
-                  <span style="display: inline-flex; align-items: center; gap: 0.375rem; background: #eff6ff; color: #1d4ed8; padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; border: 1px solid #bfdbfe;">
-                    <svg style="width: 1rem; height: 1rem;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                    NDIS provider
-                  </span>
-                  <span style="display: inline-flex; align-items: center; gap: 0.375rem; background: #faf5ff; color: #7c3aed; padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; border: 1px solid #e9d5ff;">
-                    <svg style="width: 1rem; height: 1rem;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
-                    Secure telehealth
-                  </span>
-                </div>
-                <!-- CTA buttons -->
-                <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: center;">
-                  <button style="background: #2563eb; color: white; font-weight: 600; padding: 0.875rem 2rem; border-radius: 0.75rem; border: none; font-size: 1rem; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
-                    Book your first session
-                  </button>
-                  <a href="/about" style="display: inline-flex; align-items: center; justify-content: center; padding: 0.875rem 1.5rem; border: 2px solid #e2e8f0; color: #334155; border-radius: 0.75rem; font-weight: 600; text-decoration: none; font-size: 1rem;">
-                    Learn more
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        <!-- Loading indicator for below-fold content -->
-        <div style="display: flex; justify-content: center; padding: 3rem 0;">
-          <div style="width: 2rem; height: 2rem; border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        </div>
-        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-      </div>
+      <!-- Simple placeholder with reserved space to prevent CLS -->
+      <div id="app-placeholder" style="min-height: 100vh; background: linear-gradient(to bottom right, #f8fafc, #fff);"></div>
     </div>
+    <!-- Remove placeholder when React mounts -->
+    <script type="module">
+      const placeholder = document.getElementById('app-placeholder');
+      if (placeholder) {
+        const observer = new MutationObserver((_, obs) => {
+          const root = document.getElementById('root');
+          if (root && root.children.length > 1) {
+            placeholder.remove();
+            obs.disconnect();
+          }
+        });
+        observer.observe(document.getElementById('root'), { childList: true });
+        setTimeout(() => { placeholder?.remove(); observer.disconnect(); }, 5000);
+      }
+    </script>
   </body>
 </html>

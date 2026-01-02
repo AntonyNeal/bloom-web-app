@@ -1,0 +1,198 @@
+name: Database Migration (Flyway)
+
+# Reusable workflow for database migrations using Flyway
+# Called from ci-cd.yml or triggered manually
+# Uses official Flyway Docker image for reliable SQL Server migrations
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment (dev, staging, prod)'
+        required: true
+        type: string
+      action:
+        description: 'Flyway action (info, validate, migrate, repair)'
+        required: false
+        type: string
+        default: 'migrate'
+      dry_run:
+        description: 'Preview only, do not apply'
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+    outputs:
+      migration_status:
+        description: 'Status of migration run'
+        value: ${{ jobs.flyway-migrate.outputs.status }}
+      migrations_applied:
+        description: 'Number of migrations applied'
+        value: ${{ jobs.flyway-migrate.outputs.applied_count }}
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      action:
+        description: 'Migration action'
+        required: true
+        type: choice
+        options:
+          - info      # Show migration status
+          - validate  # Validate pending migrations
+          - migrate   # Apply pending migrations
+          - repair    # Repair failed migrations
+      dry_run:
+        description: 'Dry run (show what would happen)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  flyway-migrate:
+    name: 🗄️ Flyway ${{ inputs.action }} (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment == 'prod' && 'production' || inputs.environment }}
+    outputs:
+      status: ${{ steps.flyway.outcome }}
+      applied_count: ${{ steps.flyway.outputs.applied_count }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Database Connection
+        id: db-config
+        run: |
+          KV_NAME="lpa-kv-dev-i3u6u6psuu75o"
+          
+          case "${{ inputs.environment }}" in
+            prod)
+              DB_NAME="lpa-bloom-db-prod"
+              SECRET_NAME="SQL-PROD-CONNECTION-STRING"
+              ;;
+            staging|dev|*)
+              DB_NAME="lpa-bloom-db-dev"
+              SECRET_NAME="SQL-DEV-CONNECTION-STRING"
+              ;;
+          esac
+          
+          echo "📦 Environment: ${{ inputs.environment }}"
+          echo "🗄️ Database: $DB_NAME"
+          
+          # Get connection string from Key Vault
+          CONN_STR=$(az keyvault secret show \
+            --name "$SECRET_NAME" \
+            --vault-name "$KV_NAME" \
+            --query value -o tsv)
+          
+          # Parse connection string for Flyway JDBC URL
+          # Handle both formats: Server=tcp:xxx,1433 and Server=xxx
+          if echo "$CONN_STR" | grep -q "Server=tcp:"; then
+            SERVER=$(echo "$CONN_STR" | sed -n 's/.*Server=tcp:\([^,;]*\).*/\1/p')
+          else
+            SERVER=$(echo "$CONN_STR" | sed -n 's/.*Server=\([^;,]*\).*/\1/p')
+          fi
+          
+          # Handle both formats: Initial Catalog and Database
+          if echo "$CONN_STR" | grep -qi "Initial Catalog"; then
+            DATABASE=$(echo "$CONN_STR" | sed -n 's/.*Initial Catalog=\([^;]*\).*/\1/ip' | head -1)
+          else
+            DATABASE=$(echo "$CONN_STR" | sed -n 's/.*Database=\([^;]*\).*/\1/ip' | head -1)
+          fi
+          
+          # Handle both formats: User ID and User Id
+          USER=$(echo "$CONN_STR" | sed -n 's/.*User I[Dd]=\([^;]*\).*/\1/p' | head -1)
+          
+          # Handle both formats: Password and Pwd
+          PASSWORD=$(echo "$CONN_STR" | sed -n 's/.*Password=\([^;]*\).*/\1/ip' | head -1)
+          if [ -z "$PASSWORD" ]; then
+            PASSWORD=$(echo "$CONN_STR" | sed -n 's/.*Pwd=\([^;]*\).*/\1/ip' | head -1)
+          fi
+          
+          echo "::add-mask::$PASSWORD"
+          
+          # Build JDBC URL for SQL Server
+          JDBC_URL="jdbc:sqlserver://${SERVER}:1433;database=${DATABASE};encrypt=true;trustServerCertificate=false;loginTimeout=30"
+          
+          echo "🔗 JDBC URL: jdbc:sqlserver://${SERVER}:1433;database=${DATABASE};..."
+          
+          echo "FLYWAY_URL=$JDBC_URL" >> $GITHUB_OUTPUT
+          echo "FLYWAY_USER=$USER" >> $GITHUB_OUTPUT
+          echo "FLYWAY_PASSWORD=$PASSWORD" >> $GITHUB_OUTPUT
+          echo "DB_NAME=$DATABASE" >> $GITHUB_OUTPUT
+
+      - name: Flyway Info (Pre-migration status)
+        uses: docker://flyway/flyway:10
+        with:
+          args: >-
+            -url="${{ steps.db-config.outputs.FLYWAY_URL }}"
+            -user="${{ steps.db-config.outputs.FLYWAY_USER }}"
+            -password="${{ steps.db-config.outputs.FLYWAY_PASSWORD }}"
+            -locations="filesystem:./db/migrations"
+            -table=flyway_schema_history
+            -baselineOnMigrate=true
+            -baselineVersion=0
+            info
+
+      - name: Run Flyway ${{ inputs.action }}
+        id: flyway
+        if: inputs.action != 'info'
+        uses: docker://flyway/flyway:10
+        with:
+          args: >-
+            -url="${{ steps.db-config.outputs.FLYWAY_URL }}"
+            -user="${{ steps.db-config.outputs.FLYWAY_USER }}"
+            -password="${{ steps.db-config.outputs.FLYWAY_PASSWORD }}"
+            -locations="filesystem:./db/migrations"
+            -table=flyway_schema_history
+            -baselineOnMigrate=true
+            -baselineVersion=0
+            -mixed=true
+            -outOfOrder=false
+            -validateMigrationNaming=true
+            ${{ inputs.action }}
+
+      - name: Flyway Info (Post-migration status)
+        if: inputs.action == 'migrate' && success()
+        uses: docker://flyway/flyway:10
+        with:
+          args: >-
+            -url="${{ steps.db-config.outputs.FLYWAY_URL }}"
+            -user="${{ steps.db-config.outputs.FLYWAY_USER }}"
+            -password="${{ steps.db-config.outputs.FLYWAY_PASSWORD }}"
+            -locations="filesystem:./db/migrations"
+            -table=flyway_schema_history
+            info
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🗄️ Flyway Migration Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | \`${{ inputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Database | \`${{ steps.db-config.outputs.DB_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Action | \`${{ inputs.action }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | \`${{ steps.flyway.outcome || 'info-only' }}\` |" >> $GITHUB_STEP_SUMMARY

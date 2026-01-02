@@ -31,7 +31,7 @@ const MaintenanceMessage: React.FC<{ onClose: () => void }> = ({ onClose }) => (
 );
 
 // Skeleton loading component for seamless modal open
-const BookingFormSkeleton: React.FC = () => (
+const _BookingFormSkeleton: React.FC = () => (
   <div className="max-w-xl w-full mx-auto animate-pulse">
     {/* Header skeleton */}
     <div className="mb-4">
@@ -82,7 +82,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 }) => {
   console.log('[BookingModal] Rendered with isOpen:', isOpen);
   const modalContentRef = useRef<HTMLDivElement>(null);
-  const [isReady, setIsReady] = useState(false);
+  const [_isReady, setIsReady] = useState(false);
 
   // Handle form ready state when modal opens/closes
   useEffect(() => {
@@ -142,7 +142,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   // This keeps it in memory for instant display
   console.log('[BookingModal] Rendering modal, isOpen:', isOpen);
 
-  const handleSuccess = (appointmentId: string) => {
+  const _handleSuccess = (appointmentId: string) => {
     console.log('[BookingModal] Booking successful:', appointmentId);
   };
 
@@ -217,7 +217,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </button>
 
         {/* Booking form - fills available space, content scales */}
-        <div className="p-[2vh] flex-1 flex flex-col min-h-0 overflow-y-auto">
+        <div className="p-[clamp(6px,1.5vh,24px)] flex-1 flex flex-col min-h-0 overflow-hidden">
           {MAINTENANCE_MODE ? (
             <MaintenanceMessage onClose={onClose} />
           ) : (

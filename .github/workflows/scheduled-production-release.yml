@@ -141,8 +141,7 @@ jobs:
           
           Once approved and merged:
           1. Production deployment will begin automatically
-          2. Post-deployment cascade will sync main → staging → develop
-          3. Azure monitoring alerts will notify of deployment status
+          2. Azure monitoring alerts will notify of deployment status
           
           ---
           

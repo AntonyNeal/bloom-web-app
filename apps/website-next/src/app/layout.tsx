@@ -63,22 +63,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfairDisplay.variable}`}>
       <head>
-        {/* Preload LCP image for faster rendering on mobile - use smaller mobile image */}
-        <link
-          rel="preload"
-          href="/assets/hero-zoe-main-380w.webp"
-          as="image"
-          type="image/webp"
-          fetchPriority="high"
-          media="(max-width: 639px)"
-        />
+        {/* Preload LCP image for faster rendering - full quality for all devices */}
         <link
           rel="preload"
           href="/assets/hero-zoe-main.webp"
           as="image"
           type="image/webp"
           fetchPriority="high"
-          media="(min-width: 640px)"
         />
         {/* Preconnect to booking system - critical for conversion */}
         <link rel="preconnect" href="https://life-psychology.au2.halaxy.com" crossOrigin="anonymous" />

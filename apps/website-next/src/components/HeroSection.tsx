@@ -32,36 +32,17 @@ export function HeroSection({ heroPhoto = '/assets/hero-zoe-main.webp' }: HeroSe
             <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-sm lg:max-w-md'}`}>
               {/* Aspect ratio container prevents CLS by reserving space before image loads */}
               <div className="relative aspect-[380/412] sm:aspect-[500/543]">
-                {/* Mobile-first responsive image using picture element for optimal loading */}
-                <picture>
-                  {/* Mobile: smaller 380w image (16KB vs 70KB) */}
-                  <source
-                    media="(max-width: 639px)"
-                    srcSet="/assets/hero-zoe-main-380w.webp"
-                    type="image/webp"
-                    width={mobileWidth}
-                    height={mobileHeight}
-                  />
-                  {/* Desktop: full size image */}
-                  <source
-                    media="(min-width: 640px)"
-                    srcSet="/assets/hero-zoe-main.webp"
-                    type="image/webp"
-                    width={desktopWidth}
-                    height={desktopHeight}
-                  />
-                  {/* Fallback */}
-                  <img
-                    src="/assets/hero-zoe-main.webp"
-                    alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
-                    width={mobileWidth}
-                    height={mobileHeight}
-                    fetchPriority="high"
-                    loading="eager"
-                    decoding="async"
-                    className="absolute inset-0 w-full h-full rounded-2xl shadow-lg object-cover object-top"
-                  />
-                </picture>
+                {/* Full-size image for crystal clear quality on high-DPI mobile screens */}
+                <img
+                  src="/assets/hero-zoe-main.webp"
+                  alt="Zoe Semmler, Registered Psychologist - warm and approachable telehealth psychology in Newcastle"
+                  width={desktopWidth}
+                  height={desktopHeight}
+                  fetchPriority="high"
+                  loading="eager"
+                  decoding="async"
+                  className="absolute inset-0 w-full h-full rounded-2xl shadow-lg object-cover object-top"
+                />
                 {/* Floating credential badge - positioned relative to aspect ratio container */}
                 <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md min-w-[140px]">
                   <p className="text-xs font-semibold text-slate-700">Registered Psychologist</p>

@@ -8,7 +8,7 @@
     "exclude": [
       "/_next/*",
       "/api/*",
-      "*.{css,js,json,png,jpg,jpeg,gif,ico,svg,webp,avif,woff,woff2}"
+      "*.{css,js,json,png,jpg,jpeg,gif,ico,svg,webp,avif,woff,woff2,webmanifest}"
     ]
   },
   "routes": [

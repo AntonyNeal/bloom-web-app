@@ -473,7 +473,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       }
       
       // Track payment initiation for paid sessions
-      const bookingValue = appointmentType === 'couples-session' ? 300 : 250;
+      // TODO: TESTING - Change back to real prices after testing
+      const bookingValue = 1; // appointmentType === 'couples-session' ? 300 : 250;
       trackPaymentInitiated({
         payment_method: 'card',
         booking_value: bookingValue,
@@ -740,8 +741,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         setAppointmentId(result.appointmentId);
         
         // Track booking completion (PRIMARY CONVERSION)
-        const bookingValue = appointmentType === 'couples-session' ? 300 : 
-                            appointmentType === 'ndis-psychology-session' ? 232.99 : 250;
+        // TODO: TESTING - Change back to real prices after testing
+        const bookingValue = 1; // appointmentType === 'couples-session' ? 300 : appointmentType === 'ndis-psychology-session' ? 232.99 : 250;
         trackBookingComplete({
           bookingId: result.appointmentId,
           booking_value: bookingValue,
@@ -1532,8 +1533,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full"></div>
             </div>
           }>
+            {/* TODO: TESTING - Change back to real prices after testing */}
             <StripePayment
-              amount={appointmentType === 'couples-session' ? 300 : appointmentType === 'ndis-psychology-session' ? 232.99 : 250}
+              amount={1} // appointmentType === 'couples-session' ? 300 : appointmentType === 'ndis-psychology-session' ? 232.99 : 250
               customerEmail={email}
               customerName={`${firstName} ${lastName}`}
               onSuccess={handlePaymentAuthorized}

@@ -29,17 +29,5 @@
     ".webp": "image/webp",
     ".avif": "image/avif",
     ".woff2": "font/woff2"
-  },
-  "responseOverrides": {
-    "/_next/static/**": {
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    "/assets/**": {
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    }
   }
 }

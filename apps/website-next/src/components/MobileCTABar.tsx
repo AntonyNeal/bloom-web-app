@@ -72,12 +72,19 @@ export function MobileCTABar() {
   useEffect(() => {
     const fetchAvailability = async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL || '';
+        // Use the dedicated availability URL which already includes the full path
+        const availabilityUrl = process.env.NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL || '';
+        
+        if (!availabilityUrl) {
+          console.warn('[MobileCTABar] NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL not configured');
+          return;
+        }
+        
         const startDate = new Date();
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + 7);
         
-        const url = `${baseUrl}/api/halaxy/availability?from=${startDate.toISOString()}&to=${endDate.toISOString()}`;
+        const url = `${availabilityUrl}?from=${startDate.toISOString()}&to=${endDate.toISOString()}`;
         const response = await fetch(url);
         
         if (!response.ok) return;

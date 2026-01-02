@@ -41,6 +41,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Life Psychology Australia" }],
   creator: "Life Psychology Australia",
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://life-psychology.com.au"),
+  manifest: "/manifest.json",
   openGraph: {
     type: "website",
     locale: "en_AU",

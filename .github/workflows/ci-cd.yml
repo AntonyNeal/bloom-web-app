@@ -660,7 +660,7 @@ jobs:
           NEXT_PUBLIC_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
           NEXT_PUBLIC_AZURE_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
           NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/halaxy/availability
-          NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/halaxy/booking
+          NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/create-halaxy-booking
 
       - name: Copy Static Web App Config
         run: |

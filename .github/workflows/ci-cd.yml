@@ -656,10 +656,11 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net
           # Use test Stripe key for dev, live key for staging/prod
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ needs.determine-environment.outputs.environment == 'development' && secrets.STRIPE_PUBLISHABLE_KEY_TEST || secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          # Derive API URLs from bloom-api-url (already environment-specific)
           NEXT_PUBLIC_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
-          NEXT_PUBLIC_AZURE_FUNCTION_URL: ${{ vars.NEXT_PUBLIC_AZURE_FUNCTION_URL }}
-          NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL: ${{ vars.NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL }}
-          NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL: ${{ vars.NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL }}
+          NEXT_PUBLIC_AZURE_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
+          NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/halaxy/availability
+          NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/halaxy/booking
 
       - name: Copy Static Web App Config
         run: |

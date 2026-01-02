@@ -30,7 +30,8 @@ export function HeroSection({ heroPhoto = '/assets/hero-zoe-main.webp' }: HeroSe
           {/* Image - equal column on desktop */}
           <div className="order-1 lg:order-1">
             <div className={`mx-auto ${isPortraitVariant ? 'max-w-xl lg:max-w-none' : 'max-w-sm lg:max-w-md'}`}>
-              <div className="relative">
+              {/* Aspect ratio container prevents CLS by reserving space before image loads */}
+              <div className="relative aspect-[380/412] sm:aspect-[500/543]">
                 {/* Mobile-first responsive image using picture element for optimal loading */}
                 <picture>
                   {/* Mobile: smaller 380w image (16KB vs 70KB) */}
@@ -58,11 +59,11 @@ export function HeroSection({ heroPhoto = '/assets/hero-zoe-main.webp' }: HeroSe
                     fetchPriority="high"
                     loading="eager"
                     decoding="async"
-                    className="w-full rounded-2xl shadow-lg object-cover object-top"
+                    className="absolute inset-0 w-full h-full rounded-2xl shadow-lg object-cover object-top"
                   />
                 </picture>
-                {/* Floating credential badge */}
-                <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
+                {/* Floating credential badge - positioned relative to aspect ratio container */}
+                <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md min-w-[140px]">
                   <p className="text-xs font-semibold text-slate-700">Registered Psychologist</p>
                   <p className="text-[10px] text-slate-500">Newcastle, NSW</p>
                 </div>

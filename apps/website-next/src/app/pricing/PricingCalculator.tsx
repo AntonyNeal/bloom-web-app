@@ -82,13 +82,14 @@ export function PricingCalculator() {
               )}
               <div className="space-y-4">
                 {fundingOptions.filter(o => !(sessionType === 'couples' && o.value === 'medicare')).map((option) => (
-                  <label key={option.value} className="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 cursor-pointer">
-                    <input type="radio" name="funding" value={option.value} checked={fundingType === option.value} onChange={(e) => { setFundingType(e.target.value); setStep(3); }} className="mr-4" />
-                    <div>
-                      <div className="font-semibold text-gray-900">{option.label}</div>
-                      <div className="text-sm text-gray-600">{option.description}</div>
-                    </div>
-                  </label>
+                  <button
+                    key={option.value}
+                    onClick={() => { setFundingType(option.value); setStep(3); }}
+                    className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 text-left transition-all"
+                  >
+                    <div className="font-semibold text-gray-900">{option.label}</div>
+                    <div className="text-sm text-gray-600">{option.description}</div>
+                  </button>
                 ))}
               </div>
             </div>

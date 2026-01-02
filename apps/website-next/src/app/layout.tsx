@@ -46,9 +46,24 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_AU",
     siteName: "Life Psychology Australia",
+    title: "Life Psychology Australia | Psychologist Newcastle",
+    description: "Professional psychologist in Newcastle providing anxiety therapy, depression counselling, couples therapy, and NDIS psychology services. Secure telehealth sessions across the Greater Hunter region.",
+    url: "https://www.life-psychology.com.au",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Life Psychology Australia - Nurturing Growth and Wellbeing - Professional psychology services in Newcastle featuring sunflower branding",
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
+    title: "Life Psychology Australia | Psychologist Newcastle",
+    description: "Professional psychologist in Newcastle providing anxiety therapy, depression counselling, couples therapy, and NDIS psychology services.",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,

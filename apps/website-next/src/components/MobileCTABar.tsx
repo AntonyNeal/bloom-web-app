@@ -8,29 +8,61 @@ interface AvailableSlot {
   end: string;
 }
 
-function getTimeUntilAvailability(startTime: string): string {
-  const slotDate = new Date(startTime);
+/**
+ * Get human-readable availability text from a slot's start time
+ * Uses Australia/Melbourne timezone for correct local time display
+ */
+function getTimeUntilAvailability(nextSlotStart: string): string {
+  const slotTime = new Date(nextSlotStart);
   const now = new Date();
-  
-  const diffMs = slotDate.getTime() - now.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const dayName = dayNames[slotDate.getDay()];
-  
-  const hours = slotDate.getHours();
-  const minutes = slotDate.getMinutes();
-  const ampm = hours >= 12 ? 'pm' : 'am';
-  const hour12 = hours % 12 || 12;
-  const timeStr = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-  
-  if (diffDays === 0) {
-    return `Today ${timeStr}`;
-  } else if (diffDays === 1) {
-    return `Tomorrow ${timeStr}`;
-  } else {
-    return `${dayName} ${timeStr}`;
+
+  // Check if the slot is today (in Melbourne timezone)
+  const dateFormatter = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const slotDateStr = dateFormatter.format(slotTime);
+  const todayDateStr = dateFormatter.format(now);
+  const isToday = slotDateStr === todayDateStr;
+
+  // Check if tomorrow
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDateStr = dateFormatter.format(tomorrow);
+  const isTomorrow = slotDateStr === tomorrowDateStr;
+
+  // Format time part
+  const timeFormatter = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  const timeParts = timeFormatter.formatToParts(slotTime);
+  const hour = timeParts.find(p => p.type === 'hour')?.value || '';
+  const minute = timeParts.find(p => p.type === 'minute')?.value || '';
+  const dayPeriod = timeParts.find(p => p.type === 'dayPeriod')?.value || '';
+  const time = `${hour}:${minute} ${dayPeriod}`;
+
+  if (isToday) {
+    return `Today ${time}`;
   }
+
+  if (isTomorrow) {
+    return `Tomorrow ${time}`;
+  }
+
+  // Get day name for other slots
+  const dayFormatter = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    weekday: 'long',
+  });
+  const dayName = dayFormatter.format(slotTime);
+
+  return `${dayName} ${time}`;
 }
 
 export function MobileCTABar() {

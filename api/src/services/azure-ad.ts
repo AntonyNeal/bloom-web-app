@@ -25,12 +25,17 @@ import 'isomorphic-fetch';
 // Life Psychology Australia domain
 const EMAIL_DOMAIN = 'life-psychology.com.au';
 
+// Microsoft 365 Business Basic SKU ID (O365_BUSINESS_ESSENTIALS)
+// This provides Exchange Online (email), OneDrive, and web Office apps
+const M365_BUSINESS_BASIC_SKU_ID = '3b555118-da6a-4418-894f-7df1e2096870';
+
 export interface CreateAzureUserParams {
   email: string;           // Their personal email (for contact)
   firstName: string;
   lastName: string;
   displayName: string;
   password: string;
+  assignLicense?: boolean; // Whether to assign M365 license (default: true)
 }
 
 export interface AzureUserResult {
@@ -38,6 +43,7 @@ export interface AzureUserResult {
   userPrincipalName: string;  // Their new @life-psychology.com.au email
   displayName: string;
   mail: string;            // Primary email (same as UPN)
+  licenseAssigned: boolean; // Whether M365 license was assigned
 }
 
 /**
@@ -113,11 +119,26 @@ export async function createAzureUser(params: CreateAzureUserParams): Promise<Az
   try {
     const result = await graphClient.api('/users').post(userPayload);
     
+    // Assign M365 Business Basic license (unless explicitly disabled)
+    let licenseAssigned = false;
+    if (params.assignLicense !== false) {
+      try {
+        await assignM365License(graphClient, result.id);
+        licenseAssigned = true;
+        console.log(`M365 Business Basic license assigned to ${result.userPrincipalName}`);
+      } catch (licenseError) {
+        // Log but don't fail user creation if license assignment fails
+        // Admin can manually assign license later
+        console.error(`Failed to assign license to ${result.userPrincipalName}:`, licenseError);
+      }
+    }
+    
     return {
       id: result.id,
       userPrincipalName: result.userPrincipalName,
       displayName: result.displayName,
       mail: result.userPrincipalName,  // Email will match UPN after mailbox provisioning
+      licenseAssigned,
     };
   } catch (error) {
     // Handle specific Graph API errors
@@ -137,6 +158,27 @@ export async function createAzureUser(params: CreateAzureUserParams): Promise<Az
     }
     throw error;
   }
+}
+
+/**
+ * Assign Microsoft 365 Business Basic license to a user
+ * This enables their Exchange Online mailbox, OneDrive, and web Office apps
+ * 
+ * @param graphClient The authenticated Graph client
+ * @param userId The Azure AD Object ID of the user
+ */
+async function assignM365License(graphClient: Client, userId: string): Promise<void> {
+  const licensePayload = {
+    addLicenses: [
+      {
+        skuId: M365_BUSINESS_BASIC_SKU_ID,
+        disabledPlans: [],  // Enable all service plans in the license
+      },
+    ],
+    removeLicenses: [],
+  };
+
+  await graphClient.api(`/users/${userId}/assignLicense`).post(licensePayload);
 }
 
 /**

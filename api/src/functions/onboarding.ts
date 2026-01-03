@@ -225,6 +225,7 @@ async function onboardingHandler(
       // Create Azure AD account with @life-psychology.com.au email
       let azureObjectId: string | null = null;
       let companyEmail: string | null = null;
+      let licenseAssigned = false;
       
       try {
         // Generate their company email based on name
@@ -245,7 +246,8 @@ async function onboardingHandler(
           });
           azureObjectId = azureUser.id;
           companyEmail = azureUser.userPrincipalName;
-          context.log(`Created Azure AD user ${companyEmail} (ID: ${azureObjectId}) for ${practitionerInfo.email}`);
+          licenseAssigned = azureUser.licenseAssigned;
+          context.log(`Created Azure AD user ${companyEmail} (ID: ${azureObjectId}) for ${practitionerInfo.email}, License: ${licenseAssigned ? 'assigned' : 'not assigned'}`);
         } else {
           companyEmail = expectedEmail;
           context.log(`Azure AD user already exists: ${companyEmail} (ID: ${azureObjectId})`);
@@ -308,6 +310,8 @@ async function onboardingHandler(
       // Notify admin if Azure AD creation failed
       if (!companyEmail) {
         context.warn(`ATTENTION: Practitioner ${practitionerInfo.email} completed onboarding but company email was not created. Manual intervention required.`);
+      } else if (!licenseAssigned) {
+        context.warn(`ATTENTION: User ${companyEmail} created but M365 license was not assigned. Manual license assignment required.`);
       }
 
       return {
@@ -328,8 +332,11 @@ async function onboardingHandler(
           account: {
             created: !!companyEmail,
             email: companyEmail,
+            licenseAssigned,
             message: companyEmail 
-              ? `Your new email is ${companyEmail}. You can sign in to Outlook and Bloom with this address.`
+              ? licenseAssigned
+                ? `Your new email is ${companyEmail}. You can sign in to Outlook and Bloom with this address.`
+                : `Your new email is ${companyEmail}. Your mailbox is being set up - please wait a few minutes before signing in.`
               : 'Your email account is being set up. An admin will send you login details shortly.',
           },
         },

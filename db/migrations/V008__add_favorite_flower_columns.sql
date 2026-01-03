@@ -1,7 +1,7 @@
 -- V008__add_favorite_flower_columns.sql
 -- Add favorite_flower to applications and practitioners tables
 -- This is Zoe's secret intel for the onboarding surprise
--- Updated: 2026-01-03 - trigger CI/CD migration run
+-- Updated: 2026-01-04 - trigger CI/CD migration run
 
 -- Add to applications table (where it's collected)
 IF NOT EXISTS (

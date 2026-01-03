@@ -51,7 +51,6 @@ export function Admin() {
   const [errorCode, setErrorCode] = useState<number | undefined>(undefined);
   const [lastAttempt, setLastAttempt] = useState<Date | undefined>(undefined);
   const [isSendingInvite, setIsSendingInvite] = useState(false);
-  const [onboardingLink, setOnboardingLink] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -117,6 +116,12 @@ export function Admin() {
 
   const updateStatus = async (id: number, status: string) => {
     try {
+      // If accepting, use the accept-application endpoint which also creates practitioner + sends email
+      if (status === "accepted") {
+        await acceptApplication(id);
+        return;
+      }
+
       const response = await fetch(`${API_ENDPOINTS.applications}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -144,12 +149,26 @@ export function Admin() {
     }
   };
 
-  // Send onboarding invite - creates practitioner record and sends email
-  const sendOnboardingInvite = async (id: number) => {
+  // Accept application - updates status, creates practitioner, and sends onboarding email
+  const acceptApplication = async (id: number) => {
     setIsSendingInvite(true);
-    setOnboardingLink(null);
     
     try {
+      // First update status to accepted
+      const statusResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "accepted",
+          reviewed_by: "Admin",
+        }),
+      });
+
+      if (!statusResponse.ok) {
+        throw new Error("Failed to update status");
+      }
+
+      // Then create practitioner and send email
       const response = await fetch(`${API_BASE_URL}/accept-application/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -161,14 +180,12 @@ export function Admin() {
         throw new Error(data.error || "Failed to send onboarding invite");
       }
 
-      setOnboardingLink(data.onboardingLink);
-      
       toast({
-        title: "✅ Onboarding Invite Ready!",
-        description: `Practitioner record created. Onboarding link generated.`,
+        title: "✅ Application Accepted!",
+        description: `Onboarding email sent to ${selectedApp?.email || 'applicant'}`,
       });
 
-      // Refresh to get updated practitioner_id
+      // Refresh
       await fetchApplications();
       if (selectedApp?.id === id) {
         const appResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`);
@@ -176,25 +193,14 @@ export function Admin() {
         setSelectedApp(updatedApp);
       }
     } catch (error) {
-      console.error("Failed to send onboarding invite:", error);
+      console.error("Failed to accept application:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to send onboarding invite",
+        description: error instanceof Error ? error.message : "Failed to accept application",
         variant: "destructive",
       });
     } finally {
       setIsSendingInvite(false);
-    }
-  };
-
-  // Copy onboarding link to clipboard
-  const copyOnboardingLink = () => {
-    if (onboardingLink) {
-      navigator.clipboard.writeText(onboardingLink);
-      toast({
-        title: "📋 Link Copied!",
-        description: "Onboarding link copied to clipboard. Send it to the practitioner.",
-      });
     }
   };
 
@@ -591,7 +597,7 @@ export function Admin() {
                     </div>
                   )}
 
-                  {/* Accepted: Ready for onboarding */}
+                  {/* Accepted: Onboarding in progress */}
                   {selectedApp.status === "accepted" && (
                     <div className="space-y-3">
                       {selectedApp.accepted_at && (
@@ -600,63 +606,30 @@ export function Admin() {
                         </p>
                       )}
                       
-                      {/* Already has practitioner - show onboarding status */}
                       {selectedApp.practitioner_id ? (
                         <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
                           <p className="text-sm text-emerald-800 font-medium">
-                            🎉 Practitioner record created
+                            📧 Onboarding email sent
                           </p>
                           <p className="text-xs text-emerald-600 mt-1">
-                            Onboarding invite has been set up
+                            Waiting for practitioner to complete onboarding
                           </p>
-                          {onboardingLink && (
-                            <div className="mt-2 space-y-2">
-                              <p className="text-xs text-neutral-600 font-mono bg-white p-2 rounded border break-all">
-                                {onboardingLink}
-                              </p>
-                              <Button
-                                onClick={copyOnboardingLink}
-                                size="sm"
-                                variant="outline"
-                                className="w-full"
-                              >
-                                📋 Copy Onboarding Link
-                              </Button>
-                            </div>
-                          )}
                         </div>
                       ) : (
-                        <div className="space-y-2">
-                          <p className="text-sm text-neutral-600">
-                            Ready to create practitioner record and send onboarding invite.
+                        <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                          <p className="text-sm text-yellow-800 font-medium">
+                            ⚠️ Practitioner record not created
+                          </p>
+                          <p className="text-xs text-yellow-600 mt-1">
+                            This may be a legacy acceptance. Click below to send invite.
                           </p>
                           <Button
-                            onClick={() => sendOnboardingInvite(selectedApp.id)}
-                            className="bg-emerald-600 hover:bg-emerald-700 w-full"
+                            onClick={() => acceptApplication(selectedApp.id)}
+                            className="bg-emerald-600 hover:bg-emerald-700 w-full mt-2"
                             size="sm"
                             disabled={isSendingInvite}
                           >
-                            {isSendingInvite ? "⏳ Creating..." : "📧 Send Onboarding Invite"}
-                          </Button>
-                        </div>
-                      )}
-
-                      {/* Show onboarding link if just created */}
-                      {onboardingLink && !selectedApp.practitioner_id && (
-                        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 mt-2">
-                          <p className="text-sm text-blue-800 font-medium mb-2">
-                            ✅ Onboarding link ready:
-                          </p>
-                          <p className="text-xs text-neutral-600 font-mono bg-white p-2 rounded border break-all">
-                            {onboardingLink}
-                          </p>
-                          <Button
-                            onClick={copyOnboardingLink}
-                            size="sm"
-                            variant="outline"
-                            className="w-full mt-2"
-                          >
-                            📋 Copy Link
+                            {isSendingInvite ? "⏳ Sending..." : "📧 Send Onboarding Invite"}
                           </Button>
                         </div>
                       )}

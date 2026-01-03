@@ -617,6 +617,7 @@ export function JoinUs() {
               specializations: [],
               experience_years: 0,
               cover_letter: '',
+              favorite_flower: '',
             });
             setFiles({ cv: null, certificate: null, photo: null });
           }}

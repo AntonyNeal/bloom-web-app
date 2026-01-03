@@ -22,6 +22,11 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials';
 import 'isomorphic-fetch';
 
+// Type for Microsoft Graph API errors
+interface GraphError extends Error {
+  statusCode?: number;
+}
+
 // Life Psychology Australia domain
 const EMAIL_DOMAIN = 'life-psychology.com.au';
 
@@ -143,7 +148,7 @@ export async function createAzureUser(params: CreateAzureUserParams): Promise<Az
   } catch (error) {
     // Handle specific Graph API errors
     if (error instanceof Error) {
-      const graphError = error as any;
+      const graphError = error as GraphError;
       if (graphError.statusCode === 400) {
         if (graphError.message?.includes('userPrincipalName already exists')) {
           throw new Error(`Email ${userPrincipalName} already exists. Contact admin for assistance.`);
@@ -198,7 +203,7 @@ export async function findAzureUserByEmail(userPrincipalName: string): Promise<s
 
     return result?.id || null;
   } catch (error) {
-    const graphError = error as any;
+    const graphError = error as GraphError;
     if (graphError.statusCode === 404) {
       return null;  // User doesn't exist
     }
@@ -257,7 +262,7 @@ export async function deleteAzureUser(objectId: string): Promise<void> {
     await graphClient.api(`/users/${objectId}`).delete();
   } catch (error) {
     if (error instanceof Error) {
-      const graphError = error as any;
+      const graphError = error as GraphError;
       if (graphError.statusCode === 404) {
         // User already doesn't exist, that's fine
         return;

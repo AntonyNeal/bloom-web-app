@@ -3,12 +3,13 @@
  * 
  * Handles practitioner onboarding:
  * - GET /api/onboarding/:token - Validate token and get practitioner info
- * - POST /api/onboarding/:token - Complete onboarding (set password)
+ * - POST /api/onboarding/:token - Complete onboarding (set password, create Azure AD user)
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
 import * as crypto from 'crypto';
+import { createAzureUser, findAzureUserByEmail } from '../services/azure-ad';
 
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
@@ -196,10 +197,58 @@ async function onboardingHandler(
                        request.headers.get('x-real-ip') || 
                        'unknown';
 
-      // Hash the password
+      // Hash the password for local backup auth (Azure AD is primary)
       const passwordHash = hashPassword(password);
 
-      // Update practitioner with contract acceptance
+      // First, get the practitioner info to create Azure AD user
+      const practitionerResult = await pool.request()
+        .input('token', sql.NVarChar, token)
+        .query(`
+          SELECT id, email, first_name, last_name, display_name
+          FROM practitioners 
+          WHERE onboarding_token = @token
+            AND onboarding_completed_at IS NULL
+            AND onboarding_token_expires_at > GETDATE()
+        `);
+
+      if (practitionerResult.recordset.length === 0) {
+        return {
+          status: 400,
+          headers,
+          jsonBody: { error: 'Invalid or expired token' },
+        };
+      }
+
+      const practitionerInfo = practitionerResult.recordset[0];
+
+      // Create Azure AD B2C user account
+      let azureObjectId: string | null = null;
+      try {
+        // Check if user already exists (in case of retry)
+        azureObjectId = await findAzureUserByEmail(practitionerInfo.email);
+        
+        if (!azureObjectId) {
+          // Create new Azure AD user with their chosen password
+          const azureUser = await createAzureUser({
+            email: practitionerInfo.email,
+            firstName: practitionerInfo.first_name,
+            lastName: practitionerInfo.last_name,
+            displayName: displayName || practitionerInfo.display_name || `${practitionerInfo.first_name} ${practitionerInfo.last_name}`,
+            password,
+          });
+          azureObjectId = azureUser.id;
+          context.log(`Created Azure AD user for ${practitionerInfo.email}: ${azureObjectId}`);
+        } else {
+          context.log(`Azure AD user already exists for ${practitionerInfo.email}: ${azureObjectId}`);
+        }
+      } catch (azureError) {
+        context.error('Failed to create Azure AD user:', azureError);
+        // Don't fail the entire onboarding - we can create the Azure AD user later
+        // But log it clearly so we can address it
+        context.warn(`Azure AD user creation failed for ${practitionerInfo.email}. User will need manual Azure AD account setup.`);
+      }
+
+      // Update practitioner with contract acceptance and Azure AD Object ID
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
         .input('password_hash', sql.NVarChar, passwordHash)
@@ -207,6 +256,7 @@ async function onboardingHandler(
         .input('bio', sql.NVarChar, bio || null)
         .input('phone', sql.NVarChar, phone || null)
         .input('contract_ip_address', sql.NVarChar, clientIp)
+        .input('azure_ad_object_id', sql.NVarChar, azureObjectId)
         .query(`
           UPDATE practitioners
           SET 
@@ -214,6 +264,7 @@ async function onboardingHandler(
             display_name = COALESCE(@display_name, display_name),
             bio = COALESCE(@bio, bio),
             phone = COALESCE(@phone, phone),
+            azure_ad_object_id = @azure_ad_object_id,
             contract_accepted_at = GETDATE(),
             contract_version = '1.0',
             contract_ip_address = @contract_ip_address,
@@ -221,7 +272,7 @@ async function onboardingHandler(
             onboarding_token = NULL,
             onboarding_token_expires_at = NULL,
             updated_at = GETDATE()
-          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name
+          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id
           WHERE onboarding_token = @token
             AND onboarding_completed_at IS NULL
             AND onboarding_token_expires_at > GETDATE()
@@ -236,19 +287,30 @@ async function onboardingHandler(
       }
 
       const practitioner = result.recordset[0];
-      context.log(`Onboarding completed for practitioner ${practitioner.id} (${practitioner.email})`);
+      context.log(`Onboarding completed for practitioner ${practitioner.id} (${practitioner.email}), Azure AD: ${practitioner.azure_ad_object_id || 'not created'}`);
+
+      // Notify admin if Azure AD creation failed
+      if (!azureObjectId) {
+        context.warn(`ATTENTION: Practitioner ${practitioner.email} completed onboarding but Azure AD user was not created. Manual intervention required.`);
+      }
 
       return {
         status: 200,
         headers,
         jsonBody: {
           success: true,
-          message: 'Onboarding completed successfully',
+          message: 'Onboarding completed successfully! You can now sign in with your email address.',
           practitioner: {
             id: practitioner.id,
             email: practitioner.email,
             firstName: practitioner.first_name,
             lastName: practitioner.last_name,
+          },
+          azureAd: {
+            created: !!azureObjectId,
+            message: azureObjectId 
+              ? 'Your account has been created. You can sign in with your email address.'
+              : 'Your account setup is pending. An admin will complete your account setup shortly.',
           },
         },
       };

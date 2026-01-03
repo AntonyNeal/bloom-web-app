@@ -222,24 +222,33 @@ async function onboardingHandler(
       const practitionerInfo = practitionerResult.recordset[0];
 
       // Create Azure AD B2C user account
+      // Create Azure AD account with @life-psychology.com.au email
       let azureObjectId: string | null = null;
+      let companyEmail: string | null = null;
+      
       try {
+        // Generate their company email based on name
+        const username = `${practitionerInfo.first_name.toLowerCase()}.${practitionerInfo.last_name.toLowerCase()}`.replace(/[^a-z.]/g, '');
+        const expectedEmail = `${username}@life-psychology.com.au`;
+        
         // Check if user already exists (in case of retry)
-        azureObjectId = await findAzureUserByEmail(practitionerInfo.email);
+        azureObjectId = await findAzureUserByEmail(expectedEmail);
         
         if (!azureObjectId) {
           // Create new Azure AD user with their chosen password
           const azureUser = await createAzureUser({
-            email: practitionerInfo.email,
+            email: practitionerInfo.email,  // Their personal email stored as contact
             firstName: practitionerInfo.first_name,
             lastName: practitionerInfo.last_name,
             displayName: displayName || practitionerInfo.display_name || `${practitionerInfo.first_name} ${practitionerInfo.last_name}`,
             password,
           });
           azureObjectId = azureUser.id;
-          context.log(`Created Azure AD user for ${practitionerInfo.email}: ${azureObjectId}`);
+          companyEmail = azureUser.userPrincipalName;
+          context.log(`Created Azure AD user ${companyEmail} (ID: ${azureObjectId}) for ${practitionerInfo.email}`);
         } else {
-          context.log(`Azure AD user already exists for ${practitionerInfo.email}: ${azureObjectId}`);
+          companyEmail = expectedEmail;
+          context.log(`Azure AD user already exists: ${companyEmail} (ID: ${azureObjectId})`);
         }
       } catch (azureError) {
         context.error('Failed to create Azure AD user:', azureError);
@@ -248,7 +257,7 @@ async function onboardingHandler(
         context.warn(`Azure AD user creation failed for ${practitionerInfo.email}. User will need manual Azure AD account setup.`);
       }
 
-      // Update practitioner with contract acceptance and Azure AD Object ID
+      // Update practitioner with contract acceptance, Azure AD Object ID, and company email
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
         .input('password_hash', sql.NVarChar, passwordHash)
@@ -257,6 +266,7 @@ async function onboardingHandler(
         .input('phone', sql.NVarChar, phone || null)
         .input('contract_ip_address', sql.NVarChar, clientIp)
         .input('azure_ad_object_id', sql.NVarChar, azureObjectId)
+        .input('company_email', sql.NVarChar, companyEmail)
         .query(`
           UPDATE practitioners
           SET 
@@ -265,6 +275,7 @@ async function onboardingHandler(
             bio = COALESCE(@bio, bio),
             phone = COALESCE(@phone, phone),
             azure_ad_object_id = @azure_ad_object_id,
+            company_email = @company_email,
             contract_accepted_at = GETDATE(),
             contract_version = '1.0',
             contract_ip_address = @contract_ip_address,
@@ -272,7 +283,7 @@ async function onboardingHandler(
             onboarding_token = NULL,
             onboarding_token_expires_at = NULL,
             updated_at = GETDATE()
-          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id
+          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id, INSERTED.company_email
           WHERE onboarding_token = @token
             AND onboarding_completed_at IS NULL
             AND onboarding_token_expires_at > GETDATE()
@@ -287,11 +298,16 @@ async function onboardingHandler(
       }
 
       const practitioner = result.recordset[0];
-      context.log(`Onboarding completed for practitioner ${practitioner.id} (${practitioner.email}), Azure AD: ${practitioner.azure_ad_object_id || 'not created'}`);
+      context.log(`Onboarding completed for practitioner ${practitioner.id}, Company email: ${practitioner.company_email || 'not created'}`);
+      
+      // Log their new email prominently
+      if (practitioner.company_email) {
+        context.log(`✅ NEW EMAIL CREATED: ${practitioner.company_email}`);
+      }
 
       // Notify admin if Azure AD creation failed
-      if (!azureObjectId) {
-        context.warn(`ATTENTION: Practitioner ${practitioner.email} completed onboarding but Azure AD user was not created. Manual intervention required.`);
+      if (!companyEmail) {
+        context.warn(`ATTENTION: Practitioner ${practitionerInfo.email} completed onboarding but company email was not created. Manual intervention required.`);
       }
 
       return {
@@ -299,18 +315,22 @@ async function onboardingHandler(
         headers,
         jsonBody: {
           success: true,
-          message: 'Onboarding completed successfully! You can now sign in with your email address.',
+          message: companyEmail 
+            ? `Welcome to Life Psychology! Your new email is ${companyEmail}`
+            : 'Onboarding completed! Your email account is being set up.',
           practitioner: {
             id: practitioner.id,
-            email: practitioner.email,
+            personalEmail: practitionerInfo.email,
+            companyEmail: practitioner.company_email,
             firstName: practitioner.first_name,
             lastName: practitioner.last_name,
           },
-          azureAd: {
-            created: !!azureObjectId,
-            message: azureObjectId 
-              ? 'Your account has been created. You can sign in with your email address.'
-              : 'Your account setup is pending. An admin will complete your account setup shortly.',
+          account: {
+            created: !!companyEmail,
+            email: companyEmail,
+            message: companyEmail 
+              ? `Your new email is ${companyEmail}. You can sign in to Outlook and Bloom with this address.`
+              : 'Your email account is being set up. An admin will send you login details shortly.',
           },
         },
       };

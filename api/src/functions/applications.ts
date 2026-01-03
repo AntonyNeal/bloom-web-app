@@ -1,5 +1,6 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
+import { sendDenialEmail, sendWaitlistEmail, sendInterviewEmail } from '../services/email';
 
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
@@ -274,11 +275,41 @@ async function applicationsHandler(
         };
       }
 
+      const updatedApp = result.recordset[0];
       context.log(`Application ${id} updated to status: ${status}`);
+
+      // Send appropriate email based on status change
+      const emailContext = {
+        firstName: updatedApp.first_name,
+        lastName: updatedApp.last_name,
+        email: updatedApp.email,
+        decisionReason: decision_reason || undefined,
+        interviewNotes: interview_notes || undefined,
+      };
+
+      try {
+        if (status === 'denied') {
+          context.log(`Sending denial email to ${updatedApp.email}`);
+          const emailResult = await sendDenialEmail(emailContext);
+          context.log(`Denial email result: ${JSON.stringify(emailResult)}`);
+        } else if (status === 'waitlisted') {
+          context.log(`Sending waitlist email to ${updatedApp.email}`);
+          const emailResult = await sendWaitlistEmail(emailContext);
+          context.log(`Waitlist email result: ${JSON.stringify(emailResult)}`);
+        } else if (status === 'interview_scheduled') {
+          context.log(`Sending interview email to ${updatedApp.email}`);
+          const emailResult = await sendInterviewEmail(emailContext);
+          context.log(`Interview email result: ${JSON.stringify(emailResult)}`);
+        }
+      } catch (emailError) {
+        // Log email error but don't fail the status update
+        context.error(`Failed to send status email: ${emailError}`);
+      }
+
       return {
         status: 200,
         headers,
-        jsonBody: result.recordset[0],
+        jsonBody: updatedApp,
       };
     }
 

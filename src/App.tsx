@@ -30,6 +30,9 @@ const ABTestDashboard = lazy(() =>
 const SmokeTestDashboard = lazy(() =>
   import('./pages/admin/SmokeTestDashboard').then((m) => ({ default: m.SmokeTestDashboard }))
 );
+const PractitionerManagement = lazy(() =>
+  import('./pages/admin/PractitionerManagement').then((m) => ({ default: m.PractitionerManagement }))
+);
 const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
 const BusinessCoach = lazy(() => import('./pages/BusinessCoach'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
@@ -603,6 +606,23 @@ function AnimatedRoutes() {
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
                 >
                   <SmokeTestDashboard />
+                </Suspense>
+                <Toaster />
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Practitioner Management */}
+        <Route
+          path="/admin/practitioners"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
+                  <PractitionerManagement />
                 </Suspense>
                 <Toaster />
               </ErrorBoundary>

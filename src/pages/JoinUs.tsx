@@ -53,7 +53,7 @@ interface FormData {
   specializations: string[];
   experience_years: number;
   cover_letter: string;
-  favorite_flower?: string; // Zoe's secret intel for onboarding surprise
+  favorite_flower: string; // Required - Zoe's secret intel for onboarding surprise
   qualification_type?: 'clinical' | 'experienced' | 'phd';
   // Include all qualification check responses
   qualification_check?: {
@@ -403,6 +403,7 @@ export function JoinUs() {
       formData.ahpra_registration,
       formData.experience_years > 0,
       formData.cover_letter,
+      formData.favorite_flower,
       files.cv,
       files.certificate,
     ];
@@ -1231,7 +1232,7 @@ export function JoinUs() {
                       marginBottom: '8px',
                     }}
                   >
-                    Just for fun - what's your favourite flower? 🌸
+                    Just for fun - what's your favourite flower? 🌸 <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
                     <span style={{ 
                       display: 'block', 
                       fontSize: '12px', 
@@ -1242,11 +1243,11 @@ export function JoinUs() {
                       We love getting to know our team beyond the CV
                     </span>
                   </Label>
-                  <Input
+                  <select
                     id="favorite_flower"
+                    required
                     value={formData.favorite_flower || ''}
                     onChange={(e) => setFormData({ ...formData, favorite_flower: e.target.value })}
-                    placeholder="e.g., Sunflowers, Lavender, Roses..."
                     style={{
                       width: '100%',
                       padding: '12px 16px',
@@ -1256,8 +1257,18 @@ export function JoinUs() {
                       background: bloomStyles.colors.paperWhite,
                       outline: 'none',
                       transition: 'all 0.2s',
+                      cursor: 'pointer',
+                      appearance: 'none',
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B8E7F' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 16px center',
                     }}
-                  />
+                  >
+                    <option value="">Select your favourite flower...</option>
+                    <option value="Cherry Blossom">🌸 Cherry Blossom</option>
+                    <option value="Purple Rose">🌹 Purple Rose</option>
+                    <option value="Sunflower">🌻 Sunflower</option>
+                  </select>
                 </motion.div>
               </motion.div>
 

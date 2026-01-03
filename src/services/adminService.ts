@@ -1,13 +1,13 @@
-// Application status type - includes new workflow statuses
+// Application status type
 export type ApplicationStatus = 
   | 'Received'           // Initial submission
-  | 'Reviewed'           // Under review (legacy)
+  | 'Reviewed'           // Under review
   | 'Denied'             // Application denied
   | 'Waitlisted'         // On waitlist for future positions
   | 'Interview Scheduled' // Interview has been scheduled
   | 'Accepted'           // Application accepted, pending onboarding
-  | 'Approved'           // Legacy status
-  | 'Rejected';          // Legacy status
+  | 'Approved'           // Approved (maps to Accepted)
+  | 'Rejected';          // Rejected (maps to Denied)
 
 export interface Application {
   ApplicationID: string;

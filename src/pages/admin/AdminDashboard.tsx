@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, BarChart3, FlaskConical, ChevronRight } from 'lucide-react';
+import { FileText, BarChart3, FlaskConical, ChevronRight, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -101,6 +101,16 @@ export function AdminDashboard() {
       gradient: `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageDark} 100%)`,
       accentColor: colors.sage,
       lightColor: colors.sageLight,
+    },
+    {
+      id: 'practitioners',
+      title: 'Practitioner Management',
+      description: 'Activate and manage onboarded practitioners',
+      icon: Users,
+      href: '/admin/practitioners',
+      gradient: `linear-gradient(135deg, #6B8E7F 0%, #4A7062 100%)`,
+      accentColor: '#6B8E7F',
+      lightColor: '#E8F5E9',
     },
     {
       id: 'ab-tests',

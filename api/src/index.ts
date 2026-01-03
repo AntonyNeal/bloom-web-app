@@ -27,6 +27,8 @@ import './functions/verify-code';
 import './functions/onboarding';
 import './functions/process-booking-notification';
 import './functions/accept-application';
+import './functions/resend-onboarding';
+import './functions/practitioners-admin';
 
 export * from './functions/health';
 export * from './functions/applications';

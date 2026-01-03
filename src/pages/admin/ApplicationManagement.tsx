@@ -204,6 +204,38 @@ export function Admin() {
     }
   };
 
+  // Resend onboarding email (generates new token and sends)
+  const resendOnboardingEmail = async (applicationId: number) => {
+    setIsSendingInvite(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/resend-onboarding/${applicationId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to resend onboarding email");
+      }
+
+      toast({
+        title: "📧 Email Sent!",
+        description: `New onboarding link sent to ${selectedApp?.email || 'applicant'}`,
+      });
+    } catch (error) {
+      console.error("Failed to resend onboarding email:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to resend email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "submitted":
@@ -338,14 +370,6 @@ export function Admin() {
                 {counts.denied}
               </div>
               <p className="text-xs text-neutral-600">Denied</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="text-2xl font-bold text-green-600">
-                {counts.approved + counts.rejected}
-              </div>
-              <p className="text-xs text-neutral-600">Legacy</p>
             </CardContent>
           </Card>
         </div>
@@ -614,6 +638,15 @@ export function Admin() {
                           <p className="text-xs text-emerald-600 mt-1">
                             Waiting for practitioner to complete onboarding
                           </p>
+                          <Button
+                            onClick={() => resendOnboardingEmail(selectedApp.id)}
+                            variant="outline"
+                            size="sm"
+                            className="w-full mt-2"
+                            disabled={isSendingInvite}
+                          >
+                            {isSendingInvite ? "⏳ Sending..." : "🔄 Resend Onboarding Email"}
+                          </Button>
                         </div>
                       ) : (
                         <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
@@ -621,7 +654,7 @@ export function Admin() {
                             ⚠️ Practitioner record not created
                           </p>
                           <p className="text-xs text-yellow-600 mt-1">
-                            This may be a legacy acceptance. Click below to send invite.
+                            Click below to send the onboarding invite.
                           </p>
                           <Button
                             onClick={() => acceptApplication(selectedApp.id)}
@@ -662,20 +695,35 @@ export function Admin() {
                     </div>
                   )}
 
-                  {/* Legacy statuses: approved/rejected */}
-                  {(selectedApp.status === "approved" ||
-                    selectedApp.status === "rejected") && (
+                  {/* Handle old approved status - treat as accepted */}
+                  {selectedApp.status === "approved" && (
                     <div className="space-y-2">
-                      <p className="text-sm text-neutral-500 mb-2">
-                        ⚠️ Legacy status - migrate to new workflow
+                      <p className="text-sm text-emerald-600 mb-2">
+                        ✅ Application approved
                       </p>
                       <Button
-                        onClick={() => updateStatus(selectedApp.id, "reviewing")}
+                        onClick={() => updateStatus(selectedApp.id, "accepted")}
+                        className="bg-emerald-600 hover:bg-emerald-700 w-full"
+                        size="sm"
+                      >
+                        ✨ Convert to Accepted
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Handle old rejected status - treat as denied */}
+                  {selectedApp.status === "rejected" && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-red-600 mb-2">
+                        ❌ Application rejected
+                      </p>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "denied")}
                         variant="outline"
                         size="sm"
                         className="w-full"
                       >
-                        ↩️ Move to Reviewing
+                        Convert to Denied
                       </Button>
                     </div>
                   )}

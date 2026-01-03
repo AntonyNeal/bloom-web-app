@@ -82,6 +82,31 @@ export default function TraumaRecoveryPage() {
           </div>
         </section>
 
+        {/* Related Services */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Related Services</h2>
+          <p className="text-lg text-gray-600 text-center mb-8 max-w-2xl mx-auto">
+            Trauma can affect many areas of life. We offer additional support for related concerns.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            <a href="/anxiety-depression" className="block bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+              <div className="text-3xl mb-3">🧠</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Anxiety & Depression</h3>
+              <p className="text-gray-600 text-sm">Trauma often contributes to anxiety and depression — we can address both.</p>
+            </a>
+            <a href="/couples-therapy" className="block bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+              <div className="text-3xl mb-3">💑</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Couples Therapy</h3>
+              <p className="text-gray-600 text-sm">When trauma affects your relationship, couples therapy can support healing together.</p>
+            </a>
+            <a href="/individual-therapy" className="block bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+              <div className="text-3xl mb-3">🎯</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Individual Therapy</h3>
+              <p className="text-gray-600 text-sm">Comprehensive support for the broader impact of trauma on daily life.</p>
+            </a>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 lg:p-12 text-center border border-blue-100">
           <h2 className="text-3xl font-bold text-gray-800 mb-4">Begin Your Healing Journey</h2>

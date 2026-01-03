@@ -124,8 +124,35 @@ export default function NDISServicesPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Related Services */}
       <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">Related Services</h2>
+          <p className="text-lg text-gray-600 text-center mb-8">
+            NDIS participants may also benefit from these specialised services.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            <a href="/neurodiversity" className="block bg-gray-50 p-6 rounded-lg hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">🌈</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Neurodiversity Support</h3>
+              <p className="text-gray-600 text-sm">Affirming support for autistic adults and those with ADHD.</p>
+            </a>
+            <a href="/anxiety-depression" className="block bg-gray-50 p-6 rounded-lg hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">🧠</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Anxiety & Depression</h3>
+              <p className="text-gray-600 text-sm">Evidence-based support for mental health concerns.</p>
+            </a>
+            <a href="/trauma-recovery" className="block bg-gray-50 p-6 rounded-lg hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">🌱</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Trauma Recovery</h3>
+              <p className="text-gray-600 text-sm">EMDR and trauma-informed care for processing difficult experiences.</p>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-green-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">
             Ready to Get Started?

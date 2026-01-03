@@ -101,8 +101,35 @@ export default function NeurodiversityPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Related Services */}
       <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">Related Services</h2>
+          <p className="text-lg text-gray-600 text-center mb-8">
+            Many neurodivergent people also benefit from support in these areas.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            <a href="/anxiety-depression" className="block bg-gray-50 p-6 rounded-lg hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">🧠</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Anxiety & Depression</h3>
+              <p className="text-gray-600 text-sm">Neurodivergent people often experience anxiety differently — we understand this.</p>
+            </a>
+            <a href="/couples-therapy" className="block bg-gray-50 p-6 rounded-lg hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">💑</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Couples Therapy</h3>
+              <p className="text-gray-600 text-sm">Support for neurodiverse couples navigating communication and connection.</p>
+            </a>
+            <a href="/ndis-services" className="block bg-gray-50 p-6 rounded-lg hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">📋</div>
+              <h3 className="font-semibold text-gray-900 mb-2">NDIS Services</h3>
+              <p className="text-gray-600 text-sm">NDIS-funded psychology support for autistic participants and those with ADHD.</p>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-teal-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">
             Ready to Work With Someone Who Understands?

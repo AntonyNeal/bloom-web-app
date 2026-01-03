@@ -149,6 +149,33 @@ export default function IndividualTherapyPage() {
         </div>
       </section>
 
+      {/* Related Services */}
+      <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">Related Services</h2>
+          <p className="text-lg text-gray-600 text-center mb-8">
+            We also offer specialised support for specific concerns and relationship dynamics.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            <a href="/couples-therapy" className="block bg-rose-50 p-6 rounded-lg hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">💑</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Couples Therapy</h3>
+              <p className="text-gray-600 text-sm">Strengthen your relationship through improved communication and deeper connection.</p>
+            </a>
+            <a href="/anxiety-depression" className="block bg-teal-50 p-6 rounded-lg hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">🧠</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Anxiety & Depression</h3>
+              <p className="text-gray-600 text-sm">Specialised support for anxiety disorders, depression, and mood difficulties.</p>
+            </a>
+            <a href="/trauma-recovery" className="block bg-green-50 p-6 rounded-lg hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">🌱</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Trauma Recovery</h3>
+              <p className="text-gray-600 text-sm">EMDR and trauma-informed approaches for healing from difficult experiences.</p>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Call to Action */}
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-6">

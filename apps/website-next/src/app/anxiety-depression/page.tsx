@@ -115,7 +115,37 @@ export default function AnxietyDepressionPage() {
             with you to develop practical strategies for managing anxiety and depression. 
             Together, we&apos;ll build your toolkit for lasting wellbeing.
           </p>
+          <p className="text-gray-600 mb-8">
+            Anxiety and depression often affect our closest relationships. If relationship stress 
+            is contributing to how you&apos;re feeling, we also offer{' '}
+            <a href="/couples-therapy" className="text-blue-600 hover:text-blue-800 underline">couples therapy</a>{' '}
+            to support both you and your partner.
+          </p>
           <ServiceBookingCTA label="Start Your Journey Today" />
+        </div>
+      </section>
+
+      {/* Related Services */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">Related Services</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <a href="/individual-therapy" className="block bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">🎯</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Individual Therapy</h3>
+              <p className="text-gray-600 text-sm">Comprehensive support for a wide range of mental health concerns and life challenges.</p>
+            </a>
+            <a href="/couples-therapy" className="block bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">💑</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Couples Therapy</h3>
+              <p className="text-gray-600 text-sm">When anxiety or depression affects your relationship, couples therapy can help.</p>
+            </a>
+            <a href="/trauma-recovery" className="block bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-3xl mb-3">🌱</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Trauma Recovery</h3>
+              <p className="text-gray-600 text-sm">Trauma can contribute to anxiety and depression — specialised support is available.</p>
+            </a>
+          </div>
         </div>
       </section>
     </main>

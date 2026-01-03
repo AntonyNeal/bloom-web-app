@@ -26,6 +26,7 @@ import './functions/send-verification-code';
 import './functions/verify-code';
 import './functions/onboarding';
 import './functions/process-booking-notification';
+import './functions/accept-application';
 
 export * from './functions/health';
 export * from './functions/applications';

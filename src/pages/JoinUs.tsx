@@ -1292,18 +1292,9 @@ export function JoinUs() {
                     }}
                   >
                     <option value="">Select your favourite flower...</option>
-                    <option value="Rose">🌹 Rose</option>
-                    <option value="Sunflower">🌻 Sunflower</option>
-                    <option value="Tulip">🌷 Tulip</option>
-                    <option value="Daisy">🌼 Daisy</option>
-                    <option value="Lily">🪷 Lily</option>
-                    <option value="Orchid">🪻 Orchid</option>
-                    <option value="Lavender">💜 Lavender</option>
                     <option value="Cherry Blossom">🌸 Cherry Blossom</option>
-                    <option value="Peony">🌺 Peony</option>
-                    <option value="Hydrangea">💠 Hydrangea</option>
-                    <option value="Jasmine">🤍 Jasmine</option>
-                    <option value="Magnolia">🩷 Magnolia</option>
+                    <option value="Purple Rose">🌹 Purple Rose</option>
+                    <option value="Sunflower">🌻 Sunflower</option>
                     <option value="Other">✨ Other (please specify)</option>
                   </select>
                   

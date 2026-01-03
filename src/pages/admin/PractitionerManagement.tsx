@@ -211,19 +211,10 @@ export function PractitionerManagement() {
                           {practitioner.first_name} {practitioner.last_name}
                           {practitioner.favorite_flower && (
                             <span className="ml-2 text-sm" title={`Favorite flower: ${practitioner.favorite_flower}`}>
-                              {practitioner.favorite_flower === 'Rose' && '🌹'}
-                              {practitioner.favorite_flower === 'Sunflower' && '🌻'}
-                              {practitioner.favorite_flower === 'Tulip' && '🌷'}
-                              {practitioner.favorite_flower === 'Daisy' && '🌼'}
-                              {practitioner.favorite_flower === 'Lily' && '🪷'}
-                              {practitioner.favorite_flower === 'Orchid' && '🪻'}
-                              {practitioner.favorite_flower === 'Lavender' && '💜'}
                               {practitioner.favorite_flower === 'Cherry Blossom' && '🌸'}
-                              {practitioner.favorite_flower === 'Peony' && '🌺'}
-                              {practitioner.favorite_flower === 'Hydrangea' && '💠'}
-                              {practitioner.favorite_flower === 'Jasmine' && '🤍'}
-                              {practitioner.favorite_flower === 'Magnolia' && '🩷'}
-                              {!['Rose', 'Sunflower', 'Tulip', 'Daisy', 'Lily', 'Orchid', 'Lavender', 'Cherry Blossom', 'Peony', 'Hydrangea', 'Jasmine', 'Magnolia'].includes(practitioner.favorite_flower) && '🌼'}
+                              {practitioner.favorite_flower === 'Purple Rose' && '🌹'}
+                              {practitioner.favorite_flower === 'Sunflower' && '🌻'}
+                              {!['Cherry Blossom', 'Purple Rose', 'Sunflower'].includes(practitioner.favorite_flower) && '🌼'}
                             </span>
                           )}
                         </h3>

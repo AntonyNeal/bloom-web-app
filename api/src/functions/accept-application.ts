@@ -10,6 +10,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
 import { createPractitionerFromApplication } from '../services/practitioner';
+import { sendAcceptanceEmail } from '../services/email';
 
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
@@ -167,15 +168,34 @@ async function acceptApplicationHandler(
     context.log(`Practitioner created: ${result.practitionerId}`);
     context.log(`Onboarding link: ${result.onboardingLink}`);
 
+    // Send the acceptance/onboarding email
+    let emailSent = false;
+    try {
+      await sendAcceptanceEmail({
+        firstName: application.first_name,
+        lastName: application.last_name,
+        email: application.email,
+        onboardingLink: result.onboardingLink,
+      });
+      emailSent = true;
+      context.log(`Acceptance email sent to ${application.email}`);
+    } catch (emailError) {
+      context.error('Failed to send acceptance email:', emailError);
+      // Don't fail the whole request - practitioner was created successfully
+    }
+
     return {
       status: 200,
       headers,
       jsonBody: {
         success: true,
-        message: 'Practitioner created successfully',
+        message: emailSent 
+          ? 'Practitioner created and onboarding email sent'
+          : 'Practitioner created (email delivery pending)',
         practitionerId: result.practitionerId,
         onboardingToken: result.onboardingToken,
         onboardingLink: result.onboardingLink,
+        emailSent,
       },
     };
   } catch (error) {

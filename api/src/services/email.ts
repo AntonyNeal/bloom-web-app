@@ -387,7 +387,7 @@ export async function sendAcceptanceEmail(context: EmailContext) {
     
     <p style="color: #888; font-size: 14px;"><em>Note: This link will expire in 7 days. If you need a new link, please contact us.</em></p>
     
-    <p>We're excited to have you join the ${BLOOM_NAME} family!</p>
+    <p>We're excited to have you join the ${BLOOM_NAME} community!</p>
     
     <p style="margin-top: 30px;">
       Warm regards,<br>
@@ -414,7 +414,7 @@ During onboarding, you'll:
 
 Note: This link will expire in 7 days. If you need a new link, please contact us.
 
-We're excited to have you join the ${BLOOM_NAME} family!
+We're excited to have you join the ${BLOOM_NAME} community!
 
 Warm regards,
 Zoe & The ${BLOOM_NAME} Team

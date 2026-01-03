@@ -155,44 +155,6 @@ jobs:
           echo "  - should-deploy: $(cat $GITHUB_OUTPUT | grep should-deploy | cut -d'=' -f2)"
           echo "  - should-test: $(cat $GITHUB_OUTPUT | grep should-test | cut -d'=' -f2)"
 
-  # DATABASE MIGRATIONS (runs before tests/build to ensure schema is ready)
-  run-migrations:
-    name: Run Database Migrations
-    runs-on: ubuntu-latest
-    needs: determine-environment
-    if: needs.determine-environment.outputs.should-deploy == 'true'
-    environment: ${{ needs.determine-environment.outputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - name: Install migration dependencies
-        run: |
-          cd db
-          npm ci
-      - name: Run database migrations
-        run: |
-          cd db
-          echo "🗄️ Running migrations for ${{ needs.determine-environment.outputs.environment }} environment..."
-          node scripts/migrate.js migrate
-        env:
-          DB_SERVER: ${{ secrets.DB_SERVER }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      - name: Show migration status
-        if: always()
-        run: |
-          cd db
-          node scripts/migrate.js info || echo "Could not retrieve migration info"
-        env:
-          DB_SERVER: ${{ secrets.DB_SERVER }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-
   # CONDITIONAL TESTS (only for staging/production)
   run-tests:
     name: Run Test Suite
@@ -234,15 +196,14 @@ jobs:
   build:
     name: Build Application
     runs-on: ubuntu-latest
-    needs: [determine-environment, lint, type-check, security, run-tests, run-migrations]
+    needs: [determine-environment, lint, type-check, security, run-tests]
     if: |
       always() &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success' &&
       needs.security.result == 'success' &&
-      (needs.run-tests.result == 'success' || needs.run-tests.result == 'skipped') &&
-      (needs.run-migrations.result == 'success' || needs.run-migrations.result == 'skipped')
+      (needs.run-tests.result == 'success' || needs.run-tests.result == 'skipped')
     environment: ${{ needs.determine-environment.outputs.environment }} # Uncommented to use environment-specific secrets
     steps:
       - uses: actions/checkout@v4

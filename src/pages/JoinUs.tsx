@@ -396,6 +396,10 @@ export function JoinUs() {
 
   // Calculate form completion percentage for progress indicator
   const completionPercentage = useMemo(() => {
+    // For favorite_flower, only count as complete if it's a real value (not just "Other:")
+    const hasValidFlower = formData.favorite_flower && 
+      (!formData.favorite_flower.startsWith('Other:') || formData.favorite_flower.replace('Other:', '').trim().length > 0);
+    
     const fields = [
       formData.first_name,
       formData.last_name,
@@ -403,7 +407,7 @@ export function JoinUs() {
       formData.ahpra_registration,
       formData.experience_years > 0,
       formData.cover_letter,
-      formData.favorite_flower,
+      hasValidFlower,
       files.cv,
       files.certificate,
     ];
@@ -450,6 +454,17 @@ export function JoinUs() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate "Other" flower option has a value
+    if (formData.favorite_flower?.startsWith('Other:') && !formData.favorite_flower.replace('Other:', '').trim()) {
+      toast({
+        title: 'Please tell us your favourite flower',
+        description: "Since you selected 'Other', please type in your favourite flower.",
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setUploading(true);
 
     try {
@@ -460,12 +475,18 @@ export function JoinUs() {
         : '';
       const photo_url = files.photo ? await uploadFile(files.photo, 'photo') : '';
 
+      // Clean up favorite_flower if "Other" was selected - just store the flower name
+      const cleanedFavoriteFlower = formData.favorite_flower?.startsWith('Other:')
+        ? formData.favorite_flower.replace('Other:', '').trim()
+        : formData.favorite_flower;
+
       // Submit application - include all qualification check data
       const response = await fetch(API_ENDPOINTS.applications, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          favorite_flower: cleanedFavoriteFlower,
           qualification_type: qualificationData?.qualificationType,
           qualification_check: qualificationData?.qualification_check,
           cv_url,
@@ -726,11 +747,10 @@ export function JoinUs() {
         {particleValues.map((particle, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 0, bottom: '-5%' }}
             animate={{
               opacity: [0, 0.6, 0.6, 0],
-              x: [`${particle.startX}%`, `${particle.endX}%`],
-              y: ['100%', '-10%'],
+              bottom: ['-5%', '105%'],
             }}
             transition={{
               duration: particle.duration,
@@ -740,6 +760,7 @@ export function JoinUs() {
             }}
             style={{
               position: 'absolute',
+              left: `${particle.startX}%`,
               width: `${particle.size}px`,
               height: `${particle.size}px`,
               borderRadius: '50%',
@@ -1246,8 +1267,14 @@ export function JoinUs() {
                   <select
                     id="favorite_flower"
                     required
-                    value={formData.favorite_flower || ''}
-                    onChange={(e) => setFormData({ ...formData, favorite_flower: e.target.value })}
+                    value={formData.favorite_flower?.startsWith('Other:') ? 'Other' : (formData.favorite_flower || '')}
+                    onChange={(e) => {
+                      if (e.target.value === 'Other') {
+                        setFormData({ ...formData, favorite_flower: 'Other:' });
+                      } else {
+                        setFormData({ ...formData, favorite_flower: e.target.value });
+                      }
+                    }}
                     style={{
                       width: '100%',
                       padding: '12px 16px',
@@ -1265,10 +1292,42 @@ export function JoinUs() {
                     }}
                   >
                     <option value="">Select your favourite flower...</option>
-                    <option value="Cherry Blossom">🌸 Cherry Blossom</option>
-                    <option value="Purple Rose">🌹 Purple Rose</option>
+                    <option value="Rose">🌹 Rose</option>
                     <option value="Sunflower">🌻 Sunflower</option>
+                    <option value="Tulip">🌷 Tulip</option>
+                    <option value="Daisy">🌼 Daisy</option>
+                    <option value="Lily">🪷 Lily</option>
+                    <option value="Orchid">🪻 Orchid</option>
+                    <option value="Lavender">💜 Lavender</option>
+                    <option value="Cherry Blossom">🌸 Cherry Blossom</option>
+                    <option value="Peony">🌺 Peony</option>
+                    <option value="Hydrangea">💠 Hydrangea</option>
+                    <option value="Jasmine">🤍 Jasmine</option>
+                    <option value="Magnolia">🩷 Magnolia</option>
+                    <option value="Other">✨ Other (please specify)</option>
                   </select>
+                  
+                  {/* Show text input when "Other" is selected */}
+                  {formData.favorite_flower?.startsWith('Other:') && (
+                    <input
+                      type="text"
+                      placeholder="Tell us your favourite flower..."
+                      value={formData.favorite_flower.replace('Other:', '').trim()}
+                      onChange={(e) => setFormData({ ...formData, favorite_flower: `Other:${e.target.value}` })}
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        fontSize: '16px',
+                        borderRadius: '8px',
+                        border: `2px solid rgba(107, 142, 127, 0.3)`,
+                        background: bloomStyles.colors.paperWhite,
+                        outline: 'none',
+                        transition: 'all 0.2s',
+                        marginTop: '12px',
+                      }}
+                    />
+                  )}
                 </motion.div>
               </motion.div>
 

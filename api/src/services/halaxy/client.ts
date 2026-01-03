@@ -591,6 +591,125 @@ export class HalaxyClient {
   }
 
   // ===========================================================================
+  // Practitioner Management
+  // ===========================================================================
+
+  /**
+   * Create or find an existing practitioner in Halaxy
+   * 
+   * This is used during onboarding to create the practitioner record in Halaxy.
+   * First searches by email to avoid duplicates, then creates if not found.
+   * 
+   * @param practitionerData - Practitioner details from the onboarding form
+   * @returns The created or existing FHIR Practitioner resource
+   */
+  async createOrFindPractitioner(practitionerData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    ahpraNumber?: string;
+    specializations?: string[];
+  }): Promise<FHIRPractitioner> {
+    const startTime = Date.now();
+    
+    // First try to find existing practitioner by email
+    try {
+      const existing = await this.getFirstPage<FHIRPractitioner>('/Practitioner', {
+        email: practitionerData.email,
+        _count: '1',
+      });
+      console.log(`[HalaxyClient] Practitioner lookup took ${Date.now() - startTime}ms`);
+      
+      // Filter out any invalid IDs (like 'warning' from FHIR OperationOutcome)
+      const validPractitioners = existing.filter(p => 
+        p.id && 
+        typeof p.id === 'string' && 
+        p.id !== 'warning' && 
+        p.id !== 'error' &&
+        !p.id.startsWith('outcome') &&
+        p.id.length > 3
+      );
+      
+      if (validPractitioners.length > 0) {
+        console.log(`[HalaxyClient] Found existing practitioner: ${validPractitioners[0].id}`);
+        return validPractitioners[0];
+      }
+    } catch (error) {
+      console.log('[HalaxyClient] No existing practitioner found, creating new');
+    }
+
+    // Create new practitioner
+    console.log('[HalaxyClient] Creating new practitioner...');
+    
+    // Format phone number to international format (+61...)
+    let formattedPhone: string | undefined;
+    if (practitionerData.phone) {
+      let phone = practitionerData.phone.replace(/\s/g, '');
+      if (phone.startsWith('0')) {
+        phone = '+61' + phone.substring(1);
+      } else if (!phone.startsWith('+')) {
+        phone = '+61' + phone;
+      }
+      formattedPhone = phone;
+    }
+
+    // Build telecom array
+    const telecom: Array<{ system: string; value: string; use?: string }> = [
+      { system: 'email', value: practitionerData.email, use: 'work' },
+    ];
+    if (formattedPhone) {
+      telecom.push({ system: 'phone', value: formattedPhone, use: 'mobile' });
+    }
+
+    // Build identifier array (AHPRA number)
+    const identifier: Array<{ system: string; value: string }> = [];
+    if (practitionerData.ahpraNumber) {
+      identifier.push({
+        system: 'http://ns.electronichealth.net.au/id/hi/hpii/1.0',
+        value: practitionerData.ahpraNumber,
+      });
+    }
+
+    // Build qualification array from specializations
+    const qualification = practitionerData.specializations?.map(spec => ({
+      code: {
+        coding: [{
+          system: 'http://snomed.info/sct',
+          display: spec,
+        }],
+      },
+    })) || [];
+
+    const fhirPractitioner = {
+      resourceType: 'Practitioner',
+      active: true,
+      name: [{
+        use: 'official',
+        family: practitionerData.lastName,
+        given: [practitionerData.firstName],
+      }],
+      telecom,
+      ...(identifier.length > 0 && { identifier }),
+      ...(qualification.length > 0 && { qualification }),
+    };
+
+    const newPractitioner = await this.request<FHIRPractitioner>('/Practitioner', {
+      method: 'POST',
+      body: JSON.stringify(fhirPractitioner),
+    });
+
+    // Validate the returned practitioner has a proper ID
+    if (!newPractitioner.id || newPractitioner.id === 'warning' || newPractitioner.id === 'error' || newPractitioner.id.length <= 3) {
+      console.error('[HalaxyClient] Invalid practitioner ID returned from Halaxy:', newPractitioner);
+      throw new Error(`Halaxy returned invalid practitioner ID: ${newPractitioner.id}`);
+    }
+
+    console.log(`[HalaxyClient] Created new practitioner: ${newPractitioner.id}`);
+    return newPractitioner;
+  }
+
+  // ===========================================================================
   // Request Helpers
   // ===========================================================================
 

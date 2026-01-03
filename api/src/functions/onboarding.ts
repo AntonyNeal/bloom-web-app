@@ -3,13 +3,14 @@
  * 
  * Handles practitioner onboarding:
  * - GET /api/onboarding/:token - Validate token and get practitioner info
- * - POST /api/onboarding/:token - Complete onboarding (set password, create Azure AD user)
+ * - POST /api/onboarding/:token - Complete onboarding (set password, create Azure AD user, create Halaxy clinician)
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
 import * as crypto from 'crypto';
 import { createAzureUser, findAzureUserByEmail } from '../services/azure-ad';
+import { HalaxyClient } from '../services/halaxy/client';
 
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
@@ -200,11 +201,11 @@ async function onboardingHandler(
       // Hash the password for local backup auth (Azure AD is primary)
       const passwordHash = hashPassword(password);
 
-      // First, get the practitioner info to create Azure AD user
+      // First, get the practitioner info to create Azure AD user and Halaxy clinician
       const practitionerResult = await pool.request()
         .input('token', sql.NVarChar, token)
         .query(`
-          SELECT id, email, first_name, last_name, display_name
+          SELECT id, email, first_name, last_name, display_name, phone, ahpra_number, specializations
           FROM practitioners 
           WHERE onboarding_token = @token
             AND onboarding_completed_at IS NULL
@@ -259,7 +260,32 @@ async function onboardingHandler(
         context.warn(`Azure AD user creation failed for ${practitionerInfo.email}. User will need manual Azure AD account setup.`);
       }
 
-      // Update practitioner with contract acceptance, Azure AD Object ID, and company email
+      // Create practitioner in Halaxy
+      let halaxyPractitionerId: string | null = null;
+      try {
+        const halaxyClient = new HalaxyClient();
+        const specializations = practitionerInfo.specializations 
+          ? JSON.parse(practitionerInfo.specializations) 
+          : [];
+        
+        const halaxyPractitioner = await halaxyClient.createOrFindPractitioner({
+          firstName: practitionerInfo.first_name,
+          lastName: practitionerInfo.last_name,
+          email: practitionerInfo.email,
+          phone: phone || practitionerInfo.phone,
+          ahpraNumber: practitionerInfo.ahpra_number,
+          specializations,
+        });
+        
+        halaxyPractitionerId = halaxyPractitioner.id;
+        context.log(`✅ Created/found Halaxy practitioner: ${halaxyPractitionerId} for ${practitionerInfo.email}`);
+      } catch (halaxyError) {
+        context.error('Failed to create Halaxy practitioner:', halaxyError);
+        // Don't fail onboarding - Halaxy practitioner can be created manually
+        context.warn(`Halaxy practitioner creation failed for ${practitionerInfo.email}. Manual Halaxy setup required.`);
+      }
+
+      // Update practitioner with contract acceptance, Azure AD Object ID, company email, and Halaxy ID
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
         .input('password_hash', sql.NVarChar, passwordHash)
@@ -269,6 +295,7 @@ async function onboardingHandler(
         .input('contract_ip_address', sql.NVarChar, clientIp)
         .input('azure_ad_object_id', sql.NVarChar, azureObjectId)
         .input('company_email', sql.NVarChar, companyEmail)
+        .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
         .query(`
           UPDATE practitioners
           SET 
@@ -277,6 +304,7 @@ async function onboardingHandler(
             bio = COALESCE(@bio, bio),
             phone = COALESCE(@phone, phone),
             azure_ad_object_id = @azure_ad_object_id,
+            halaxy_practitioner_id = COALESCE(@halaxy_practitioner_id, halaxy_practitioner_id),
             company_email = @company_email,
             contract_accepted_at = GETDATE(),
             contract_version = '1.0',
@@ -285,7 +313,7 @@ async function onboardingHandler(
             onboarding_token = NULL,
             onboarding_token_expires_at = NULL,
             updated_at = GETDATE()
-          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id, INSERTED.company_email
+          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id, INSERTED.company_email, INSERTED.halaxy_practitioner_id
           WHERE onboarding_token = @token
             AND onboarding_completed_at IS NULL
             AND onboarding_token_expires_at > GETDATE()
@@ -300,11 +328,16 @@ async function onboardingHandler(
       }
 
       const practitioner = result.recordset[0];
-      context.log(`Onboarding completed for practitioner ${practitioner.id}, Company email: ${practitioner.company_email || 'not created'}`);
+      context.log(`Onboarding completed for practitioner ${practitioner.id}, Company email: ${practitioner.company_email || 'not created'}, Halaxy ID: ${practitioner.halaxy_practitioner_id || 'not created'}`);
       
       // Log their new email prominently
       if (practitioner.company_email) {
         context.log(`✅ NEW EMAIL CREATED: ${practitioner.company_email}`);
+      }
+      
+      // Log Halaxy ID
+      if (practitioner.halaxy_practitioner_id) {
+        context.log(`✅ HALAXY CLINICIAN CREATED: ${practitioner.halaxy_practitioner_id}`);
       }
 
       // Notify admin if Azure AD creation failed
@@ -312,6 +345,11 @@ async function onboardingHandler(
         context.warn(`ATTENTION: Practitioner ${practitionerInfo.email} completed onboarding but company email was not created. Manual intervention required.`);
       } else if (!licenseAssigned) {
         context.warn(`ATTENTION: User ${companyEmail} created but M365 license was not assigned. Manual license assignment required.`);
+      }
+      
+      // Notify admin if Halaxy creation failed
+      if (!halaxyPractitionerId) {
+        context.warn(`ATTENTION: Practitioner ${practitionerInfo.email} completed onboarding but Halaxy clinician was not created. Manual Halaxy setup required.`);
       }
 
       return {
@@ -326,6 +364,7 @@ async function onboardingHandler(
             id: practitioner.id,
             personalEmail: practitionerInfo.email,
             companyEmail: practitioner.company_email,
+            halaxyId: practitioner.halaxy_practitioner_id,
             firstName: practitioner.first_name,
             lastName: practitioner.last_name,
           },
@@ -333,6 +372,7 @@ async function onboardingHandler(
             created: !!companyEmail,
             email: companyEmail,
             licenseAssigned,
+            halaxyCreated: !!halaxyPractitionerId,
             message: companyEmail 
               ? licenseAssigned
                 ? `Your new email is ${companyEmail}. You can sign in to Outlook and Bloom with this address.`

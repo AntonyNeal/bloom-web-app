@@ -76,6 +76,7 @@ async function acceptApplicationHandler(
           specializations,
           experience_years,
           photo_url,
+          favorite_flower,
           status,
           practitioner_id
         FROM applications
@@ -152,6 +153,7 @@ async function acceptApplicationHandler(
       specializations: application.specializations,
       experience_years: application.experience_years,
       photo_url: application.photo_url,
+      favorite_flower: application.favorite_flower, // Zoe's secret intel 🌸
     });
 
     if (!result.success) {

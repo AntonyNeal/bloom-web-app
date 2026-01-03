@@ -90,6 +90,7 @@ async function onboardingHandler(
             profile_photo_url,
             display_name,
             bio,
+            favorite_flower,
             onboarding_token_expires_at,
             onboarding_completed_at
           FROM practitioners 
@@ -141,6 +142,7 @@ async function onboardingHandler(
             profilePhotoUrl: practitioner.profile_photo_url,
             displayName: practitioner.display_name,
             bio: practitioner.bio,
+            favoriteFlower: practitioner.favorite_flower, // Zoe's surprise 🌸
           },
         },
       };

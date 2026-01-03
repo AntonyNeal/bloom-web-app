@@ -22,6 +22,7 @@ interface ApplicationData {
   specializations?: string;
   experience_years?: number;
   photo_url?: string;
+  favorite_flower?: string; // Zoe's secret intel for onboarding surprise
 }
 
 interface CreatePractitionerResult {
@@ -99,6 +100,7 @@ export async function createPractitionerFromApplication(
       .input('specializations', sql.NVarChar, application.specializations || null)
       .input('experience_years', sql.Int, application.experience_years || null)
       .input('profile_photo_url', sql.NVarChar, application.photo_url || null)
+      .input('favorite_flower', sql.NVarChar, application.favorite_flower || null)
       .input('onboarding_token', sql.NVarChar, onboardingToken)
       .input('onboarding_token_expires_at', sql.DateTime2, tokenExpiresAt)
       .query(`
@@ -113,6 +115,7 @@ export async function createPractitionerFromApplication(
           specializations,
           experience_years,
           profile_photo_url,
+          favorite_flower,
           onboarding_token,
           onboarding_token_expires_at,
           is_active,
@@ -130,6 +133,7 @@ export async function createPractitionerFromApplication(
           @specializations,
           @experience_years,
           @profile_photo_url,
+          @favorite_flower,
           @onboarding_token,
           @onboarding_token_expires_at,
           0,

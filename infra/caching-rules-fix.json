@@ -1,0 +1,146 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "resources": [
+    {
+      "type": "Microsoft.Cdn/profiles/ruleSets/rules",
+      "apiVersion": "2023-05-01",
+      "name": "fdt42kldozqahcu/CachingRules/CacheStaticAssets",
+      "properties": {
+        "order": 1,
+        "matchProcessingBehavior": "Continue",
+        "conditions": [
+          {
+            "name": "UrlPath",
+            "parameters": {
+              "typeName": "DeliveryRuleUrlPathMatchConditionParameters",
+              "operator": "BeginsWith",
+              "matchValues": ["/_next/static/"],
+              "negateCondition": false,
+              "transforms": []
+            }
+          }
+        ],
+        "actions": [
+          {
+            "name": "RouteConfigurationOverride",
+            "parameters": {
+              "typeName": "DeliveryRuleRouteConfigurationOverrideActionParameters",
+              "cacheConfiguration": {
+                "queryStringCachingBehavior": "IgnoreQueryString",
+                "cacheBehavior": "OverrideAlways",
+                "cacheDuration": "365.00:00:00",
+                "isCompressionEnabled": "Enabled"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Cdn/profiles/ruleSets/rules",
+      "apiVersion": "2023-05-01",
+      "name": "fdt42kldozqahcu/CachingRules/CacheImages",
+      "properties": {
+        "order": 2,
+        "matchProcessingBehavior": "Continue",
+        "conditions": [
+          {
+            "name": "UrlFileExtension",
+            "parameters": {
+              "typeName": "DeliveryRuleUrlFileExtensionMatchConditionParameters",
+              "operator": "Equal",
+              "matchValues": ["webp", "avif", "png", "jpg", "jpeg", "gif", "svg", "ico"],
+              "negateCondition": false,
+              "transforms": []
+            }
+          }
+        ],
+        "actions": [
+          {
+            "name": "RouteConfigurationOverride",
+            "parameters": {
+              "typeName": "DeliveryRuleRouteConfigurationOverrideActionParameters",
+              "cacheConfiguration": {
+                "queryStringCachingBehavior": "IgnoreQueryString",
+                "cacheBehavior": "OverrideAlways",
+                "cacheDuration": "30.00:00:00",
+                "isCompressionEnabled": "Enabled"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Cdn/profiles/ruleSets/rules",
+      "apiVersion": "2023-05-01",
+      "name": "fdt42kldozqahcu/CachingRules/CacheFonts",
+      "properties": {
+        "order": 3,
+        "matchProcessingBehavior": "Continue",
+        "conditions": [
+          {
+            "name": "UrlFileExtension",
+            "parameters": {
+              "typeName": "DeliveryRuleUrlFileExtensionMatchConditionParameters",
+              "operator": "Equal",
+              "matchValues": ["woff", "woff2", "ttf", "otf", "eot"],
+              "negateCondition": false,
+              "transforms": []
+            }
+          }
+        ],
+        "actions": [
+          {
+            "name": "RouteConfigurationOverride",
+            "parameters": {
+              "typeName": "DeliveryRuleRouteConfigurationOverrideActionParameters",
+              "cacheConfiguration": {
+                "queryStringCachingBehavior": "IgnoreQueryString",
+                "cacheBehavior": "OverrideAlways",
+                "cacheDuration": "365.00:00:00",
+                "isCompressionEnabled": "Enabled"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Cdn/profiles/ruleSets/rules",
+      "apiVersion": "2023-05-01",
+      "name": "fdt42kldozqahcu/CachingRules/CacheJSCSS",
+      "properties": {
+        "order": 4,
+        "matchProcessingBehavior": "Continue",
+        "conditions": [
+          {
+            "name": "UrlFileExtension",
+            "parameters": {
+              "typeName": "DeliveryRuleUrlFileExtensionMatchConditionParameters",
+              "operator": "Equal",
+              "matchValues": ["js", "css"],
+              "negateCondition": false,
+              "transforms": []
+            }
+          }
+        ],
+        "actions": [
+          {
+            "name": "RouteConfigurationOverride",
+            "parameters": {
+              "typeName": "DeliveryRuleRouteConfigurationOverrideActionParameters",
+              "cacheConfiguration": {
+                "queryStringCachingBehavior": "IgnoreQueryString",
+                "cacheBehavior": "OverrideAlways",
+                "cacheDuration": "7.00:00:00",
+                "isCompressionEnabled": "Enabled"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

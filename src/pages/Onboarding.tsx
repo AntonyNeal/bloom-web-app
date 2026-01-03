@@ -37,6 +37,7 @@ interface PractitionerData {
   displayName?: string;
   bio?: string;
   contractUrl?: string;
+  favoriteFlower?: string; // Zoe's surprise 🌸
 }
 
 type OnboardingStep = 'loading' | 'welcome' | 'password' | 'profile' | 'complete' | 'error';
@@ -407,6 +408,31 @@ export default function OnboardingPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Zoe's surprise - their favorite flower! 🌸 */}
+                {practitioner?.favoriteFlower && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.5 }}
+                    style={{ 
+                      background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)', 
+                      borderRadius: 12, 
+                      padding: 20, 
+                      marginBottom: 24,
+                      textAlign: 'center',
+                      border: '1px solid #fbcfe8',
+                    }}
+                  >
+                    <p style={{ fontSize: 32, marginBottom: 8 }}>🌸</p>
+                    <p style={{ fontSize: 14, color: '#9d174d', fontWeight: 500 }}>
+                      We heard you love {practitioner.favoriteFlower.toLowerCase().endsWith('s') ? '' : 'a '}<strong>{practitioner.favoriteFlower}</strong>!
+                    </p>
+                    <p style={{ fontSize: 12, color: '#be185d', marginTop: 4 }}>
+                      Here's to growing something beautiful together 🌱
+                    </p>
+                  </motion.div>
+                )}
 
                 <button
                   onClick={() => setStep('password')}

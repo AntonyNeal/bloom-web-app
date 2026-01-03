@@ -1,7 +1,8 @@
 # 🌸 Bloom Web App - Future Development Roadmap
 
-**Document Version:** 1.0
+**Document Version:** 2.0
 **Created:** November 22, 2025
+**Last Updated:** January 3, 2026
 **Project:** Bloom Application Management System
 **Owner:** Life Psychology Australia
 
@@ -12,6 +13,55 @@
 This document outlines suggested future development opportunities for the Bloom Web Application. All items are presented as **recommendations** rather than prescriptions, allowing the development team to prioritize based on business needs, resource availability, and user feedback.
 
 The roadmap is organized into **themes** (Epics in Jira), with each theme containing multiple **user stories** that can be tracked as individual tickets on a Kanban board.
+
+---
+
+## 🎯 Priority Matrix (January 2026 Revision)
+
+### 🔥 P0 - Critical / Immediate
+
+| Epic | Description | Est. SP |
+|------|-------------|---------|
+| Privacy & Security Policy Revalidation | Compliance risk from Next.js migration reversion | 5 |
+| Unified Clinician Interface | Video + booking + AI assistant + **real calendar** in one place | 34 |
+| Multi-Practitioner Infrastructure | Foundation for scaling - auto-extend website when clinicians added | 21 |
+| Psychologist Onboarding Pipeline | Auto-provision accepted applicants → active clinicians | 21 |
+
+### 🔴 P1 - High Priority
+
+| Epic | Description | Est. SP |
+|------|-------------|---------|
+| Azure Communication Services | Get Australian phone number for SMS/voice | 8 |
+| UX Performance Optimization v2 | Every page audit - LCP, CLS, FID improvements | 13 |
+| API Rate Limiting & Security | DDoS protection, abuse prevention | 13 |
+| AI Session Intelligence | AI analysis of ALL session notes (not just intake) | 13 |
+| Group Therapy Platform | Multi-participant session support | 21 |
+| Mobile Native App | React Native iOS/Android app | 55 |
+
+### 🟡 P2 - Medium Priority
+
+| Epic | Description | Est. SP |
+|------|-------------|---------|
+| Email Verification for Applicants | Reduces spam, confirms identity | 8 |
+| Comprehensive Audit Logging | Compliance, security investigation | 8 |
+| Integration Hub | Medicare, GP systems - needs scoping | 21 |
+
+### 🟢 P3 - Lower Priority / Needs Definition
+
+| Epic | Description | Notes |
+|------|-------------|-------|
+| Client Portal MVP | Appointments, notes, invoices | Nice but not urgent |
+| Referrer Network Portal | GP referral tracking | Lower priority |
+| LLM-Powered Knowledge System | AI artifacts on demand | Replaces static resource library |
+| Client Progress Tracking | PHQ-9/GAD-7 visualization | Needs clinician value research |
+
+### ⏸️ Parking Lot
+
+| Epic | Open Questions |
+|------|----------------|
+| Automated Waitlist | Very low priority |
+| Payment Plans | Execution unclear - is it even a good idea? |
+| AI Scheduling Assistant | Needs definition - what does this look like? |
 
 ---
 
@@ -42,6 +92,26 @@ Each ticket in this document includes:
 
 ## 🏗️ Development Themes (Epics)
 
+### NEW Epic: Privacy & Security Policy Revalidation (P0)
+
+### NEW Epic: Unified Clinician Interface (P0)
+
+### NEW Epic: Multi-Practitioner Infrastructure (P0)
+
+### NEW Epic: Psychologist Onboarding Pipeline (P0)
+
+### NEW Epic: Azure Communication Services (P1)
+
+### NEW Epic: UX Performance Optimization v2 (P1)
+
+### NEW Epic: AI Session Intelligence (P1)
+
+### NEW Epic: Group Therapy Platform (P1)
+
+### NEW Epic: Mobile Native App (P1)
+
+### NEW Epic: LLM-Powered Knowledge System (P3)
+
 ### Epic 1: Security & Authentication Enhancement
 
 ### Epic 2: Testing Infrastructure & Quality Assurance
@@ -66,7 +136,771 @@ Each ticket in this document includes:
 
 ---
 
-## 🔐 EPIC 1: Security & Authentication Enhancement
+## � NEW EPIC: Privacy & Security Policy Revalidation (P0)
+
+**Epic Description**: Audit and restore privacy/security policies that reverted during Next.js migration. Legal/regulatory compliance risk.
+
+**Business Value**: Ensures compliance with Australian privacy law, reduces legal exposure, maintains trust.
+
+**Story Points**: 5 total
+
+### Tickets
+
+#### BLOOM-P01: Audit Privacy Page Content
+
+**Story**: As a compliance officer, I want to audit the current Privacy.tsx against the last-known-good version so that we identify any content regressions.
+
+**Acceptance Criteria**:
+
+- [ ] Compare `apps/website/src/pages/Privacy.tsx` with pre-migration version
+- [ ] Compare `apps/website-next/src/app/privacy/page.tsx` content
+- [ ] Document all differences in privacy statements
+- [ ] Identify missing clauses or changed language
+
+**Story Points**: 2
+
+**Priority**: P0 (Critical)
+
+**Labels**: compliance, legal, security
+
+---
+
+#### BLOOM-P02: Validate Consent Form Language
+
+**Story**: As a legal reviewer, I want consent form language validated against current regulations so that we maintain compliance.
+
+**Acceptance Criteria**:
+
+- [ ] Review consent form against Australian Privacy Principles
+- [ ] Verify data handling practices match documentation
+- [ ] Update footer links and legal metadata
+- [ ] Obtain legal review sign-off
+
+**Story Points**: 3
+
+**Priority**: P0 (Critical)
+
+**Labels**: compliance, legal
+
+---
+
+## 🖥️ NEW EPIC: Unified Clinician Interface (P0)
+
+**Epic Description**: Single dashboard integrating video conferencing, Halaxy booking data, **real calendar (not mock data)**, and AI assistant for session preparation and note-taking.
+
+**Business Value**: Major UX differentiator. Reduces context-switching for clinicians. Improves session efficiency.
+
+**Story Points**: 34 total
+
+**Technical Note**: Current clinician dashboard (`src/hooks/useDashboard.ts`) falls back to mock data. The `practitioner-dashboard` API exists but isn't connected with real practitioner authentication.
+
+### Tickets
+
+#### BLOOM-U01: Connect Real Calendar to Clinician Dashboard
+
+**Story**: As a clinician, I want to see my real appointments in Bloom so that I don't need to check Halaxy separately.
+
+**Acceptance Criteria**:
+
+- [ ] Remove mock data fallback from `useDashboard.ts`
+- [ ] Implement practitioner authentication to get real practitioner ID
+- [ ] Connect to `practitioner-dashboard` API with real credentials
+- [ ] Display today's sessions from Halaxy via existing API
+- [ ] Show weekly schedule with real availability data
+- [ ] Real-time sync status indicator
+
+**Story Points**: 8
+
+**Priority**: P0 (Critical)
+
+**Dependencies**: Multi-Practitioner Infrastructure (for auth)
+
+**Labels**: clinician-ux, calendar, halaxy-integration
+
+---
+
+#### BLOOM-U02: Embed Video Conferencing
+
+**Story**: As a clinician, I want to launch video calls from within Bloom so that I have one interface for telehealth sessions.
+
+**Acceptance Criteria**:
+
+- [ ] Integrate video provider (Zoom/Coviu/Whereby)
+- [ ] One-click join from session card
+- [ ] Auto-populate client invite link
+- [ ] Session timer with billing alerts
+- [ ] Video quality indicator
+
+**Story Points**: 8
+
+**Priority**: P0 (Critical)
+
+**Labels**: clinician-ux, telehealth, video
+
+---
+
+#### BLOOM-U03: AI Session Assistant Panel
+
+**Story**: As a clinician, I want AI-powered session support so that I can prepare efficiently and capture key insights.
+
+**Acceptance Criteria**:
+
+- [ ] Pre-session client summary (history, presenting issues, last session notes)
+- [ ] Real-time note suggestions during session
+- [ ] Post-session action items generation
+- [ ] Quick-access to previous session notes
+- [ ] AI-generated session summary for documentation
+
+**Story Points**: 13
+
+**Priority**: P1 (High)
+
+**Dependencies**: AI Session Intelligence epic
+
+**Labels**: clinician-ux, ai, notes
+
+---
+
+#### BLOOM-U04: Unified Session Controls
+
+**Story**: As a clinician, I want session management controls in one place so that I can manage appointments without leaving the interface.
+
+**Acceptance Criteria**:
+
+- [ ] Reschedule appointment from dashboard
+- [ ] Cancel with reason and notification
+- [ ] Mark as attended/no-show
+- [ ] Bill session (trigger Halaxy invoice)
+- [ ] Send follow-up booking link to client
+
+**Story Points**: 5
+
+**Priority**: P1 (High)
+
+**Labels**: clinician-ux, booking
+
+---
+
+## 🏢 NEW EPIC: Multi-Practitioner Infrastructure (P0)
+
+**Epic Description**: Website automatically adapts when clinicians are added. Foundation for scaling the practice.
+
+**Business Value**: Enables practice growth without manual website updates. Reduces onboarding friction.
+
+**Story Points**: 21 total
+
+### Tickets
+
+#### BLOOM-M01: Dynamic Team Pages
+
+**Story**: As a practice manager, I want clinician profile pages generated automatically so that the website updates when we add practitioners.
+
+**Acceptance Criteria**:
+
+- [ ] Create `/team/[slug]` dynamic route
+- [ ] Generate pages from clinicians database table
+- [ ] Include bio, specializations, availability summary
+- [ ] SEO structured data auto-generated
+- [ ] Profile photo from Azure Blob Storage
+
+**Story Points**: 8
+
+**Priority**: P0 (Critical)
+
+**Labels**: website, cms, seo
+
+---
+
+#### BLOOM-M02: "Our Team" Page Auto-Population
+
+**Story**: As a website visitor, I want to see all available practitioners so that I can choose who to book with.
+
+**Acceptance Criteria**:
+
+- [ ] Team grid populated from database
+- [ ] Filter by specialization
+- [ ] Show availability indicators
+- [ ] Link to individual booking
+- [ ] Hide inactive/pending clinicians
+
+**Story Points**: 5
+
+**Priority**: P0 (Critical)
+
+**Labels**: website, ux
+
+---
+
+#### BLOOM-M03: Service Pages Show Available Practitioners
+
+**Story**: As a client seeking specific services, I want to see which practitioners offer that service so that I can make an informed booking.
+
+**Acceptance Criteria**:
+
+- [ ] Each service page shows relevant practitioners
+- [ ] Practitioner cards with specialization match
+- [ ] Direct booking link per practitioner
+- [ ] "Next available" indicator
+
+**Story Points**: 5
+
+**Priority**: P1 (High)
+
+**Labels**: website, booking
+
+---
+
+#### BLOOM-M04: Front Door Cache Invalidation
+
+**Story**: As a system admin, I want the CDN cache to update when clinician data changes so that the website reflects current information.
+
+**Acceptance Criteria**:
+
+- [ ] Webhook triggers cache purge on clinician update
+- [ ] Selective purge (only affected pages)
+- [ ] Logging of cache invalidation events
+- [ ] Manual purge option in admin
+
+**Story Points**: 3
+
+**Priority**: P1 (High)
+
+**Labels**: infrastructure, cdn, azure
+
+---
+
+## 👩‍⚕️ NEW EPIC: Psychologist Onboarding Pipeline (P0)
+
+**Epic Description**: When an applicant is approved in Bloom admin, automatically onboard them as a clinician.
+
+**Business Value**: Reduces manual onboarding effort. Faster time-to-active for new practitioners.
+
+**Story Points**: 21 total
+
+### Tickets
+
+#### BLOOM-O01: Onboarding Workflow State
+
+**Story**: As an admin, I want approved applicants to enter an onboarding workflow so that I can track their progress to active status.
+
+**Acceptance Criteria**:
+
+- [ ] Add "onboarding" status to application states
+- [ ] Onboarding checklist in admin portal
+- [ ] Progress tracking per applicant
+- [ ] Email notifications at each stage
+
+**Story Points**: 5
+
+**Priority**: P0 (Critical)
+
+**Labels**: admin, workflow
+
+---
+
+#### BLOOM-O02: Auto-Generate Clinician Profile
+
+**Story**: As an admin, I want clinician profiles created from application data so that I don't have to re-enter information.
+
+**Acceptance Criteria**:
+
+- [ ] Map application fields to clinician record
+- [ ] Create clinician database entry
+- [ ] Generate profile slug from name
+- [ ] Upload profile photo to blob storage
+- [ ] Set initial specializations from application
+
+**Story Points**: 5
+
+**Priority**: P0 (Critical)
+
+**Labels**: admin, automation
+
+---
+
+#### BLOOM-O03: Provision Halaxy Practitioner
+
+**Story**: As an onboarding admin, I want Halaxy practitioner records created automatically so that clinicians can receive bookings.
+
+**Acceptance Criteria**:
+
+- [ ] Create Halaxy practitioner via FHIR API
+- [ ] Set up PractitionerRole with services
+- [ ] Configure default schedule template
+- [ ] Link Halaxy ID to Bloom clinician record
+- [ ] Error handling with retry mechanism
+
+**Story Points**: 8
+
+**Priority**: P0 (Critical)
+
+**Dependencies**: Halaxy API access
+
+**Labels**: halaxy, integration, automation
+
+---
+
+#### BLOOM-O04: Welcome Email with Credentials
+
+**Story**: As a newly onboarded clinician, I want to receive my login credentials so that I can access Bloom immediately.
+
+**Acceptance Criteria**:
+
+- [ ] Generate secure temporary password
+- [ ] Send branded welcome email
+- [ ] Include quick-start guide
+- [ ] Link to Bloom clinician dashboard
+- [ ] Password reset prompt on first login
+
+**Story Points**: 3
+
+**Priority**: P1 (High)
+
+**Labels**: email, onboarding
+
+---
+
+## 📱 NEW EPIC: Azure Communication Services (P1)
+
+**Epic Description**: Get an Australian phone number through Azure for SMS notifications and potentially voice.
+
+**Business Value**: Professional communication channel. Enables SMS appointment reminders, alerts.
+
+**Story Points**: 8 total
+
+### Tickets
+
+#### BLOOM-A01: Provision Azure Communication Services
+
+**Story**: As a system admin, I want Azure Communication Services configured so that we can send SMS messages.
+
+**Acceptance Criteria**:
+
+- [ ] Create ACS resource in rg-lpa-unified
+- [ ] Purchase Australian phone number (+61)
+- [ ] Configure SMS capability
+- [ ] Set up connection strings in Key Vault
+- [ ] Test SMS send/receive
+
+**Story Points**: 3
+
+**Priority**: P1 (High)
+
+**Labels**: azure, infrastructure, sms
+
+---
+
+#### BLOOM-A02: Replace Current SMS Provider
+
+**Story**: As a developer, I want to use ACS for all SMS so that we have a unified communication platform.
+
+**Acceptance Criteria**:
+
+- [ ] Update monitoring alerts to use ACS
+- [ ] Migrate appointment reminders to ACS
+- [ ] Update environment variables
+- [ ] Deprecate old SMS integration
+- [ ] Cost monitoring dashboard
+
+**Story Points**: 5
+
+**Priority**: P1 (High)
+
+**Labels**: backend, sms, migration
+
+---
+
+## ⚡ NEW EPIC: UX Performance Optimization v2 (P1)
+
+**Epic Description**: Audit every page for performance. Target: 95+ Lighthouse scores across the board.
+
+**Business Value**: Better user experience, SEO ranking, conversion rates.
+
+**Story Points**: 13 total
+
+### Tickets
+
+#### BLOOM-X01: Comprehensive Page Audit
+
+**Story**: As a developer, I want Lighthouse audits on every page so that I can identify performance bottlenecks.
+
+**Acceptance Criteria**:
+
+- [ ] Run Lighthouse CI on all routes
+- [ ] Document current scores per page
+- [ ] Identify LCP, CLS, FID issues
+- [ ] Prioritize pages by traffic
+- [ ] Create improvement backlog
+
+**Story Points**: 3
+
+**Priority**: P1 (High)
+
+**Labels**: performance, audit
+
+---
+
+#### BLOOM-X02: Image Optimization Pass
+
+**Story**: As a user, I want images to load quickly so that pages feel responsive.
+
+**Acceptance Criteria**:
+
+- [ ] Convert all images to WebP/AVIF
+- [ ] Implement responsive srcset
+- [ ] Lazy load below-fold images
+- [ ] Optimize hero images for LCP
+- [ ] Add blur-up placeholders
+
+**Story Points**: 5
+
+**Priority**: P1 (High)
+
+**Labels**: performance, images
+
+---
+
+#### BLOOM-X03: JavaScript Bundle Optimization
+
+**Story**: As a developer, I want smaller JS bundles so that pages load faster.
+
+**Acceptance Criteria**:
+
+- [ ] Analyze bundle with webpack-bundle-analyzer
+- [ ] Code-split by route
+- [ ] Tree-shake unused dependencies
+- [ ] Defer non-critical scripts
+- [ ] Target <200KB initial JS
+
+**Story Points**: 5
+
+**Priority**: P1 (High)
+
+**Labels**: performance, javascript
+
+---
+
+## 🧠 NEW EPIC: AI Session Intelligence (P1)
+
+**Epic Description**: AI analysis of ALL session notes (not just intake) for clinical insights.
+
+**Business Value**: Better session prep, pattern recognition, treatment planning support.
+
+**Story Points**: 13 total
+
+### Tickets
+
+#### BLOOM-AI01: Session Notes Ingestion
+
+**Story**: As a system, I want to ingest all session notes so that AI can analyze client history.
+
+**Acceptance Criteria**:
+
+- [ ] Connect to Halaxy clinical notes API
+- [ ] Sync historical notes to secure storage
+- [ ] Incremental sync for new notes
+- [ ] PII handling and encryption
+- [ ] Consent management
+
+**Story Points**: 5
+
+**Priority**: P1 (High)
+
+**Labels**: ai, data, security
+
+---
+
+#### BLOOM-AI02: Client Summary Generation
+
+**Story**: As a clinician, I want AI-generated client summaries so that I can quickly prepare for sessions.
+
+**Acceptance Criteria**:
+
+- [ ] Summarize presenting issues across sessions
+- [ ] Identify treatment progress patterns
+- [ ] Highlight recent changes/concerns
+- [ ] MHCP session count and status
+- [ ] Suggested focus areas
+
+**Story Points**: 5
+
+**Priority**: P1 (High)
+
+**Labels**: ai, clinician-ux
+
+---
+
+#### BLOOM-AI03: Pattern Recognition Alerts
+
+**Story**: As a clinician, I want to be alerted to concerning patterns so that I can intervene appropriately.
+
+**Acceptance Criteria**:
+
+- [ ] Detect deterioration signals
+- [ ] Flag missed appointments patterns
+- [ ] Identify medication compliance issues
+- [ ] Alert on risk language in notes
+- [ ] Configurable sensitivity levels
+
+**Story Points**: 3
+
+**Priority**: P2 (Medium)
+
+**Labels**: ai, safety, alerts
+
+---
+
+## 👥 NEW EPIC: Group Therapy Platform (P1)
+
+**Epic Description**: Support multi-participant therapy sessions (group therapy, family sessions).
+
+**Business Value**: New service offering, increased revenue per hour, peer support benefits.
+
+**Story Points**: 21 total
+
+### Tickets
+
+#### BLOOM-G01: Group Session Data Model
+
+**Story**: As a developer, I want a data model for group sessions so that we can support multiple participants.
+
+**Acceptance Criteria**:
+
+- [ ] Group session entity in database
+- [ ] Multiple clients per session
+- [ ] Group-specific billing logic
+- [ ] Attendance tracking per participant
+- [ ] Privacy controls (who sees whom)
+
+**Story Points**: 5
+
+**Priority**: P1 (High)
+
+**Labels**: database, architecture
+
+---
+
+#### BLOOM-G02: Group Booking Flow
+
+**Story**: As a client, I want to book into group sessions so that I can participate in group therapy.
+
+**Acceptance Criteria**:
+
+- [ ] Display available group sessions
+- [ ] Show remaining spots
+- [ ] Waitlist when full
+- [ ] Group session descriptions
+- [ ] Prerequisite screening (if required)
+
+**Story Points**: 8
+
+**Priority**: P1 (High)
+
+**Labels**: booking, ux
+
+---
+
+#### BLOOM-G03: Group Video Integration
+
+**Story**: As a clinician, I want to run group video sessions so that I can deliver group therapy remotely.
+
+**Acceptance Criteria**:
+
+- [ ] Multi-participant video room
+- [ ] Clinician controls (mute all, spotlight)
+- [ ] Breakout rooms for exercises
+- [ ] Recording with consent
+- [ ] Participant list management
+
+**Story Points**: 8
+
+**Priority**: P1 (High)
+
+**Labels**: telehealth, video
+
+---
+
+## 📲 NEW EPIC: Mobile Native App (P1)
+
+**Epic Description**: React Native app for iOS and Android.
+
+**Business Value**: Better mobile experience, push notifications, offline access to resources.
+
+**Story Points**: 55 total
+
+### Tickets
+
+#### BLOOM-N01: React Native Project Setup
+
+**Story**: As a developer, I want a React Native project configured so that we can build mobile apps.
+
+**Acceptance Criteria**:
+
+- [ ] Expo or bare React Native setup
+- [ ] Share design system with web (Tailwind/NativeWind)
+- [ ] CI/CD for app builds
+- [ ] App Store and Play Store accounts
+- [ ] Development environment documentation
+
+**Story Points**: 8
+
+**Priority**: P1 (High)
+
+**Labels**: mobile, infrastructure
+
+---
+
+#### BLOOM-N02: Authentication & Profile
+
+**Story**: As a client, I want to log into the mobile app so that I can access my account.
+
+**Acceptance Criteria**:
+
+- [ ] Azure AD B2C authentication
+- [ ] Biometric login (Face ID, fingerprint)
+- [ ] View and edit profile
+- [ ] Session management
+- [ ] Secure token storage
+
+**Story Points**: 8
+
+**Priority**: P1 (High)
+
+**Labels**: mobile, auth
+
+---
+
+#### BLOOM-N03: Appointment Management
+
+**Story**: As a client, I want to manage appointments on mobile so that I can book and reschedule easily.
+
+**Acceptance Criteria**:
+
+- [ ] View upcoming appointments
+- [ ] Book new appointments
+- [ ] Reschedule/cancel
+- [ ] Push notification reminders
+- [ ] Add to device calendar
+
+**Story Points**: 13
+
+**Priority**: P1 (High)
+
+**Labels**: mobile, booking
+
+---
+
+#### BLOOM-N04: Telehealth from Mobile
+
+**Story**: As a client, I want to join sessions from the app so that I can do telehealth anywhere.
+
+**Acceptance Criteria**:
+
+- [ ] Video call integration
+- [ ] Pre-session device check
+- [ ] In-app notifications for session start
+- [ ] Connection quality indicator
+- [ ] Fallback to phone audio
+
+**Story Points**: 13
+
+**Priority**: P1 (High)
+
+**Labels**: mobile, telehealth
+
+---
+
+#### BLOOM-N05: Resource Access
+
+**Story**: As a client, I want to access resources offline so that I can use worksheets without internet.
+
+**Acceptance Criteria**:
+
+- [ ] Download resources for offline
+- [ ] Sync progress when online
+- [ ] Interactive worksheets
+- [ ] Meditation audio playback
+- [ ] Progress tracking
+
+**Story Points**: 13
+
+**Priority**: P2 (Medium)
+
+**Labels**: mobile, resources
+
+---
+
+## 🤖 NEW EPIC: LLM-Powered Knowledge System (P3)
+
+**Epic Description**: Replace static resource library with AI that generates artifacts on demand. No document maintenance burden.
+
+**Business Value**: Always current, personalized, no maintenance overhead.
+
+**Story Points**: 13 total
+
+### Tickets
+
+#### BLOOM-L01: Knowledge RAG System
+
+**Story**: As a system, I want a RAG system trained on clinical best practices so that AI can generate accurate resources.
+
+**Acceptance Criteria**:
+
+- [ ] Index clinical guidelines and worksheets
+- [ ] Fine-tune for psychology domain
+- [ ] Citation of sources
+- [ ] Regular knowledge updates
+- [ ] Quality assurance process
+
+**Story Points**: 5
+
+**Priority**: P3 (Low)
+
+**Labels**: ai, knowledge
+
+---
+
+#### BLOOM-L02: On-Demand Worksheet Generation
+
+**Story**: As a clinician, I want to generate personalized worksheets so that resources match client needs.
+
+**Acceptance Criteria**:
+
+- [ ] Generate CBT thought records
+- [ ] Create exposure hierarchies
+- [ ] Build safety plans
+- [ ] Customize to presenting issues
+- [ ] Export to PDF
+
+**Story Points**: 5
+
+**Priority**: P3 (Low)
+
+**Labels**: ai, resources
+
+---
+
+#### BLOOM-L03: Contextual Psychoeducation
+
+**Story**: As a client, I want to receive relevant educational content so that I understand my treatment.
+
+**Acceptance Criteria**:
+
+- [ ] Generate explanations for diagnoses
+- [ ] Create treatment rationale summaries
+- [ ] Tailor language to client level
+- [ ] Multi-format (text, audio, visual)
+- [ ] Integrate with session follow-up
+
+**Story Points**: 3
+
+**Priority**: P3 (Low)
+
+**Labels**: ai, education
+
+---
+
+## �🔐 EPIC 1: Security & Authentication Enhancement
 
 **Epic Description**: Enhance security measures across the application to protect user data and prevent unauthorized access.
 

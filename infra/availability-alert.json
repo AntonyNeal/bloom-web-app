@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "resources": [
+    {
+      "type": "Microsoft.Insights/scheduledQueryRules",
+      "apiVersion": "2023-03-15-preview",
+      "name": "bloom-prod-down-alert",
+      "location": "australiaeast",
+      "properties": {
+        "displayName": "Bloom Production Site Down",
+        "description": "Alert when Bloom production website is down",
+        "severity": 1,
+        "enabled": true,
+        "evaluationFrequency": "PT5M",
+        "scopes": [
+          "/subscriptions/47b5552f-0eb8-4462-97e7-cd67e8e660b8/resourceGroups/rg-lpa-unified/providers/microsoft.insights/components/bloom-functions-prod"
+        ],
+        "windowSize": "PT5M",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "availabilityResults | where success == false | where name contains 'Bloom'",
+              "timeAggregation": "Count",
+              "operator": "GreaterThan",
+              "threshold": 0,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        },
+        "actions": {
+          "actionGroups": [
+            "/subscriptions/47b5552f-0eb8-4462-97e7-cd67e8e660b8/resourceGroups/rg-lpa-unified/providers/microsoft.insights/actionGroups/bloom-prod-alerts"
+          ]
+        }
+      }
+    }
+  ]
+}

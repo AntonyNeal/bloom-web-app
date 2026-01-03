@@ -92,6 +92,7 @@ async function applicationsHandler(
         certificate_url?: string;
         photo_url?: string;
         cover_letter?: string;
+        favorite_flower?: string;
         qualification_type?: string;
         qualification_check?: unknown;
       };
@@ -107,6 +108,7 @@ async function applicationsHandler(
         certificate_url,
         photo_url,
         cover_letter,
+        favorite_flower,
         qualification_type,
         qualification_check,
       } = body;
@@ -165,6 +167,7 @@ async function applicationsHandler(
         .input('certificate_url', sql.NVarChar, certificate_url || null)
         .input('photo_url', sql.NVarChar, photo_url || null)
         .input('cover_letter', sql.NVarChar, cover_letter || null)
+        .input('favorite_flower', sql.NVarChar, favorite_flower || null)
         .input('qualification_type', sql.NVarChar, qualification_type || null)
         .input(
           'qualification_check',
@@ -174,13 +177,13 @@ async function applicationsHandler(
           INSERT INTO applications (
             first_name, last_name, email, phone, ahpra_registration,
             specializations, experience_years, cv_url, certificate_url,
-            photo_url, cover_letter, qualification_type, qualification_check
+            photo_url, cover_letter, favorite_flower, qualification_type, qualification_check
           )
           OUTPUT INSERTED.*
           VALUES (
             @first_name, @last_name, @email, @phone, @ahpra_registration,
             @specializations, @experience_years, @cv_url, @certificate_url,
-            @photo_url, @cover_letter, @qualification_type, @qualification_check
+            @photo_url, @cover_letter, @favorite_flower, @qualification_type, @qualification_check
           )
         `);
 

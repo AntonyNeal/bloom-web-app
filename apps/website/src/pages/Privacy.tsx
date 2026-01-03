@@ -53,7 +53,7 @@ const Privacy = () => {
               collect, use, and protect your personal information.
             </p>
             <p className="text-sm text-gray-500 mt-4">
-              Last updated: November 2024
+              Last updated: January 2026
             </p>
           </div>
           {/* Important Notice */}

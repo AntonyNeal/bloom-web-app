@@ -53,6 +53,7 @@ interface FormData {
   specializations: string[];
   experience_years: number;
   cover_letter: string;
+  favorite_flower?: string; // Zoe's secret intel for onboarding surprise
   qualification_type?: 'clinical' | 'experienced' | 'phd';
   // Include all qualification check responses
   qualification_check?: {
@@ -381,6 +382,7 @@ export function JoinUs() {
     specializations: [],
     experience_years: 0,
     cover_letter: '',
+    favorite_flower: '',
   });
 
   const [files, setFiles] = useState({
@@ -1206,6 +1208,53 @@ export function JoinUs() {
                       outline: 'none',
                       resize: 'vertical',
                       fontFamily: 'inherit',
+                      transition: 'all 0.2s',
+                    }}
+                  />
+                </motion.div>
+
+                {/* Fun question - Zoe's intel gathering */}
+                <motion.div
+                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                  style={{ marginTop: '24px' }}
+                >
+                  <Label
+                    htmlFor="favorite_flower"
+                    style={{
+                      display: 'block',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      color: '#3A3A3A',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    Just for fun - what's your favourite flower? 🌸
+                    <span style={{ 
+                      display: 'block', 
+                      fontSize: '12px', 
+                      fontWeight: 400, 
+                      color: '#6B8E7F',
+                      marginTop: '4px',
+                    }}>
+                      We love getting to know our team beyond the CV
+                    </span>
+                  </Label>
+                  <Input
+                    id="favorite_flower"
+                    value={formData.favorite_flower || ''}
+                    onChange={(e) => setFormData({ ...formData, favorite_flower: e.target.value })}
+                    placeholder="e.g., Sunflowers, Lavender, Roses..."
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '16px',
+                      borderRadius: '8px',
+                      border: `2px solid rgba(107, 142, 127, 0.3)`,
+                      background: bloomStyles.colors.paperWhite,
+                      outline: 'none',
                       transition: 'all 0.2s',
                     }}
                   />

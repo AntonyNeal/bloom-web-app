@@ -1532,7 +1532,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full"></div>
             </div>
           }>
-            <StripePayment
+              <StripePayment
               amount={appointmentType === 'couples-session' ? 300 : appointmentType === 'ndis-psychology-session' ? 232.99 : 250}
               customerEmail={email}
               customerName={`${firstName} ${lastName}`}

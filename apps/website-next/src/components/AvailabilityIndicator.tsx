@@ -62,15 +62,21 @@ export function AvailabilityIndicator() {
   useEffect(() => {
     const fetchAvailability = async () => {
       try {
-        // Get the Azure Function URL
-        const baseUrl = process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL || '';
+        // Get the availability function URL (full path)
+        const availabilityUrl = process.env.NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL || '';
+        
+        if (!availabilityUrl) {
+          console.warn('[AvailabilityIndicator] NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL not configured');
+          setIsLoading(false);
+          return;
+        }
         
         // Fetch availability for the next 7 days
         const startDate = new Date();
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + 7);
         
-        const url = `${baseUrl}/api/halaxy/availability?from=${startDate.toISOString()}&to=${endDate.toISOString()}`;
+        const url = `${availabilityUrl}?from=${startDate.toISOString()}&to=${endDate.toISOString()}`;
         
         const response = await fetch(url);
         

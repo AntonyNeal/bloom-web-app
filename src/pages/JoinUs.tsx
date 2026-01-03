@@ -8,6 +8,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Tier1Flower, Tier2Flower, Tier3Flower } from '@/components/flowers';
 import type { QualificationData } from '@/components/common/QualificationCheck';
 import { BloomJourneyInfographic } from '@/components/join-us/BloomJourneyInfographic';
+import { FloatingParticle } from '@/components/common/ambient-helpers';
 
 // Lazy load the massive QualificationCheck component
 const QualificationCheck = lazy(() =>
@@ -415,17 +416,119 @@ export function JoinUs() {
     return Math.round((completed / fields.length) * 100);
   }, [formData, files]);
 
-  // Stable random values for floating particles
-  const particleValues = useMemo(() => {
-    const count = isMobile ? 6 : 10;
-    return Array.from({ length: count }, (_, i) => ({
-      startX: (i / count) * 100 + (Math.random() - 0.5) * 20,
-      endX: (i / count) * 100 + (Math.random() - 0.5) * 30,
-      duration: 15 + Math.random() * 10,
-      delay: Math.random() * 2,
-      size: 4 + Math.random() * 4,
-    }));
-  }, [isMobile]);
+  // Stable random values for floating particles - organic ambient drift
+  const floatingParticles = useMemo(() => [
+    {
+      size: 10,
+      color: bloomStyles.colors.eucalyptusSage,
+      opacity: 0.35,
+      position: { top: '15%', left: '20%' },
+      duration: 35,
+      delay: 0,
+      blur: 3,
+      xSequence: [0, 35, -18, 22, 0],
+      ySequence: [0, -55, -110, -165, -220],
+    },
+    {
+      size: 12,
+      color: bloomStyles.colors.honeyAmber,
+      opacity: 0.32,
+      position: { top: '40%', left: '70%' },
+      duration: 42,
+      delay: 3,
+      blur: 4,
+      xSequence: [0, -25, 30, -15, 0],
+      ySequence: [0, -55, -110, -165, -220],
+    },
+    {
+      size: 14,
+      color: bloomStyles.colors.eucalyptusSage,
+      opacity: 0.28,
+      position: { top: '60%', left: '15%' },
+      duration: 30,
+      delay: 7,
+      blur: 4,
+      xSequence: [0, 28, -22, 18, 0],
+      ySequence: [0, -55, -110, -165, -220],
+    },
+    {
+      size: 8,
+      color: bloomStyles.colors.honeyAmber,
+      opacity: 0.38,
+      position: { top: '25%', left: '85%' },
+      duration: 45,
+      delay: 2,
+      blur: 3,
+      xSequence: [0, -32, 20, -12, 0],
+      ySequence: [0, -55, -110, -165, -220],
+    },
+    {
+      size: 14,
+      color: bloomStyles.colors.eucalyptusSage,
+      opacity: 0.26,
+      position: { top: '75%', left: '45%' },
+      duration: 38,
+      delay: 9,
+      blur: 4,
+      xSequence: [0, 25, -28, 15, 0],
+      ySequence: [0, -55, -110, -165, -220],
+    },
+    {
+      size: 10,
+      color: bloomStyles.colors.honeyAmber,
+      opacity: 0.34,
+      position: { top: '50%', left: '30%' },
+      duration: 40,
+      delay: 5,
+      blur: 3,
+      xSequence: [0, -20, 32, -18, 0],
+      ySequence: [0, -55, -110, -165, -220],
+    },
+    {
+      size: 12,
+      color: bloomStyles.colors.eucalyptusSage,
+      opacity: 0.30,
+      position: { top: '35%', left: '55%' },
+      duration: 36,
+      delay: 12,
+      blur: 4,
+      xSequence: [0, 30, -25, 20, 0],
+      ySequence: [0, -55, -110, -165, -220],
+    },
+    {
+      size: 9,
+      color: bloomStyles.colors.honeyAmber,
+      opacity: 0.33,
+      position: { top: '80%', left: '80%' },
+      duration: 44,
+      delay: 8,
+      blur: 3,
+      xSequence: [0, -28, 22, -16, 0],
+      ySequence: [0, -55, -110, -165, -220],
+    },
+    {
+      size: 11,
+      color: bloomStyles.colors.eucalyptusSage,
+      opacity: 0.29,
+      position: { top: '10%', left: '60%' },
+      duration: 48,
+      delay: 4,
+      blur: 4,
+      xSequence: [0, 22, -30, 14, 0],
+      ySequence: [0, -55, -110, -165, -220],
+    },
+    {
+      size: 13,
+      color: bloomStyles.colors.honeyAmber,
+      opacity: 0.31,
+      position: { top: '55%', left: '8%' },
+      duration: 50,
+      delay: 11,
+      blur: 4,
+      xSequence: [0, -18, 26, -20, 0],
+      ySequence: [0, -55, -110, -165, -220],
+    },
+  ], []);
 
   const handleFileChange =
     (type: 'cv' | 'certificate' | 'photo') => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -744,31 +847,24 @@ export function JoinUs() {
           />
         ))}
 
-        {/* Floating Particles */}
-        {particleValues.map((particle, i) => (
+        {/* Floating Particles - organic ambient drift */}
+        {floatingParticles.slice(0, isMobile ? 6 : 10).map((particle, index) => (
           <motion.div
-            key={i}
-            initial={{ opacity: 0, bottom: '-5%' }}
-            animate={{
-              opacity: [0, 0.6, 0.6, 0],
-              bottom: ['-5%', '105%'],
-            }}
+            key={`particle-${index}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{
-              duration: particle.duration,
-              delay: particle.delay,
-              repeat: Infinity,
-              ease: 'linear',
+              duration: 0.5,
+              delay: 0.3 + index * 0.05,
+              ease: 'easeOut',
             }}
-            style={{
+            style={{ 
               position: 'absolute',
-              left: `${particle.startX}%`,
-              width: `${particle.size}px`,
-              height: `${particle.size}px`,
-              borderRadius: '50%',
-              background: bloomStyles.colors.eucalyptusSage,
-              filter: 'blur(1px)',
+              ...particle.position,
             }}
-          />
+          >
+            <FloatingParticle {...particle} />
+          </motion.div>
         ))}
       </div>
 

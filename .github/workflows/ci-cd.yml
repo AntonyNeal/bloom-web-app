@@ -120,7 +120,7 @@ jobs:
       - name: Checkout for change detection
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0  # Full history needed to compare against push base
           
       - name: Detect database changes
         id: detect-changes
@@ -129,12 +129,22 @@ jobs:
           if [ "${{ github.event.inputs.run_migrations }}" == "true" ]; then
             echo "db_changed=true" >> $GITHUB_OUTPUT
             echo "📋 Migrations requested via manual trigger"
-          elif git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q "^db/migrations/"; then
-            echo "db_changed=true" >> $GITHUB_OUTPUT
-            echo "📋 Database migrations detected in commit"
           else
-            echo "db_changed=false" >> $GITHUB_OUTPUT
-            echo "📋 No database changes detected"
+            # Use github.event.before to compare ALL commits in this push, not just HEAD~1
+            # This catches migrations when multiple commits are pushed together
+            BEFORE="${{ github.event.before }}"
+            if [ "$BEFORE" == "0000000000000000000000000000000000000000" ]; then
+              # New branch - compare against default branch
+              BEFORE="origin/${{ github.event.repository.default_branch }}"
+            fi
+            echo "📋 Comparing $BEFORE..HEAD for migration changes"
+            if git diff --name-only "$BEFORE" HEAD 2>/dev/null | grep -q "^db/migrations/"; then
+              echo "db_changed=true" >> $GITHUB_OUTPUT
+              echo "📋 Database migrations detected in push"
+            else
+              echo "db_changed=false" >> $GITHUB_OUTPUT
+              echo "📋 No database changes detected"
+            fi
           fi
           
       - name: Set Environment Configuration

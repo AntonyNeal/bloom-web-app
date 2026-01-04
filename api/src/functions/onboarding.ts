@@ -222,8 +222,8 @@ async function onboardingHandler(
 
       const practitionerInfo = practitionerResult.recordset[0];
 
-      // Create Azure AD B2C user account
       // Create Azure AD account with @life-psychology.com.au email
+      // This is REQUIRED - onboarding cannot proceed without it
       let azureObjectId: string | null = null;
       let companyEmail: string | null = null;
       let licenseAssigned = false;
@@ -255,9 +255,15 @@ async function onboardingHandler(
         }
       } catch (azureError) {
         context.error('Failed to create Azure AD user:', azureError);
-        // Don't fail the entire onboarding - we can create the Azure AD user later
-        // But log it clearly so we can address it
-        context.warn(`Azure AD user creation failed for ${practitionerInfo.email}. User will need manual Azure AD account setup.`);
+        // Azure AD user creation is required - fail onboarding
+        return {
+          status: 500,
+          headers,
+          jsonBody: { 
+            error: 'Unable to create your company email account. Please contact admin@life-psychology.com.au for assistance.',
+            code: 'AZURE_AD_CREATION_FAILED',
+          },
+        };
       }
 
       // Create practitioner in Halaxy

@@ -1,4 +1,4 @@
--- Migration V009: Add Azure AD fields to practitioners table
+-- Migration V011: Add Azure AD fields to practitioners table
 -- Stores Azure AD Object ID and company email for practitioner accounts
 
 -- Add Azure AD Object ID column

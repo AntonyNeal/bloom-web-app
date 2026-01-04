@@ -512,15 +512,36 @@ export function Admin() {
                 <div className="pt-4 space-y-3 border-t">
                   <Label className="font-medium">Actions</Label>
                   
-                  {/* New applications: Start review or quick decisions */}
+                  {/* New applications: Direct decision options */}
                   {selectedApp.status === "submitted" && (
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <Button
-                        onClick={() => updateStatus(selectedApp.id, "reviewing")}
-                        className="w-full"
+                        onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
+                        variant="secondary"
                         size="sm"
                       >
-                        📋 Start Review
+                        📅 Interview
+                      </Button>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "waitlisted")}
+                        variant="outline"
+                        size="sm"
+                      >
+                        ⏳ Waitlist
+                      </Button>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "accepted")}
+                        className="bg-emerald-600 hover:bg-emerald-700"
+                        size="sm"
+                      >
+                        ✅ Accept
+                      </Button>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "denied")}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        ❌ Reject
                       </Button>
                     </div>
                   )}

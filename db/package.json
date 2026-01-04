@@ -9,7 +9,8 @@
     "migrate:staging": "cross-env DB_NAME=lpa-bloom-db-staging node scripts/migrate.js migrate",
     "migrate:prod": "cross-env DB_NAME=lpa-bloom-db-prod node scripts/migrate.js migrate",
     "info": "node scripts/migrate.js info",
-    "validate": "node scripts/migrate.js validate"
+    "validate": "node scripts/migrate.js validate",
+    "repair-checksums": "node scripts/migrate.js repair-checksums"
   },
   "dependencies": {
     "mssql": "^11.0.1",

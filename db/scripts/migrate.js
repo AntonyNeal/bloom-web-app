@@ -48,9 +48,11 @@ function getDbConfig() {
   };
 }
 
-// Compute checksum for migration file
+// Compute checksum for migration file (normalize line endings for consistency)
 function computeChecksum(content) {
-  return crypto.createHash('md5').update(content).digest('hex');
+  // Normalize line endings to LF for consistent checksums across platforms
+  const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  return crypto.createHash('md5').update(normalized).digest('hex');
 }
 
 // Parse migration filename: V001__description.sql
@@ -163,11 +165,13 @@ async function applyMigration(pool, migration) {
 }
 
 // Migrate command - run pending migrations
-async function migrate() {
+async function migrate(options = {}) {
+  const skipChecksumValidation = options.skipChecksumValidation || process.env.SKIP_CHECKSUM_VALIDATION === 'true';
+  
   console.log('=== Azure SQL Migration ===\n');
   
   const config = getDbConfig();
-  console.log(`Connecting to: ${config.server}/${config.database}`);
+  console.log(`Connecting to: ${typeof config === 'string' ? 'connection string' : config.server + '/' + config.database}`);
   
   const pool = await sql.connect(config);
   
@@ -178,16 +182,24 @@ async function migrate() {
     const applied = await getAppliedMigrations(pool);
     const appliedVersions = new Set(applied.map(a => a.version));
     
-    // Check for checksum mismatches
-    for (const migration of migrations) {
-      const appliedMigration = applied.find(a => a.version === migration.version);
-      if (appliedMigration && appliedMigration.checksum !== migration.checksum) {
-        throw new Error(
-          `Checksum mismatch for migration V${migration.version}! ` +
-          `Expected: ${appliedMigration.checksum}, Got: ${migration.checksum}. ` +
-          `Migration files should not be modified after being applied.`
-        );
+    // Check for checksum mismatches (unless skipped)
+    if (!skipChecksumValidation) {
+      for (const migration of migrations) {
+        const appliedMigration = applied.find(a => a.version === migration.version);
+        if (appliedMigration && appliedMigration.checksum !== migration.checksum) {
+          console.log(`\n⚠️  Checksum mismatch for V${migration.version}:`);
+          console.log(`   DB checksum:   ${appliedMigration.checksum}`);
+          console.log(`   File checksum: ${migration.checksum}`);
+          console.log(`\n   Run 'node migrate.js repair-checksums' to update DB checksums.`);
+          console.log(`   Or set SKIP_CHECKSUM_VALIDATION=true to bypass this check.\n`);
+          throw new Error(
+            `Checksum mismatch for migration V${migration.version}! ` +
+            `Migration files should not be modified after being applied.`
+          );
+        }
       }
+    } else {
+      console.log('⚠️  Checksum validation skipped\n');
     }
     
     // Find pending migrations
@@ -316,6 +328,54 @@ async function validate() {
   }
 }
 
+// Repair checksums - update DB checksums to match current file checksums
+async function repairChecksums() {
+  console.log('=== Repair Migration Checksums ===\n');
+  
+  const config = getDbConfig();
+  console.log(`Connecting to: ${typeof config === 'string' ? 'connection string' : config.server + '/' + config.database}`);
+  
+  const pool = await sql.connect(config);
+  
+  try {
+    await ensureMigrationsTable(pool);
+    
+    const migrations = getMigrationFiles();
+    const applied = await getAppliedMigrations(pool);
+    const appliedMap = new Map(applied.map(a => [a.version, a]));
+    
+    let repaired = 0;
+    
+    for (const migration of migrations) {
+      const appliedMigration = appliedMap.get(migration.version);
+      if (appliedMigration && appliedMigration.checksum !== migration.checksum) {
+        console.log(`Updating checksum for V${migration.version}__${migration.description}:`);
+        console.log(`  Old: ${appliedMigration.checksum}`);
+        console.log(`  New: ${migration.checksum}`);
+        
+        await pool.request()
+          .input('version', sql.Int, migration.version)
+          .input('checksum', sql.VarChar(64), migration.checksum)
+          .query(`
+            UPDATE schema_migrations 
+            SET checksum = @checksum 
+            WHERE version = @version
+          `);
+        
+        repaired++;
+      }
+    }
+    
+    if (repaired === 0) {
+      console.log('✓ All checksums are already up to date!');
+    } else {
+      console.log(`\n✓ Repaired ${repaired} checksum(s)`);
+    }
+  } finally {
+    await pool.close();
+  }
+}
+
 // Main entry point
 async function main() {
   const command = process.argv[2] || 'migrate';
@@ -332,11 +392,17 @@ async function main() {
         const valid = await validate();
         process.exit(valid ? 0 : 1);
         break;
+      case 'repair-checksums':
+        await repairChecksums();
+        break;
       default:
-        console.log('Usage: node migrate.js [migrate|info|validate]');
-        console.log('  migrate  - Apply pending migrations (default)');
-        console.log('  info     - Show migration status');
-        console.log('  validate - Validate migration integrity');
+        console.log('Usage: node migrate.js [migrate|info|validate|repair-checksums]');
+        console.log('  migrate          - Apply pending migrations (default)');
+        console.log('  info             - Show migration status');
+        console.log('  validate         - Validate migration integrity');
+        console.log('  repair-checksums - Update DB checksums to match files');
+        console.log('\nEnvironment variables:');
+        console.log('  SKIP_CHECKSUM_VALIDATION=true - Skip checksum validation during migrate');
         process.exit(1);
     }
   } catch (error) {

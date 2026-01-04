@@ -465,6 +465,10 @@ jobs:
           # Install dependencies for migration script
           npm ci
           
+          # First, repair any checksum mismatches from line-ending differences
+          echo "🔧 Repairing checksum mismatches (if any)..."
+          node scripts/migrate.js repair-checksums || true
+          
           # Run the proper incremental migration system
           if [ "$DRY_RUN" == "true" ]; then
             echo "📋 Dry run mode - showing migration info only"

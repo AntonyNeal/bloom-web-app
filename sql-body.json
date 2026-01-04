@@ -1,3 +1,0 @@
-﻿{
-    "query":  "ALTER TABLE applications ADD qualification_type NVARCHAR(50);"
-}

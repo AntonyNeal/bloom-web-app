@@ -11,15 +11,24 @@ const crypto = require('crypto');
 
 // Database configuration from environment variables
 function getDbConfig() {
+  // Support connection string (used by CI/CD)
+  const connectionString = process.env.SQL_CONNECTION_STRING;
+  if (connectionString) {
+    console.log('📋 Using SQL_CONNECTION_STRING');
+    return connectionString;
+  }
+
+  // Fall back to individual env vars (local development)
   const server = process.env.DB_SERVER || 'lpa-sql-server.database.windows.net';
   const database = process.env.DB_NAME || process.env.DATABASE_NAME || 'lpa-bloom-db-dev';
   const user = process.env.DB_USER || process.env.DATABASE_USER;
   const password = process.env.DB_PASSWORD || process.env.DATABASE_PASSWORD;
 
   if (!user || !password) {
-    throw new Error('Database credentials not found. Set DB_USER and DB_PASSWORD environment variables.');
+    throw new Error('Database credentials not found. Set SQL_CONNECTION_STRING or DB_USER/DB_PASSWORD environment variables.');
   }
 
+  console.log(`📋 Using DB_SERVER: ${server}, DB_NAME: ${database}`);
   return {
     server,
     database,

@@ -455,15 +455,24 @@ jobs:
 
       - name: Run Migrations
         id: migrate
-        working-directory: api
+        working-directory: db
         env:
           SQL_CONNECTION_STRING: ${{ env.SQL_CONNECTION_STRING || secrets.SQL_CONNECTION_STRING }}
           DRY_RUN: ${{ github.event.inputs.dry_run_migrations || github.event_name == 'pull_request' }}
         run: |
-          echo "🚀 Building database schema for ${{ needs.determine-environment.outputs.db-environment }}..."
+          echo "🚀 Running database migrations for ${{ needs.determine-environment.outputs.db-environment }}..."
           
-          # Build schema from single source of truth
-          node build-schema.js
+          # Install dependencies for migration script
+          npm ci
+          
+          # Run the proper incremental migration system
+          if [ "$DRY_RUN" == "true" ]; then
+            echo "📋 Dry run mode - showing migration info only"
+            node scripts/migrate.js info
+          else
+            echo "📋 Applying pending migrations..."
+            node scripts/migrate.js migrate
+          fi
         continue-on-error: ${{ github.event.inputs.dry_run_migrations == 'true' || github.event_name == 'pull_request' }}
 
       - name: Extended Validation (Staging)

@@ -10,6 +10,7 @@ import { EmailClient, EmailMessage } from '@azure/communication-email';
 // Email configuration - domain must be verified in Azure Communication Services
 const FROM_EMAIL = process.env.ACS_EMAIL_FROM || 'donotreply@life-psychology.com.au';
 const COMPANY_NAME = 'Life Psychology Australia';
+// Bloom is the internal practitioner app/community - clients don't need to know about it
 const BLOOM_NAME = 'Bloom';
 
 // Admin email for booking notifications (always CC'd on clinician alerts)
@@ -110,6 +111,10 @@ async function sendEmail(
 /**
  * Base email template wrapper
  */
+/**
+ * Base email template wrapper for practitioner emails
+ * Uses Bloom branding (internal practitioner app)
+ */
 function wrapInTemplate(content: string): string {
   return `
 <!DOCTYPE html>
@@ -143,22 +148,60 @@ function wrapInTemplate(content: string): string {
   `.trim();
 }
 
+/**
+ * Client-facing email template wrapper
+ * Uses Life Psychology Australia branding only (no Bloom reference)
+ */
+function wrapInClientTemplate(content: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${COMPANY_NAME}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <!-- Header -->
+    <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #10b981;">
+      <h1 style="margin: 0; color: #10b981; font-size: 28px;">🌸 ${COMPANY_NAME}</h1>
+      <p style="margin: 5px 0 0; color: #666; font-size: 14px;">Telehealth Psychology Services</p>
+    </div>
+    
+    <!-- Content -->
+    <div style="padding: 30px 0;">
+      ${content}
+    </div>
+    
+    <!-- Footer -->
+    <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px; text-align: center; color: #888; font-size: 12px;">
+      <p style="margin: 0;">This email was sent by ${COMPANY_NAME}</p>
+      <p style="margin: 5px 0 0;">© ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
 // ============================================================================
-// EMAIL TEMPLATES
+// PRACTITIONER APPLICATION EMAIL TEMPLATES
+// These emails go to practitioners applying to join the Bloom community
 // ============================================================================
 
 /**
- * Denial Email Template
+ * Denial Email Template (Practitioner Application)
  */
 export async function sendDenialEmail(context: EmailContext) {
   const { firstName, email } = context;
 
   const htmlContent = wrapInTemplate(`
-    <h2 style="color: #333; margin-top: 0;">Your ${BLOOM_NAME} Application</h2>
+    <h2 style="color: #333; margin-top: 0;">Your Practitioner Application</h2>
     
     <p>Dear ${firstName},</p>
     
-    <p>Thank you for your interest in joining ${BLOOM_NAME} and ${COMPANY_NAME}.</p>
+    <p>Thank you for your interest in joining the ${COMPANY_NAME} team.</p>
     
     <p>After careful consideration of your application, we regret to inform you that we are unable to proceed at this time.</p>
     
@@ -166,45 +209,45 @@ export async function sendDenialEmail(context: EmailContext) {
     
     <p style="margin-top: 30px;">
       Warm regards,<br>
-      <strong>The ${BLOOM_NAME} Team</strong>
+      <strong>The ${COMPANY_NAME} Team</strong>
     </p>
   `);
 
   const plainTextContent = `
-Your ${BLOOM_NAME} Application
+Your Practitioner Application
 
 Dear ${firstName},
 
-Thank you for your interest in joining ${BLOOM_NAME} and ${COMPANY_NAME}.
+Thank you for your interest in joining the ${COMPANY_NAME} team.
 
 After careful consideration of your application, we regret to inform you that we are unable to proceed at this time.
 
 We appreciate the time and effort you put into your application, and we wish you all the best in your professional journey.
 
 Warm regards,
-The ${BLOOM_NAME} Team
+The ${COMPANY_NAME} Team
   `.trim();
 
   return sendEmail(
     email,
-    `Your ${BLOOM_NAME} Application`,
+    `Your Practitioner Application - ${COMPANY_NAME}`,
     htmlContent,
     plainTextContent
   );
 }
 
 /**
- * Waitlist Email Template
+ * Waitlist Email Template (Practitioner Application)
  */
 export async function sendWaitlistEmail(context: EmailContext) {
   const { firstName, email } = context;
 
   const htmlContent = wrapInTemplate(`
-    <h2 style="color: #333; margin-top: 0;">Your ${BLOOM_NAME} Application - Waitlist</h2>
+    <h2 style="color: #333; margin-top: 0;">Your Practitioner Application - Waitlist</h2>
     
     <p>Dear ${firstName},</p>
     
-    <p>Thank you for your application to join ${BLOOM_NAME}.</p>
+    <p>Thank you for your application to join the ${COMPANY_NAME} team.</p>
     
     <p>We were impressed with your credentials and experience. However, we don't currently have positions available that match your profile.</p>
     
@@ -219,16 +262,16 @@ export async function sendWaitlistEmail(context: EmailContext) {
     
     <p style="margin-top: 30px;">
       Warm regards,<br>
-      <strong>The ${BLOOM_NAME} Team</strong>
+      <strong>The ${COMPANY_NAME} Team</strong>
     </p>
   `);
 
   const plainTextContent = `
-Your ${BLOOM_NAME} Application - Waitlist
+Your Practitioner Application - Waitlist
 
 Dear ${firstName},
 
-Thank you for your application to join ${BLOOM_NAME}.
+Thank you for your application to join the ${COMPANY_NAME} team.
 
 We were impressed with your credentials and experience. However, we don't currently have positions available that match your profile.
 
@@ -237,19 +280,19 @@ You've been added to our waitlist. We'll reach out when opportunities arise that
 We appreciate your patience and interest in working with us.
 
 Warm regards,
-The ${BLOOM_NAME} Team
+The ${COMPANY_NAME} Team
   `.trim();
 
   return sendEmail(
     email,
-    `Your ${BLOOM_NAME} Application - On Waitlist`,
+    `Your Practitioner Application - Waitlist`,
     htmlContent,
     plainTextContent
   );
 }
 
 /**
- * Interview Invitation Email Template
+ * Interview Invitation Email Template (Practitioner Application)
  * Sends a booking link for the applicant to schedule their interview
  * Includes contract/practitioner agreement for review
  */
@@ -275,11 +318,11 @@ export async function sendInterviewEmail(context: EmailContext) {
   ` : '';
 
   const htmlContent = wrapInTemplate(`
-    <h2 style="color: #333; margin-top: 0;">Interview Invitation - ${BLOOM_NAME}</h2>
+    <h2 style="color: #333; margin-top: 0;">Interview Invitation - ${COMPANY_NAME}</h2>
     
     <p>Dear ${firstName},</p>
     
-    <p>Great news! We've reviewed your application and would love to meet with you to learn more about your experience and discuss how you might fit with ${BLOOM_NAME}.</p>
+    <p>Great news! We've reviewed your application and would love to meet with you to learn more about your experience and discuss how you might fit with our team at ${COMPANY_NAME}.</p>
     
     <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
       <h3 style="margin: 0 0 15px; color: #059669;">📅 Schedule Your Interview</h3>
@@ -299,7 +342,7 @@ export async function sendInterviewEmail(context: EmailContext) {
     <ul style="color: #555;">
       <li>Your clinical experience and specializations</li>
       <li>Your approach to client care</li>
-      <li>How ${BLOOM_NAME} can support your practice</li>
+      <li>How we can support your telehealth practice</li>
       ${contractUrl ? '<li>Any questions about the Practitioner Agreement</li>' : ''}
     </ul>
     
@@ -309,16 +352,16 @@ export async function sendInterviewEmail(context: EmailContext) {
     
     <p style="margin-top: 30px;">
       Warm regards,<br>
-      <strong>Zoe & The ${BLOOM_NAME} Team</strong>
+      <strong>Zoe & The ${COMPANY_NAME} Team</strong>
     </p>
   `);
 
   const plainTextContent = `
-Interview Invitation - ${BLOOM_NAME}
+Interview Invitation - ${COMPANY_NAME}
 
 Dear ${firstName},
 
-Great news! We've reviewed your application and would love to meet with you to learn more about your experience and discuss how you might fit with ${BLOOM_NAME}.
+Great news! We've reviewed your application and would love to meet with you to learn more about your experience and discuss how you might fit with our team at ${COMPANY_NAME}.
 
 SCHEDULE YOUR INTERVIEW
 -----------------------
@@ -336,26 +379,26 @@ Please read through this document carefully. We'll be happy to answer any questi
 ` : ''}The interview will be a friendly conversation (approximately 30 minutes) where we'll discuss:
 - Your clinical experience and specializations
 - Your approach to client care
-- How ${BLOOM_NAME} can support your practice${contractUrl ? '\n- Any questions about the Practitioner Agreement' : ''}
+- How we can support your telehealth practice${contractUrl ? '\n- Any questions about the Practitioner Agreement' : ''}
 
 If you have any questions before the interview, feel free to reply to this email.
 
 We look forward to meeting you!
 
 Warm regards,
-Zoe & The ${BLOOM_NAME} Team
+Zoe & The ${COMPANY_NAME} Team
   `.trim();
 
   return sendEmail(
     email,
-    `${BLOOM_NAME} - Schedule Your Interview 📅`,
+    `${COMPANY_NAME} - Schedule Your Interview 📅`,
     htmlContent,
     plainTextContent
   );
 }
 
 /**
- * Acceptance/Onboarding Email Template
+ * Acceptance/Onboarding Email Template (Practitioner Application)
  */
 export async function sendAcceptanceEmail(context: EmailContext) {
   const { firstName, email, onboardingLink: providedLink, contractUrl } = context;
@@ -383,11 +426,11 @@ ${contractUrl}
 ` : '';
 
   const htmlContent = wrapInTemplate(`
-    <h2 style="color: #333; margin-top: 0;">🎉 Welcome to ${BLOOM_NAME}!</h2>
+    <h2 style="color: #333; margin-top: 0;">🎉 Welcome to ${COMPANY_NAME}!</h2>
     
     <p>Dear ${firstName},</p>
     
-    <p><strong>Congratulations!</strong> We're thrilled to let you know that your application to join ${BLOOM_NAME} has been accepted.</p>
+    <p><strong>Congratulations!</strong> We're thrilled to let you know that your application to join the ${COMPANY_NAME} practitioner team has been accepted.</p>
     
     ${contractSection}
     
@@ -404,25 +447,25 @@ ${contractUrl}
       <li>Review and accept your practitioner agreement</li>
       <li>Create your secure password</li>
       <li>Complete your professional profile</li>
-      <li>Take a quick tour of the ${BLOOM_NAME} platform</li>
+      <li>Get access to the ${BLOOM_NAME} practitioner portal</li>
     </ul>
     
     <p style="color: #888; font-size: 14px;"><em>Note: This link will expire in 7 days. If you need a new link, please contact us.</em></p>
     
-    <p>We're excited to have you join the ${BLOOM_NAME} community!</p>
+    <p>We're excited to have you join our practitioner community!</p>
     
     <p style="margin-top: 30px;">
       Warm regards,<br>
-      <strong>Zoe & The ${BLOOM_NAME} Team</strong>
+      <strong>Zoe & The ${COMPANY_NAME} Team</strong>
     </p>
   `);
 
   const plainTextContent = `
-🎉 Welcome to ${BLOOM_NAME}!
+🎉 Welcome to ${COMPANY_NAME}!
 
 Dear ${firstName},
 
-Congratulations! We're thrilled to let you know that your application to join ${BLOOM_NAME} has been accepted.
+Congratulations! We're thrilled to let you know that your application to join the ${COMPANY_NAME} practitioner team has been accepted.
 
 ${contractPlainText}GET STARTED WITH ONBOARDING
 ---------------------------
@@ -433,19 +476,19 @@ During onboarding, you'll:
 - Review and accept your practitioner agreement
 - Create your secure password
 - Complete your professional profile
-- Take a quick tour of the ${BLOOM_NAME} platform
+- Get access to the ${BLOOM_NAME} practitioner portal
 
 Note: This link will expire in 7 days. If you need a new link, please contact us.
 
-We're excited to have you join the ${BLOOM_NAME} community!
+We're excited to have you join our practitioner community!
 
 Warm regards,
-Zoe & The ${BLOOM_NAME} Team
+Zoe & The ${COMPANY_NAME} Team
   `.trim();
 
   return sendEmail(
     email,
-    `Welcome to ${BLOOM_NAME}! 🎉`,
+    `Welcome to ${COMPANY_NAME}! 🎉`,
     htmlContent,
     plainTextContent
   );
@@ -453,6 +496,7 @@ Zoe & The ${BLOOM_NAME} Team
 
 // ============================================================================
 // CLINICIAN BOOKING NOTIFICATION TEMPLATES
+// These emails go to practitioners - can reference Bloom as their internal portal
 // ============================================================================
 
 interface BookingNotificationContext {
@@ -513,7 +557,7 @@ export async function sendClinicianBookingNotification(context: BookingNotificat
     
     <p>Hi ${practitionerFirstName},</p>
     
-    <p>Great news! You have a new appointment booked through ${BLOOM_NAME}.</p>
+    <p>Great news! You have a new appointment booked through the ${COMPANY_NAME} website.</p>
     
     <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #10b981;">
       <h3 style="margin: 0 0 15px 0; color: #166534;">Appointment Details</h3>
@@ -552,13 +596,13 @@ export async function sendClinicianBookingNotification(context: BookingNotificat
     </div>
     
     <p style="color: #666; font-size: 14px;">
-      <em>This booking was made through the ${BLOOM_NAME} website. 
+      <em>This booking was made through the ${COMPANY_NAME} website. 
       Please check Halaxy for full appointment details and client history.</em>
     </p>
     
     <p style="margin-top: 30px;">
       Best regards,<br>
-      <strong>The ${BLOOM_NAME} Team</strong>
+      <strong>The ${COMPANY_NAME} Team</strong>
     </p>
   `);
 
@@ -567,7 +611,7 @@ export async function sendClinicianBookingNotification(context: BookingNotificat
 
 Hi ${practitionerFirstName},
 
-Great news! You have a new appointment booked through ${BLOOM_NAME}.
+Great news! You have a new appointment booked through the ${COMPANY_NAME} website.
 
 APPOINTMENT DETAILS
 -------------------
@@ -580,11 +624,11 @@ CLIENT INFORMATION
 📧 Email: ${patientEmail}
 ${patientPhone ? `📱 Phone: ${patientPhone}` : ''}
 
-This booking was made through the ${BLOOM_NAME} website.
+This booking was made through the ${COMPANY_NAME} website.
 Please check Halaxy for full appointment details and client history.
 
 Best regards,
-The ${BLOOM_NAME} Team
+The ${COMPANY_NAME} Team
   `.trim();
 
   // Send to practitioner with admin CC'd
@@ -599,6 +643,7 @@ The ${BLOOM_NAME} Team
 
 // ============================================================================
 // PATIENT BOOKING CONFIRMATION EMAIL
+// Client-facing - NO Bloom references, only Life Psychology Australia
 // ============================================================================
 
 interface PatientBookingConfirmationContext {
@@ -613,6 +658,7 @@ interface PatientBookingConfirmationContext {
 
 /**
  * Send booking confirmation email to patient/client
+ * Uses client-facing branding (Life Psychology Australia only)
  */
 export async function sendPatientBookingConfirmation(context: PatientBookingConfirmationContext) {
   const {
@@ -646,7 +692,7 @@ export async function sendPatientBookingConfirmation(context: PatientBookingConf
     ? 'NDIS Psychology Session'
     : 'Psychology Session';
 
-  const htmlContent = wrapInTemplate(`
+  const htmlContent = wrapInClientTemplate(`
     <h2 style="color: #333; margin-top: 0;">🎉 Your Appointment is Confirmed!</h2>
     
     <p>Hi ${patientFirstName},</p>
@@ -715,7 +761,7 @@ export async function sendPatientBookingConfirmation(context: PatientBookingConf
       We look forward to seeing you!<br><br>
       <strong>Warm regards,</strong><br>
       <strong style="color: #10b981;">${practitionerName}</strong><br>
-      <span style="color: #666;">& The ${BLOOM_NAME} Team</span>
+      <span style="color: #666;">${COMPANY_NAME}</span>
     </p>
   `);
 
@@ -757,7 +803,7 @@ We look forward to seeing you!
 
 Warm regards,
 ${practitionerName}
-& The ${BLOOM_NAME} Team
+${COMPANY_NAME}
   `.trim();
 
   return sendEmail(
@@ -770,6 +816,7 @@ ${practitionerName}
 
 // ============================================================================
 // OFFER EMAIL TEMPLATE
+// Practitioner-facing - can mention Bloom as the practitioner portal
 // ============================================================================
 
 interface OfferEmailContext {
@@ -793,11 +840,11 @@ export async function sendOfferEmail(context: OfferEmailContext) {
     
     <p>Dear ${firstName},</p>
     
-    <p>We're excited to inform you that after reviewing your application and interview, we would like to offer you a position as a practitioner at <strong>${BLOOM_NAME}</strong>!</p>
+    <p>We're excited to inform you that after reviewing your application and interview, we would like to offer you a position as a practitioner with <strong>${COMPANY_NAME}</strong>!</p>
     
     <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
       <h3 style="margin: 0 0 10px; color: #92400e;">📄 Your Practitioner Agreement</h3>
-      <p style="margin: 0 0 15px; color: #78350f;">Please review your practitioner agreement carefully. This outlines the terms and conditions of working with ${BLOOM_NAME}.</p>
+      <p style="margin: 0 0 15px; color: #78350f;">Please review your practitioner agreement carefully. This outlines the terms and conditions of working with ${COMPANY_NAME}.</p>
       <a href="${contractUrl}" style="display: inline-block; background: #f59e0b; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;">
         📥 View Contract (PDF) →
       </a>
@@ -817,7 +864,7 @@ export async function sendOfferEmail(context: OfferEmailContext) {
     
     <p style="margin-top: 30px;">
       Warm regards,<br>
-      <strong>Zoe & The ${BLOOM_NAME} Team</strong>
+      <strong>Zoe & The ${COMPANY_NAME} Team</strong>
     </p>
   `);
 
@@ -826,11 +873,11 @@ export async function sendOfferEmail(context: OfferEmailContext) {
 
 Dear ${firstName},
 
-We're excited to inform you that after reviewing your application and interview, we would like to offer you a position as a practitioner at ${BLOOM_NAME}!
+We're excited to inform you that after reviewing your application and interview, we would like to offer you a position as a practitioner with ${COMPANY_NAME}!
 
 YOUR PRACTITIONER AGREEMENT
 ---------------------------
-Please review your practitioner agreement carefully. This outlines the terms and conditions of working with ${BLOOM_NAME}.
+Please review your practitioner agreement carefully. This outlines the terms and conditions of working with ${COMPANY_NAME}.
 
 View Contract: ${contractUrl}
 
@@ -845,12 +892,12 @@ After accepting, our team will reach out with next steps to complete your onboar
 Have questions about the contract or the offer? Please don't hesitate to reach out to us at admin@life-psychology.com.au.
 
 Warm regards,
-Zoe & The ${BLOOM_NAME} Team
+Zoe & The ${COMPANY_NAME} Team
   `.trim();
 
   return sendEmail(
     email,
-    `🎉 You've Received an Offer from ${BLOOM_NAME}!`,
+    `🎉 You've Received an Offer from ${COMPANY_NAME}!`,
     htmlContent,
     plainTextContent,
     ADMIN_NOTIFICATION_EMAIL // CC admin on all offers

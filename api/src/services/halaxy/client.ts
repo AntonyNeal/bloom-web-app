@@ -709,6 +709,101 @@ export class HalaxyClient {
     return newPractitioner;
   }
 
+  /**
+   * Create a PractitionerRole to link a practitioner to the organization
+   * 
+   * This is required for the practitioner to appear in scheduling and be bookable.
+   * The PractitionerRole links:
+   * - Practitioner (the person)
+   * - Organization (Life Psychology Australia)
+   * - Location (optional - clinic location)
+   * - Specialty (their practice areas)
+   * 
+   * @param practitionerId - The Halaxy Practitioner ID (e.g., "PR-1234567")
+   * @param options - Optional specialty and location settings
+   * @returns The created PractitionerRole resource
+   */
+  async createPractitionerRole(
+    practitionerId: string,
+    options: {
+      specialties?: string[];
+      locationId?: string;
+    } = {}
+  ): Promise<FHIRPractitionerRole> {
+    const organizationId = this.config.organizationId;
+    
+    if (!organizationId) {
+      throw new Error('HALAXY_ORGANIZATION_ID not configured');
+    }
+
+    // Build specialty array
+    const specialty = options.specialties?.map(spec => ({
+      coding: [{
+        system: 'http://snomed.info/sct',
+        display: spec,
+      }],
+    })) || [];
+
+    // Build location array if provided
+    const location = options.locationId ? [{
+      reference: `Location/${options.locationId}`,
+    }] : undefined;
+
+    const fhirPractitionerRole = {
+      resourceType: 'PractitionerRole',
+      active: true,
+      practitioner: {
+        reference: `Practitioner/${practitionerId}`,
+      },
+      organization: {
+        reference: `Organization/${organizationId}`,
+      },
+      ...(location && { location }),
+      ...(specialty.length > 0 && { specialty }),
+    };
+
+    console.log(`[HalaxyClient] Creating PractitionerRole for ${practitionerId} in org ${organizationId}`);
+
+    const newRole = await this.request<FHIRPractitionerRole>('/PractitionerRole', {
+      method: 'POST',
+      body: JSON.stringify(fhirPractitionerRole),
+    });
+
+    // Validate the returned role has a proper ID
+    if (!newRole.id || newRole.id === 'warning' || newRole.id === 'error' || newRole.id.length <= 3) {
+      console.error('[HalaxyClient] Invalid PractitionerRole ID returned from Halaxy:', newRole);
+      throw new Error(`Halaxy returned invalid PractitionerRole ID: ${newRole.id}`);
+    }
+
+    console.log(`[HalaxyClient] Created PractitionerRole: ${newRole.id}`);
+    return newRole;
+  }
+
+  /**
+   * Find or create a PractitionerRole for a practitioner
+   * First checks if a role already exists, creates one if not
+   */
+  async findOrCreatePractitionerRole(
+    practitionerId: string,
+    options: {
+      specialties?: string[];
+      locationId?: string;
+    } = {}
+  ): Promise<FHIRPractitionerRole> {
+    // First check if practitioner already has a role
+    try {
+      const existingRoles = await this.getPractitionerRolesByPractitioner(practitionerId);
+      if (existingRoles.length > 0) {
+        console.log(`[HalaxyClient] Found existing PractitionerRole: ${existingRoles[0].id}`);
+        return existingRoles[0];
+      }
+    } catch (error) {
+      console.log('[HalaxyClient] No existing PractitionerRole found, creating new');
+    }
+
+    return this.createPractitionerRole(practitionerId, options);
+  }
+
   // ===========================================================================
   // Request Helpers
   // ===========================================================================

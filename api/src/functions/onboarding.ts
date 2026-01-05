@@ -270,14 +270,17 @@ async function onboardingHandler(
         };
       }
 
-      // Create practitioner in Halaxy
+      // Create practitioner in Halaxy - REQUIRED for scheduling to work
       let halaxyPractitionerId: string | null = null;
+      let halaxyPractitionerRoleId: string | null = null;
+      
+      const halaxyClient = new HalaxyClient();
+      const specializations = practitionerInfo.specializations 
+        ? JSON.parse(practitionerInfo.specializations) 
+        : [];
+      
       try {
-        const halaxyClient = new HalaxyClient();
-        const specializations = practitionerInfo.specializations 
-          ? JSON.parse(practitionerInfo.specializations) 
-          : [];
-        
+        // Step 1: Create or find the Practitioner (the person)
         const halaxyPractitioner = await halaxyClient.createOrFindPractitioner({
           firstName: practitionerInfo.first_name,
           lastName: practitionerInfo.last_name,
@@ -289,13 +292,35 @@ async function onboardingHandler(
         
         halaxyPractitionerId = halaxyPractitioner.id;
         context.log(`✅ Created/found Halaxy practitioner: ${halaxyPractitionerId} for ${practitionerInfo.email}`);
+
+        // Step 2: Create or find the PractitionerRole (links to organization)
+        const halaxyPractitionerRole = await halaxyClient.findOrCreatePractitionerRole(
+          halaxyPractitionerId,
+          { specialties: specializations }
+        );
+        
+        halaxyPractitionerRoleId = halaxyPractitionerRole.id;
+        context.log(`✅ Created/found Halaxy PractitionerRole: ${halaxyPractitionerRoleId}`);
+        
       } catch (halaxyError) {
-        context.error('Failed to create Halaxy practitioner:', halaxyError);
-        // Don't fail onboarding - Halaxy practitioner can be created manually
-        context.warn(`Halaxy practitioner creation failed for ${practitionerInfo.email}. Manual Halaxy setup required.`);
+        const errorMessage = halaxyError instanceof Error ? halaxyError.message : String(halaxyError);
+        const errorStack = halaxyError instanceof Error ? halaxyError.stack : '';
+        context.error('Failed to create Halaxy practitioner/role:', errorMessage);
+        context.error('Halaxy error stack:', errorStack);
+        
+        // Halaxy integration is REQUIRED - fail onboarding if it fails
+        return {
+          status: 500,
+          headers,
+          jsonBody: { 
+            error: 'Unable to create your clinician profile in the scheduling system. Please contact admin@life-psychology.com.au for assistance.',
+            code: 'HALAXY_CREATION_FAILED',
+            details: errorMessage,
+          },
+        };
       }
 
-      // Update practitioner with contract acceptance, Azure AD Object ID, company email, and Halaxy ID
+      // Update practitioner with contract acceptance, Azure AD Object ID, company email, and Halaxy IDs
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
         .input('password_hash', sql.NVarChar, passwordHash)
@@ -306,6 +331,7 @@ async function onboardingHandler(
         .input('azure_ad_object_id', sql.NVarChar, azureObjectId)
         .input('company_email', sql.NVarChar, companyEmail)
         .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
+        .input('halaxy_practitioner_role_id', sql.NVarChar, halaxyPractitionerRoleId)
         .query(`
           UPDATE practitioners
           SET 
@@ -315,6 +341,7 @@ async function onboardingHandler(
             phone = COALESCE(@phone, phone),
             azure_ad_object_id = @azure_ad_object_id,
             halaxy_practitioner_id = COALESCE(@halaxy_practitioner_id, halaxy_practitioner_id),
+            halaxy_practitioner_role_id = COALESCE(@halaxy_practitioner_role_id, halaxy_practitioner_role_id),
             company_email = @company_email,
             contract_accepted_at = GETDATE(),
             contract_version = '1.0',
@@ -323,7 +350,7 @@ async function onboardingHandler(
             onboarding_token = NULL,
             onboarding_token_expires_at = NULL,
             updated_at = GETDATE()
-          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id, INSERTED.company_email, INSERTED.halaxy_practitioner_id
+          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id, INSERTED.company_email, INSERTED.halaxy_practitioner_id, INSERTED.halaxy_practitioner_role_id
           WHERE onboarding_token = @token
             AND onboarding_completed_at IS NULL
             AND onboarding_token_expires_at > GETDATE()
@@ -338,16 +365,22 @@ async function onboardingHandler(
       }
 
       const practitioner = result.recordset[0];
-      context.log(`Onboarding completed for practitioner ${practitioner.id}, Company email: ${practitioner.company_email || 'not created'}, Halaxy ID: ${practitioner.halaxy_practitioner_id || 'not created'}`);
+      context.log(`Onboarding completed for practitioner ${practitioner.id}`);
+      context.log(`  Company email: ${practitioner.company_email || 'not created'}`);
+      context.log(`  Halaxy Practitioner ID: ${practitioner.halaxy_practitioner_id || 'not created'}`);
+      context.log(`  Halaxy PractitionerRole ID: ${practitioner.halaxy_practitioner_role_id || 'not created'}`);
       
       // Log their new email prominently
       if (practitioner.company_email) {
         context.log(`✅ NEW EMAIL CREATED: ${practitioner.company_email}`);
       }
       
-      // Log Halaxy ID
+      // Log Halaxy IDs
       if (practitioner.halaxy_practitioner_id) {
         context.log(`✅ HALAXY CLINICIAN CREATED: ${practitioner.halaxy_practitioner_id}`);
+      }
+      if (practitioner.halaxy_practitioner_role_id) {
+        context.log(`✅ HALAXY ROLE CREATED: ${practitioner.halaxy_practitioner_role_id}`);
       }
 
       // Notify admin if Azure AD creation failed
@@ -355,11 +388,6 @@ async function onboardingHandler(
         context.warn(`ATTENTION: Practitioner ${practitionerInfo.email} completed onboarding but company email was not created. Manual intervention required.`);
       } else if (!licenseAssigned) {
         context.warn(`ATTENTION: User ${companyEmail} created but M365 license was not assigned. Manual license assignment required.`);
-      }
-      
-      // Notify admin if Halaxy creation failed
-      if (!halaxyPractitionerId) {
-        context.warn(`ATTENTION: Practitioner ${practitionerInfo.email} completed onboarding but Halaxy clinician was not created. Manual Halaxy setup required.`);
       }
 
       return {

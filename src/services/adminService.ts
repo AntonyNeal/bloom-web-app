@@ -23,6 +23,14 @@ export interface Application {
   SubmittedAt: string;
   ReviewedAt?: string;
   ReviewedBy?: string;
+  // Workflow fields needed for list view
+  contract_url?: string;
+  offer_sent_at?: string;
+  offer_accepted_at?: string;
+  practitioner_id?: string;
+  interview_scheduled_at?: string;
+  waitlisted_at?: string;
+  accepted_at?: string;
 }
 
 export interface ApplicationDetail extends Application {

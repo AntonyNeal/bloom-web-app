@@ -4,7 +4,7 @@ import { sendOfferEmail } from '../services/email';
 import { randomUUID } from 'crypto';
 
 /**
- * Send Offer Endpoint
+ * Send Offer Endpoint - v1.0.1
  * 
  * POST /api/send-offer/:id
  * Sends an offer email to the applicant with the contract attached.

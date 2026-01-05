@@ -51,6 +51,7 @@ export default function OnboardingPage() {
   const [practitioner, setPractitioner] = useState<PractitionerData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [companyEmail, setCompanyEmail] = useState<string | null>(null);
   
   // Form state
   const [password, setPassword] = useState('');
@@ -130,6 +131,13 @@ export default function OnboardingPage() {
       if (!response.ok) {
         setError(data.error || 'Failed to complete onboarding');
         return;
+      }
+
+      // Capture the new company email from the response
+      if (data.practitioner?.companyEmail) {
+        setCompanyEmail(data.practitioner.companyEmail);
+      } else if (data.account?.email) {
+        setCompanyEmail(data.account.email);
       }
 
       setStep('complete');
@@ -277,8 +285,27 @@ export default function OnboardingPage() {
           <p style={{ color: '#666', marginBottom: 8, fontSize: 18 }}>
             Hi {practitioner?.firstName}, your account is ready!
           </p>
+          {companyEmail && (
+            <div style={{
+              background: '#ecfdf5',
+              border: '1px solid #10b981',
+              borderRadius: 8,
+              padding: '16px 20px',
+              marginBottom: 16,
+            }}>
+              <p style={{ color: '#065f46', fontWeight: 600, marginBottom: 4, fontSize: 14 }}>
+                Your new company email:
+              </p>
+              <p style={{ color: '#047857', fontSize: 18, fontWeight: 700 }}>
+                {companyEmail}
+              </p>
+              <p style={{ color: '#059669', fontSize: 13, marginTop: 8 }}>
+                Use this email to sign in to Bloom and Outlook.
+              </p>
+            </div>
+          )}
           <p style={{ color: '#888', marginBottom: 32, lineHeight: 1.6 }}>
-            You can now log in to access the Bloom platform. Your admin will activate your profile soon, 
+            Your admin will activate your profile soon, 
             and you'll appear on the Life Psychology Australia website.
           </p>
           <button

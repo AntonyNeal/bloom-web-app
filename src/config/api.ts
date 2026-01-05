@@ -34,3 +34,4 @@ export const API_ENDPOINTS = {
   createBooking: `${API_BASE_URL}/create-halaxy-booking`,
   // Offer endpoints (use FUNCTIONS_BASE_URL because they add /api/)
   acceptOffer: (token: string) => `${FUNCTIONS_BASE_URL}/api/accept-offer/${token}`,
+} as const;

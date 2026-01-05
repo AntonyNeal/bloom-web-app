@@ -19,7 +19,8 @@ export default function AcceptOffer() {
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE = import.meta.env.VITE_AZURE_FUNCTIONS_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || '';
+  // API URL set by CI/CD per environment
+  const API_BASE = import.meta.env.VITE_AZURE_FUNCTIONS_URL || import.meta.env.VITE_API_URL?.replace('/api', '');
 
   useEffect(() => {
     async function fetchOffer() {

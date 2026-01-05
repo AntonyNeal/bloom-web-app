@@ -635,6 +635,7 @@ jobs:
         env:
           MODE: ${{ needs.determine-environment.outputs.environment == 'production' && 'production' || 'development' }}
           VITE_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
+          VITE_AZURE_FUNCTIONS_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
         run: |
           echo "🌸 Building Bloom Frontend..."
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"

@@ -254,7 +254,10 @@ async function onboardingHandler(
           context.log(`Azure AD user already exists: ${companyEmail} (ID: ${azureObjectId})`);
         }
       } catch (azureError) {
-        context.error('Failed to create Azure AD user:', azureError);
+        const errorMessage = azureError instanceof Error ? azureError.message : String(azureError);
+        const errorStack = azureError instanceof Error ? azureError.stack : '';
+        context.error('Failed to create Azure AD user:', errorMessage);
+        context.error('Azure AD error stack:', errorStack);
         // Azure AD user creation is required - fail onboarding
         return {
           status: 500,
@@ -262,6 +265,7 @@ async function onboardingHandler(
           jsonBody: { 
             error: 'Unable to create your company email account. Please contact admin@life-psychology.com.au for assistance.',
             code: 'AZURE_AD_CREATION_FAILED',
+            details: errorMessage, // Include error details for debugging
           },
         };
       }

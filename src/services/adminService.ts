@@ -77,14 +77,16 @@ export interface ApplicationDocument {
   UploadedAt: string;
 }
 
-// Use VITE_AZURE_FUNCTIONS_URL for root URL (e.g., https://bloom-functions-dev.azurewebsites.net)
-// Endpoints already include /api prefix, so no need for VITE_API_URL here
-const BASE_URL = import.meta.env.VITE_AZURE_FUNCTIONS_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || '';
+// Import centralized API config - single source of truth
+import { API_BASE_URL } from '../config/api';
 
 async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${BASE_URL}${endpoint}`;
+  // endpoint should start with / (e.g., /applications)
+  // API_BASE_URL already includes /api suffix
+  const url = endpoint.startsWith('/api') 
+    ? `${API_BASE_URL.replace(/\/api$/, '')}${endpoint}`  // endpoint already has /api
+    : `${API_BASE_URL}${endpoint.replace(/^\//, '/')}`; // append to API_BASE_URL
   console.log('API Request URL:', url);
-  console.log('Base URL from env:', BASE_URL);
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',

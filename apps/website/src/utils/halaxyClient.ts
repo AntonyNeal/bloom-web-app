@@ -47,18 +47,16 @@ export class HalaxyClient {
   private readonly AZURE_FUNCTION_URL: string;
 
   private constructor() {
-    // Get Azure Function URL from environment
-    const functionUrl = import.meta.env['VITE_HALAXY_BOOKING_FUNCTION_URL'];
+    // Derive booking URL from VITE_API_URL (single source of truth)
+    // VITE_API_URL includes /api suffix (e.g., https://bloom-functions-staging-new.azurewebsites.net/api)
+    const apiUrl = import.meta.env['VITE_API_URL'] || import.meta.env['NEXT_PUBLIC_API_URL'];
 
-    if (!functionUrl) {
-      console.error(
-        '[HalaxyClient] VITE_HALAXY_BOOKING_FUNCTION_URL not configured'
-      );
-      // Fallback for development
-      this.AZURE_FUNCTION_URL =
-        'http://localhost:7071/api/create-halaxy-booking';
+    if (apiUrl) {
+      this.AZURE_FUNCTION_URL = `${apiUrl}/create-halaxy-booking`;
     } else {
-      this.AZURE_FUNCTION_URL = functionUrl;
+      // Fallback for local development
+      console.warn('[HalaxyClient] VITE_API_URL not configured, using localhost fallback');
+      this.AZURE_FUNCTION_URL = 'http://localhost:7071/api/create-halaxy-booking';
     }
   }
 

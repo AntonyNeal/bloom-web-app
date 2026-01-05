@@ -634,14 +634,12 @@ jobs:
       - name: Build Bloom Application
         env:
           MODE: ${{ needs.determine-environment.outputs.environment == 'production' && 'production' || 'development' }}
+          # Single source of truth: VITE_API_URL (all other URLs derived in code)
           VITE_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
         run: |
           echo "🌸 Building Bloom Frontend..."
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
           echo "🔗 API URL: $VITE_API_URL"
-          # Strip /api suffix for VITE_AZURE_FUNCTIONS_URL (base URL only)
-          export VITE_AZURE_FUNCTIONS_URL="${VITE_API_URL%/api}"
-          echo "🔗 Functions URL: $VITE_AZURE_FUNCTIONS_URL"
           npm run build:bloom -- --mode $MODE
           echo "✅ Build complete"
 
@@ -705,11 +703,8 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://${{ needs.determine-environment.outputs.website-frontend-app }}.azurestaticapps.net
           # Use test Stripe key for dev, live key for staging/prod
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ needs.determine-environment.outputs.environment == 'development' && secrets.STRIPE_PUBLISHABLE_KEY_TEST || secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-          # Derive API URLs from bloom-api-url (already environment-specific)
+          # Single source of truth: NEXT_PUBLIC_API_URL (all other URLs derived in code)
           NEXT_PUBLIC_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
-          NEXT_PUBLIC_AZURE_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
-          NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/halaxy/availability
-          NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/create-halaxy-booking
 
       - name: Copy Static Web App Config
         run: |

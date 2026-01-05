@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { API_ENDPOINTS } from '../config/api';
 
 interface OfferDetails {
   firstName: string;
@@ -19,9 +20,6 @@ export default function AcceptOffer() {
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // API URL set by CI/CD per environment
-  const API_BASE = import.meta.env.VITE_AZURE_FUNCTIONS_URL || import.meta.env.VITE_API_URL?.replace('/api', '');
-
   useEffect(() => {
     async function fetchOffer() {
       if (!token) {
@@ -31,7 +29,7 @@ export default function AcceptOffer() {
       }
 
       try {
-        const response = await fetch(`${API_BASE}/api/accept-offer/${token}`);
+        const response = await fetch(API_ENDPOINTS.acceptOffer(token));
         const data = await response.json();
 
         if (!response.ok) {
@@ -50,14 +48,14 @@ export default function AcceptOffer() {
     }
 
     fetchOffer();
-  }, [token, API_BASE]);
+  }, [token]);
 
   const handleAccept = async () => {
     if (!token) return;
 
     setAccepting(true);
     try {
-      const response = await fetch(`${API_BASE}/api/accept-offer/${token}`, {
+      const response = await fetch(API_ENDPOINTS.acceptOffer(token), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });

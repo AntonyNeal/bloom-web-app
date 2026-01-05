@@ -2,10 +2,10 @@ import axios, { AxiosError } from 'axios';
 import { getEnvVar } from '../utils/env';
 import { PsychologistApplication } from '../types/psychologist';
 
-// Get Azure Functions base URL from environment
-const FUNCTIONS_BASE_URL =
-  getEnvVar('VITE_AZURE_FUNCTIONS_URL') ||
-  'https://lpa-application-functions.azurewebsites.net';
+// Get Azure Functions base URL from environment (single source of truth)
+// VITE_API_URL includes /api suffix, strip it to get base URL
+const apiUrl = getEnvVar('VITE_API_URL') || 'https://bloom-functions-staging-new.azurewebsites.net/api';
+const FUNCTIONS_BASE_URL = apiUrl.replace(/\/api$/, '');
 
 /**
  * Response from the SAS token endpoint

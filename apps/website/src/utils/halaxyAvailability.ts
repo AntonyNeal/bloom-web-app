@@ -38,20 +38,13 @@ export async function fetchAvailableSlots(
   params: AvailabilityParams
 ): Promise<AvailableSlot[]> {
   try {
-    // Get the Azure Function URL from environment or use relative path for SWA
-    const configuredUrl =
-      import.meta.env['VITE_AVAILABILITY_FUNCTION_URL'] ||
-      import.meta.env['VITE_HALAXY_AVAILABILITY_FUNCTION_URL'];
-
-    const azureFunctionsBase =
-      import.meta.env['VITE_AZURE_FUNCTION_URL'] ||
-      import.meta.env['VITE_AZURE_FUNCTIONS_URL'];
-
-    const defaultUrl = azureFunctionsBase
-      ? `${azureFunctionsBase.replace(/\/$/, '')}/api/halaxy/availability`
-      : '/api/halaxy/availability'; // Use relative path for SWA linked functions
-
-    const functionUrl = configuredUrl || defaultUrl;
+    // Derive availability URL from VITE_API_URL (single source of truth)
+    // VITE_API_URL includes /api suffix (e.g., https://bloom-functions-staging-new.azurewebsites.net/api)
+    const apiUrl = import.meta.env['VITE_API_URL'] || import.meta.env['NEXT_PUBLIC_API_URL'];
+    
+    const functionUrl = apiUrl
+      ? `${apiUrl}/halaxy/availability`
+      : '/api/halaxy/availability'; // Fallback for local SWA dev
 
     // Format dates as ISO strings for the function
     const queryParams = new URLSearchParams({

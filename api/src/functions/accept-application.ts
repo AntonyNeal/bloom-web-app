@@ -79,7 +79,8 @@ async function acceptApplicationHandler(
           photo_url,
           favorite_flower,
           status,
-          practitioner_id
+          practitioner_id,
+          contract_url
         FROM applications
         WHERE id = @id
       `);
@@ -168,6 +169,15 @@ async function acceptApplicationHandler(
     context.log(`Practitioner created: ${result.practitionerId}`);
     context.log(`Onboarding link: ${result.onboardingLink}`);
 
+    // Verify contract is attached before sending email
+    if (!application.contract_url) {
+      return {
+        status: 400,
+        headers,
+        jsonBody: { error: 'Cannot accept application without a contract. Please upload the contract first.' },
+      };
+    }
+
     // Send the acceptance/onboarding email
     let emailSent = false;
     try {
@@ -176,6 +186,7 @@ async function acceptApplicationHandler(
         lastName: application.last_name,
         email: application.email,
         onboardingLink: result.onboardingLink,
+        contractUrl: application.contract_url,
       });
       emailSent = true;
       context.log(`Acceptance email sent to ${application.email}`);

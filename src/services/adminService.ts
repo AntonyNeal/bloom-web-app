@@ -5,7 +5,8 @@ export type ApplicationStatus =
   | 'Denied'             // Application denied
   | 'Waitlisted'         // On waitlist for future positions
   | 'Interview Scheduled' // Interview has been scheduled
-  | 'Accepted'           // Application accepted, pending onboarding
+  | 'Offer Sent'         // Offer sent to candidate, waiting for acceptance
+  | 'Accepted'           // Offer accepted by candidate, ready for onboarding
   | 'Approved'           // Approved (maps to Accepted)
   | 'Rejected';          // Rejected (maps to Denied)
 
@@ -55,6 +56,8 @@ export interface ApplicationDetail extends Application {
   WaitlistedAt?: string;            // When application was waitlisted
   AcceptedAt?: string;              // When application was accepted
   ContractUrl?: string;             // URL to uploaded contract document
+  OfferSentAt?: string;             // When offer was sent
+  OfferAcceptedAt?: string;         // When offer was accepted by candidate
 }
 
 export interface ApplicationDocument {

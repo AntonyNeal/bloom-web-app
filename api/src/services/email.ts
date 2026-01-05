@@ -358,10 +358,29 @@ Zoe & The ${BLOOM_NAME} Team
  * Acceptance/Onboarding Email Template
  */
 export async function sendAcceptanceEmail(context: EmailContext) {
-  const { firstName, email, onboardingLink: providedLink } = context;
+  const { firstName, email, onboardingLink: providedLink, contractUrl } = context;
 
   // Use provided onboarding link or fallback
   const onboardingLink = providedLink || `${ONBOARDING_BASE_URL}/onboarding`;
+
+  // Contract section (only if contract URL is provided)
+  const contractSection = contractUrl ? `
+    <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+      <h3 style="margin: 0 0 10px; color: #92400e;">📄 Practitioner Agreement</h3>
+      <p style="margin: 0 0 15px; color: #78350f;">Please review and sign your practitioner agreement as part of the onboarding process.</p>
+      <a href="${contractUrl}" style="display: inline-block; background: #f59e0b; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+        View Contract →
+      </a>
+    </div>
+  ` : '';
+
+  const contractPlainText = contractUrl ? `
+PRACTITIONER AGREEMENT
+----------------------
+Please review and sign your practitioner agreement:
+${contractUrl}
+
+` : '';
 
   const htmlContent = wrapInTemplate(`
     <h2 style="color: #333; margin-top: 0;">🎉 Welcome to ${BLOOM_NAME}!</h2>
@@ -369,6 +388,8 @@ export async function sendAcceptanceEmail(context: EmailContext) {
     <p>Dear ${firstName},</p>
     
     <p><strong>Congratulations!</strong> We're thrilled to let you know that your application to join ${BLOOM_NAME} has been accepted.</p>
+    
+    ${contractSection}
     
     <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
       <h3 style="margin: 0 0 15px; color: #059669;">Get Started with Onboarding</h3>
@@ -380,6 +401,7 @@ export async function sendAcceptanceEmail(context: EmailContext) {
     
     <p>During onboarding, you'll:</p>
     <ul style="color: #666;">
+      <li>Review and accept your practitioner agreement</li>
       <li>Create your secure password</li>
       <li>Complete your professional profile</li>
       <li>Take a quick tour of the ${BLOOM_NAME} platform</li>
@@ -402,12 +424,13 @@ Dear ${firstName},
 
 Congratulations! We're thrilled to let you know that your application to join ${BLOOM_NAME} has been accepted.
 
-GET STARTED WITH ONBOARDING
+${contractPlainText}GET STARTED WITH ONBOARDING
 ---------------------------
 Complete your profile and set up your account:
 ${onboardingLink}
 
 During onboarding, you'll:
+- Review and accept your practitioner agreement
 - Create your secure password
 - Complete your professional profile
 - Take a quick tour of the ${BLOOM_NAME} platform
@@ -745,12 +768,102 @@ ${practitionerName}
   );
 }
 
+// ============================================================================
+// OFFER EMAIL TEMPLATE
+// ============================================================================
+
+interface OfferEmailContext {
+  firstName: string;
+  email: string;
+  offerUrl: string;
+  contractUrl: string;
+}
+
+/**
+ * Send Offer Email
+ * 
+ * Sent when admin wants to extend an offer to a candidate.
+ * Includes the contract and a link to accept the offer.
+ */
+export async function sendOfferEmail(context: OfferEmailContext) {
+  const { firstName, email, offerUrl, contractUrl } = context;
+
+  const htmlContent = wrapInTemplate(`
+    <h2 style="color: #333; margin-top: 0;">🎉 You've Received an Offer!</h2>
+    
+    <p>Dear ${firstName},</p>
+    
+    <p>We're excited to inform you that after reviewing your application and interview, we would like to offer you a position as a practitioner at <strong>${BLOOM_NAME}</strong>!</p>
+    
+    <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+      <h3 style="margin: 0 0 10px; color: #92400e;">📄 Your Practitioner Agreement</h3>
+      <p style="margin: 0 0 15px; color: #78350f;">Please review your practitioner agreement carefully. This outlines the terms and conditions of working with ${BLOOM_NAME}.</p>
+      <a href="${contractUrl}" style="display: inline-block; background: #f59e0b; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+        📥 View Contract (PDF) →
+      </a>
+    </div>
+    
+    <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; border: 2px solid #10b981;">
+      <h3 style="margin: 0 0 15px; color: #059669;">Ready to Join Us?</h3>
+      <p style="margin: 0 0 15px; color: #065f46;">Once you've reviewed the contract and you're ready to proceed, click the button below to accept your offer.</p>
+      <a href="${offerUrl}" style="display: inline-block; background: #10b981; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+        ✅ Accept Offer
+      </a>
+    </div>
+    
+    <p style="color: #666;">After accepting, our team will reach out with next steps to complete your onboarding and set up your practitioner profile.</p>
+    
+    <p style="color: #888; font-size: 14px;"><em>Have questions about the contract or the offer? Please don't hesitate to reach out to us at <a href="mailto:admin@life-psychology.com.au" style="color: #10b981;">admin@life-psychology.com.au</a>.</em></p>
+    
+    <p style="margin-top: 30px;">
+      Warm regards,<br>
+      <strong>Zoe & The ${BLOOM_NAME} Team</strong>
+    </p>
+  `);
+
+  const plainTextContent = `
+🎉 You've Received an Offer!
+
+Dear ${firstName},
+
+We're excited to inform you that after reviewing your application and interview, we would like to offer you a position as a practitioner at ${BLOOM_NAME}!
+
+YOUR PRACTITIONER AGREEMENT
+---------------------------
+Please review your practitioner agreement carefully. This outlines the terms and conditions of working with ${BLOOM_NAME}.
+
+View Contract: ${contractUrl}
+
+READY TO JOIN US?
+-----------------
+Once you've reviewed the contract and you're ready to proceed, click the link below to accept your offer:
+
+${offerUrl}
+
+After accepting, our team will reach out with next steps to complete your onboarding and set up your practitioner profile.
+
+Have questions about the contract or the offer? Please don't hesitate to reach out to us at admin@life-psychology.com.au.
+
+Warm regards,
+Zoe & The ${BLOOM_NAME} Team
+  `.trim();
+
+  return sendEmail(
+    email,
+    `🎉 You've Received an Offer from ${BLOOM_NAME}!`,
+    htmlContent,
+    plainTextContent,
+    ADMIN_NOTIFICATION_EMAIL // CC admin on all offers
+  );
+}
+
 // Export email service
 export const emailService = {
   sendDenialEmail,
   sendWaitlistEmail,
   sendInterviewEmail,
   sendAcceptanceEmail,
+  sendOfferEmail,
   sendClinicianBookingNotification,
   sendPatientBookingConfirmation,
 };

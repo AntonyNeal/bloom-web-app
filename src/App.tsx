@@ -36,6 +36,7 @@ const PractitionerManagement = lazy(() =>
 const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
 const BusinessCoach = lazy(() => import('./pages/BusinessCoach'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
+const AcceptOffer = lazy(() => import('./pages/AcceptOffer'));
 
 // Lazy-loaded flower components with preloading
 const Tier1Flower = lazy(() =>
@@ -441,6 +442,18 @@ function AnimatedRoutes() {
 
         {/* Login redirect - triggers Azure AD authentication */}
         <Route path="/login" element={<LoginRedirect />} />
+
+        {/* Accept offer - candidates accept their offer before onboarding */}
+        <Route
+          path="/accept-offer/:token"
+          element={
+            <ErrorBoundary>
+              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+                <AcceptOffer />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
 
         {/* Practitioner onboarding - complete account setup after acceptance */}
         <Route

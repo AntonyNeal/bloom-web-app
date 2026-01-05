@@ -20,7 +20,7 @@ interface Props {
   applicationId: string;
 }
 
-const statusOptions = ['Received', 'Reviewed', 'Denied', 'Waitlisted', 'Interview Scheduled', 'Accepted', 'Approved', 'Rejected'];
+const statusOptions = ['Received', 'Reviewed', 'Denied', 'Waitlisted', 'Interview Scheduled', 'Offer Sent', 'Accepted', 'Approved', 'Rejected'];
 
 const statusBadgeClasses: Record<string, string> = {
   Received: 'bg-blue-100 text-blue-800',
@@ -28,6 +28,7 @@ const statusBadgeClasses: Record<string, string> = {
   Denied: 'bg-red-100 text-red-800',
   Waitlisted: 'bg-purple-100 text-purple-800',
   'Interview Scheduled': 'bg-indigo-100 text-indigo-800',
+  'Offer Sent': 'bg-orange-100 text-orange-800',
   Accepted: 'bg-green-100 text-green-800',
   Approved: 'bg-emerald-100 text-emerald-800',
   Rejected: 'bg-red-200 text-red-900',

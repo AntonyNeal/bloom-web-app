@@ -204,6 +204,46 @@ export function Admin() {
     }
   };
 
+  // Send offer to candidate (requires contract to be uploaded)
+  const sendOffer = async (id: number) => {
+    setIsSendingInvite(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/send-offer/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send offer");
+      }
+
+      toast({
+        title: "📨 Offer Sent!",
+        description: `Offer email sent to ${selectedApp?.email || 'applicant'}. Waiting for them to accept.`,
+      });
+
+      // Refresh
+      await fetchApplications();
+      if (selectedApp?.id === id) {
+        const appResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`);
+        const updatedApp = await appResponse.json();
+        setSelectedApp(updatedApp);
+      }
+    } catch (error) {
+      console.error("Failed to send offer:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to send offer",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
+
   // Resend onboarding email (generates new token and sends)
   const resendOnboardingEmail = async (applicationId: number) => {
     setIsSendingInvite(true);
@@ -248,6 +288,8 @@ export function Admin() {
         return "bg-purple-100 text-purple-800 hover:bg-purple-200";
       case "interview_scheduled":
         return "bg-cyan-100 text-cyan-800 hover:bg-cyan-200";
+      case "offer_sent":
+        return "bg-orange-100 text-orange-800 hover:bg-orange-200";
       case "accepted":
         return "bg-emerald-100 text-emerald-800 hover:bg-emerald-200";
       case "approved":
@@ -267,6 +309,7 @@ export function Admin() {
       denied: applications.filter((a) => a.status === "denied").length,
       waitlisted: applications.filter((a) => a.status === "waitlisted").length,
       interview_scheduled: applications.filter((a) => a.status === "interview_scheduled").length,
+      offer_sent: applications.filter((a) => a.status === "offer_sent").length,
       accepted: applications.filter((a) => a.status === "accepted").length,
       approved: applications.filter((a) => a.status === "approved").length,
       rejected: applications.filter((a) => a.status === "rejected").length,
@@ -346,6 +389,14 @@ export function Admin() {
                 {counts.interview_scheduled}
               </div>
               <p className="text-xs text-neutral-600">Interview</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="text-2xl font-bold text-orange-600">
+                {counts.offer_sent}
+              </div>
+              <p className="text-xs text-neutral-600">Offer Sent</p>
             </CardContent>
           </Card>
           <Card>
@@ -588,14 +639,21 @@ export function Admin() {
                           📅 Interview: {new Date(selectedApp.interview_scheduled_at).toLocaleString()}
                         </p>
                       )}
-                      <div className="grid grid-cols-2 gap-2">
+                      {selectedApp.contract_url ? (
                         <Button
-                          onClick={() => updateStatus(selectedApp.id, "accepted")}
-                          className="bg-emerald-600 hover:bg-emerald-700"
+                          onClick={() => sendOffer(selectedApp.id)}
+                          className="bg-orange-600 hover:bg-orange-700 w-full"
                           size="sm"
+                          disabled={isSendingInvite}
                         >
-                          ✅ Accept
+                          {isSendingInvite ? "⏳ Sending..." : "📨 Send Offer"}
                         </Button>
+                      ) : (
+                        <div className="bg-amber-50 p-2 rounded border border-amber-200">
+                          <p className="text-xs text-amber-700">⚠️ Upload contract to send offer</p>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 gap-2">
                         <Button
                           onClick={() => updateStatus(selectedApp.id, "waitlisted")}
                           variant="outline"
@@ -603,7 +661,69 @@ export function Admin() {
                         >
                           ⏳ Waitlist
                         </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "denied")}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          ❌ Deny
+                        </Button>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Offer sent: Waiting for candidate to accept */}
+                  {selectedApp.status === "offer_sent" && (
+                    <div className="space-y-3">
+                      {selectedApp.offer_sent_at && (
+                        <p className="text-sm text-orange-600 mb-2">
+                          📨 Offer sent: {new Date(selectedApp.offer_sent_at).toLocaleDateString()}
+                        </p>
+                      )}
+                      <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                        <p className="text-sm text-orange-800 font-medium">
+                          ⏳ Waiting for candidate to accept offer
+                        </p>
+                        <p className="text-xs text-orange-600 mt-1">
+                          Onboarding will be available after they accept
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => sendOffer(selectedApp.id)}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        disabled={isSendingInvite}
+                      >
+                        {isSendingInvite ? "⏳ Sending..." : "🔄 Resend Offer Email"}
+                      </Button>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        ↩️ Move Back to Interview
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Waitlisted: Can be moved to interview */}
+                  {selectedApp.status === "waitlisted" && (
+                    <div className="space-y-2">
+                      {selectedApp.waitlisted_at && (
+                        <p className="text-sm text-purple-600 mb-2">
+                          ⏳ Waitlisted: {new Date(selectedApp.waitlisted_at).toLocaleDateString()}
+                        </p>
+                      )}
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                      >
+                        📅 Schedule Interview
+                      </Button>
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "denied")}
                         variant="destructive"
@@ -615,39 +735,12 @@ export function Admin() {
                     </div>
                   )}
 
-                  {/* Waitlisted: Can be moved to interview or accepted */}
-                  {selectedApp.status === "waitlisted" && (
-                    <div className="space-y-2">
-                      {selectedApp.waitlisted_at && (
-                        <p className="text-sm text-purple-600 mb-2">
-                          ⏳ Waitlisted: {new Date(selectedApp.waitlisted_at).toLocaleDateString()}
-                        </p>
-                      )}
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
-                          variant="secondary"
-                          size="sm"
-                        >
-                          📅 Schedule Interview
-                        </Button>
-                        <Button
-                          onClick={() => updateStatus(selectedApp.id, "accepted")}
-                          className="bg-emerald-600 hover:bg-emerald-700"
-                          size="sm"
-                        >
-                          ✅ Accept
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Accepted: Onboarding in progress */}
                   {selectedApp.status === "accepted" && (
                     <div className="space-y-3">
                       {selectedApp.accepted_at && (
                         <p className="text-sm text-emerald-600 mb-2">
-                          ✅ Accepted: {new Date(selectedApp.accepted_at).toLocaleDateString()}
+                          ✅ Offer accepted: {new Date(selectedApp.accepted_at).toLocaleDateString()}
                         </p>
                       )}
                       

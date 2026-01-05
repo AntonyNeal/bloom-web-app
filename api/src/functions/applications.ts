@@ -222,6 +222,7 @@ async function applicationsHandler(
         'denied',
         'waitlisted',
         'interview_scheduled',
+        'offer_sent',
         'accepted',
         'approved',  // Legacy
         'rejected',  // Legacy
@@ -251,6 +252,8 @@ async function applicationsHandler(
         additionalColumns = ', waitlisted_at = GETDATE()';
       } else if (status === 'accepted') {
         additionalColumns = ', accepted_at = GETDATE()';
+      } else if (status === 'offer_sent') {
+        additionalColumns = ', offer_sent_at = GETDATE()';
       }
 
       const result = await request.query(`

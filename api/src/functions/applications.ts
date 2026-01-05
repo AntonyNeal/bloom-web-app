@@ -204,8 +204,9 @@ async function applicationsHandler(
         interview_scheduled_at?: string;
         interview_notes?: string;
         decision_reason?: string;
+        contract_url?: string;
       };
-      const { status, reviewed_by, admin_notes, interview_scheduled_at, interview_notes, decision_reason } = body;
+      const { status, reviewed_by, admin_notes, interview_scheduled_at, interview_notes, decision_reason, contract_url } = body;
 
       if (!status) {
         return {
@@ -244,7 +245,8 @@ async function applicationsHandler(
         .input('admin_notes', sql.NVarChar, admin_notes || null)
         .input('interview_scheduled_at', sql.DateTime2, interview_scheduled_at ? new Date(interview_scheduled_at) : null)
         .input('interview_notes', sql.NVarChar, interview_notes || null)
-        .input('decision_reason', sql.NVarChar, decision_reason || null);
+        .input('decision_reason', sql.NVarChar, decision_reason || null)
+        .input('contract_url', sql.NVarChar, contract_url || null);
 
       // Set timestamp columns based on status change
       let additionalColumns = '';
@@ -264,7 +266,8 @@ async function applicationsHandler(
               admin_notes = COALESCE(@admin_notes, admin_notes),
               interview_scheduled_at = COALESCE(@interview_scheduled_at, interview_scheduled_at),
               interview_notes = COALESCE(@interview_notes, interview_notes),
-              decision_reason = COALESCE(@decision_reason, decision_reason)
+              decision_reason = COALESCE(@decision_reason, decision_reason),
+              contract_url = COALESCE(@contract_url, contract_url)
               ${additionalColumns}
           OUTPUT INSERTED.*
           WHERE id = @id

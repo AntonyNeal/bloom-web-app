@@ -3,6 +3,14 @@ import * as sql from 'mssql';
 import { sendOfferEmail } from '../services/email';
 import { randomUUID } from 'crypto';
 
+/**
+ * Send Offer Endpoint
+ * 
+ * POST /api/send-offer/:id
+ * Sends an offer email to the applicant with the contract attached.
+ * The applicant must accept the offer before onboarding can begin.
+ */
+
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
   const connectionString = process.env.SQL_CONNECTION_STRING;

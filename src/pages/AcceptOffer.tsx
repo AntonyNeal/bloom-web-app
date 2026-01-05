@@ -128,7 +128,7 @@ export default function AcceptOffer() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-emerald-500">✓</span>
-                You'll receive an onboarding email within 24-48 hours
+                You'll receive an onboarding email with next steps
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-emerald-500">✓</span>

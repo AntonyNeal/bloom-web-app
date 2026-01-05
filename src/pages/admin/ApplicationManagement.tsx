@@ -39,6 +39,10 @@ interface Application {
   waitlisted_at?: string;
   accepted_at?: string;
   practitioner_id?: string;
+  // Offer workflow fields
+  contract_url?: string;
+  offer_sent_at?: string;
+  offer_accepted_at?: string;
 }
 
 type ErrorType = 'network' | 'server' | null;

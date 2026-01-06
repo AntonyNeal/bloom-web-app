@@ -91,25 +91,25 @@ async function adminResetApplicationHandler(
       };
     }
 
-    const app = appResult.recordset[0];
+    const application = appResult.recordset[0];
     const actions: string[] = [];
 
     // Delete the practitioner if exists
-    if (app.practitioner_id) {
+    if (application.practitioner_id) {
       // Delete related records first (sessions, sync_status, etc.)
       await pool.request()
-        .input('practitionerId', sql.UniqueIdentifier, app.practitioner_id)
+        .input('practitionerId', sql.UniqueIdentifier, application.practitioner_id)
         .query(`DELETE FROM sessions WHERE practitioner_id = @practitionerId`);
       
       await pool.request()
-        .input('practitionerId', sql.UniqueIdentifier, app.practitioner_id)
+        .input('practitionerId', sql.UniqueIdentifier, application.practitioner_id)
         .query(`DELETE FROM sync_status WHERE practitioner_id = @practitionerId`);
       
       await pool.request()
-        .input('practitionerId', sql.UniqueIdentifier, app.practitioner_id)
+        .input('practitionerId', sql.UniqueIdentifier, application.practitioner_id)
         .query(`DELETE FROM practitioners WHERE id = @practitionerId`);
       
-      actions.push(`Deleted practitioner ${app.practitioner_id}`);
+      actions.push(`Deleted practitioner ${application.practitioner_id}`);
     }
 
     // Reset application
@@ -138,11 +138,11 @@ async function adminResetApplicationHandler(
         success: true,
         message: 'Application reset successfully',
         applicationId,
-        previousPractitionerId: app.practitioner_id,
-        previousStatus: app.status,
+        previousPractitionerId: application.practitioner_id,
+        previousStatus: application.status,
         actions,
-        note: app.azure_ad_object_id 
-          ? `Note: Azure AD user may still exist (${app.company_email}). Delete manually if needed.`
+        note: application.azure_ad_object_id 
+          ? `Note: Azure AD user may still exist (${application.company_email}). Delete manually if needed.`
           : null,
       },
     };

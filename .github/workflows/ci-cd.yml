@@ -837,7 +837,7 @@ jobs:
           
           # Update package.json for deployment:
           # 1. Change main entry point from dist/index.js to index.js
-          # 2. Remove build script - code is already compiled, remote build should only install deps
+          # 2. Remove build script - code is already compiled
           cd deploy-package
           sed -i 's|"main": "dist/index.js"|"main": "index.js"|' package.json
           sed -i 's|"build": "tsc"|"build": "echo Code already compiled"|' package.json
@@ -847,16 +847,19 @@ jobs:
           echo "📄 Updated package.json scripts:"
           grep -A5 '"scripts"' package.json
           
-          # DO NOT install node_modules here - let Azure do remote build
-          # This reduces package size from 3000+ files to ~100 files
+          # Install production dependencies (required since we disabled remote build)
+          echo "📦 Installing production dependencies..."
+          npm ci --production --ignore-scripts
           
           # Verify package contents
           echo "📁 deploy-package/ contents:"
           ls -la
           echo "📁 deploy-package/functions/ contents:"
           ls -la functions/
+          echo "📁 deploy-package/node_modules/ (first 10):"
+          ls node_modules/ | head -10
           
-          echo "✅ Package ready (remote build will install dependencies)"
+          echo "✅ Package ready with node_modules included"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -1102,8 +1105,8 @@ jobs:
           app-name: ${{ needs.determine-environment.outputs.bloom-api-app }}
           package: bloom-api-dist
           publish-profile: ${{ secrets[needs.determine-environment.outputs.bloom-api-secret] }}
-          scm-do-build-during-deployment: true
-          enable-oryx-build: true
+          scm-do-build-during-deployment: false
+          enable-oryx-build: false
 
       - name: Sync Function Triggers
         if: steps.check-secret.outputs.secret-exists == 'true'

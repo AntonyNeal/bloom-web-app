@@ -321,6 +321,7 @@ async function onboardingHandler(
       }
 
       // Update practitioner with contract acceptance, Azure AD Object ID, company email, and Halaxy IDs
+      // Note: halaxy_practitioner_role_id column may not exist in older schemas - we handle this gracefully
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
         .input('password_hash', sql.NVarChar, passwordHash)
@@ -331,7 +332,6 @@ async function onboardingHandler(
         .input('azure_ad_object_id', sql.NVarChar, azureObjectId)
         .input('company_email', sql.NVarChar, companyEmail)
         .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
-        .input('halaxy_practitioner_role_id', sql.NVarChar, halaxyPractitionerRoleId)
         .query(`
           UPDATE practitioners
           SET 
@@ -341,7 +341,6 @@ async function onboardingHandler(
             phone = COALESCE(@phone, phone),
             azure_ad_object_id = @azure_ad_object_id,
             halaxy_practitioner_id = COALESCE(@halaxy_practitioner_id, halaxy_practitioner_id),
-            halaxy_practitioner_role_id = COALESCE(@halaxy_practitioner_role_id, halaxy_practitioner_role_id),
             company_email = @company_email,
             contract_accepted_at = GETDATE(),
             contract_version = '1.0',
@@ -350,7 +349,7 @@ async function onboardingHandler(
             onboarding_token = NULL,
             onboarding_token_expires_at = NULL,
             updated_at = GETDATE()
-          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id, INSERTED.company_email, INSERTED.halaxy_practitioner_id, INSERTED.halaxy_practitioner_role_id
+          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id, INSERTED.company_email, INSERTED.halaxy_practitioner_id
           WHERE onboarding_token = @token
             AND onboarding_completed_at IS NULL
             AND onboarding_token_expires_at > GETDATE()
@@ -368,7 +367,7 @@ async function onboardingHandler(
       context.log(`Onboarding completed for practitioner ${practitioner.id}`);
       context.log(`  Company email: ${practitioner.company_email || 'not created'}`);
       context.log(`  Halaxy Practitioner ID: ${practitioner.halaxy_practitioner_id || 'not created'}`);
-      context.log(`  Halaxy PractitionerRole ID: ${practitioner.halaxy_practitioner_role_id || 'not created'}`);
+      context.log(`  Halaxy PractitionerRole ID: ${halaxyPractitionerRoleId || 'not created'}`);
       
       // Log their new email prominently
       if (practitioner.company_email) {
@@ -379,8 +378,8 @@ async function onboardingHandler(
       if (practitioner.halaxy_practitioner_id) {
         context.log(`✅ HALAXY CLINICIAN CREATED: ${practitioner.halaxy_practitioner_id}`);
       }
-      if (practitioner.halaxy_practitioner_role_id) {
-        context.log(`✅ HALAXY ROLE CREATED: ${practitioner.halaxy_practitioner_role_id}`);
+      if (halaxyPractitionerRoleId) {
+        context.log(`✅ HALAXY ROLE: ${halaxyPractitionerRoleId}`);
       }
 
       // Notify admin if Azure AD creation failed

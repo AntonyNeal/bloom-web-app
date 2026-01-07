@@ -55,6 +55,9 @@ const initializeMsal = async (): Promise<void> => {
       // Handle redirect promise if coming back from AAD
       await msalInstance.handleRedirectPromise().catch(() => {});
       
+      // Expose MSAL instance globally for hooks that need it
+      (window as any).msalInstance = msalInstance;
+      
       // Account selection logic
       const accounts = msalInstance.getAllAccounts();
       if (accounts.length > 0) {

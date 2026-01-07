@@ -18,6 +18,37 @@ import type {
 } from '@/types/bloom';
 
 // ============================================================================
+// Azure AD Integration
+// ============================================================================
+
+async function getAzureUserId(): Promise<string | null> {
+  // Check if MSAL is available in the window object
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    // Try to get the account from MSAL
+    const msalInstance = (window as any).msalInstance;
+    if (!msalInstance) {
+      console.warn('MSAL instance not found on window');
+      return null;
+    }
+    
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length === 0) {
+      console.warn('No MSAL accounts found');
+      return null;
+    }
+    
+    // Get the homeAccountId (this is the Azure AD user object ID)
+    const account = accounts[0];
+    return account.homeAccountId?.split('.')[0] || account.localAccountId || null;
+  } catch (error) {
+    console.error('Error getting Azure user ID:', error);
+    return null;
+  }
+}
+
+// ============================================================================
 // Configuration
 // ============================================================================
 
@@ -224,8 +255,8 @@ export function useDashboard(
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
   const fetchDashboard = useCallback(async () => {
-    if (!practitionerId || skip) {
-      // Use sample data when no practitioner ID
+    if (skip) {
+      // Use sample data when skipped
       setDashboard(sampleDashboard);
       setLoading(false);
       return;
@@ -235,7 +266,18 @@ export function useDashboard(
       setLoading(true);
       setError(null);
 
-      const url = new URL(`${API_BASE_URL}/practitioners/${practitionerId}/dashboard`);
+      // Get Azure AD user from MSAL (if available)
+      const azureUserId = await getAzureUserId();
+      
+      if (!azureUserId) {
+        console.warn('No Azure authentication, using sample data');
+        setDashboard(sampleDashboard);
+        setLoading(false);
+        return;
+      }
+
+      // Use the clinician-dashboard endpoint (fetches live Halaxy data)
+      const url = new URL(`${API_BASE_URL}/clinician/dashboard`);
       if (date) {
         url.searchParams.set('date', date);
       }
@@ -244,6 +286,7 @@ export function useDashboard(
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'X-Azure-User-Id': azureUserId,
         },
       });
 
@@ -255,13 +298,72 @@ export function useDashboard(
         return;
       }
 
-      const data: GetDashboardResponse = await response.json();
+      const apiResponse = await response.json();
 
-      if (!data.success || !data.data) {
-        throw new Error(data.error || 'Failed to fetch dashboard');
+      if (!apiResponse.success || !apiResponse.data) {
+        throw new Error(apiResponse.error || 'Failed to fetch dashboard');
       }
 
-      setDashboard(data.data);
+      // Transform clinician-dashboard response to PractitionerDashboard format
+      const clinicianData = apiResponse.data;
+      
+      const transformedDashboard: PractitionerDashboard = {
+        practitioner: {
+          id: 'current-user',
+          externalPractitionerId: clinicianData.practitioner.halaxyId,
+          externalPractitionerRoleId: clinicianData.practitioner.halaxyId,
+          firstName: clinicianData.practitioner.displayName.split(' ')[0] || '',
+          lastName: clinicianData.practitioner.displayName.split(' ').slice(1).join(' ') || '',
+          displayName: clinicianData.practitioner.displayName,
+          email: clinicianData.practitioner.email,
+          specializations: [],
+          qualificationType: 'clinical',
+          timezone: 'Australia/Sydney',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastSyncedAt: clinicianData.fetchedAt,
+        },
+        todaysSessions: clinicianData.today.sessions.map(s => ({
+          id: s.id,
+          time: s.time,
+          clientInitials: s.clientInitials,
+          clientId: s.id, // Use appointment ID as client ID for now
+          sessionNumber: 1, // Not available from Halaxy
+          presentingIssues: [], // Not available from Halaxy appointment data
+          mhcpRemaining: 10, // Not available
+          mhcpTotal: 10,
+          relationshipMonths: 0, // Not available
+          status: s.status,
+          isUpNext: s.isUpNext,
+          locationType: s.locationType,
+        })),
+        weeklyStats: {
+          weekStartDate: clinicianData.today.date,
+          weekEndDate: clinicianData.today.date,
+          currentSessions: clinicianData.today.summary.completedSessions,
+          scheduledSessions: clinicianData.today.summary.upcomingSessions,
+          maxSessions: 25,
+          currentRevenue: clinicianData.today.summary.completedSessions * 220, // Estimate
+          targetRevenue: 5500,
+          completionRate: clinicianData.today.summary.totalSessions > 0 
+            ? Math.round((clinicianData.today.summary.completedSessions / clinicianData.today.summary.totalSessions) * 100)
+            : 0,
+          noShowCount: clinicianData.today.summary.cancelledSessions,
+          cancellationCount: clinicianData.today.summary.cancelledSessions,
+        },
+        upcomingStats: sampleUpcomingStats, // Not available from current API
+        monthlyStats: sampleMonthlyStats, // Not available from current API
+        lastUpdated: clinicianData.fetchedAt,
+        syncStatus: {
+          isConnected: true,
+          lastSuccessfulSync: clinicianData.fetchedAt,
+          lastSyncAttempt: clinicianData.fetchedAt,
+          syncErrors: [],
+          pendingChanges: 0,
+        },
+      };
+
+      setDashboard(transformedDashboard);
       setLastFetched(new Date());
     } catch (err) {
       console.error('Dashboard fetch error:', err);

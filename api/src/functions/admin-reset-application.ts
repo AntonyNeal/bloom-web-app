@@ -76,10 +76,8 @@ async function adminResetApplicationHandler(
     const appResult = await pool.request()
       .input('id', sql.Int, applicationId)
       .query(`
-        SELECT a.id, a.first_name, a.last_name, a.email, a.practitioner_id, a.status,
-               p.onboarding_completed_at, p.azure_ad_object_id, p.company_email, p.halaxy_practitioner_id
+        SELECT a.id, a.first_name, a.last_name, a.email, a.practitioner_id, a.status
         FROM applications a
-        LEFT JOIN practitioners p ON a.practitioner_id = p.id
         WHERE a.id = @id
       `);
 
@@ -96,14 +94,16 @@ async function adminResetApplicationHandler(
 
     // Delete the practitioner if exists
     if (application.practitioner_id) {
-      // Delete related records first (sessions, sync_status, etc.)
-      await pool.request()
-        .input('practitionerId', sql.UniqueIdentifier, application.practitioner_id)
-        .query(`DELETE FROM sessions WHERE practitioner_id = @practitionerId`);
-      
-      await pool.request()
-        .input('practitionerId', sql.UniqueIdentifier, application.practitioner_id)
-        .query(`DELETE FROM sync_status WHERE practitioner_id = @practitionerId`);
+      // Delete related records first
+      // Note: sync_status may not exist, so we handle errors gracefully
+      try {
+        await pool.request()
+          .input('practitionerId', sql.UniqueIdentifier, application.practitioner_id)
+          .query(`DELETE FROM sync_status WHERE practitioner_id = @practitionerId`);
+        actions.push('Deleted sync_status records');
+      } catch (e) {
+        // sync_status table may not exist, ignore
+      }
       
       await pool.request()
         .input('practitionerId', sql.UniqueIdentifier, application.practitioner_id)
@@ -141,9 +141,6 @@ async function adminResetApplicationHandler(
         previousPractitionerId: application.practitioner_id,
         previousStatus: application.status,
         actions,
-        note: application.azure_ad_object_id 
-          ? `Note: Azure AD user may still exist (${application.company_email}). Delete manually if needed.`
-          : null,
       },
     };
   } catch (error) {
@@ -161,7 +158,7 @@ async function adminResetApplicationHandler(
 app.http('adminResetApplication', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'admin/reset-application/{applicationId}',
+  route: 'management/reset-application/{applicationId}',
   handler: adminResetApplicationHandler,
 });
 

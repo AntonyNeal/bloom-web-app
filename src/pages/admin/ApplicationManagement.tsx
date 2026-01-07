@@ -853,6 +853,58 @@ export function Admin() {
                           ✅ Offer accepted: {new Date(selectedApp.accepted_at).toLocaleDateString()}
                         </p>
                       )}
+
+                      {/* Contract Upload Section - Required before sending onboarding */}
+                      {!selectedApp.practitioner_id && (
+                        <div className={`p-3 rounded-lg border ${
+                          selectedApp.contract_url 
+                            ? 'bg-green-50 border-green-200' 
+                            : 'bg-red-50 border-red-300'
+                        }`}>
+                          <p className="text-sm font-medium mb-2">
+                            📄 Practitioner Agreement {!selectedApp.contract_url && <span className="text-red-600">(Required)</span>}
+                          </p>
+                          {selectedApp.contract_url ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-green-700">✓ Contract uploaded</span>
+                              <button
+                                onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
+                                className="text-sm text-blue-600 hover:underline"
+                              >
+                                View PDF
+                              </button>
+                            </div>
+                          ) : (
+                            <div>
+                              <p className="text-xs text-red-600 mb-2">
+                                ⚠️ You must upload the signed contract before sending the onboarding invite.
+                              </p>
+                              <input
+                                type="file"
+                                accept=".pdf"
+                                id="contract-upload-accepted"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) uploadContract(selectedApp.id, file);
+                                  e.target.value = '';
+                                }}
+                                disabled={isUploadingContract}
+                              />
+                              <label
+                                htmlFor="contract-upload-accepted"
+                                className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded cursor-pointer ${
+                                  isUploadingContract 
+                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                                }`}
+                              >
+                                {isUploadingContract ? '⏳ Uploading...' : '📎 Upload Contract (PDF)'}
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       
                       {selectedApp.practitioner_id ? (
                         <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
@@ -873,18 +925,26 @@ export function Admin() {
                           </Button>
                         </div>
                       ) : (
-                        <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                          <p className="text-sm text-yellow-800 font-medium">
-                            ⚠️ Practitioner record not created
+                        <div className={`p-3 rounded-lg border ${
+                          selectedApp.contract_url 
+                            ? 'bg-yellow-50 border-yellow-200' 
+                            : 'bg-gray-100 border-gray-200'
+                        }`}>
+                          <p className="text-sm font-medium">
+                            {selectedApp.contract_url 
+                              ? '⚠️ Practitioner record not created' 
+                              : '⏳ Waiting for contract upload'}
                           </p>
-                          <p className="text-xs text-yellow-600 mt-1">
-                            Click below to send the onboarding invite.
+                          <p className="text-xs text-gray-600 mt-1">
+                            {selectedApp.contract_url 
+                              ? 'Click below to send the onboarding invite.'
+                              : 'Upload the contract above to enable onboarding.'}
                           </p>
                           <Button
                             onClick={() => acceptApplication(selectedApp.id)}
                             className="bg-emerald-600 hover:bg-emerald-700 w-full mt-2"
                             size="sm"
-                            disabled={isSendingInvite}
+                            disabled={isSendingInvite || !selectedApp.contract_url}
                           >
                             {isSendingInvite ? "⏳ Sending..." : "📧 Send Onboarding Invite"}
                           </Button>

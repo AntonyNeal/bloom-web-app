@@ -8,7 +8,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type {
   PractitionerDashboard,
-  GetDashboardResponse,
   SessionFeedItem,
   WeeklyStats,
   UpcomingStats,
@@ -27,7 +26,7 @@ async function getAzureUserId(): Promise<string | null> {
   
   try {
     // Try to get the account from MSAL
-    const msalInstance = (window as any).msalInstance;
+    const msalInstance = (window as typeof window & { msalInstance?: { getAllAccounts: () => unknown[] } }).msalInstance;
     if (!msalInstance) {
       console.warn('MSAL instance not found on window');
       return null;
@@ -40,7 +39,7 @@ async function getAzureUserId(): Promise<string | null> {
     }
     
     // Get the homeAccountId (this is the Azure AD user object ID)
-    const account = accounts[0];
+    const account = accounts[0] as { homeAccountId?: string; localAccountId?: string };
     return account.homeAccountId?.split('.')[0] || account.localAccountId || null;
   } catch (error) {
     console.error('Error getting Azure user ID:', error);
@@ -373,7 +372,7 @@ export function useDashboard(
     } finally {
       setLoading(false);
     }
-  }, [practitionerId, date, skip]);
+  }, [date, skip]);
 
   // Initial fetch
   useEffect(() => {

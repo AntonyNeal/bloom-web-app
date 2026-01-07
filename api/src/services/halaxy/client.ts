@@ -781,7 +781,7 @@ export class HalaxyClient {
 
   /**
    * Find or create a PractitionerRole for a practitioner
-   * First checks if a role already exists, creates one if not
+   * First checks if a role already exists in our organization, creates one if not
    */
   async findOrCreatePractitionerRole(
     practitionerId: string,
@@ -790,18 +790,49 @@ export class HalaxyClient {
       locationId?: string;
     } = {}
   ): Promise<FHIRPractitionerRole> {
-    // First check if practitioner already has a role
+    const organizationId = this.config.organizationId;
+    
+    // First check if practitioner already has a role in our organization
     try {
       const existingRoles = await this.getPractitionerRolesByPractitioner(practitionerId);
+      console.log(`[HalaxyClient] Found ${existingRoles.length} existing PractitionerRole(s) for ${practitionerId}`);
+      
       if (existingRoles.length > 0) {
-        console.log(`[HalaxyClient] Found existing PractitionerRole: ${existingRoles[0].id}`);
-        return existingRoles[0];
+        // Check if any role is for our organization
+        const roleInOurOrg = existingRoles.find(role => {
+          const orgRef = role.organization?.reference;
+          return orgRef && (orgRef === `Organization/${organizationId}` || orgRef.endsWith(`/${organizationId}`));
+        });
+        
+        if (roleInOurOrg) {
+          console.log(`[HalaxyClient] Found existing PractitionerRole in our org: ${roleInOurOrg.id}`);
+          return roleInOurOrg;
+        }
+        
+        // If they have roles but not in our org, we still need to create one
+        console.log(`[HalaxyClient] Practitioner has roles but not in org ${organizationId}, creating new`);
       }
     } catch (error) {
-      console.log('[HalaxyClient] No existing PractitionerRole found, creating new');
+      console.log('[HalaxyClient] Error checking existing PractitionerRole:', error instanceof Error ? error.message : error);
     }
 
-    return this.createPractitionerRole(practitionerId, options);
+    // Try to create a new role, handle 422 gracefully (might already exist)
+    try {
+      return await this.createPractitionerRole(practitionerId, options);
+    } catch (createError) {
+      // If we get a 422, the role might already exist - try fetching again
+      if (createError instanceof HalaxyApiError && createError.statusCode === 422) {
+        console.log(`[HalaxyClient] Got 422 creating role, re-fetching existing roles...`);
+        
+        const existingRoles = await this.getPractitionerRolesByPractitioner(practitionerId);
+        if (existingRoles.length > 0) {
+          // Return the first role (any role is better than failing)
+          console.log(`[HalaxyClient] Using existing PractitionerRole: ${existingRoles[0].id}`);
+          return existingRoles[0];
+        }
+      }
+      throw createError;
+    }
   }
 
   // ===========================================================================

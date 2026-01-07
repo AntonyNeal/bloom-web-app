@@ -1108,6 +1108,29 @@ jobs:
           scm-do-build-during-deployment: false
           enable-oryx-build: false
 
+      - name: Login to Azure
+        if: steps.check-secret.outputs.secret-exists == 'true'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Configure Halaxy App Settings
+        if: steps.check-secret.outputs.secret-exists == 'true'
+        run: |
+          echo "🔧 Configuring Halaxy environment variables..."
+          az functionapp config appsettings set \
+            --name ${{ needs.determine-environment.outputs.bloom-api-app }} \
+            --resource-group rg-lpa-unified \
+            --settings \
+              HALAXY_CLIENT_ID="${{ secrets.HALAXY_CLIENT_ID }}" \
+              HALAXY_CLIENT_SECRET="${{ secrets.HALAXY_CLIENT_SECRET }}" \
+              HALAXY_ORGANIZATION_ID="${{ secrets.HALAXY_ORGANIZATION_ID }}" \
+              HALAXY_FHIR_URL="${{ secrets.HALAXY_FHIR_URL }}" \
+            --output none
+          echo "✅ Halaxy app settings configured"
+
       - name: Sync Function Triggers
         if: steps.check-secret.outputs.secret-exists == 'true'
         run: |

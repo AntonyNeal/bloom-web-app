@@ -32,6 +32,7 @@ import './functions/practitioners-admin';
 import './functions/admin-reset-application';
 import './functions/send-offer';
 import './functions/accept-offer';
+import './functions/upload-signed-contract';
 
 export * from './functions/health';
 export * from './functions/applications';

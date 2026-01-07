@@ -10,6 +10,7 @@ interface OfferDetails {
   offerSentAt: string;
   offerAcceptedAt: string | null;
   isAccepted: boolean;
+  signedContractUrl: string | null;
 }
 
 export default function AcceptOffer() {
@@ -17,7 +18,9 @@ export default function AcceptOffer() {
   const [offer, setOffer] = useState<OfferDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [signedContractUploaded, setSignedContractUploaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -40,6 +43,9 @@ export default function AcceptOffer() {
         if (data.isAccepted) {
           setAccepted(true);
         }
+        if (data.signedContractUrl) {
+          setSignedContractUploaded(true);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load offer');
       } finally {
@@ -50,8 +56,38 @@ export default function AcceptOffer() {
     fetchOffer();
   }, [token]);
 
-  const handleAccept = async () => {
+  const handleUploadSignedContract = async (file: File) => {
     if (!token) return;
+
+    setUploading(true);
+    setError(null);
+    
+    try {
+      // Create FormData to upload the file
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload directly to the signed contract endpoint
+      const uploadResponse = await fetch(API_ENDPOINTS.acceptOffer(token) + '/signed-contract', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const data = await uploadResponse.json();
+        throw new Error(data.error || 'Failed to upload contract');
+      }
+
+      setSignedContractUploaded(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload contract');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAccept = async () => {
+    if (!token || !signedContractUploaded) return;
 
     setAccepting(true);
     try {
@@ -175,7 +211,7 @@ export default function AcceptOffer() {
                 Practitioner Agreement
               </h3>
               <p className="text-sm text-amber-700 mt-2 mb-3">
-                Please review your practitioner agreement carefully before accepting.
+                Please download, review, and sign the agreement, then upload your signed copy below.
               </p>
               <a
                 href={offer?.contractUrl}
@@ -186,8 +222,59 @@ export default function AcceptOffer() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                View Contract (PDF)
+                Download Contract (PDF)
               </a>
+            </div>
+
+            {/* Upload Signed Contract Section */}
+            <div className={`border rounded-lg p-4 ${signedContractUploaded ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
+              <h3 className={`font-semibold flex items-center gap-2 ${signedContractUploaded ? 'text-green-900' : 'text-blue-900'}`}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Upload Signed Contract
+              </h3>
+              {signedContractUploaded ? (
+                <div className="mt-2">
+                  <p className="text-sm text-green-700 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Signed contract uploaded successfully!
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-2">
+                  <p className="text-sm text-blue-700 mb-3">
+                    After signing the contract, upload your signed copy here.
+                  </p>
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    id="signed-contract-upload"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadSignedContract(file);
+                      e.target.value = '';
+                    }}
+                    disabled={uploading}
+                  />
+                  <label
+                    htmlFor="signed-contract-upload"
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-colors ${
+                      uploading 
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    {uploading ? 'Uploading...' : 'Upload Signed Contract (PDF)'}
+                  </label>
+                </div>
+              )}
             </div>
 
             {/* What You're Agreeing To */}
@@ -211,9 +298,14 @@ export default function AcceptOffer() {
 
             {/* Accept Button */}
             <div className="pt-4">
+              {!signedContractUploaded && (
+                <p className="text-center text-amber-600 text-sm mb-3">
+                  ⚠️ Please upload your signed contract above before accepting
+                </p>
+              )}
               <button
                 onClick={handleAccept}
-                disabled={accepting}
+                disabled={accepting || !signedContractUploaded}
                 className="w-full bg-emerald-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {accepting ? (

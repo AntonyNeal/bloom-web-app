@@ -41,6 +41,7 @@ interface Application {
   practitioner_id?: string;
   // Offer workflow fields
   contract_url?: string;
+  signed_contract_url?: string;
   offer_sent_at?: string;
   offer_accepted_at?: string;
 }
@@ -664,35 +665,90 @@ export function Admin() {
 
                   {/* Under review: Full set of decision options */}
                   {selectedApp.status === "reviewing" && (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-3">
+                      {/* Optional Contract Attachment */}
+                      <div className={`p-3 rounded-lg border ${
+                        selectedApp.contract_url 
+                          ? 'bg-green-50 border-green-200' 
+                          : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <p className="text-sm font-medium mb-2">
+                          📄 Practitioner Agreement <span className="text-gray-400 font-normal">(Optional)</span>
+                        </p>
+                        {selectedApp.contract_url ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-green-700">✓ Contract attached</span>
+                            <button
+                              onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
+                              className="text-sm text-blue-600 hover:underline"
+                            >
+                              View PDF
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-2">Attach contract to include with the offer</p>
+                            <input
+                              type="file"
+                              accept=".pdf"
+                              id="contract-upload-reviewing"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) uploadContract(selectedApp.id, file);
+                                e.target.value = '';
+                              }}
+                              disabled={isUploadingContract}
+                            />
+                            <label
+                              htmlFor="contract-upload-reviewing"
+                              className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded cursor-pointer ${
+                                isUploadingContract 
+                                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                                  : 'bg-gray-600 text-white hover:bg-gray-700'
+                              }`}
+                            >
+                              {isUploadingContract ? '⏳ Uploading...' : '📎 Attach Contract (PDF)'}
+                            </label>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Send Offer Button */}
                       <Button
-                        onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
-                        variant="secondary"
+                        onClick={() => sendOffer(selectedApp.id)}
+                        className="bg-orange-600 hover:bg-orange-700 w-full"
                         size="sm"
+                        disabled={isSendingInvite}
                       >
-                        📅 Schedule Interview
+                        {isSendingInvite ? "⏳ Sending..." : selectedApp.contract_url ? "📨 Send Offer (with Contract)" : "📨 Send Offer"}
                       </Button>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "waitlisted")}
-                        variant="outline"
-                        size="sm"
-                      >
-                        ⏳ Waitlist
-                      </Button>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "accepted")}
-                        className="bg-emerald-600 hover:bg-emerald-700"
-                        size="sm"
-                      >
-                        ✅ Accept
-                      </Button>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "denied")}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        ❌ Deny
-                      </Button>
+
+                      {/* Action Buttons */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
+                          variant="secondary"
+                          size="sm"
+                        >
+                          📅 Schedule Interview
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "waitlisted")}
+                          variant="outline"
+                          size="sm"
+                        >
+                          ⏳ Waitlist
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "denied")}
+                          variant="destructive"
+                          size="sm"
+                          className="col-span-2"
+                        >
+                          ❌ Deny
+                        </Button>
+                      </div>
                     </div>
                   )}
 
@@ -705,14 +761,18 @@ export function Admin() {
                         </p>
                       )}
                       
-                      {/* Contract Upload Section */}
-                      <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
-                        <p className="text-sm font-medium text-amber-900 mb-2">
-                          📄 Practitioner Agreement
+                      {/* Optional Contract Upload Section */}
+                      <div className={`p-3 rounded-lg border ${
+                        selectedApp.contract_url 
+                          ? 'bg-green-50 border-green-200' 
+                          : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <p className="text-sm font-medium mb-2">
+                          📄 Practitioner Agreement <span className="text-gray-400 font-normal">(Optional)</span>
                         </p>
                         {selectedApp.contract_url ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-green-700">✓ Contract uploaded</span>
+                            <span className="text-sm text-green-700">✓ Contract attached</span>
                             <button
                               onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
                               className="text-sm text-blue-600 hover:underline"
@@ -722,10 +782,11 @@ export function Admin() {
                           </div>
                         ) : (
                           <div>
+                            <p className="text-xs text-gray-500 mb-2">Attach contract to include with the offer</p>
                             <input
                               type="file"
                               accept=".pdf"
-                              id="contract-upload"
+                              id="contract-upload-interview"
                               className="hidden"
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
@@ -735,33 +796,28 @@ export function Admin() {
                               disabled={isUploadingContract}
                             />
                             <label
-                              htmlFor="contract-upload"
+                              htmlFor="contract-upload-interview"
                               className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded cursor-pointer ${
                                 isUploadingContract 
                                   ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                                  : 'bg-amber-600 text-white hover:bg-amber-700'
+                                  : 'bg-gray-600 text-white hover:bg-gray-700'
                               }`}
                             >
-                              {isUploadingContract ? '⏳ Uploading...' : '📎 Upload Contract (PDF)'}
+                              {isUploadingContract ? '⏳ Uploading...' : '📎 Attach Contract (PDF)'}
                             </label>
                           </div>
                         )}
                       </div>
 
-                      {selectedApp.contract_url ? (
-                        <Button
-                          onClick={() => sendOffer(selectedApp.id)}
-                          className="bg-orange-600 hover:bg-orange-700 w-full"
-                          size="sm"
-                          disabled={isSendingInvite}
-                        >
-                          {isSendingInvite ? "⏳ Sending..." : "📨 Send Offer"}
-                        </Button>
-                      ) : (
-                        <p className="text-xs text-gray-500 text-center">
-                          Upload a contract to enable sending offers
-                        </p>
-                      )}
+                      {/* Send Offer Button */}
+                      <Button
+                        onClick={() => sendOffer(selectedApp.id)}
+                        className="bg-orange-600 hover:bg-orange-700 w-full"
+                        size="sm"
+                        disabled={isSendingInvite}
+                      >
+                        {isSendingInvite ? "⏳ Sending..." : selectedApp.contract_url ? "📨 Send Offer (with Contract)" : "📨 Send Offer"}
+                      </Button>
                       
                       <div className="grid grid-cols-2 gap-2">
                         <Button
@@ -790,14 +846,53 @@ export function Admin() {
                           📨 Offer sent: {new Date(selectedApp.offer_sent_at).toLocaleDateString()}
                         </p>
                       )}
+
+                      {/* Contract Status */}
+                      {selectedApp.contract_url && (
+                        <div className={`p-3 rounded-lg border ${
+                          selectedApp.signed_contract_url 
+                            ? 'bg-green-50 border-green-200' 
+                            : 'bg-amber-50 border-amber-200'
+                        }`}>
+                          <p className="text-sm font-medium mb-2">📄 Contract Status</p>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm text-green-700">✓ Contract sent</span>
+                            <button
+                              onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
+                              className="text-sm text-blue-600 hover:underline"
+                            >
+                              View PDF
+                            </button>
+                          </div>
+                          {selectedApp.signed_contract_url ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-green-700">✓ Signed contract received</span>
+                              <button
+                                onClick={() => openDocument(selectedApp.signed_contract_url!, 'Signed Contract')}
+                                className="text-sm text-blue-600 hover:underline"
+                              >
+                                View PDF
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-amber-600">⏳ Waiting for applicant to sign and upload</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Status message */}
                       <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
                         <p className="text-sm text-orange-800 font-medium">
                           ⏳ Waiting for candidate to accept offer
                         </p>
                         <p className="text-xs text-orange-600 mt-1">
-                          Onboarding will be available after they accept
+                          {selectedApp.contract_url 
+                            ? 'Candidate must accept offer and upload signed contract'
+                            : 'Candidate must accept the offer'}
                         </p>
                       </div>
+
+                      {/* Resend Offer Button */}
                       <Button
                         onClick={() => sendOffer(selectedApp.id)}
                         variant="outline"
@@ -807,6 +902,26 @@ export function Admin() {
                       >
                         {isSendingInvite ? "⏳ Sending..." : "🔄 Resend Offer Email"}
                       </Button>
+
+                      {/* Onboard Button - greyed out until signed contract received */}
+                      <Button
+                        onClick={() => acceptApplication(selectedApp.id)}
+                        className={`w-full ${
+                          selectedApp.signed_contract_url 
+                            ? 'bg-emerald-600 hover:bg-emerald-700' 
+                            : 'bg-gray-300 cursor-not-allowed'
+                        }`}
+                        size="sm"
+                        disabled={!selectedApp.signed_contract_url || isSendingInvite}
+                      >
+                        {isSendingInvite ? '⏳ Sending...' : '🚀 Send Onboarding Invite'}
+                      </Button>
+                      {!selectedApp.signed_contract_url && selectedApp.contract_url && (
+                        <p className="text-xs text-gray-500 text-center">
+                          Onboarding available after applicant uploads signed contract
+                        </p>
+                      )}
+
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
                         variant="outline"
@@ -854,19 +969,13 @@ export function Admin() {
                         </p>
                       )}
 
-                      {/* Contract Upload Section - Required before sending onboarding */}
-                      {!selectedApp.practitioner_id && (
-                        <div className={`p-3 rounded-lg border ${
-                          selectedApp.contract_url 
-                            ? 'bg-green-50 border-green-200' 
-                            : 'bg-red-50 border-red-300'
-                        }`}>
-                          <p className="text-sm font-medium mb-2">
-                            📄 Practitioner Agreement {!selectedApp.contract_url && <span className="text-red-600">(Required)</span>}
-                          </p>
-                          {selectedApp.contract_url ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-green-700">✓ Contract uploaded</span>
+                      {/* Contract Status */}
+                      {(selectedApp.contract_url || selectedApp.signed_contract_url) && (
+                        <div className="p-3 rounded-lg border bg-green-50 border-green-200">
+                          <p className="text-sm font-medium mb-2">📄 Contract Status</p>
+                          {selectedApp.contract_url && (
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm text-green-700">✓ Contract sent</span>
                               <button
                                 onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
                                 className="text-sm text-blue-600 hover:underline"
@@ -874,33 +983,16 @@ export function Admin() {
                                 View PDF
                               </button>
                             </div>
-                          ) : (
-                            <div>
-                              <p className="text-xs text-red-600 mb-2">
-                                ⚠️ You must upload the signed contract before sending the onboarding invite.
-                              </p>
-                              <input
-                                type="file"
-                                accept=".pdf"
-                                id="contract-upload-accepted"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) uploadContract(selectedApp.id, file);
-                                  e.target.value = '';
-                                }}
-                                disabled={isUploadingContract}
-                              />
-                              <label
-                                htmlFor="contract-upload-accepted"
-                                className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded cursor-pointer ${
-                                  isUploadingContract 
-                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                                }`}
+                          )}
+                          {selectedApp.signed_contract_url && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-green-700">✓ Signed contract received</span>
+                              <button
+                                onClick={() => openDocument(selectedApp.signed_contract_url!, 'Signed Contract')}
+                                className="text-sm text-blue-600 hover:underline"
                               >
-                                {isUploadingContract ? '⏳ Uploading...' : '📎 Upload Contract (PDF)'}
-                              </label>
+                                View PDF
+                              </button>
                             </div>
                           )}
                         </div>
@@ -925,26 +1017,18 @@ export function Admin() {
                           </Button>
                         </div>
                       ) : (
-                        <div className={`p-3 rounded-lg border ${
-                          selectedApp.contract_url 
-                            ? 'bg-yellow-50 border-yellow-200' 
-                            : 'bg-gray-100 border-gray-200'
-                        }`}>
+                        <div className="p-3 rounded-lg border bg-yellow-50 border-yellow-200">
                           <p className="text-sm font-medium">
-                            {selectedApp.contract_url 
-                              ? '⚠️ Practitioner record not created' 
-                              : '⏳ Waiting for contract upload'}
+                            ⚠️ Practitioner record not created
                           </p>
                           <p className="text-xs text-gray-600 mt-1">
-                            {selectedApp.contract_url 
-                              ? 'Click below to send the onboarding invite.'
-                              : 'Upload the contract above to enable onboarding.'}
+                            Click below to send the onboarding invite.
                           </p>
                           <Button
                             onClick={() => acceptApplication(selectedApp.id)}
                             className="bg-emerald-600 hover:bg-emerald-700 w-full mt-2"
                             size="sm"
-                            disabled={isSendingInvite || !selectedApp.contract_url}
+                            disabled={isSendingInvite}
                           >
                             {isSendingInvite ? "⏳ Sending..." : "📧 Send Onboarding Invite"}
                           </Button>

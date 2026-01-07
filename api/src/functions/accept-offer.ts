@@ -72,6 +72,7 @@ async function acceptOfferHandler(
           email,
           status,
           contract_url,
+          signed_contract_url,
           offer_sent_at,
           offer_accepted_at
         FROM applications
@@ -98,6 +99,7 @@ async function acceptOfferHandler(
           lastName: application.last_name,
           email: application.email,
           contractUrl: application.contract_url,
+          signedContractUrl: application.signed_contract_url,
           offerSentAt: application.offer_sent_at,
           offerAcceptedAt: application.offer_accepted_at,
           isAccepted: !!application.offer_accepted_at,

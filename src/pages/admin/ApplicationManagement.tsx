@@ -283,6 +283,20 @@ export function Admin() {
       const data = await response.json();
 
       if (!response.ok) {
+        // If offer was already accepted, auto-refresh to show correct status
+        if (data.code === 'OFFER_ALREADY_ACCEPTED') {
+          toast({
+            title: "Already Accepted",
+            description: "This applicant has already accepted the offer. Refreshing...",
+          });
+          await fetchApplications();
+          if (selectedApp?.id === id) {
+            const appResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`);
+            const updatedApp = await appResponse.json();
+            setSelectedApp(updatedApp);
+          }
+          return;
+        }
         throw new Error(data.error || "Failed to send offer");
       }
 

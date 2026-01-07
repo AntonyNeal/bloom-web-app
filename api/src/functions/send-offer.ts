@@ -109,14 +109,23 @@ async function sendOfferHandler(
       };
     }
 
-    // Check if already accepted
+    // Check if already accepted - also fix status if out of sync
     if (application.offer_accepted_at) {
+      // Fix status if it's out of sync
+      if (application.status !== 'accepted') {
+        await pool.request()
+          .input('id', sql.Int, applicationId)
+          .query(`UPDATE applications SET status = 'accepted' WHERE id = @id`);
+        context.log(`Fixed out-of-sync status for application ${applicationId} - was ${application.status}, now accepted`);
+      }
+      
       return {
         status: 400,
         headers,
         jsonBody: { 
-          error: 'Offer has already been accepted by the applicant.',
-          code: 'OFFER_ALREADY_ACCEPTED'
+          error: 'This applicant has already accepted the offer. Please refresh the page to see the updated status.',
+          code: 'OFFER_ALREADY_ACCEPTED',
+          currentStatus: 'accepted'
         },
       };
     }

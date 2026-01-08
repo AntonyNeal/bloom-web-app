@@ -1127,14 +1127,45 @@ jobs:
         if: steps.check-secret.outputs.secret-exists == 'true'
         run: |
           echo "🔧 Configuring Halaxy environment variables..."
+          
+          # Get Halaxy credentials from Key Vault
+          KV_NAME="lpa-kv-dev-i3u6u6psuu75o"
+          
+          HALAXY_CLIENT_ID=$(az keyvault secret show \
+            --name "HALAXY-CLIENT-ID" \
+            --vault-name "$KV_NAME" \
+            --query value -o tsv 2>/dev/null || echo "")
+          
+          HALAXY_CLIENT_SECRET=$(az keyvault secret show \
+            --name "HALAXY-CLIENT-SECRET" \
+            --vault-name "$KV_NAME" \
+            --query value -o tsv 2>/dev/null || echo "")
+          
+          HALAXY_ORG_ID=$(az keyvault secret show \
+            --name "HALAXY-ORGANIZATION-ID" \
+            --vault-name "$KV_NAME" \
+            --query value -o tsv 2>/dev/null || echo "")
+          
+          HALAXY_API_URL=$(az keyvault secret show \
+            --name "HALAXY-API-URL" \
+            --vault-name "$KV_NAME" \
+            --query value -o tsv 2>/dev/null || echo "")
+          
+          if [ -z "$HALAXY_CLIENT_ID" ] || [ -z "$HALAXY_CLIENT_SECRET" ]; then
+            echo "❌ Failed to retrieve Halaxy credentials from Key Vault"
+            exit 1
+          fi
+          
+          echo "✅ Retrieved Halaxy credentials from Key Vault"
+          
           az functionapp config appsettings set \
             --name ${{ needs.determine-environment.outputs.bloom-api-app }} \
             --resource-group rg-lpa-unified \
             --settings \
-              HALAXY_CLIENT_ID="${{ secrets.HALAXY_CLIENT_ID }}" \
-              HALAXY_CLIENT_SECRET="${{ secrets.HALAXY_CLIENT_SECRET }}" \
-              HALAXY_ORGANIZATION_ID="${{ secrets.HALAXY_ORGANIZATION_ID }}" \
-              HALAXY_FHIR_URL="${{ secrets.HALAXY_FHIR_URL }}" \
+              HALAXY_CLIENT_ID="$HALAXY_CLIENT_ID" \
+              HALAXY_CLIENT_SECRET="$HALAXY_CLIENT_SECRET" \
+              HALAXY_ORGANIZATION_ID="$HALAXY_ORG_ID" \
+              HALAXY_FHIR_URL="$HALAXY_API_URL" \
             --output none
           echo "✅ Halaxy app settings configured"
 

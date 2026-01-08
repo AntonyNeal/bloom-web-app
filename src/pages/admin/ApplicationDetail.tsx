@@ -86,6 +86,9 @@ function ApplicationDetailPage({ applicationId }: Props) {
   const [adminNotes, setAdminNotes] = useState('');
   const [interviewNotes, setInterviewNotes] = useState('');
   
+  // Halaxy setup modal
+  const [halaxySetupModalOpen, setHalaxySetupModalOpen] = useState(false);
+  
   // Contract upload states
   const [_contractFile, setContractFile] = useState<File | null>(null);
   const [contractUploading, setContractUploading] = useState(false);
@@ -350,6 +353,34 @@ function ApplicationDetailPage({ applicationId }: Props) {
       {updateSuccess && (
         <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="text-green-800 font-medium">Status updated successfully</div>
+        </div>
+      )}
+
+      {/* Halaxy Setup Notice for Accepted Applications */}
+      {application.ApplicationStatus === 'Accepted' && (
+        <div className="mb-6 bg-emerald-50 border-2 border-emerald-300 rounded-lg p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-emerald-900 mb-2">
+                ✅ Application Accepted - Next Step: Add to Halaxy
+              </h3>
+              <p className="text-emerald-800 mb-4">
+                This practitioner has been accepted and is ready for onboarding. Before you can send the onboarding link, 
+                they must be added to Halaxy as a practitioner.
+              </p>
+              <button
+                onClick={() => setHalaxySetupModalOpen(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors font-medium"
+              >
+                📋 View Halaxy Setup Instructions
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -876,6 +907,99 @@ function ApplicationDetailPage({ applicationId }: Props) {
               className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               {updating ? <><ButtonSpinner /> Processing...</> : 'Accept Application'}
+            </button>
+          </div>
+        </div>
+      </WorkflowModal>
+
+      {/* Halaxy Setup Instructions Modal */}
+      <WorkflowModal
+        isOpen={halaxySetupModalOpen}
+        onClose={() => setHalaxySetupModalOpen(false)}
+        title="📋 Add Practitioner to Halaxy"
+      >
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800 font-medium mb-2">
+              Before sending the onboarding link, you must add this practitioner to Halaxy.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="font-semibold text-gray-900">Step-by-Step Instructions:</h4>
+            
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  1
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Log into Halaxy Admin</p>
+                  <p className="text-sm text-gray-600">Go to <a href="https://halaxy.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">halaxy.com</a> and sign in with your admin account</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  2
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Navigate to Practitioners</p>
+                  <p className="text-sm text-gray-600">Settings → Practice → Practitioners</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  3
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Add New Practitioner</p>
+                  <p className="text-sm text-gray-600">Click "Add Practitioner" and fill in their details:</p>
+                  <ul className="text-sm text-gray-600 mt-1 ml-4 list-disc space-y-1">
+                    <li><strong>Name:</strong> {application.FirstName} {application.LastName}</li>
+                    <li><strong>Email:</strong> {application.Email}</li>
+                    <li><strong>AHPRA:</strong> {application.AHPRARegistration}</li>
+                    <li><strong>Specializations:</strong> {application.Specializations}</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  4
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Copy the Practitioner ID</p>
+                  <p className="text-sm text-gray-600">After saving, Halaxy will assign a Practitioner ID (e.g., PR-1234567)</p>
+                  <p className="text-sm text-amber-600 mt-1">⚠️ You'll need this ID to send the onboarding link!</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  5
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Send Onboarding</p>
+                  <p className="text-sm text-gray-600">Return here and click "Send Onboarding" (button will appear once they're in Halaxy)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
+            <p className="text-sm text-amber-800">
+              <strong>Note:</strong> The Bloom system will verify the Practitioner ID exists in Halaxy before sending the onboarding email.
+            </p>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={() => setHalaxySetupModalOpen(false)}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
+            >
+              Got it!
             </button>
           </div>
         </div>

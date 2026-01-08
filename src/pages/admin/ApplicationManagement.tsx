@@ -16,6 +16,7 @@ import NetworkErrorState from "@/components/common/NetworkErrorState";
 import ServerErrorState from "@/components/common/ServerErrorState";
 import { AuthenticatedLayout } from "@/components/layout/AuthenticatedLayout";
 import { useToast } from "@/hooks/use-toast";
+import { SendOnboardingDialog } from "@/components/admin/SendOnboardingDialog";
 
 interface Application {
   id: number;
@@ -49,6 +50,7 @@ export function Admin() {
   const [error, setError] = useState<ErrorType>(null);
   const [errorCode, setErrorCode] = useState<number | undefined>(undefined);
   const [lastAttempt, setLastAttempt] = useState<Date | undefined>(undefined);
+  const [showOnboardingDialog, setShowOnboardingDialog] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -472,6 +474,22 @@ export function Admin() {
                     </div>
                   )}
 
+                  {/* Accepted: Ready to send onboarding */}
+                  {selectedApp.status === "accepted" && (
+                    <div className="space-y-2">
+                      <Button
+                        onClick={() => setShowOnboardingDialog(true)}
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        size="sm"
+                      >
+                        📧 Send Onboarding Email
+                      </Button>
+                      <p className="text-xs text-gray-500">
+                        This will create the practitioner profile and send the onboarding link
+                      </p>
+                    </div>
+                  )}
+
                   {/* Interview scheduled: After interview decisions */}
                   {selectedApp.status === "interview_scheduled" && (
                     <div className="space-y-2">
@@ -606,6 +624,28 @@ export function Admin() {
           </div>
         )}
       </div>
+
+      {/* Send Onboarding Dialog */}
+      {selectedApp && (
+        <SendOnboardingDialog
+          isOpen={showOnboardingDialog}
+          onClose={() => setShowOnboardingDialog(false)}
+          onSuccess={() => {
+            setShowOnboardingDialog(false);
+            fetchApplications();
+            toast({
+              title: "Onboarding sent!",
+              description: "Practitioner profile created and onboarding email sent.",
+            });
+          }}
+          application={{
+            id: selectedApp.id,
+            first_name: selectedApp.first_name,
+            last_name: selectedApp.last_name,
+            email: selectedApp.email,
+          }}
+        />
+      )}
     </AuthenticatedLayout>
   );
 }

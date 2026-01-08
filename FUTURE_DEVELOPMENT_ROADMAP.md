@@ -1249,7 +1249,7 @@ Each ticket in this document includes:
 
 **Acceptance Criteria**:
 
-- [ ] Analytics tool integrated (Google Analytics 4, Mixpanel, or Application Insights)
+- [x] Analytics tool integrated (Google Analytics 4, Mixpanel, or Application Insights)
 - [ ] Track page views, button clicks, form field interactions
 - [ ] Funnel analysis for application submission flow
 - [ ] A/B test results tracked automatically
@@ -1270,6 +1270,56 @@ Each ticket in this document includes:
 - Track abandonment points in forms
 
 **Labels**: monitoring, analytics, frontend, privacy
+
+**Status**: ✅ **PARTIALLY COMPLETE** (2026-01-08)
+
+**Completion Notes**:
+- GA4 tracking implemented with ID `G-XGGBRLPBKK`
+- Google Ads conversion tracking implemented with ID `AW-11563740075`
+- Analytics load on user interaction (scroll/click) for performance
+- Tracking IDs moved from hardcoded values to GitHub secrets for environment flexibility
+- **Known Issue Fixed**: Incorrect tracking IDs caused 1.5+ weeks of missing GA4 events (2025-12-25 to 2026-01-08)
+
+---
+
+#### BLOOM-703.1: Verify GA4 and Google Ads Conversion Tracking
+
+**Story**: As a marketing analyst, I want to verify that GA4 and Google Ads conversion tracking are working correctly after the hotfix deployment so that we can trust our analytics data.
+
+**Acceptance Criteria**:
+
+- [ ] GA4 real-time events showing in dashboard within 24-48 hours
+- [ ] Google Ads conversions tracking and attributing correctly
+- [ ] No JavaScript console errors related to analytics
+- [ ] Browser network tab confirms gtag.js loads with correct measurement IDs
+- [ ] Environment variables properly injected in production build
+- [ ] Documentation updated with data gap period (Dec 25, 2025 - Jan 8, 2026)
+
+**Story Points**: 2
+
+**Priority**: P0 (Critical)
+
+**Dependencies**: BLOOM-703 (partial completion)
+
+**Technical Notes**:
+
+- Tracking IDs stored as GitHub secrets: `GA4_MEASUREMENT_ID`, `GOOGLE_ADS_ID`
+- Environment variables injected at build time: `NEXT_PUBLIC_GA4_MEASUREMENT_ID`, `NEXT_PUBLIC_GOOGLE_ADS_ID`
+- Deployed via hotfix on 2026-01-08 (hotfix/analytics-tracking-ids → main)
+- Verify in GA4: Real-time reports, Events, and Conversions sections
+- Verify in Google Ads: Tools & Settings → Measurement → Conversions
+- Check for proper event firing on key actions (page views, form submissions, conversions)
+
+**Follow-up Actions**:
+
+- [ ] Consider automated alerts for analytics tracking failures
+- [ ] Document incident in postmortem/lessons learned
+- [ ] Review other hardcoded values that should be environment variables
+- [ ] Add synthetic monitoring to detect tracking script failures
+
+**Labels**: monitoring, analytics, verification, high-priority, hotfix
+
+**Review By**: 2026-01-10 (48 hours post-deployment)
 
 ---
 

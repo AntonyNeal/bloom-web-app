@@ -41,10 +41,14 @@ function generateOnboardingToken(): string {
 
 /**
  * Create a practitioner record from an accepted application
+ * @param pool - Database connection pool
+ * @param application - Application data
+ * @param halaxyPractitionerId - Real Halaxy Practitioner ID (e.g., "PR-12345"). If not provided, uses placeholder.
  */
 export async function createPractitionerFromApplication(
   pool: sql.ConnectionPool,
-  application: ApplicationData
+  application: ApplicationData,
+  halaxyPractitionerId?: string
 ): Promise<CreatePractitionerResult> {
   try {
     console.log(`[PractitionerService] Creating practitioner from application ${application.id}`);
@@ -84,13 +88,18 @@ export async function createPractitionerFromApplication(
     const tokenExpiresAt = new Date();
     tokenExpiresAt.setDate(tokenExpiresAt.getDate() + ONBOARDING_TOKEN_EXPIRY_DAYS);
 
-    // Generate a placeholder halaxy_practitioner_id for manual practitioners (app-{applicationId})
-    const halaxyPractitionerId = `app-${application.id}`;
+    // Use provided Halaxy ID or generate a placeholder (app-{applicationId})
+    const finalHalaxyId = halaxyPractitionerId || `app-${application.id}`;
+    
+    // Add PR- prefix if Halaxy ID is numeric
+    const practitionerId = finalHalaxyId.match(/^\d+$/) ? `PR-${finalHalaxyId}` : finalHalaxyId;
+    
+    console.log(`[PractitionerService] Using Halaxy Practitioner ID: ${practitionerId}`);
 
     // Create practitioner record
     const result = await pool.request()
       .input('application_id', sql.Int, application.id)
-      .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
+      .input('halaxy_practitioner_id', sql.NVarChar, practitionerId)
       .input('first_name', sql.NVarChar, application.first_name)
       .input('last_name', sql.NVarChar, application.last_name)
       .input('email', sql.NVarChar, application.email)
@@ -138,12 +147,12 @@ export async function createPractitionerFromApplication(
         )
       `);
 
-    const practitionerId = result.recordset[0].id;
-    console.log(`[PractitionerService] Created practitioner ${practitionerId}`);
+    const newPractitionerId = result.recordset[0].id;
+    console.log(`[PractitionerService] Created practitioner ${newPractitionerId}`);
 
     // Update application with practitioner_id
     await pool.request()
-      .input('practitioner_id', sql.UniqueIdentifier, practitionerId)
+      .input('practitioner_id', sql.UniqueIdentifier, newPractitionerId)
       .input('application_id', sql.Int, application.id)
       .query(`
         UPDATE applications 
@@ -157,8 +166,10 @@ export async function createPractitionerFromApplication(
 
     return {
       success: true,
-      practitionerId,
+      practitionerId: newPractitionerId,
       onboardingToken,
+      onboardingLink,
+    };
       onboardingLink,
     };
   } catch (error) {

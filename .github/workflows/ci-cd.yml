@@ -395,7 +395,6 @@ jobs:
     needs: [determine-environment, validate-migrations, lint, type-check]
     if: |
       always() &&
-      needs.determine-environment.outputs.should-run-migrations == 'true' &&
       needs.validate-migrations.result == 'success' &&
       needs.lint.result == 'success' &&
       needs.type-check.result == 'success' &&

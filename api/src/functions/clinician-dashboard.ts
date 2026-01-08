@@ -212,6 +212,29 @@ async function clinicianDashboardHandler(
     context.log(`Dashboard request for ${practitionerConfig.displayName} (${practitionerConfig.halaxyPractitionerId})`);
 
     // ========================================================================
+    // Verify Halaxy credentials are configured
+    // ========================================================================
+    const halaxyClientId = process.env.HALAXY_CLIENT_ID;
+    const halaxyClientSecret = process.env.HALAXY_CLIENT_SECRET;
+    
+    if (!halaxyClientId || !halaxyClientSecret) {
+      context.error('Halaxy credentials not configured in environment variables');
+      return {
+        status: 500,
+        headers,
+        jsonBody: {
+          success: false,
+          error: 'Server configuration error. Please contact support.',
+          debug: {
+            issue: 'Halaxy API credentials not configured',
+            hasClientId: !!halaxyClientId,
+            hasClientSecret: !!halaxyClientSecret
+          }
+        },
+      };
+    }
+
+    // ========================================================================
     // Get today's date range (Australia/Sydney timezone)
     // ========================================================================
     const now = new Date();
@@ -229,19 +252,32 @@ async function clinicianDashboardHandler(
     
     let appointments: FHIRAppointment[];
     try {
+      context.log(`Fetching appointments for practitioner role: ${practitionerConfig.halaxyPractitionerRoleId}`);
+      context.log(`Date range: ${todayStart.toISOString()} to ${todayEnd.toISOString()}`);
+      
       appointments = await client.getAppointmentsByPractitioner(
         practitionerConfig.halaxyPractitionerRoleId,
         todayStart,
         todayEnd
       );
+      
+      context.log(`Successfully fetched ${appointments.length} appointments`);
     } catch (halaxyError) {
       context.error('Halaxy API error:', halaxyError);
+      const errorMessage = halaxyError instanceof Error ? halaxyError.message : 'Unknown error';
+      context.error('Error details:', errorMessage);
+      
       return {
         status: 502,
         headers,
         jsonBody: {
           success: false,
           error: 'Unable to fetch appointments from Halaxy. Please try again.',
+          debug: {
+            errorMessage,
+            practitionerRoleId: practitionerConfig.halaxyPractitionerRoleId,
+            timestamp: new Date().toISOString()
+          }
         },
       };
     }

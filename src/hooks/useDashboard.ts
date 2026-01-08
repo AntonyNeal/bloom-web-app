@@ -239,7 +239,7 @@ const sampleDashboard: PractitionerDashboard = {
 // ============================================================================
 
 export function useDashboard(
-  practitionerId: string | undefined,
+  _practitionerId?: string,
   options: UseDashboardOptions = {}
 ): UseDashboardResult {
   const {
@@ -322,7 +322,7 @@ export function useDashboard(
           updatedAt: new Date().toISOString(),
           lastSyncedAt: clinicianData.fetchedAt,
         },
-        todaysSessions: clinicianData.today.sessions.map(s => ({
+        todaysSessions: clinicianData.today.sessions.map((s: { id: string; time: string; clientInitials: string; status: string; isUpNext: boolean; locationType: string }) => ({
           id: s.id,
           time: s.time,
           clientInitials: s.clientInitials,

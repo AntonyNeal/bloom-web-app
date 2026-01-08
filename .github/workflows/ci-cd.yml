@@ -661,6 +661,9 @@ jobs:
           NEXT_PUBLIC_AZURE_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
           NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/halaxy/availability
           NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}/create-halaxy-booking
+          # Analytics tracking IDs from Key Vault secrets
+          NEXT_PUBLIC_GA4_MEASUREMENT_ID: ${{ secrets.GA4_MEASUREMENT_ID }}
+          NEXT_PUBLIC_GOOGLE_ADS_ID: ${{ secrets.GOOGLE_ADS_ID }}
 
       - name: Copy Static Web App Config
         run: |

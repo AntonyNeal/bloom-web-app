@@ -1,7 +1,7 @@
--- V008__add_favorite_flower_columns.sql
+-- V016__add_favorite_flower_column.sql
 -- Add favorite_flower to applications and practitioners tables
 -- This is Zoe's secret intel for the onboarding surprise
--- Updated: 2026-01-04 - migration detection fix applied
+-- Updated: 2026-01-09 - renamed from V008 to fix duplicate V006 conflict
 
 -- Add to applications table (where it's collected)
 IF NOT EXISTS (

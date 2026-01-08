@@ -28,21 +28,25 @@ async function getAzureUserId(): Promise<string | null> {
     // Try to get the account from MSAL
     const msalInstance = (window as typeof window & { msalInstance?: { getAllAccounts: () => unknown[] } }).msalInstance;
     if (!msalInstance) {
-      console.warn('MSAL instance not found on window');
+      console.warn('[getAzureUserId] MSAL instance not found on window');
       return null;
     }
     
     const accounts = msalInstance.getAllAccounts();
+    console.log('[getAzureUserId] MSAL accounts:', accounts);
+    
     if (accounts.length === 0) {
-      console.warn('No MSAL accounts found');
+      console.warn('[getAzureUserId] No MSAL accounts found');
       return null;
     }
     
     // Get the homeAccountId (this is the Azure AD user object ID)
     const account = accounts[0] as { homeAccountId?: string; localAccountId?: string };
-    return account.homeAccountId?.split('.')[0] || account.localAccountId || null;
+    const userId = account.homeAccountId?.split('.')[0] || account.localAccountId || null;
+    console.log('[getAzureUserId] Extracted user ID:', userId);
+    return userId;
   } catch (error) {
-    console.error('Error getting Azure user ID:', error);
+    console.error('[getAzureUserId] Error getting Azure user ID:', error);
     return null;
   }
 }
@@ -268,8 +272,10 @@ export function useDashboard(
       // Get Azure AD user from MSAL (if available)
       const azureUserId = await getAzureUserId();
       
+      console.log('[useDashboard] Azure User ID:', azureUserId);
+      
       if (!azureUserId) {
-        console.warn('No Azure authentication, using sample data');
+        console.warn('[useDashboard] No Azure authentication, using sample data');
         setDashboard(sampleDashboard);
         setLoading(false);
         return;
@@ -281,6 +287,8 @@ export function useDashboard(
         url.searchParams.set('date', date);
       }
 
+      console.log('[useDashboard] Fetching from:', url.toString());
+
       const response = await fetch(url.toString(), {
         method: 'GET',
         headers: {
@@ -289,15 +297,18 @@ export function useDashboard(
         },
       });
 
+      console.log('[useDashboard] Response status:', response.status);
+
       if (!response.ok) {
         // If API fails, fall back to sample data
-        console.warn('Dashboard API unavailable, using sample data');
+        console.warn('[useDashboard] Dashboard API unavailable, using sample data');
         setDashboard(sampleDashboard);
         setLastFetched(new Date());
         return;
       }
 
       const apiResponse = await response.json();
+      console.log('[useDashboard] API Response:', apiResponse);
 
       if (!apiResponse.success || !apiResponse.data) {
         throw new Error(apiResponse.error || 'Failed to fetch dashboard');

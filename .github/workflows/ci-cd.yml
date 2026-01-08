@@ -764,6 +764,13 @@ jobs:
           npm run build
           echo "✅ API build complete"
 
+      - name: Verify Function Registration
+        working-directory: ./api
+        run: |
+          echo "🔍 Verifying all functions are registered..."
+          node verify-function-registration.js
+          echo "✅ Function registration verified"
+
       - name: Verify Halaxy Sync Service
         working-directory: ./api
         run: |

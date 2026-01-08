@@ -56,19 +56,27 @@ export const PRACTITIONER_MAP: Record<string, PractitionerConfig> = {
   },
 
   // ==========================================================================
-  // PRODUCTION MAPPINGS - Add your practitioners here
+  // PRODUCTION MAPPINGS
   // ==========================================================================
 
-  // Zoe Semmler - Add her Azure AD Object ID when she's set up in Entra ID
-  // To find her Object ID:
-  // 1. Azure Portal > Entra ID > Users > Zoe Semmler > Object ID
-  // 2. Or have her log in and check browser console for localAccountId
+  // Current logged-in user
+  '03f17678-7885-4e63-9b95-86e0498db620': {
+    halaxyPractitionerId: '1304541',
+    halaxyPractitionerRoleId: 'PR-2442591',
+    displayName: 'Zoe Semmler',
+    email: 'zoe@life-psychology.com.au',
+  },
+
+  // Additional practitioners can be added here
+  // To find Azure Object ID:
+  // 1. Azure Portal > Entra ID > Users > [User] > Object ID
+  // 2. Or have them log in and check browser console for localAccountId
   
   // 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx': {
   //   halaxyPractitionerId: '1304541',
   //   halaxyPractitionerRoleId: 'PR-2442591',
-  //   displayName: 'Zoe Semmler',
-  //   email: 'zoe@life-psychology.com.au',
+  //   displayName: 'Another Practitioner',
+  //   email: 'practitioner@life-psychology.com.au',
   // },
 };
 

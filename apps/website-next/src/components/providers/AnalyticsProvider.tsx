@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import Script from 'next/script';
 
 // Google Analytics and Ads configuration
-const GA4_MEASUREMENT_ID = 'G-QZ3CJMXV5P';
-const GOOGLE_ADS_ID = 'AW-16753733973';
+const GA4_MEASUREMENT_ID = 'G-XGGBRLPBKK';
+const GOOGLE_ADS_ID = 'AW-11563740075';
 
 // AnalyticsProvider uses interaction-based loading for mobile-first performance
 // Analytics only loads after user interaction (scroll, click, touch) to prevent TBT impact

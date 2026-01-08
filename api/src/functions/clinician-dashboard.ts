@@ -200,7 +200,11 @@ async function clinicianDashboardHandler(
         headers,
         jsonBody: { 
           success: false, 
-          error: 'Access denied. Your account is not registered as a practitioner.' 
+          error: 'Access denied. Your account is not registered as a practitioner.',
+          debug: {
+            azureUserId,
+            message: 'Add this Azure User ID to api/src/config/practitioner-mapping.ts to grant access'
+          }
         },
       };
     }

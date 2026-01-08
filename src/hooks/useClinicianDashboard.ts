@@ -113,6 +113,8 @@ export function useClinicianDashboard(): UseClinicianDashboardResult {
         throw new Error('Unable to get user ID from authentication');
       }
 
+      console.log('Fetching clinician dashboard with Azure User ID:', azureUserId);
+
       const response = await fetch(`${API_BASE_URL}/clinician/dashboard`, {
         method: 'GET',
         headers: {
@@ -130,6 +132,11 @@ export function useClinicianDashboard(): UseClinicianDashboardResult {
       }
 
       if (response.status === 403) {
+        console.error('Access denied - User not registered as practitioner:', data);
+        if (data.debug) {
+          console.error('Debug info:', data.debug);
+          console.error('Add your Azure User ID to the backend practitioner mapping');
+        }
         setError('Your account is not registered as a practitioner. Please contact support.');
         setIsAuthorized(false);
         return;

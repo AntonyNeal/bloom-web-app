@@ -47,6 +47,7 @@ CREATE TABLE applications (
   cover_letter TEXT,
   qualification_type NVARCHAR(50),
   qualification_check NVARCHAR(MAX),
+  favorite_flower NVARCHAR(100),
   status NVARCHAR(20) DEFAULT 'submitted',
   created_at DATETIME2 DEFAULT GETDATE(),
   updated_at DATETIME2 DEFAULT GETDATE(),

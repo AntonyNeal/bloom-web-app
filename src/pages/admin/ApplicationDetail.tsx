@@ -213,7 +213,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
   const handleScheduleInterview = async () => {
     if (!application) return;
     // Contract is required for interview scheduling
-    const currentContractUrl = application.ContractUrl || contractUrl;
+    const currentContractUrl = application.contract_url || contractUrl;
     if (!currentContractUrl) {
       setError('Please upload a contract before scheduling the interview');
       return;
@@ -402,7 +402,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
               <div className="relative group">
                 <button
                   onClick={() => setActiveModal('accept')}
-                  disabled={updating || !(application.ContractUrl || contractUrl)}
+                  disabled={updating || !(application.contract_url || contractUrl)}
                   className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,7 +410,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
                   </svg>
                   Accept
                 </button>
-                {!(application.ContractUrl || contractUrl) && (
+                {!(application.contract_url || contractUrl) && (
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                     Upload a contract before accepting
                   </div>
@@ -751,14 +751,14 @@ function ApplicationDetailPage({ applicationId }: Props) {
             <label className="block text-sm font-medium text-amber-900 mb-2">
               Practitioner Agreement <span className="text-red-500">*</span>
             </label>
-            {application.ContractUrl || contractUrl ? (
+            {application.contract_url || contractUrl ? (
               <div className="flex items-center gap-2 text-sm text-green-700">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <span>Contract uploaded</span>
                 <a 
-                  href={application.ContractUrl || contractUrl || '#'} 
+                  href={application.contract_url || contractUrl || '#'} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline ml-2"
@@ -821,7 +821,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
             </button>
             <button
               onClick={handleScheduleInterview}
-              disabled={updating || contractUploading || !(application.ContractUrl || contractUrl)}
+              disabled={updating || contractUploading || !(application.contract_url || contractUrl)}
               className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               {updating ? <><ButtonSpinner /> Processing...</> : 'Send Interview Invitation'}
@@ -838,7 +838,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
       >
         <div className="space-y-4">
           {/* Contract Warning */}
-          {!(application.ContractUrl || contractUrl) && (
+            {!(application.contract_url || contractUrl) && (
             <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <svg className="w-5 h-5 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -899,7 +899,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
             </button>
             <button
               onClick={handleAccept}
-              disabled={updating || !(application.ContractUrl || contractUrl)}
+              disabled={updating || !(application.contract_url || contractUrl)}
               className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               {updating ? <><ButtonSpinner /> Processing...</> : 'Accept Application'}

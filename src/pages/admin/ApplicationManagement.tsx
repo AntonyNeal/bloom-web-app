@@ -658,7 +658,55 @@ export function Admin() {
                   
                   {/* New applications: Direct decision options */}
                   {selectedApp.status === "submitted" && (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-3">
+                      {/* Contract Upload */}
+                      <div className={`p-3 rounded-lg border ${
+                        selectedApp.contract_url 
+                          ? 'bg-green-50 border-green-200' 
+                          : 'bg-amber-50 border-amber-200'
+                      }`}>
+                        <p className="text-sm font-medium mb-2">
+                          📄 Contract Required for Accept
+                        </p>
+                        {selectedApp.contract_url ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-green-700">✓ Contract attached</span>
+                            <button
+                              onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
+                              className="text-sm text-blue-600 hover:underline"
+                            >
+                              View PDF
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="text-xs text-amber-700 mb-2">Upload a signed contract before accepting</p>
+                            <input
+                              type="file"
+                              accept=".pdf"
+                              id="contract-upload-submitted"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) uploadContract(selectedApp.id, file);
+                                e.target.value = '';
+                              }}
+                              disabled={isUploadingContract}
+                            />
+                            <label
+                              htmlFor="contract-upload-submitted"
+                              className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded cursor-pointer hover:bg-gray-50 ${
+                                isUploadingContract ? 'opacity-50 cursor-wait' : ''
+                              }`}
+                            >
+                              {isUploadingContract ? '⏳ Uploading...' : '📎 Attach Contract PDF'}
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      <div className="grid grid-cols-2 gap-2">
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
                         variant="secondary"
@@ -691,6 +739,7 @@ export function Admin() {
                       >
                         ❌ Reject
                       </Button>
+                    </div>
                     </div>
                   )}
 

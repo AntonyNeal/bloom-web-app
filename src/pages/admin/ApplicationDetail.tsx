@@ -119,7 +119,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
       console.log('🔍 DEBUG - Application data:', {
         id: application.ApplicationID,
         contract_url: application.contract_url,
-        ContractUrl: (application as any).ContractUrl,
+        ContractUrl: (application as ApplicationDetail & Record<string, unknown>).ContractUrl,
         contractUrl_state: contractUrl,
         hasContract: !!(application.contract_url || contractUrl),
         shouldDisable: !(application.contract_url || contractUrl)
@@ -374,7 +374,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
           <h3 className="font-bold text-yellow-900 mb-2">🐛 DEBUG INFO</h3>
           <div className="text-xs font-mono space-y-1">
             <div>contract_url: <span className="text-red-600">{JSON.stringify(application.contract_url)}</span></div>
-            <div>ContractUrl: <span className="text-red-600">{JSON.stringify((application as any).ContractUrl)}</span></div>
+            <div>ContractUrl: <span className="text-red-600">{JSON.stringify((application as ApplicationDetail & Record<string, unknown>).ContractUrl)}</span></div>
             <div>contractUrl (state): <span className="text-red-600">{JSON.stringify(contractUrl)}</span></div>
             <div>hasContract: <span className="text-red-600">{String(!!(application.contract_url || contractUrl))}</span></div>
             <div>shouldDisableAccept: <span className="text-red-600">{String(!(application.contract_url || contractUrl))}</span></div>

@@ -113,6 +113,20 @@ function ApplicationDetailPage({ applicationId }: Props) {
     loadApplication();
   }, [loadApplication]);
 
+  // DEBUG: Log contract status
+  useEffect(() => {
+    if (application) {
+      console.log('🔍 DEBUG - Application data:', {
+        id: application.ApplicationID,
+        contract_url: application.contract_url,
+        ContractUrl: (application as any).ContractUrl,
+        contractUrl_state: contractUrl,
+        hasContract: !!(application.contract_url || contractUrl),
+        shouldDisable: !(application.contract_url || contractUrl)
+      });
+    }
+  }, [application, contractUrl]);
+
   const handleUpdateStatus = async () => {
     if (!application) return;
 
@@ -351,6 +365,20 @@ function ApplicationDetailPage({ applicationId }: Props) {
       {updateSuccess && (
         <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="text-green-800 font-medium">Status updated successfully</div>
+        </div>
+      )}
+
+      {/* DEBUG INFO */}
+      {application && (
+        <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 mb-6">
+          <h3 className="font-bold text-yellow-900 mb-2">🐛 DEBUG INFO</h3>
+          <div className="text-xs font-mono space-y-1">
+            <div>contract_url: <span className="text-red-600">{JSON.stringify(application.contract_url)}</span></div>
+            <div>ContractUrl: <span className="text-red-600">{JSON.stringify((application as any).ContractUrl)}</span></div>
+            <div>contractUrl (state): <span className="text-red-600">{JSON.stringify(contractUrl)}</span></div>
+            <div>hasContract: <span className="text-red-600">{String(!!(application.contract_url || contractUrl))}</span></div>
+            <div>shouldDisableAccept: <span className="text-red-600">{String(!(application.contract_url || contractUrl))}</span></div>
+          </div>
         </div>
       )}
 

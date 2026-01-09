@@ -678,7 +678,7 @@ export function Admin() {
                         disabled={!selectedApp.contract_url}
                         className={cn(
                           "bg-emerald-600 hover:bg-emerald-700",
-                          !selectedApp.contract_url && "opacity-50 cursor-not-allowed hover:bg-emerald-600"
+                          !selectedApp.contract_url && "opacity-30 bg-gray-400 cursor-not-allowed pointer-events-none hover:bg-gray-400"
                         )}
                         size="sm"
                       >

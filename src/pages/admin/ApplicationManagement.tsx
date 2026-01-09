@@ -648,6 +648,13 @@ export function Admin() {
                 <div className="pt-4 space-y-3 border-t">
                   <Label className="font-medium">Actions</Label>
                   
+                  {/* DEBUG CONTRACT INFO */}
+                  <div className="bg-yellow-100 border-2 border-yellow-500 p-2 text-xs font-mono">
+                    <div>contract_url: {JSON.stringify(selectedApp.contract_url)}</div>
+                    <div>Has contract? {String(!!selectedApp.contract_url)}</div>
+                    <div>Should disable? {String(!selectedApp.contract_url)}</div>
+                  </div>
+                  
                   {/* New applications: Direct decision options */}
                   {selectedApp.status === "submitted" && (
                     <div className="grid grid-cols-2 gap-2">
@@ -667,7 +674,8 @@ export function Admin() {
                       </Button>
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "accepted")}
-                        className="bg-emerald-600 hover:bg-emerald-700"
+                        disabled={!selectedApp.contract_url}
+                        className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         size="sm"
                       >
                         ✅ Accept

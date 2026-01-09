@@ -267,7 +267,7 @@ async function applicationsHandler(
               interview_scheduled_at = COALESCE(@interview_scheduled_at, interview_scheduled_at),
               interview_notes = COALESCE(@interview_notes, interview_notes),
               decision_reason = COALESCE(@decision_reason, decision_reason),
-              contract_url = COALESCE(@contract_url, contract_url)
+              contract_url = @contract_url
               ${additionalColumns}
           OUTPUT INSERTED.*
           WHERE id = @id

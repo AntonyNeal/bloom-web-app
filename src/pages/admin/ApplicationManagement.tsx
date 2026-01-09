@@ -692,12 +692,10 @@ export function Admin() {
                                     }),
                                   });
                                   if (!response.ok) throw new Error('Failed to remove contract');
+                                  const updatedApp = await response.json();
+                                  setSelectedApp(updatedApp);
                                   toast({ title: 'Contract removed' });
                                   await fetchApplications();
-                                  // Refresh selected app
-                                  const appResponse = await fetch(`${API_ENDPOINTS.applications}/${selectedApp.id}`);
-                                  const updatedApp = await appResponse.json();
-                                  setSelectedApp(updatedApp);
                                 } catch (error) {
                                   console.error('Error removing contract:', error);
                                   toast({ title: 'Failed to remove contract', variant: 'destructive' });

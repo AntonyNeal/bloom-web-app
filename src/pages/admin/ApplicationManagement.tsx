@@ -143,9 +143,10 @@ export function Admin() {
 
       // Update the application with the contract URL
       const updateResponse = await fetch(`${API_BASE_URL}/applications/${applicationId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          status: selectedApp?.status || 'submitted',
           contract_url: uploadData.url,
         }),
       });

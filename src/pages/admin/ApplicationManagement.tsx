@@ -694,10 +694,10 @@ export function Admin() {
                                   if (!response.ok) throw new Error('Failed to remove contract');
                                   toast({ title: 'Contract removed' });
                                   await fetchApplications();
-                                  if (selectedApp?.id) {
-                                    const updated = applications.find(a => a.id === selectedApp.id);
-                                    if (updated) setSelectedApp(updated);
-                                  }
+                                  // Refresh selected app
+                                  const appResponse = await fetch(`${API_ENDPOINTS.applications}/${selectedApp.id}`);
+                                  const updatedApp = await appResponse.json();
+                                  setSelectedApp(updatedApp);
                                 } catch (error) {
                                   console.error('Error removing contract:', error);
                                   toast({ title: 'Failed to remove contract', variant: 'destructive' });

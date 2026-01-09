@@ -142,11 +142,10 @@ export function Admin() {
       const uploadData = await uploadResponse.json();
 
       // Update the application with the contract URL
-      const updateResponse = await fetch(`${API_ENDPOINTS.applications}/${applicationId}`, {
-        method: 'PUT',
+      const updateResponse = await fetch(`${API_BASE_URL}/applications/${applicationId}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: selectedApp?.status || 'interview_scheduled',
           contract_url: uploadData.url,
         }),
       });

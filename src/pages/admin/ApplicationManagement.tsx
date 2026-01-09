@@ -669,13 +669,43 @@ export function Admin() {
                           📄 Contract Required for Accept
                         </p>
                         {selectedApp.contract_url ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-green-700">✓ Contract attached</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-green-700">✓ Contract attached</span>
+                              <button
+                                onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
+                                className="text-sm text-blue-600 hover:underline"
+                              >
+                                View PDF
+                              </button>
+                            </div>
                             <button
-                              onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
-                              className="text-sm text-blue-600 hover:underline"
+                              onClick={async () => {
+                                if (!confirm('Remove this contract? You can upload a different one after.')) return;
+                                try {
+                                  const response = await fetch(`${API_BASE_URL}/applications/${selectedApp.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      status: selectedApp.status,
+                                      contract_url: null,
+                                    }),
+                                  });
+                                  if (!response.ok) throw new Error('Failed to remove contract');
+                                  toast({ title: 'Contract removed' });
+                                  await fetchApplications();
+                                  if (selectedApplicationId) {
+                                    const updated = applications.find(a => a.id === selectedApplicationId);
+                                    if (updated) setSelectedApp(updated);
+                                  }
+                                } catch (error) {
+                                  console.error('Error removing contract:', error);
+                                  toast({ title: 'Failed to remove contract', variant: 'destructive' });
+                                }
+                              }}
+                              className="text-sm text-red-600 hover:text-red-800 hover:underline"
                             >
-                              View PDF
+                              Remove
                             </button>
                           </div>
                         ) : (
@@ -756,13 +786,43 @@ export function Admin() {
                           📄 Practitioner Agreement <span className="text-gray-400 font-normal">(Optional)</span>
                         </p>
                         {selectedApp.contract_url ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-green-700">✓ Contract attached</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-green-700">✓ Contract attached</span>
+                              <button
+                                onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
+                                className="text-sm text-blue-600 hover:underline"
+                              >
+                                View PDF
+                              </button>
+                            </div>
                             <button
-                              onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
-                              className="text-sm text-blue-600 hover:underline"
+                              onClick={async () => {
+                                if (!confirm('Remove this contract?')) return;
+                                try {
+                                  const response = await fetch(`${API_BASE_URL}/applications/${selectedApp.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      status: selectedApp.status,
+                                      contract_url: null,
+                                    }),
+                                  });
+                                  if (!response.ok) throw new Error('Failed to remove contract');
+                                  toast({ title: 'Contract removed' });
+                                  await fetchApplications();
+                                  if (selectedApplicationId) {
+                                    const updated = applications.find(a => a.id === selectedApplicationId);
+                                    if (updated) setSelectedApp(updated);
+                                  }
+                                } catch (error) {
+                                  console.error('Error removing contract:', error);
+                                  toast({ title: 'Failed to remove contract', variant: 'destructive' });
+                                }
+                              }}
+                              className="text-sm text-red-600 hover:text-red-800 hover:underline"
                             >
-                              View PDF
+                              Remove
                             </button>
                           </div>
                         ) : (
@@ -851,13 +911,43 @@ export function Admin() {
                           📄 Practitioner Agreement <span className="text-gray-400 font-normal">(Optional)</span>
                         </p>
                         {selectedApp.contract_url ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-green-700">✓ Contract attached</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-green-700">✓ Contract attached</span>
+                              <button
+                                onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
+                                className="text-sm text-blue-600 hover:underline"
+                              >
+                                View PDF
+                              </button>
+                            </div>
                             <button
-                              onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
-                              className="text-sm text-blue-600 hover:underline"
+                              onClick={async () => {
+                                if (!confirm('Remove this contract?')) return;
+                                try {
+                                  const response = await fetch(`${API_BASE_URL}/applications/${selectedApp.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      status: selectedApp.status,
+                                      contract_url: null,
+                                    }),
+                                  });
+                                  if (!response.ok) throw new Error('Failed to remove contract');
+                                  toast({ title: 'Contract removed' });
+                                  await fetchApplications();
+                                  if (selectedApplicationId) {
+                                    const updated = applications.find(a => a.id === selectedApplicationId);
+                                    if (updated) setSelectedApp(updated);
+                                  }
+                                } catch (error) {
+                                  console.error('Error removing contract:', error);
+                                  toast({ title: 'Failed to remove contract', variant: 'destructive' });
+                                }
+                              }}
+                              className="text-sm text-red-600 hover:text-red-800 hover:underline"
                             >
-                              View PDF
+                              Remove
                             </button>
                           </div>
                         ) : (

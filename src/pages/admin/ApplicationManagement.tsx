@@ -16,6 +16,7 @@ import NetworkErrorState from "@/components/common/NetworkErrorState";
 import ServerErrorState from "@/components/common/ServerErrorState";
 import { AuthenticatedLayout } from "@/components/layout/AuthenticatedLayout";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Application {
   id: number;
@@ -675,7 +676,10 @@ export function Admin() {
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "accepted")}
                         disabled={!selectedApp.contract_url}
-                        className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className={cn(
+                          "bg-emerald-600 hover:bg-emerald-700",
+                          !selectedApp.contract_url && "opacity-50 cursor-not-allowed hover:bg-emerald-600"
+                        )}
                         size="sm"
                       >
                         ✅ Accept

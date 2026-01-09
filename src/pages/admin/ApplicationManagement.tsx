@@ -437,6 +437,11 @@ export function Admin() {
   return (
     <AuthenticatedLayout title="Application Management" backTo="/admin">
       <div className="mb-8">
+        {/* DEPLOYMENT TEST - BUILD TIME: 2026-01-09 */}
+        <div className="bg-red-500 text-white text-center text-2xl font-bold py-4 mb-4">
+          🚨 DEPLOYMENT VERIFICATION - If you see this, deployment is working! Build: {new Date().toISOString()}
+        </div>
+        
         <h1 className="text-3xl font-semibold mb-4">Application Management</h1>
         
         {/* Status Summary - Updated for new workflow */}

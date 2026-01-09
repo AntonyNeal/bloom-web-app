@@ -702,15 +702,14 @@ export function Admin() {
                                   console.log('🗑️ Updated app from API:', updatedApp);
                                   console.log('🗑️ Updated contract_url:', updatedApp.contract_url);
                                   
-                                  // Update selected app immediately - don't wait for fetchApplications
+                                  // Update both selectedApp AND the applications array
                                   setSelectedApp({ ...updatedApp });
-                                  console.log('🗑️ Called setSelectedApp with:', { ...updatedApp });
+                                  setApplications(prev => prev.map(app => 
+                                    app.id === updatedApp.id ? updatedApp : app
+                                  ));
+                                  console.log('🗑️ Updated both selectedApp and applications array');
                                   
                                   toast({ title: 'Contract removed' });
-                                  
-                                  // Refresh list in background
-                                  fetchApplications();
-                                  console.log('🗑️ Triggered applications list refresh');
                                 } catch (error) {
                                   console.error('Error removing contract:', error);
                                   toast({ title: 'Failed to remove contract', variant: 'destructive' });

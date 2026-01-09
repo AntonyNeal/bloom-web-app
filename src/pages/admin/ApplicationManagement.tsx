@@ -683,6 +683,9 @@ export function Admin() {
                               onClick={async () => {
                                 if (!confirm('Remove this contract? You can upload a different one after.')) return;
                                 try {
+                                  console.log('🗑️ REMOVE CONTRACT: Starting removal for app ID', selectedApp.id);
+                                  console.log('🗑️ Current contract_url:', selectedApp.contract_url);
+                                  
                                   const response = await fetch(`${API_BASE_URL}/applications/${selectedApp.id}`, {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
@@ -691,11 +694,20 @@ export function Admin() {
                                       contract_url: null,
                                     }),
                                   });
+                                  
+                                  console.log('🗑️ API Response status:', response.status);
                                   if (!response.ok) throw new Error('Failed to remove contract');
+                                  
                                   const updatedApp = await response.json();
+                                  console.log('🗑️ Updated app from API:', updatedApp);
+                                  console.log('🗑️ Updated contract_url:', updatedApp.contract_url);
+                                  
                                   setSelectedApp({ ...updatedApp });
+                                  console.log('🗑️ Called setSelectedApp with:', { ...updatedApp });
+                                  
                                   toast({ title: 'Contract removed' });
                                   await fetchApplications();
+                                  console.log('🗑️ Refreshed applications list');
                                 } catch (error) {
                                   console.error('Error removing contract:', error);
                                   toast({ title: 'Failed to remove contract', variant: 'destructive' });

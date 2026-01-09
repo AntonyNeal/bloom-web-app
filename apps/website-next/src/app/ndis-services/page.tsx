@@ -169,7 +169,7 @@ export default function NDISServicesPage() {
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Registered NDIS provider offering specialised psychology support for 
-              participants. Flexible telehealth sessions designed to help you achieve 
+              NDIS participants. Flexible telehealth sessions designed to help you achieve 
               your goals and improve your quality of life.
             </p>
             <div className="flex flex-wrap justify-center gap-4 mb-8">
@@ -191,21 +191,21 @@ export default function NDISServicesPage() {
         <section className="py-16 bg-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">
-              NDIS Psychology for Newcastle &amp; the Hunter
+              NDIS Psychology Throughout NSW
             </h2>
             <div className="prose prose-lg max-w-none text-gray-600">
               <p>
                 Life Psychology provides NDIS-registered psychology services to participants 
-                across <strong>Newcastle</strong>, <strong>Lake Macquarie</strong>, 
-                <strong> Maitland</strong>, <strong>Cessnock</strong>, and the broader 
-                <strong> Hunter Valley</strong> region.
+                throughout <strong>New South Wales</strong>. Based in <strong>Newcastle</strong>, 
+                we understand the unique challenges facing NDIS participants in regional areas, 
+                from the <strong>Hunter Valley</strong> to the <strong>Central Coast</strong>, 
+                <strong>Western Sydney</strong>, and beyond.
               </p>
               <p>
                 Our telehealth-first model means you can access quality NDIS psychology 
-                support from anywhere — no need to arrange transport or navigate accessibility 
-                barriers. Whether you&apos;re in Charlestown, Raymond Terrace, Singleton, or 
-                regional NSW, you can connect with us via secure video from the comfort of 
-                your own home.
+                support from anywhere in NSW — no need to arrange transport or navigate accessibility 
+                barriers. Whether you&apos;re in Newcastle, Sydney, Wollongong, or regional NSW, 
+                you can connect with us via secure video from the comfort of your own home.
               </p>
               <p>
                 We understand that accessing services can be challenging for many NDIS 
@@ -416,12 +416,11 @@ export default function NDISServicesPage() {
               Ready to Get Started?
             </h2>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Whether you&apos;re in Newcastle, Lake Macquarie, Maitland, or anywhere in the 
-              Hunter region, we&apos;re here to support you in achieving your NDIS goals.
+              Wherever you are in NSW, we&apos;re here to support you in achieving your NDIS goals.
             </p>
             <ServiceBookingCTA label="Book Your NDIS Session" />
             <p className="mt-6 text-sm text-gray-500">
-              Available via secure telehealth throughout NSW
+              Secure telehealth sessions available throughout NSW and beyond
             </p>
           </div>
         </section>

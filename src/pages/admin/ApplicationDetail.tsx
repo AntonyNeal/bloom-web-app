@@ -399,16 +399,23 @@ function ApplicationDetailPage({ applicationId }: Props) {
               </button>
             )}
             {availableActions.includes('accept') && (
-              <button
-                onClick={() => setActiveModal('accept')}
-                disabled={updating}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Accept
-              </button>
+              <div className="relative group">
+                <button
+                  onClick={() => setActiveModal('accept')}
+                  disabled={updating || !(application.ContractUrl || contractUrl)}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Accept
+                </button>
+                {!(application.ContractUrl || contractUrl) && (
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    Upload a contract before accepting
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -830,6 +837,25 @@ function ApplicationDetailPage({ applicationId }: Props) {
         title="Accept Application"
       >
         <div className="space-y-4">
+          {/* Contract Warning */}
+          {!(application.ContractUrl || contractUrl) && (
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <h4 className="font-semibold text-amber-900">Contract Required</h4>
+                  <p className="text-sm text-amber-800 mt-1">
+                    You must upload a signed contract before accepting this application. 
+                    Please schedule an interview first to upload the contract, or close this 
+                    dialog and use the "Interview" workflow to attach the contract.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <p className="text-sm text-emerald-800">
               🎉 Accepting <strong>{application.FirstName} {application.LastName}</strong> will:
@@ -873,7 +899,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
             </button>
             <button
               onClick={handleAccept}
-              disabled={updating}
+              disabled={updating || !(application.ContractUrl || contractUrl)}
               className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               {updating ? <><ButtonSpinner /> Processing...</> : 'Accept Application'}

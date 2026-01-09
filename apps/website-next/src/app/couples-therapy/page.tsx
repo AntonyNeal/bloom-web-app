@@ -178,37 +178,15 @@ export default function CouplesTherapyPage() {
               working through challenges or wanting to deepen your connection, couples 
               therapy can help you build a stronger partnership.
             </p>
-            <ServiceBookingCTA label="Book a Couples Session" />
-          </div>
-        </section>
-
-        {/* Local Anchor Section */}
-        <section className="py-16 bg-white">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">
-              Couples Therapy for Newcastle &amp; the Hunter Region
-            </h2>
-            <div className="prose prose-lg max-w-none text-gray-600">
-              <p>
-                Life Psychology provides professional couples therapy and relationship counselling 
-                to individuals and couples across <strong>Newcastle</strong>, <strong>Lake Macquarie</strong>,
-                <strong> Maitland</strong>, and the broader <strong>Hunter Valley</strong> region.
-              </p>
-              <p>
-                Our telehealth-first approach means you can access quality psychological support 
-                from the comfort of your own home — no need to navigate traffic, find parking, 
-                or coordinate complicated logistics. Whether you&apos;re in Charlestown, Cessnock, 
-                Raymond Terrace, or anywhere across the Hunter, you can connect with our 
-                experienced psychologists via secure video.
-              </p>
-              <p>
-                Telehealth has proven particularly valuable for couples therapy, offering 
-                flexibility for busy schedules and removing practical barriers that might 
-                otherwise prevent couples from seeking support. Many of our clients find 
-                that being in their own space actually helps them feel more relaxed and 
-                open during sessions.
-              </p>
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
+              <span className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                📍 Newcastle-based psychologists
+              </span>
+              <span className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                🌏 Available Australia-wide via telehealth
+              </span>
             </div>
+            <ServiceBookingCTA label="Book a Couples Session" />
           </div>
         </section>
 
@@ -267,8 +245,39 @@ export default function CouplesTherapyPage() {
           </div>
         </section>
 
-        {/* What to Expect */}
+        {/* Local Connection */}
         <section className="py-16 bg-purple-50">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">
+              Based in Newcastle, Available Throughout NSW
+            </h2>
+            <div className="prose prose-lg max-w-none text-gray-600">
+              <p>
+                Life Psychology is based in Newcastle, serving couples throughout New South Wales 
+                and beyond via secure telehealth. Our psychologists understand the unique challenges 
+                facing couples in regional areas, from the Hunter Valley to the Central Coast, 
+                Western Sydney, and across NSW.
+              </p>
+              <p>
+                Our telehealth-first approach means you can access quality psychological support 
+                from anywhere — no need to navigate traffic, find parking, or coordinate complicated 
+                logistics. Whether you&apos;re in Newcastle, Sydney, Wollongong, or regional NSW, 
+                you can connect with our experienced psychologists via secure video from the comfort 
+                of your own home.
+              </p>
+              <p>
+                Telehealth has proven particularly valuable for couples therapy, offering 
+                flexibility for busy schedules and removing practical barriers that might 
+                otherwise prevent couples from seeking support. Many of our clients find 
+                that being in their own space actually helps them feel more relaxed and 
+                open during sessions.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* What to Expect */}
+        <section className="py-16 bg-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">
               What to Expect
@@ -457,12 +466,11 @@ export default function CouplesTherapyPage() {
             </h2>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
               Taking the step to seek help is a sign of commitment to your relationship. 
-              Whether you&apos;re in Newcastle, Lake Macquarie, Maitland, or anywhere 
-              in the Hunter region, we&apos;re here to help.
+              Wherever you are in NSW, we&apos;re here to help.
             </p>
             <ServiceBookingCTA label="Book Your First Session" />
             <p className="mt-6 text-sm text-gray-500">
-              Available via secure telehealth throughout NSW
+              Secure telehealth sessions available throughout NSW and beyond
             </p>
           </div>
         </section>

@@ -693,7 +693,7 @@ export function Admin() {
                                   });
                                   if (!response.ok) throw new Error('Failed to remove contract');
                                   const updatedApp = await response.json();
-                                  setSelectedApp(updatedApp);
+                                  setSelectedApp({ ...updatedApp });
                                   toast({ title: 'Contract removed' });
                                   await fetchApplications();
                                 } catch (error) {

@@ -855,9 +855,13 @@ export function Admin() {
                       {/* Send Offer Button */}
                       <Button
                         onClick={() => sendOffer(selectedApp.id)}
-                        className="bg-orange-600 hover:bg-orange-700 w-full"
+                        className={cn(
+                          "w-full",
+                          !selectedApp.contract_url && "opacity-30 bg-gray-400 cursor-not-allowed pointer-events-none",
+                          selectedApp.contract_url && "bg-emerald-600 hover:bg-emerald-700"
+                        )}
                         size="sm"
-                        disabled={isSendingInvite}
+                        disabled={isSendingInvite || !selectedApp.contract_url}
                       >
                         {isSendingInvite ? "⏳ Sending..." : selectedApp.contract_url ? "📨 Send Offer (with Contract)" : "📨 Send Offer"}
                       </Button>
@@ -980,9 +984,13 @@ export function Admin() {
                       {/* Send Offer Button */}
                       <Button
                         onClick={() => sendOffer(selectedApp.id)}
-                        className="bg-orange-600 hover:bg-orange-700 w-full"
+                        className={cn(
+                          "w-full",
+                          !selectedApp.contract_url && "opacity-30 bg-gray-400 cursor-not-allowed pointer-events-none",
+                          selectedApp.contract_url && "bg-emerald-600 hover:bg-emerald-700"
+                        )}
                         size="sm"
-                        disabled={isSendingInvite}
+                        disabled={isSendingInvite || !selectedApp.contract_url}
                       >
                         {isSendingInvite ? "⏳ Sending..." : selectedApp.contract_url ? "📨 Send Offer (with Contract)" : "📨 Send Offer"}
                       </Button>

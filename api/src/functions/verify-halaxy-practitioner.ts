@@ -1,6 +1,6 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import sql from 'mssql';
-import { config } from '../config/database';
+import { getDbConfig } from '../services/database';
 
 /**
  * Verify that a practitioner has been created in Halaxy
@@ -24,7 +24,7 @@ export async function verifyHalaxyPractitioner(
     }
 
     // Connect to database
-    const pool = await sql.connect(config);
+    const pool = await sql.connect(getDbConfig());
 
     // Get application details
     const appResult = await pool
@@ -57,15 +57,36 @@ export async function verifyHalaxyPractitioner(
       const { HalaxyClient } = await import('../services/halaxy/client');
       const halaxyClient = new HalaxyClient();
 
-      // Search for practitioner by email
-      const practitioners = await halaxyClient.searchPractitionersByEmail(application.email);
+      // Search for practitioner by email using the internal search in createOrFindPractitioner
+      // We'll use getFirstPage directly to search
+      const practitioners = await halaxyClient['getFirstPage'](
+        '/Practitioner',
+        {
+          email: application.email,
+          _count: '1',
+        }
+      );
 
       if (practitioners && practitioners.length > 0) {
-        // Found practitioner in Halaxy
-        verified = true;
-        practitionerId = practitioners[0].id.toString();
-        
-        context.log(`Practitioner found in Halaxy: ${practitionerId}`);
+        // Filter out invalid IDs
+        const validPractitioners = practitioners.filter((p: any) => 
+          p.id && 
+          typeof p.id === 'string' && 
+          p.id !== 'warning' && 
+          p.id !== 'error' &&
+          !p.id.startsWith('outcome') &&
+          p.id.length > 3
+        );
+
+        if (validPractitioners.length > 0) {
+          // Found practitioner in Halaxy
+          verified = true;
+          practitionerId = validPractitioners[0].id;
+          
+          context.log(`Practitioner found in Halaxy: ${practitionerId}`);
+        } else {
+          context.log(`No valid practitioner found for email: ${application.email}`);
+        }
       } else {
         context.log(`Practitioner not found in Halaxy for email: ${application.email}`);
       }

@@ -53,23 +53,24 @@ export async function verifyHalaxyPractitioner(
     let practitionerId = application.practitioner_id;
 
     try {
-      // Import the Halaxy client
+      // Import the Halaxy client and types
       const { HalaxyClient } = await import('../services/halaxy/client');
+      const { FHIRPractitioner } = await import('../services/halaxy/types');
       const halaxyClient = new HalaxyClient();
 
       // Search for practitioner by email using the internal search in createOrFindPractitioner
       // We'll use getFirstPage directly to search
-      const practitioners = await halaxyClient['getFirstPage'](
+      const practitioners = await halaxyClient['getFirstPage']<typeof FHIRPractitioner>(
         '/Practitioner',
         {
           email: application.email,
           _count: '1',
         }
-      );
+      ) as Array<{ id?: string; [key: string]: any }>;
 
       if (practitioners && practitioners.length > 0) {
         // Filter out invalid IDs
-        const validPractitioners = practitioners.filter((p: any) => 
+        const validPractitioners = practitioners.filter((p) => 
           p.id && 
           typeof p.id === 'string' && 
           p.id !== 'warning' && 
@@ -81,7 +82,7 @@ export async function verifyHalaxyPractitioner(
         if (validPractitioners.length > 0) {
           // Found practitioner in Halaxy
           verified = true;
-          practitionerId = validPractitioners[0].id;
+          practitionerId = validPractitioners[0].id!;
           
           context.log(`Practitioner found in Halaxy: ${practitionerId}`);
         } else {

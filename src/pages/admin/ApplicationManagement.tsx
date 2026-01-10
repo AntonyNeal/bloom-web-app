@@ -52,6 +52,16 @@ type ErrorType = 'network' | 'server' | null;
 export function Admin() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+
+  // Debug: Log whenever selectedApp changes
+  useEffect(() => {
+    console.log('🔄 selectedApp STATE CHANGED:', {
+      id: selectedApp?.id,
+      status: selectedApp?.status,
+      contract_url: selectedApp?.contract_url,
+      has_contract: !!selectedApp?.contract_url
+    });
+  }, [selectedApp]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ErrorType>(null);
   const [errorCode, setErrorCode] = useState<number | undefined>(undefined);
@@ -681,7 +691,16 @@ export function Admin() {
                             </div>
                             <button
                               onClick={async () => {
-                                if (!confirm('Remove this contract? You can upload a different one after.')) return;
+                                console.log('🔴 REMOVE BUTTON CLICKED');
+                                console.log('🔴 selectedApp.id:', selectedApp.id);
+                                console.log('🔴 selectedApp.status:', selectedApp.status);
+                                console.log('🔴 selectedApp.contract_url BEFORE:', selectedApp.contract_url);
+                                
+                                if (!confirm('Remove this contract? You can upload a different one after.')) {
+                                  console.log('🔴 User cancelled');
+                                  return;
+                                }
+                                
                                 try {
                                   console.log('🗑️ REMOVE CONTRACT: Starting removal for app ID', selectedApp.id);
                                   console.log('🗑️ Current contract_url:', selectedApp.contract_url);
@@ -705,11 +724,20 @@ export function Admin() {
                                   // Force new object references to trigger React re-render
                                   const newApp = JSON.parse(JSON.stringify(updatedApp));
                                   
+                                  console.log('🗑️ About to update applications array');
                                   // Update both states
-                                  setApplications(prev => prev.map(app => 
-                                    app.id === newApp.id ? newApp : app
-                                  ));
+                                  setApplications(prev => {
+                                    console.log('🗑️ Inside setApplications updater');
+                                    const updated = prev.map(app => 
+                                      app.id === newApp.id ? newApp : app
+                                    );
+                                    console.log('🗑️ Updated applications array');
+                                    return updated;
+                                  });
+                                  
+                                  console.log('🗑️ About to call setSelectedApp with:', newApp);
                                   setSelectedApp(newApp);
+                                  console.log('🗑️ Called setSelectedApp');
                                   
                                   console.log('🗑️ Updated both selectedApp and applications array');
                                   console.log('🗑️ New selectedApp contract_url:', newApp.contract_url);

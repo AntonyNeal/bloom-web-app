@@ -52,16 +52,6 @@ type ErrorType = 'network' | 'server' | null;
 export function Admin() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
-
-  // Debug: Log whenever selectedApp changes
-  useEffect(() => {
-    console.log('🔄 selectedApp STATE CHANGED:', {
-      id: selectedApp?.id,
-      status: selectedApp?.status,
-      contract_url: selectedApp?.contract_url,
-      has_contract: !!selectedApp?.contract_url
-    });
-  }, [selectedApp]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ErrorType>(null);
   const [errorCode, setErrorCode] = useState<number | undefined>(undefined);
@@ -691,20 +681,9 @@ export function Admin() {
                             </div>
                             <button
                               onClick={async () => {
-                                console.log('🔴 REMOVE BUTTON CLICKED');
-                                console.log('🔴 selectedApp.id:', selectedApp.id);
-                                console.log('🔴 selectedApp.status:', selectedApp.status);
-                                console.log('🔴 selectedApp.contract_url BEFORE:', selectedApp.contract_url);
-                                
-                                if (!confirm('Remove this contract? You can upload a different one after.')) {
-                                  console.log('🔴 User cancelled');
-                                  return;
-                                }
+                                if (!confirm('Remove this contract? You can upload a different one after.')) return;
                                 
                                 try {
-                                  console.log('🗑️ REMOVE CONTRACT: Starting removal for app ID', selectedApp.id);
-                                  console.log('🗑️ Current contract_url:', selectedApp.contract_url);
-                                  
                                   const response = await fetch(`${API_BASE_URL}/applications/${selectedApp.id}`, {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
@@ -714,33 +693,15 @@ export function Admin() {
                                     }),
                                   });
                                   
-                                  console.log('🗑️ API Response status:', response.status);
                                   if (!response.ok) throw new Error('Failed to remove contract');
                                   
                                   const updatedApp = await response.json();
-                                  console.log('🗑️ Updated app from API:', updatedApp);
-                                  console.log('🗑️ Updated contract_url:', updatedApp.contract_url);
-                                  
-                                  // Force new object references to trigger React re-render
                                   const newApp = JSON.parse(JSON.stringify(updatedApp));
                                   
-                                  console.log('🗑️ About to update applications array');
-                                  // Update both states
-                                  setApplications(prev => {
-                                    console.log('🗑️ Inside setApplications updater');
-                                    const updated = prev.map(app => 
-                                      app.id === newApp.id ? newApp : app
-                                    );
-                                    console.log('🗑️ Updated applications array');
-                                    return updated;
-                                  });
-                                  
-                                  console.log('🗑️ About to call setSelectedApp with:', newApp);
+                                  setApplications(prev => prev.map(app => 
+                                    app.id === newApp.id ? newApp : app
+                                  ));
                                   setSelectedApp(newApp);
-                                  console.log('🗑️ Called setSelectedApp');
-                                  
-                                  console.log('🗑️ Updated both selectedApp and applications array');
-                                  console.log('🗑️ New selectedApp contract_url:', newApp.contract_url);
                                   
                                   toast({ title: 'Contract removed' });
                                 } catch (error) {
@@ -843,13 +804,9 @@ export function Admin() {
                             </div>
                             <button
                               onClick={async () => {
-                                console.log('🔴 [REVIEWING] REMOVE CLICKED');
-                                if (!confirm('Remove this contract?')) {
-                                  console.log('🔴 [REVIEWING] Cancelled');
-                                  return;
-                                }
+                                if (!confirm('Remove this contract?')) return;
+                                
                                 try {
-                                  console.log('🗑️ [REVIEWING] Removing...');
                                   const response = await fetch(`${API_BASE_URL}/applications/${selectedApp.id}`, {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
@@ -858,14 +815,15 @@ export function Admin() {
                                       contract_url: null,
                                     }),
                                   });
-                                  console.log('🗑️ [REVIEWING] Status:', response.status);
+                                  
                                   if (!response.ok) throw new Error('Failed to remove contract');
+                                  
                                   const updatedApp = await response.json();
-                                  console.log('🗑️ [REVIEWING] Got:', updatedApp);
                                   const newApp = JSON.parse(JSON.stringify(updatedApp));
+                                  
                                   setApplications(prev => prev.map(app => app.id === newApp.id ? newApp : app));
                                   setSelectedApp(newApp);
-                                  console.log('🗑️ [REVIEWING] Updated state');
+                                  
                                   toast({ title: 'Contract removed' });
                                 } catch (error) {
                                   console.error('Error removing contract:', error);

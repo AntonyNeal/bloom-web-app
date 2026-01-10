@@ -1073,6 +1073,15 @@ export function Admin() {
                   {/* Offer sent: Waiting for candidate to accept */}
                   {selectedApp.status === "offer_sent" && (
                     <div className="space-y-3">
+                      {/* DEBUG PANEL */}
+                      <div className="p-3 bg-purple-100 border-2 border-purple-500 rounded text-xs">
+                        <div><strong>🐛 Debug Info:</strong></div>
+                        <div>signed_contract_url: {selectedApp.signed_contract_url ? '✓ YES' : '✗ NO'}</div>
+                        <div>halaxy_practitioner_verified: {selectedApp.halaxy_practitioner_verified ? '✓ YES' : '✗ NO'}</div>
+                        <div>practitioner_id: {selectedApp.practitioner_id || 'null'}</div>
+                        <div>Build timestamp: {new Date().toISOString()}</div>
+                      </div>
+                      
                       {selectedApp.offer_sent_at && (
                         <p className="text-sm text-orange-600 mb-2">
                           📨 Offer sent: {new Date(selectedApp.offer_sent_at).toLocaleDateString()}

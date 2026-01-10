@@ -731,39 +731,39 @@ export function Admin() {
                       
                       {/* Action Buttons */}
                       <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
-                        variant="secondary"
-                        size="sm"
-                      >
-                        📅 Interview
-                      </Button>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "waitlisted")}
-                        variant="outline"
-                        size="sm"
-                      >
-                        ⏳ Waitlist
-                      </Button>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "accepted")}
-                        disabled={!selectedApp.contract_url}
-                        className={cn(
-                          "bg-emerald-600 hover:bg-emerald-700",
-                          !selectedApp.contract_url && "opacity-30 bg-gray-400 cursor-not-allowed pointer-events-none hover:bg-gray-400"
-                        )}
-                        size="sm"
-                      >
-                        ✅ Accept
-                      </Button>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "denied")}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        ❌ Reject
-                      </Button>
-                    </div>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
+                          variant="secondary"
+                          size="sm"
+                        >
+                          📅 Interview
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "waitlisted")}
+                          variant="outline"
+                          size="sm"
+                        >
+                          ⏳ Waitlist
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "accepted")}
+                          disabled={!selectedApp.contract_url}
+                          className={cn(
+                            "bg-emerald-600 hover:bg-emerald-700",
+                            !selectedApp.contract_url && "opacity-30 bg-gray-400 cursor-not-allowed pointer-events-none hover:bg-gray-400"
+                          )}
+                          size="sm"
+                        >
+                          ✅ Accept
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "denied")}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          ❌ Reject
+                        </Button>
+                      </div>
                     </div>
                   )}
 

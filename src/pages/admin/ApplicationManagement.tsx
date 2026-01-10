@@ -438,11 +438,6 @@ export function Admin() {
   return (
     <AuthenticatedLayout title="Application Management" backTo="/admin">
       <div className="mb-8">
-        {/* DEPLOYMENT TEST - BUILD TIME: 2026-01-09 */}
-        <div className="bg-red-500 text-white text-center text-2xl font-bold py-4 mb-4">
-          🚨 DEPLOYMENT VERIFICATION - If you see this, deployment is working! Build: {new Date().toISOString()}
-        </div>
-        
         <h1 className="text-3xl font-semibold mb-4">Application Management</h1>
         
         {/* Status Summary - Updated for new workflow */}
@@ -649,14 +644,7 @@ export function Admin() {
                 <div className="pt-4 space-y-3 border-t">
                   <Label className="font-medium">Actions</Label>
                   
-                  {/* DEBUG CONTRACT INFO */}
-                  <div className="bg-yellow-100 border-2 border-yellow-500 p-2 text-xs font-mono">
-                    <div>contract_url: {JSON.stringify(selectedApp.contract_url)}</div>
-                    <div>Has contract? {String(!!selectedApp.contract_url)}</div>
-                    <div>Should disable? {String(!selectedApp.contract_url)}</div>
-                  </div>
-                  
-                  {/* New applications: Direct decision options */}
+                  {/* New applications: Direct decision options */
                   {selectedApp.status === "submitted" && (
                     <div className="space-y-3">
                       {/* Contract Upload */}

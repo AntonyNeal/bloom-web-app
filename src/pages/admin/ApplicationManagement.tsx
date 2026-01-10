@@ -1023,49 +1023,41 @@ export function Admin() {
                         </p>
                       )}
 
-                      {/* Contract Status */}
-                      {selectedApp.contract_url && (
-                        <div className={`p-3 rounded-lg border ${
-                          selectedApp.signed_contract_url 
-                            ? 'bg-green-50 border-green-200' 
-                            : 'bg-amber-50 border-amber-200'
-                        }`}>
-                          <p className="text-sm font-medium mb-2">📄 Contract Status</p>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm text-green-700">✓ Contract sent</span>
-                            <button
-                              onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
-                              className="text-sm text-blue-600 hover:underline"
-                            >
-                              View PDF
-                            </button>
-                          </div>
-                          {selectedApp.signed_contract_url ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-green-700">✓ Signed contract received</span>
+                      {/* Offer Status */}
+                      <div className={`p-3 rounded-lg border ${
+                        selectedApp.signed_contract_url 
+                          ? 'bg-green-50 border-green-200' 
+                          : 'bg-amber-50 border-amber-200'
+                      }`}>
+                        <p className="text-sm font-medium mb-2">⏳ Waiting for candidate to accept offer</p>
+                        {selectedApp.contract_url ? (
+                          <>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm text-green-700">✓ Contract sent</span>
                               <button
-                                onClick={() => openDocument(selectedApp.signed_contract_url!, 'Signed Contract')}
+                                onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
                                 className="text-sm text-blue-600 hover:underline"
                               >
                                 View PDF
                               </button>
                             </div>
-                          ) : (
-                            <p className="text-xs text-amber-600">⏳ Waiting for applicant to sign and upload</p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Status message */}
-                      <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-                        <p className="text-sm text-orange-800 font-medium">
-                          ⏳ Waiting for candidate to accept offer
-                        </p>
-                        <p className="text-xs text-orange-600 mt-1">
-                          {selectedApp.contract_url 
-                            ? 'Candidate must accept offer and upload signed contract'
-                            : 'Candidate must accept the offer'}
-                        </p>
+                            {selectedApp.signed_contract_url ? (
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-green-700">✓ Signed contract received</span>
+                                <button
+                                  onClick={() => openDocument(selectedApp.signed_contract_url!, 'Signed Contract')}
+                                  className="text-sm text-blue-600 hover:underline"
+                                >
+                                  View PDF
+                                </button>
+                              </div>
+                            ) : (
+                              <p className="text-xs text-amber-600">Candidate must accept offer and upload signed contract</p>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-xs text-amber-600">Candidate must accept the offer</p>
+                        )}
                       </div>
 
                       {/* Resend Offer Button */}

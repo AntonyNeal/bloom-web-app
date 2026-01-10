@@ -702,12 +702,17 @@ export function Admin() {
                                   console.log('🗑️ Updated app from API:', updatedApp);
                                   console.log('🗑️ Updated contract_url:', updatedApp.contract_url);
                                   
-                                  // Update both selectedApp AND the applications array
-                                  setSelectedApp({ ...updatedApp });
+                                  // Force new object references to trigger React re-render
+                                  const newApp = JSON.parse(JSON.stringify(updatedApp));
+                                  
+                                  // Update both states
                                   setApplications(prev => prev.map(app => 
-                                    app.id === updatedApp.id ? updatedApp : app
+                                    app.id === newApp.id ? newApp : app
                                   ));
+                                  setSelectedApp(newApp);
+                                  
                                   console.log('🗑️ Updated both selectedApp and applications array');
+                                  console.log('🗑️ New selectedApp contract_url:', newApp.contract_url);
                                   
                                   toast({ title: 'Contract removed' });
                                 } catch (error) {

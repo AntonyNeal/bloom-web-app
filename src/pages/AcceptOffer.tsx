@@ -32,8 +32,15 @@ export default function AcceptOffer() {
       }
 
       try {
-        const response = await fetch(API_ENDPOINTS.acceptOffer(token));
+        console.log('🔍 Fetching offer with token:', token);
+        const url = API_ENDPOINTS.acceptOffer(token);
+        console.log('🔍 Fetching URL:', url);
+        
+        const response = await fetch(url);
+        console.log('🔍 Response status:', response.status);
+        
         const data = await response.json();
+        console.log('🔍 Response data:', data);
 
         if (!response.ok) {
           throw new Error(data.error || 'Failed to load offer');
@@ -47,6 +54,7 @@ export default function AcceptOffer() {
           setSignedContractUploaded(true);
         }
       } catch (err) {
+        console.error('🔴 Error loading offer:', err);
         setError(err instanceof Error ? err.message : 'Failed to load offer');
       } finally {
         setLoading(false);

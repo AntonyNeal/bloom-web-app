@@ -48,6 +48,8 @@ async function acceptOfferHandler(
 
   const token = request.params.token;
 
+  context.log('🔍 Accept offer - Token:', token);
+
   if (!token) {
     return {
       status: 400,
@@ -78,6 +80,8 @@ async function acceptOfferHandler(
         FROM applications
         WHERE offer_token = @token
       `);
+
+    context.log('🔍 Query result count:', appResult.recordset.length);
 
     if (appResult.recordset.length === 0) {
       return {

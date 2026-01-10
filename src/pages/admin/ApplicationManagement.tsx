@@ -1192,17 +1192,17 @@ export function Admin() {
                         onClick={() => acceptApplication(selectedApp.id)}
                         className={`w-full ${
                           selectedApp.signed_contract_url && selectedApp.halaxy_practitioner_verified
-                            ? 'bg-emerald-600 hover:bg-emerald-700' 
-                            : 'bg-gray-300 cursor-not-allowed'
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                            : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-50'
                         }`}
                         size="sm"
                         disabled={!selectedApp.signed_contract_url || !selectedApp.halaxy_practitioner_verified || isSendingInvite}
                       >
-                        {isSendingInvite ? '⏳ Sending...' : '🚀 Send Onboarding Invite'}
+                        {isSendingInvite ? '⏳ Sending...' : selectedApp.signed_contract_url && selectedApp.halaxy_practitioner_verified ? '🚀 Send Onboarding Invite' : '🔒 Send Onboarding Invite (Locked)'}
                       </Button>
                       {selectedApp.signed_contract_url && !selectedApp.halaxy_practitioner_verified && (
-                        <p className="text-xs text-amber-700 text-center font-medium">
-                          ⚠️ Practitioner must be verified in Halaxy before onboarding
+                        <p className="text-xs text-amber-700 text-center font-medium bg-amber-100 p-2 rounded">
+                          ⚠️ You must verify the practitioner in Halaxy before sending the onboarding invite
                         </p>
                       )}
                       {!selectedApp.signed_contract_url && selectedApp.contract_url && (

@@ -644,7 +644,7 @@ export function Admin() {
                 <div className="pt-4 space-y-3 border-t">
                   <Label className="font-medium">Actions</Label>
                   
-                  {/* New applications: Direct decision options */
+                  /* New applications: Direct decision options */
                   {selectedApp.status === "submitted" && (
                     <div className="space-y-3">
                       {/* Contract Upload */}

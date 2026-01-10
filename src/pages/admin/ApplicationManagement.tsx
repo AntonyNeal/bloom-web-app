@@ -45,6 +45,8 @@ interface Application {
   signed_contract_url?: string;
   offer_sent_at?: string;
   offer_accepted_at?: string;
+  halaxy_practitioner_verified?: boolean;
+  halaxy_verified_at?: string;
 }
 
 type ErrorType = 'network' | 'server' | null;
@@ -57,6 +59,7 @@ export function Admin() {
   const [errorCode, setErrorCode] = useState<number | undefined>(undefined);
   const [lastAttempt, setLastAttempt] = useState<Date | undefined>(undefined);
   const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [isVerifyingHalaxy, setIsVerifyingHalaxy] = useState(false);
   const [isUploadingContract, setIsUploadingContract] = useState(false);
   const { toast } = useToast();
 
@@ -118,6 +121,59 @@ export function Admin() {
         description: `Unable to open ${docType}. The document may no longer exist.`,
         variant: "destructive",
       });
+    }
+  };
+
+  // Verify practitioner exists in Halaxy
+  const verifyHalaxyPractitioner = async (applicationId: number) => {
+    setIsVerifyingHalaxy(true);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/verify-halaxy-practitioner/${applicationId}`,
+        { method: 'POST' }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Verification failed');
+      }
+
+      const data = await response.json();
+      
+      // Update the application in state
+      const updatedApp = {
+        ...selectedApp!,
+        halaxy_practitioner_verified: data.verified,
+        halaxy_verified_at: data.verified_at,
+        practitioner_id: data.practitioner_id,
+      };
+
+      setApplications(prev => prev.map(app => 
+        app.id === applicationId ? updatedApp : app
+      ));
+      setSelectedApp(updatedApp);
+
+      if (data.verified) {
+        toast({
+          title: '✅ Practitioner Verified',
+          description: 'Practitioner found in Halaxy. You can now send the onboarding invite.',
+        });
+      } else {
+        toast({
+          title: '⚠️ Not Found',
+          description: 'Practitioner not found in Halaxy. Please add them first.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error verifying Halaxy practitioner:', error);
+      toast({
+        title: 'Verification Failed',
+        description: error instanceof Error ? error.message : 'Could not verify practitioner in Halaxy',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsVerifyingHalaxy(false);
     }
   };
 
@@ -1071,19 +1127,84 @@ export function Admin() {
                         {isSendingInvite ? "⏳ Sending..." : "🔄 Resend Offer Email"}
                       </Button>
 
-                      {/* Onboard Button - greyed out until signed contract received */}
+                      {/* Halaxy Practitioner Verification Panel - Only show if signed contract received */}
+                      {selectedApp.signed_contract_url && (
+                        <div className={`p-4 rounded-lg border-2 ${
+                          selectedApp.halaxy_practitioner_verified
+                            ? 'bg-green-50 border-green-300'
+                            : 'bg-amber-50 border-amber-300'
+                        }`}>
+                          <div className="flex items-start gap-3">
+                            <div className="text-2xl mt-1">
+                              {selectedApp.halaxy_practitioner_verified ? '✅' : '⚠️'}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-base mb-2">
+                                {selectedApp.halaxy_practitioner_verified
+                                  ? 'Practitioner Verified in Halaxy'
+                                  : 'Add Practitioner to Halaxy'}
+                              </h3>
+                              {selectedApp.halaxy_practitioner_verified ? (
+                                <div>
+                                  <p className="text-sm text-green-800 mb-1">
+                                    ✓ Practitioner record found in Halaxy
+                                  </p>
+                                  {selectedApp.halaxy_verified_at && (
+                                    <p className="text-xs text-green-700">
+                                      Verified: {new Date(selectedApp.halaxy_verified_at).toLocaleString()}
+                                    </p>
+                                  )}
+                                  {selectedApp.practitioner_id && (
+                                    <p className="text-xs text-green-700">
+                                      Practitioner ID: {selectedApp.practitioner_id}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : (
+                                <div>
+                                  <p className="text-sm text-amber-800 mb-3">
+                                    Before sending the onboarding invite, you must:
+                                  </p>
+                                  <ol className="text-sm text-amber-900 space-y-1 mb-3 ml-4 list-decimal">
+                                    <li>Log into Halaxy admin portal</li>
+                                    <li>Add {selectedApp.first_name} {selectedApp.last_name} as a new practitioner</li>
+                                    <li>Use email: <strong>{selectedApp.email}</strong></li>
+                                    <li>Click the button below to verify they've been added</li>
+                                  </ol>
+                                  <Button
+                                    onClick={() => verifyHalaxyPractitioner(selectedApp.id)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full bg-white border-amber-400 hover:bg-amber-100"
+                                    disabled={isVerifyingHalaxy}
+                                  >
+                                    {isVerifyingHalaxy ? '🔄 Verifying...' : '🔍 Verify Practitioner in Halaxy'}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Onboard Button - only enabled after Halaxy verification */}
                       <Button
                         onClick={() => acceptApplication(selectedApp.id)}
                         className={`w-full ${
-                          selectedApp.signed_contract_url 
+                          selectedApp.signed_contract_url && selectedApp.halaxy_practitioner_verified
                             ? 'bg-emerald-600 hover:bg-emerald-700' 
                             : 'bg-gray-300 cursor-not-allowed'
                         }`}
                         size="sm"
-                        disabled={!selectedApp.signed_contract_url || isSendingInvite}
+                        disabled={!selectedApp.signed_contract_url || !selectedApp.halaxy_practitioner_verified || isSendingInvite}
                       >
                         {isSendingInvite ? '⏳ Sending...' : '🚀 Send Onboarding Invite'}
                       </Button>
+                      {selectedApp.signed_contract_url && !selectedApp.halaxy_practitioner_verified && (
+                        <p className="text-xs text-amber-700 text-center font-medium">
+                          ⚠️ Practitioner must be verified in Halaxy before onboarding
+                        </p>
+                      )}
                       {!selectedApp.signed_contract_url && selectedApp.contract_url && (
                         <p className="text-xs text-gray-500 text-center">
                           Onboarding available after applicant uploads signed contract

@@ -843,8 +843,13 @@ export function Admin() {
                             </div>
                             <button
                               onClick={async () => {
-                                if (!confirm('Remove this contract?')) return;
+                                console.log('🔴 [REVIEWING] REMOVE CLICKED');
+                                if (!confirm('Remove this contract?')) {
+                                  console.log('🔴 [REVIEWING] Cancelled');
+                                  return;
+                                }
                                 try {
+                                  console.log('🗑️ [REVIEWING] Removing...');
                                   const response = await fetch(`${API_BASE_URL}/applications/${selectedApp.id}`, {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
@@ -853,13 +858,15 @@ export function Admin() {
                                       contract_url: null,
                                     }),
                                   });
+                                  console.log('🗑️ [REVIEWING] Status:', response.status);
                                   if (!response.ok) throw new Error('Failed to remove contract');
+                                  const updatedApp = await response.json();
+                                  console.log('🗑️ [REVIEWING] Got:', updatedApp);
+                                  const newApp = JSON.parse(JSON.stringify(updatedApp));
+                                  setApplications(prev => prev.map(app => app.id === newApp.id ? newApp : app));
+                                  setSelectedApp(newApp);
+                                  console.log('🗑️ [REVIEWING] Updated state');
                                   toast({ title: 'Contract removed' });
-                                  await fetchApplications();
-                                  if (selectedApp?.id) {
-                                    const updated = applications.find(a => a.id === selectedApp.id);
-                                    if (updated) setSelectedApp(updated);
-                                  }
                                 } catch (error) {
                                   console.error('Error removing contract:', error);
                                   toast({ title: 'Failed to remove contract', variant: 'destructive' });

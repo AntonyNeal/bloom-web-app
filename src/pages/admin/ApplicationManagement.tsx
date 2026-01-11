@@ -1267,6 +1267,20 @@ export function Admin() {
                         </div>
                       )}
                       
+                      {/* Halaxy Clinician Setup - Required before sending onboarding */}
+                      {!selectedApp.practitioner_id && (
+                        <HalaxyClinicianSetup
+                          applicationId={selectedApp.id}
+                          clinicianName={`${selectedApp.first_name} ${selectedApp.last_name}`}
+                          clinicianEmail={selectedApp.email}
+                          isVerified={selectedApp.halaxy_practitioner_verified || false}
+                          isVerifying={isVerifyingHalaxy}
+                          onVerify={verifyHalaxyPractitioner}
+                          verifiedAt={selectedApp.halaxy_verified_at}
+                          practitionerId={selectedApp.practitioner_id}
+                        />
+                      )}
+
                       {selectedApp.practitioner_id ? (
                         <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
                           <p className="text-sm text-emerald-800 font-medium">
@@ -1286,22 +1300,18 @@ export function Admin() {
                           </Button>
                         </div>
                       ) : (
-                        <div className="p-3 rounded-lg border bg-yellow-50 border-yellow-200">
-                          <p className="text-sm font-medium">
-                            ⚠️ Practitioner record not created
-                          </p>
-                          <p className="text-xs text-gray-600 mt-1">
-                            Click below to send the onboarding invite.
-                          </p>
-                          <Button
-                            onClick={() => acceptApplication(selectedApp.id)}
-                            className="bg-emerald-600 hover:bg-emerald-700 w-full mt-2"
-                            size="sm"
-                            disabled={isSendingInvite}
-                          >
-                            {isSendingInvite ? "⏳ Sending..." : "📧 Send Onboarding Invite"}
-                          </Button>
-                        </div>
+                        <Button
+                          onClick={() => acceptApplication(selectedApp.id)}
+                          className={`w-full ${
+                            selectedApp.halaxy_practitioner_verified
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                              : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-50'
+                          }`}
+                          size="sm"
+                          disabled={!selectedApp.halaxy_practitioner_verified || isSendingInvite}
+                        >
+                          {isSendingInvite ? '⏳ Sending...' : selectedApp.halaxy_practitioner_verified ? '🚀 Send Onboarding Invite' : '🔒 Send Onboarding Invite (Awaiting Halaxy)'}
+                        </Button>
                       )}
                       
                       <Button

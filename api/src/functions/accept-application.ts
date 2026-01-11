@@ -178,21 +178,38 @@ async function acceptApplicationHandler(
       };
     }
 
-    // Send the acceptance/onboarding email
+    // Get Halaxy verification status
+    const halaxyCheck = await pool.request()
+      .input('id', sql.Int, applicationId)
+      .query(`
+        SELECT halaxy_practitioner_verified
+        FROM applications
+        WHERE id = @id
+      `);
+    
+    const isHalaxyVerified = halaxyCheck.recordset.length > 0 
+      ? halaxyCheck.recordset[0].halaxy_practitioner_verified 
+      : false;
+
+    // Send the onboarding email only if Halaxy is verified
     let emailSent = false;
-    try {
-      await sendAcceptanceEmail({
-        firstName: application.first_name,
-        lastName: application.last_name,
-        email: application.email,
-        onboardingLink: result.onboardingLink,
-        contractUrl: application.contract_url,
-      });
-      emailSent = true;
-      context.log(`Acceptance email sent to ${application.email}`);
-    } catch (emailError) {
-      context.error('Failed to send acceptance email:', emailError);
-      // Don't fail the whole request - practitioner was created successfully
+    if (isHalaxyVerified) {
+      try {
+        await sendAcceptanceEmail({
+          firstName: application.first_name,
+          lastName: application.last_name,
+          email: application.email,
+          onboardingLink: result.onboardingLink,
+          contractUrl: application.contract_url,
+        });
+        emailSent = true;
+        context.log(`Onboarding email sent to ${application.email}`);
+      } catch (emailError) {
+        context.error('Failed to send onboarding email:', emailError);
+        // Don't fail the whole request - practitioner was created successfully
+      }
+    } else {
+      context.log(`Halaxy not verified for application ${applicationId}. Email not sent.`);
     }
 
     return {
@@ -202,11 +219,12 @@ async function acceptApplicationHandler(
         success: true,
         message: emailSent 
           ? 'Practitioner created and onboarding email sent'
-          : 'Practitioner created (email delivery pending)',
+          : 'Practitioner created. Email will be sent after Halaxy verification.',
         practitionerId: result.practitionerId,
         onboardingToken: result.onboardingToken,
         onboardingLink: result.onboardingLink,
         emailSent,
+        halaxyVerified: isHalaxyVerified,
       },
     };
   } catch (error) {

@@ -292,7 +292,7 @@ export function Admin() {
         throw new Error("Failed to update status");
       }
 
-      // Then create practitioner and send email
+      // Then create practitioner and send email (if Halaxy verified)
       const response = await fetch(`${API_BASE_URL}/accept-application/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -306,7 +306,9 @@ export function Admin() {
 
       toast({
         title: "✅ Application Accepted!",
-        description: `Onboarding email sent to ${selectedApp?.email || 'applicant'}`,
+        description: data.emailSent 
+          ? `Onboarding email sent to ${selectedApp?.email || 'applicant'}`
+          : 'Practitioner created. Email will be sent after Halaxy verification.',
       });
 
       // Refresh

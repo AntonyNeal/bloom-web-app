@@ -17,6 +17,7 @@ import ServerErrorState from "@/components/common/ServerErrorState";
 import { AuthenticatedLayout } from "@/components/layout/AuthenticatedLayout";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { HalaxyClinicianSetup } from "@/components/admin/HalaxyClinicianSetup";
 
 interface Application {
   id: number;
@@ -631,9 +632,19 @@ export function Admin() {
                     </CardTitle>
                     <CardDescription>{selectedApp.email}</CardDescription>
                   </div>
-                  <Badge className={getStatusColor(selectedApp.status)}>
-                    {selectedApp.status}
-                  </Badge>
+                  <div className="flex flex-col gap-2 items-end">
+                    <Badge className={getStatusColor(selectedApp.status)}>
+                      {selectedApp.status}
+                    </Badge>
+                    {selectedApp.signed_contract_url && (
+                      <Badge className={selectedApp.halaxy_practitioner_verified
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-amber-100 text-amber-800'
+                      }>
+                        {selectedApp.halaxy_practitioner_verified ? '✅ Halaxy Ready' : '⏳ Awaiting Halaxy'}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1136,64 +1147,18 @@ export function Admin() {
                         {isSendingInvite ? "⏳ Sending..." : "🔄 Resend Offer Email"}
                       </Button>
 
-                      {/* Halaxy Practitioner Verification Panel - Only show if signed contract received */}
+                      {/* Halaxy Clinician Setup Panel - Only show if signed contract received */}
                       {selectedApp.signed_contract_url && (
-                        <div className={`p-4 rounded-lg border-2 ${
-                          selectedApp.halaxy_practitioner_verified
-                            ? 'bg-green-50 border-green-300'
-                            : 'bg-amber-50 border-amber-300'
-                        }`}>
-                          <div className="flex items-start gap-3">
-                            <div className="text-2xl mt-1">
-                              {selectedApp.halaxy_practitioner_verified ? '✅' : '⚠️'}
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-base mb-2">
-                                {selectedApp.halaxy_practitioner_verified
-                                  ? 'Practitioner Verified in Halaxy'
-                                  : 'Add Practitioner to Halaxy'}
-                              </h3>
-                              {selectedApp.halaxy_practitioner_verified ? (
-                                <div>
-                                  <p className="text-sm text-green-800 mb-1">
-                                    ✓ Practitioner record found in Halaxy
-                                  </p>
-                                  {selectedApp.halaxy_verified_at && (
-                                    <p className="text-xs text-green-700">
-                                      Verified: {new Date(selectedApp.halaxy_verified_at).toLocaleString()}
-                                    </p>
-                                  )}
-                                  {selectedApp.practitioner_id && (
-                                    <p className="text-xs text-green-700">
-                                      Practitioner ID: {selectedApp.practitioner_id}
-                                    </p>
-                                  )}
-                                </div>
-                              ) : (
-                                <div>
-                                  <p className="text-sm text-amber-800 mb-3">
-                                    Before sending the onboarding invite, you must:
-                                  </p>
-                                  <ol className="text-sm text-amber-900 space-y-1 mb-3 ml-4 list-decimal">
-                                    <li>Log into Halaxy admin portal</li>
-                                    <li>Add {selectedApp.first_name} {selectedApp.last_name} as a new practitioner</li>
-                                    <li>Use email: <strong>{selectedApp.email}</strong></li>
-                                    <li>Click the button below to verify they've been added</li>
-                                  </ol>
-                                  <Button
-                                    onClick={() => verifyHalaxyPractitioner(selectedApp.id)}
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full bg-white border-amber-400 hover:bg-amber-100"
-                                    disabled={isVerifyingHalaxy}
-                                  >
-                                    {isVerifyingHalaxy ? '🔄 Verifying...' : '🔍 Verify Practitioner in Halaxy'}
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
+                        <HalaxyClinicianSetup
+                          applicationId={selectedApp.id}
+                          clinicianName={`${selectedApp.first_name} ${selectedApp.last_name}`}
+                          clinicianEmail={selectedApp.email}
+                          isVerified={selectedApp.halaxy_practitioner_verified || false}
+                          isVerifying={isVerifyingHalaxy}
+                          onVerify={verifyHalaxyPractitioner}
+                          verifiedAt={selectedApp.halaxy_verified_at}
+                          practitionerId={selectedApp.practitioner_id}
+                        />
                       )}
 
                       {/* Onboard Button - only enabled after Halaxy verification */}
@@ -1209,10 +1174,16 @@ export function Admin() {
                       >
                         {isSendingInvite ? '⏳ Sending...' : selectedApp.signed_contract_url && selectedApp.halaxy_practitioner_verified ? '🚀 Send Onboarding Invite' : '🔒 Send Onboarding Invite (Locked)'}
                       </Button>
+                      
                       {selectedApp.signed_contract_url && !selectedApp.halaxy_practitioner_verified && (
-                        <p className="text-xs text-amber-700 text-center font-medium bg-amber-100 p-2 rounded">
-                          ⚠️ You must verify the practitioner in Halaxy before sending the onboarding invite
-                        </p>
+                        <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-3">
+                          <p className="text-sm font-semibold text-amber-900 mb-1">
+                            ⚠️ Halaxy Verification Required
+                          </p>
+                          <p className="text-xs text-amber-800">
+                            The clinician must be verified in Halaxy before sending the onboarding invite. This ensures credentials are created for a valid account.
+                          </p>
+                        </div>
                       )}
                       {!selectedApp.signed_contract_url && selectedApp.contract_url && (
                         <p className="text-xs text-gray-500 text-center">

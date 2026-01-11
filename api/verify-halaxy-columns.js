@@ -16,10 +16,11 @@ const config = {
     SELECT COLUMN_NAME, DATA_TYPE 
     FROM INFORMATION_SCHEMA.COLUMNS 
     WHERE TABLE_NAME = 'applications' 
-    AND COLUMN_NAME LIKE '%halaxy%'
+    AND (COLUMN_NAME LIKE '%halaxy%' OR COLUMN_NAME = 'practitioner_id')
+    ORDER BY COLUMN_NAME
   `);
-  console.log('\n✅ Halaxy columns in database:');
+  console.log('\n✅ Halaxy & Practitioner columns in database:');
   result.recordset.forEach(r => console.log(`   - ${r.COLUMN_NAME} (${r.DATA_TYPE})`));
   await pool.close();
-  console.log('\n🎉 Columns verified!\n');
+  console.log('\n🎉 All columns verified!\n');
 })();

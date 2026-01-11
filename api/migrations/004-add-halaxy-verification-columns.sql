@@ -5,6 +5,16 @@
 -- Check if columns exist before adding them
 IF NOT EXISTS (
     SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_NAME = 'applications' AND COLUMN_NAME = 'practitioner_id'
+)
+BEGIN
+    ALTER TABLE applications
+    ADD practitioner_id NVARCHAR(50);
+    PRINT 'Added column: practitioner_id';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
     WHERE TABLE_NAME = 'applications' AND COLUMN_NAME = 'halaxy_practitioner_verified'
 )
 BEGIN

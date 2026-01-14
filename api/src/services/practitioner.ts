@@ -76,7 +76,6 @@ export async function createPractitionerFromApplication(
       .input('last_name', sql.NVarChar, application.last_name)
       .input('email', sql.NVarChar, application.email)
       .input('phone', sql.NVarChar, application.phone || null)
-      .input('specialization', sql.NVarChar, application.specializations || null)
       .input('favorite_flower', sql.NVarChar, application.favorite_flower || null)
       .input('onboarding_token', sql.NVarChar, onboardingToken)
       .input('onboarding_token_expires_at', sql.DateTime2, tokenExpiresAt)
@@ -87,7 +86,6 @@ export async function createPractitionerFromApplication(
           last_name,
           email,
           phone,
-          specialization,
           favorite_flower,
           onboarding_token,
           onboarding_token_expires_at,
@@ -101,7 +99,6 @@ export async function createPractitionerFromApplication(
           @last_name,
           @email,
           @phone,
-          @specialization,
           @favorite_flower,
           @onboarding_token,
           @onboarding_token_expires_at,

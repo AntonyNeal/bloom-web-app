@@ -4,8 +4,8 @@ import { getDbConfig } from '../services/database';
 
 /**
  * Verify that a practitioner has been created in Halaxy
- * This checks the Halaxy API to see if the practitioner exists
- * and updates the application record accordingly
+ * This is triggered by admin confirmation - when the admin clicks verify,
+ * we update the application record to mark Halaxy verification as complete
  */
 export async function verifyHalaxyPractitioner(
   request: HttpRequest,
@@ -47,66 +47,23 @@ export async function verifyHalaxyPractitioner(
 
     const application = appResult.recordset[0];
 
-    // Check if practitioner exists in Halaxy
-    // This calls the Halaxy API to verify the practitioner
-    let verified = false;
-    let practitionerId = application.practitioner_id;
+    // Admin has manually verified the clinician in Halaxy
+    // Mark as verified in our database
+    const verified = true;
+    const practitionerId = application.practitioner_id || '';
 
-    try {
-      // Import the Halaxy client
-      const { HalaxyClient } = await import('../services/halaxy/client');
-      const halaxyClient = new HalaxyClient();
-
-      // Search for practitioner by email using the internal search in createOrFindPractitioner
-      // We'll use getFirstPage directly to search
-      const practitioners = await halaxyClient['getFirstPage'](
-        '/Practitioner',
-        {
-          email: application.email,
-          _count: '1',
-        }
-      ) as Array<{ id?: string; [key: string]: unknown }>;
-
-      if (practitioners && practitioners.length > 0) {
-        // Filter out invalid IDs
-        const validPractitioners = practitioners.filter((p) => 
-          p.id && 
-          typeof p.id === 'string' && 
-          p.id !== 'warning' && 
-          p.id !== 'error' &&
-          !p.id.startsWith('outcome') &&
-          p.id.length > 3
-        );
-
-        if (validPractitioners.length > 0) {
-          // Found practitioner in Halaxy
-          verified = true;
-          practitionerId = validPractitioners[0].id!;
-          
-          context.log(`Practitioner found in Halaxy: ${practitionerId}`);
-        } else {
-          context.log(`No valid practitioner found for email: ${application.email}`);
-        }
-      } else {
-        context.log(`Practitioner not found in Halaxy for email: ${application.email}`);
-      }
-    } catch (halaxyError) {
-      context.error('Error checking Halaxy:', halaxyError);
-      // Continue - we'll return verified = false
-    }
+    context.log(`Marking application ${applicationId} as Halaxy verified`);
 
     // Update application record
     await pool
       .request()
       .input('applicationId', sql.Int, applicationId)
       .input('verified', sql.Bit, verified)
-      .input('practitionerId', sql.NVarChar(50), practitionerId)
-      .input('verifiedAt', sql.DateTime2, verified ? new Date() : null)
+      .input('verifiedAt', sql.DateTime2, new Date())
       .query(`
         UPDATE applications 
         SET 
           halaxy_practitioner_verified = @verified,
-          practitioner_id = @practitionerId,
           halaxy_verified_at = @verifiedAt
         WHERE id = @applicationId
       `);
@@ -116,12 +73,10 @@ export async function verifyHalaxyPractitioner(
     return {
       status: 200,
       jsonBody: {
-        verified,
+        verified: true,
         practitioner_id: practitionerId,
-        verified_at: verified ? new Date().toISOString() : null,
-        message: verified
-          ? 'Practitioner verified in Halaxy'
-          : 'Practitioner not found in Halaxy. Please add them first.',
+        verified_at: new Date().toISOString(),
+        message: 'Clinician marked as verified in Halaxy',
       },
     };
   } catch (error) {

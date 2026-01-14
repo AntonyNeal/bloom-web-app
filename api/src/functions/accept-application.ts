@@ -148,10 +148,6 @@ async function acceptApplicationHandler(
       last_name: application.last_name,
       email: application.email,
       phone: application.phone,
-      ahpra_registration: application.ahpra_registration,
-      specializations: application.specializations,
-      experience_years: application.experience_years,
-      photo_url: application.photo_url,
       favorite_flower: application.favorite_flower, // Zoe's secret intel 🌸
     });
 

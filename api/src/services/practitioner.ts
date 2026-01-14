@@ -18,10 +18,6 @@ interface ApplicationData {
   last_name: string;
   email: string;
   phone?: string;
-  ahpra_registration?: string;
-  specializations?: string;
-  experience_years?: number;
-  photo_url?: string;
   favorite_flower?: string; // Zoe's secret intel for onboarding surprise
 }
 
@@ -156,10 +152,7 @@ interface PractitionerOnboardingData {
   last_name: string;
   email: string;
   phone?: string;
-  ahpra_number?: string;
-  specializations?: string;
-  experience_years?: number;
-  profile_photo_url?: string;
+
   onboarding_token_expires_at: Date;
   onboarding_completed_at?: Date;
 }
@@ -174,8 +167,7 @@ export async function validateOnboardingToken(
       .query(`
         SELECT 
           id, first_name, last_name, email, phone,
-          ahpra_number, specializations, experience_years,
-          profile_photo_url, onboarding_token_expires_at,
+          onboarding_token_expires_at,
           onboarding_completed_at
         FROM practitioners 
         WHERE onboarding_token = @token
@@ -214,7 +206,6 @@ export async function completeOnboarding(
   profileUpdates?: {
     display_name?: string;
     bio?: string;
-    profile_photo_url?: string;
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -222,8 +213,7 @@ export async function completeOnboarding(
       .input('token', sql.NVarChar, token)
       .input('password_hash', sql.NVarChar, passwordHash)
       .input('display_name', sql.NVarChar, profileUpdates?.display_name || null)
-      .input('bio', sql.NVarChar, profileUpdates?.bio || null)
-      .input('profile_photo_url', sql.NVarChar, profileUpdates?.profile_photo_url || null);
+      .input('bio', sql.NVarChar, profileUpdates?.bio || null);
 
     const result = await request.query(`
       UPDATE practitioners
@@ -231,7 +221,6 @@ export async function completeOnboarding(
         password_hash = @password_hash,
         display_name = COALESCE(@display_name, display_name),
         bio = COALESCE(@bio, bio),
-        profile_photo_url = COALESCE(@profile_photo_url, profile_photo_url),
         onboarding_completed_at = GETDATE(),
         onboarding_token = NULL,
         onboarding_token_expires_at = NULL,

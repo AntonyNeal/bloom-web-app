@@ -117,8 +117,7 @@ async function resendOnboardingHandler(
         .query(`
           SELECT 
             id, first_name, last_name, email, phone,
-            ahpra_registration, specializations, experience_years,
-            photo_url, favorite_flower
+            favorite_flower
           FROM applications
           WHERE id = @id
         `);
@@ -140,10 +139,6 @@ async function resendOnboardingHandler(
         last_name: fullApp.last_name,
         email: fullApp.email,
         phone: fullApp.phone,
-        ahpra_registration: fullApp.ahpra_registration,
-        specializations: fullApp.specializations,
-        experience_years: fullApp.experience_years,
-        photo_url: fullApp.photo_url,
         favorite_flower: fullApp.favorite_flower,
       });
       

@@ -126,6 +126,18 @@ async function acceptOfferHandler(
         };
       }
 
+      // Validate that signed contract has been uploaded
+      if (!application.signed_contract_url) {
+        return {
+          status: 400,
+          headers,
+          jsonBody: {
+            error: 'Cannot accept offer without uploading a signed contract. Please upload your signed contract first.',
+            requiresSignedContract: true,
+          },
+        };
+      }
+
       // Update application to accepted
       await pool.request()
         .input('token', sql.NVarChar, token)

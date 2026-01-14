@@ -71,24 +71,35 @@ export default function AcceptOffer() {
     setError(null);
     
     try {
+      console.log('📤 Starting contract upload:', file.name);
+      
       // Create FormData to upload the file
       const formData = new FormData();
       formData.append('file', file);
 
+      const uploadUrl = API_ENDPOINTS.acceptOffer(token) + '/signed-contract';
+      console.log('📤 Upload URL:', uploadUrl);
+
       // Upload directly to the signed contract endpoint
-      const uploadResponse = await fetch(API_ENDPOINTS.acceptOffer(token) + '/signed-contract', {
+      const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
       });
 
+      console.log('📤 Upload response status:', uploadResponse.status);
+      const data = await uploadResponse.json();
+      console.log('📤 Upload response data:', data);
+
       if (!uploadResponse.ok) {
-        const data = await uploadResponse.json();
         throw new Error(data.error || 'Failed to upload contract');
       }
 
+      console.log('✅ Contract uploaded successfully');
       setSignedContractUploaded(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload contract');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to upload contract';
+      console.error('🔴 Upload error:', errorMsg);
+      setError(errorMsg);
     } finally {
       setUploading(false);
     }
@@ -99,11 +110,15 @@ export default function AcceptOffer() {
 
     setAccepting(true);
     try {
+      console.log('✅ Accepting offer for token:', token);
       const response = await fetch(API_ENDPOINTS.acceptOffer(token), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
       const data = await response.json();
+
+      console.log('✅ Accept response status:', response.status);
+      console.log('✅ Accept response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to accept offer');
@@ -111,7 +126,9 @@ export default function AcceptOffer() {
 
       setAccepted(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to accept offer');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to accept offer';
+      console.error('🔴 Accept error:', errorMsg);
+      setError(errorMsg);
     } finally {
       setAccepting(false);
     }

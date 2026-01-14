@@ -80,7 +80,8 @@ async function acceptApplicationHandler(
           favorite_flower,
           status,
           practitioner_id,
-          contract_url
+          contract_url,
+          halaxy_practitioner_verified
         FROM applications
         WHERE id = @id
       `);
@@ -94,6 +95,17 @@ async function acceptApplicationHandler(
     }
 
     const application = appResult.recordset[0];
+
+    // SAFETY GATE: Verify Halaxy verification is complete
+    if (!application.halaxy_practitioner_verified) {
+      return {
+        status: 400,
+        headers,
+        jsonBody: { 
+          error: 'Cannot accept application - practitioner must be verified in Halaxy first. Please verify the clinician in Halaxy before proceeding.' 
+        },
+      };
+    }
 
     // Check if already has a practitioner (find by email, not by practitioner_id which is Halaxy ID)
     const practResult = await pool.request()

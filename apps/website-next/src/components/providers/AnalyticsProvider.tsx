@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import Script from 'next/script';
 
 // Google Analytics and Ads configuration from environment variables
-const GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || '';
-const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || '';
+// Fall back to production IDs if environment variables are not set
+const GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || 'G-XGGBRLPBKK';
+const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || 'AW-11563740075';
 
 // AnalyticsProvider uses interaction-based loading for mobile-first performance
 // Analytics only loads after user interaction (scroll, click, touch) to prevent TBT impact
@@ -46,7 +47,7 @@ export function AnalyticsProvider() {
     };
   }, []);
 
-  if (!shouldLoad || !GA4_MEASUREMENT_ID || !GOOGLE_ADS_ID) {
+  if (!shouldLoad) {
     return null;
   }
 

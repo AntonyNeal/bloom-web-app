@@ -28,7 +28,8 @@ const config = {
       practitioner_id = NULL,
       halaxy_practitioner_verified = 0,
       halaxy_verified_at = NULL,
-      halaxy_account_id = NULL
+      halaxy_account_id = NULL,
+      onboarding_email_sent_at = NULL
     WHERE email = 'julian.dellabosca@gmail.com'
   `);
   
@@ -49,7 +50,8 @@ const config = {
       offer_accepted_at,
       signed_contract_url,
       practitioner_id,
-      halaxy_practitioner_verified
+      halaxy_practitioner_verified,
+      onboarding_email_sent_at
     FROM applications
     WHERE email = 'julian.dellabosca@gmail.com'
   `);
@@ -63,6 +65,7 @@ const config = {
   console.log('  Signed Contract URL:', app.signed_contract_url);
   console.log('  Practitioner ID:', app.practitioner_id);
   console.log('  Halaxy Verified:', app.halaxy_practitioner_verified);
+  console.log('  Onboarding Email Sent:', app.onboarding_email_sent_at);
   
   console.log('\n✅ Ready to test again!');
   

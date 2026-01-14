@@ -96,8 +96,11 @@ async function acceptApplicationHandler(
 
     const application = appResult.recordset[0];
 
+    context.log(`Application retrieved - Halaxy verified: ${application.halaxy_practitioner_verified} (type: ${typeof application.halaxy_practitioner_verified})`);
+
     // SAFETY GATE: Verify Halaxy verification is complete
     if (!application.halaxy_practitioner_verified) {
+      context.log(`Halaxy verification check failed. Value: ${application.halaxy_practitioner_verified}, Truthy: ${!!application.halaxy_practitioner_verified}`);
       return {
         status: 400,
         headers,

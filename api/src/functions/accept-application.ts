@@ -95,41 +95,38 @@ async function acceptApplicationHandler(
 
     const application = appResult.recordset[0];
 
-    // Check if already has a practitioner
-    if (application.practitioner_id) {
-      // Get the existing practitioner's onboarding token
-      const practResult = await pool.request()
-        .input('id', sql.UniqueIdentifier, application.practitioner_id)
-        .query(`
-          SELECT onboarding_token, onboarding_completed_at, email
-          FROM practitioners
-          WHERE id = @id
-        `);
+    // Check if already has a practitioner (find by email, not by practitioner_id which is Halaxy ID)
+    const practResult = await pool.request()
+      .input('email', sql.NVarChar, application.email)
+      .query(`
+        SELECT id, onboarding_token, onboarding_completed_at, email
+        FROM practitioners
+        WHERE email = @email
+      `);
 
-      if (practResult.recordset.length > 0) {
-        const pract = practResult.recordset[0];
-        if (pract.onboarding_completed_at) {
-          return {
-            status: 400,
-            headers,
-            jsonBody: { error: 'Practitioner has already completed onboarding' },
-          };
-        }
-        if (pract.onboarding_token) {
-          const baseUrl = process.env.ONBOARDING_BASE_URL || 'https://staging.bloom.life-psychology.com.au';
-          return {
+    if (practResult.recordset.length > 0) {
+      const pract = practResult.recordset[0];
+      if (pract.onboarding_completed_at) {
+        return {
+          status: 400,
+          headers,
+          jsonBody: { error: 'Practitioner has already completed onboarding' },
+        };
+      }
+      if (pract.onboarding_token) {
+        const baseUrl = process.env.ONBOARDING_BASE_URL || 'https://staging.bloom.life-psychology.com.au';
+        return {
             status: 200,
             headers,
             jsonBody: {
               success: true,
               message: 'Practitioner already exists',
-              practitionerId: application.practitioner_id,
+              practitionerId: pract.id,
               onboardingLink: `${baseUrl}/onboarding/${pract.onboarding_token}`,
             },
           };
         }
       }
-    }
 
     // Check status
     if (application.status !== 'accepted') {

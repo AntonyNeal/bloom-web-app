@@ -75,13 +75,13 @@ async function resendOnboardingHandler(
           a.last_name,
           a.email,
           a.status,
-          a.practitioner_id,
           a.contract_url,
+          p.id as practitioner_uuid,
           p.onboarding_completed_at,
           p.onboarding_token,
           p.onboarding_token_expires_at
         FROM applications a
-        LEFT JOIN practitioners p ON a.practitioner_id = p.id
+        LEFT JOIN practitioners p ON a.email = p.email
         WHERE a.id = @id
       `);
 
@@ -105,7 +105,7 @@ async function resendOnboardingHandler(
     }
 
     // Verify practitioner exists
-    if (!application.practitioner_id) {
+    if (!application.practitioner_uuid) {
       return {
         status: 400,
         headers,
@@ -129,7 +129,7 @@ async function resendOnboardingHandler(
 
     // Update practitioner with new token
     await pool.request()
-      .input('practitionerId', sql.UniqueIdentifier, application.practitioner_id)
+      .input('practitionerId', sql.UniqueIdentifier, application.practitioner_uuid)
       .input('token', sql.NVarChar, newToken)
       .input('expiresAt', sql.DateTime2, expiresAt)
       .query(`
@@ -139,7 +139,7 @@ async function resendOnboardingHandler(
         WHERE id = @practitionerId
       `);
 
-    context.log(`Generated new onboarding token for practitioner ${application.practitioner_id}`);
+    context.log(`Generated new onboarding token for practitioner ${application.practitioner_uuid}`);
 
     // Build onboarding link
     const onboardingLink = `${ONBOARDING_BASE_URL}/onboarding/${newToken}`;

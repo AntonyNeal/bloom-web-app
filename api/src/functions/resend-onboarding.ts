@@ -11,6 +11,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/fu
 import * as sql from 'mssql';
 import { randomBytes } from 'crypto';
 import { sendAcceptanceEmail } from '../services/email';
+import { createPractitionerFromApplication } from '../services/practitioner';
 
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
@@ -104,13 +105,58 @@ async function resendOnboardingHandler(
       };
     }
 
-    // Verify practitioner exists
-    if (!application.practitioner_uuid) {
-      return {
-        status: 400,
-        headers,
-        jsonBody: { error: 'No practitioner record found. Use the accept-application endpoint first.' },
-      };
+    // Verify practitioner exists, or create it
+    let practitionerId = application.practitioner_uuid;
+    
+    if (!practitionerId) {
+      context.log(`Practitioner doesn't exist yet for application ${applicationId}. Creating...`);
+      
+      // Get the full application data needed for practitioner creation
+      const fullAppResult = await pool.request()
+        .input('id', sql.Int, applicationId)
+        .query(`
+          SELECT 
+            id, first_name, last_name, email, phone,
+            ahpra_registration, specializations, experience_years,
+            photo_url, favorite_flower
+          FROM applications
+          WHERE id = @id
+        `);
+      
+      if (fullAppResult.recordset.length === 0) {
+        return {
+          status: 404,
+          headers,
+          jsonBody: { error: 'Application not found for creating practitioner' },
+        };
+      }
+      
+      const fullApp = fullAppResult.recordset[0];
+      
+      // Create the practitioner
+      const createResult = await createPractitionerFromApplication(pool, {
+        id: fullApp.id,
+        first_name: fullApp.first_name,
+        last_name: fullApp.last_name,
+        email: fullApp.email,
+        phone: fullApp.phone,
+        ahpra_registration: fullApp.ahpra_registration,
+        specializations: fullApp.specializations,
+        experience_years: fullApp.experience_years,
+        photo_url: fullApp.photo_url,
+        favorite_flower: fullApp.favorite_flower,
+      });
+      
+      if (!createResult.success) {
+        return {
+          status: 400,
+          headers,
+          jsonBody: { error: createResult.error || 'Failed to create practitioner' },
+        };
+      }
+      
+      practitionerId = createResult.practitionerId;
+      context.log(`Created practitioner ${practitionerId} for application ${applicationId}`);
     }
 
     // Check if onboarding already completed
@@ -129,7 +175,7 @@ async function resendOnboardingHandler(
 
     // Update practitioner with new token
     await pool.request()
-      .input('practitionerId', sql.UniqueIdentifier, application.practitioner_uuid)
+      .input('practitionerId', sql.UniqueIdentifier, practitionerId)
       .input('token', sql.NVarChar, newToken)
       .input('expiresAt', sql.DateTime2, expiresAt)
       .query(`
@@ -139,7 +185,7 @@ async function resendOnboardingHandler(
         WHERE id = @practitionerId
       `);
 
-    context.log(`Generated new onboarding token for practitioner ${application.practitioner_uuid}`);
+    context.log(`Generated new onboarding token for practitioner ${practitionerId}`);
 
     // Build onboarding link
     const onboardingLink = `${ONBOARDING_BASE_URL}/onboarding/${newToken}`;

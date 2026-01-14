@@ -48,6 +48,7 @@ interface Application {
   offer_accepted_at?: string;
   halaxy_practitioner_verified?: boolean;
   halaxy_verified_at?: string;
+  onboarding_email_sent_at?: string;
 }
 
 type ErrorType = 'network' | 'server' | null;
@@ -1283,7 +1284,7 @@ export function Admin() {
                         />
                       )}
 
-                      {selectedApp.practitioner_id ? (
+                      {selectedApp.onboarding_email_sent_at ? (
                         <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
                           <p className="text-sm text-emerald-800 font-medium">
                             📧 Onboarding email sent

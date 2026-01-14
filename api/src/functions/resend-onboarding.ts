@@ -205,6 +205,15 @@ async function resendOnboardingHandler(
 
     context.log(`Onboarding email resent to ${application.email}`);
 
+    // Update application to mark email as sent
+    await pool.request()
+      .input('applicationId', sql.Int, applicationId)
+      .query(`
+        UPDATE applications
+        SET onboarding_email_sent_at = GETDATE()
+        WHERE id = @applicationId
+      `);
+
     return {
       status: 200,
       headers,

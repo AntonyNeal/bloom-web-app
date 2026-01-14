@@ -197,6 +197,15 @@ async function acceptApplicationHandler(
         });
         emailSent = true;
         context.log(`Onboarding email sent to ${application.email}`);
+
+        // Update application to mark email as sent
+        await pool.request()
+          .input('applicationId', sql.Int, applicationId)
+          .query(`
+            UPDATE applications
+            SET onboarding_email_sent_at = GETDATE()
+            WHERE id = @applicationId
+          `);
       } catch (emailError) {
         context.error('Failed to send onboarding email:', emailError);
         // Don't fail the whole request - practitioner was created successfully

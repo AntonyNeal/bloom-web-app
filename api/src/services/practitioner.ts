@@ -50,22 +50,7 @@ export async function createPractitionerFromApplication(
   try {
     console.log(`[PractitionerService] Creating practitioner from application ${application.id}`);
 
-    // Check if practitioner already exists for this application
-    const existingCheck = await pool.request()
-      .input('application_id', sql.Int, application.id)
-      .query(`
-        SELECT id FROM practitioners WHERE application_id = @application_id
-      `);
-
-    if (existingCheck.recordset.length > 0) {
-      console.log(`[PractitionerService] Practitioner already exists for application ${application.id}`);
-      return {
-        success: false,
-        error: 'Practitioner already created for this application',
-      };
-    }
-
-    // Check if email already exists
+    // Check if practitioner already exists for this email
     const emailCheck = await pool.request()
       .input('email', sql.NVarChar, application.email)
       .query(`
@@ -90,31 +75,23 @@ export async function createPractitionerFromApplication(
 
     // Create practitioner record
     const result = await pool.request()
-      .input('application_id', sql.Int, application.id)
       .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
       .input('first_name', sql.NVarChar, application.first_name)
       .input('last_name', sql.NVarChar, application.last_name)
       .input('email', sql.NVarChar, application.email)
       .input('phone', sql.NVarChar, application.phone || null)
-      .input('ahpra_number', sql.NVarChar, application.ahpra_registration || null)
-      .input('specializations', sql.NVarChar, application.specializations || null)
-      .input('experience_years', sql.Int, application.experience_years || null)
-      .input('profile_photo_url', sql.NVarChar, application.photo_url || null)
+      .input('specialization', sql.NVarChar, application.specializations || null)
       .input('favorite_flower', sql.NVarChar, application.favorite_flower || null)
       .input('onboarding_token', sql.NVarChar, onboardingToken)
       .input('onboarding_token_expires_at', sql.DateTime2, tokenExpiresAt)
       .query(`
         INSERT INTO practitioners (
           halaxy_practitioner_id,
-          application_id,
           first_name,
           last_name,
           email,
           phone,
-          ahpra_number,
-          specializations,
-          experience_years,
-          profile_photo_url,
+          specialization,
           favorite_flower,
           onboarding_token,
           onboarding_token_expires_at,
@@ -124,19 +101,15 @@ export async function createPractitionerFromApplication(
         ) OUTPUT INSERTED.id
         VALUES (
           @halaxy_practitioner_id,
-          @application_id,
           @first_name,
           @last_name,
           @email,
           @phone,
-          @ahpra_number,
-          @specializations,
-          @experience_years,
-          @profile_photo_url,
+          @specialization,
           @favorite_flower,
           @onboarding_token,
           @onboarding_token_expires_at,
-          0,
+          1,
           GETDATE(),
           GETDATE()
         )

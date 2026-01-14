@@ -77,7 +77,9 @@ async function resendOnboardingHandler(
           a.status,
           a.practitioner_id,
           a.contract_url,
-          p.onboarding_completed_at
+          p.onboarding_completed_at,
+          p.onboarding_token,
+          p.onboarding_token_expires_at
         FROM applications a
         LEFT JOIN practitioners p ON a.practitioner_id = p.id
         WHERE a.id = @id

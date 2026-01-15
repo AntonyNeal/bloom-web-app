@@ -130,14 +130,35 @@ async function acceptApplicationHandler(
       }
       if (pract.onboarding_token) {
         const baseUrl = process.env.ONBOARDING_BASE_URL || 'https://staging.bloom.life-psychology.com.au';
+        const onboardingLink = `${baseUrl}/onboarding/${pract.onboarding_token}`;
+        
+        // Send onboarding email for existing practitioner
+        let emailSent = false;
+        if (application.halaxy_practitioner_verified) {
+          try {
+            await sendAcceptanceEmail({
+              firstName: application.first_name,
+              lastName: application.last_name,
+              email: application.email,
+              onboardingLink,
+              contractUrl: application.contract_url,
+            });
+            emailSent = true;
+            context.log(`Onboarding email resent to ${application.email}`);
+          } catch (emailError) {
+            context.error('Failed to send onboarding email:', emailError);
+          }
+        }
+        
         return {
             status: 200,
             headers,
             jsonBody: {
               success: true,
-              message: 'Practitioner already exists',
+              message: emailSent ? 'Onboarding email sent' : 'Practitioner already exists',
               practitionerId: pract.id,
-              onboardingLink: `${baseUrl}/onboarding/${pract.onboarding_token}`,
+              onboardingLink,
+              emailSent,
             },
           };
         }

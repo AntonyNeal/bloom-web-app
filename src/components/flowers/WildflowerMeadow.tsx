@@ -15,7 +15,7 @@
 
 import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Tier1Flower, Tier2Flower, Tier3Flower, LilyFlower, HydrangeaFlower } from './index';
+import { LilyFlower, HydrangeaFlower, SunflowerFlower, CherryBlossomFlower, PurpleRoseFlower } from './index';
 
 export interface WildflowerMeadowProps {
   /** The practitioner's chosen flower - blooms prominently */
@@ -118,42 +118,18 @@ const FlowerRenderer = memo(({
   const renderFlower = () => {
     switch (flower.type) {
       case 'cherry-blossom':
-        return (
-          <Tier1Flower 
-            isChecked={true} 
-            isMobile={false} 
-            shouldReduceMotion={!animate}
-          />
-        );
+        return <CherryBlossomFlower size={size} animate={animate} />;
       case 'purple-rose':
-        return (
-          <Tier2Flower 
-            isChecked={true} 
-            isMobile={false} 
-            shouldReduceMotion={!animate}
-          />
-        );
+        return <PurpleRoseFlower size={size} animate={animate} />;
       case 'sunflower':
-        return (
-          <Tier3Flower 
-            isChecked={true} 
-            isMobile={false} 
-            shouldReduceMotion={!animate}
-          />
-        );
+        return <SunflowerFlower size={size} animate={animate} />;
       case 'lily':
         return <LilyFlower size={size} animate={animate} variant="pink" />;
       case 'hydrangea':
         return <HydrangeaFlower size={size} animate={animate} variant="purple" />;
       case 'daisy':
         // Using cherry blossom as placeholder until daisy is created
-        return (
-          <Tier1Flower 
-            isChecked={true} 
-            isMobile={true} 
-            shouldReduceMotion={!animate}
-          />
-        );
+        return <CherryBlossomFlower size={size} animate={animate} />;
       default:
         return null;
     }

@@ -475,14 +475,6 @@ export const WildflowerMeadow = memo(({
         />
       ))}
       
-      {/* Hero flower - blooms center stage */}
-      {heroFlower && (
-        <HeroFlower
-          flowerType={heroFlowerType}
-          animate={shouldAnimate}
-        />
-      )}
-      
       {/* CSS for animations */}
       <style>{`
         @keyframes gentleSway {

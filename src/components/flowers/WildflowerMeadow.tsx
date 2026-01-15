@@ -449,8 +449,8 @@ export const WildflowerMeadow = memo(({
       role="img"
       aria-label={
         practitionerName 
-          ? `A wildflower meadow welcoming ${practitionerName} to the Bloom community${heroFlower ? `, featuring their chosen flower: ${heroFlower}` : ''}`
-          : 'A wildflower meadow representing the Bloom practitioner community'
+          ? `A garden where each flower was planted by a practitioner. ${practitionerName}'s ${heroFlower || 'flower'} now joins them.`
+          : 'A garden tended by practitioners, each flower representing someone who chose to grow something together'
       }
     >
       {/* Soft gradient overlay for depth */}

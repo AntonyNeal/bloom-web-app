@@ -391,7 +391,7 @@ export default function OnboardingPage() {
           }}
         >
           <AnimatePresence mode="wait">
-            {/* Step 1: Welcome - A moment of arrival */}
+            {/* Step 1: Welcome - A moment of commitment */}
             {step === 'welcome' && (
               <motion.div
                 key="welcome"
@@ -399,7 +399,7 @@ export default function OnboardingPage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
               >
-                {/* The Meadow - Their flower blooms among the community */}
+                {/* The Meadow - Each flower was planted by a practitioner who came before */}
                 <WildflowerMeadow
                   heroFlower={practitioner?.favoriteFlower}
                   practitionerName={practitioner?.firstName}
@@ -407,7 +407,7 @@ export default function OnboardingPage() {
                   animate={true}
                 />
                 
-                {/* Welcome message - warm, personal, community-focused */}
+                {/* Message - shared ownership, not passive welcome */}
                 <div style={{ textAlign: 'center', marginTop: 28, marginBottom: 24 }}>
                   <h2 style={{ 
                     fontSize: 26, 
@@ -416,17 +416,17 @@ export default function OnboardingPage() {
                     fontWeight: 600,
                     lineHeight: 1.3,
                   }}>
-                    Welcome to the garden, {practitioner?.firstName}
+                    Your {practitioner?.favoriteFlower?.toLowerCase() || 'flower'} joins the garden
                   </h2>
                   <p style={{ 
                     color: '#5a6c5f', 
                     fontSize: 15, 
-                    lineHeight: 1.6,
-                    maxWidth: 420,
+                    lineHeight: 1.7,
+                    maxWidth: 400,
                     margin: '0 auto',
                   }}>
-                    You're joining a community of practitioners who believe 
-                    in accessible, compassionate care.
+                    Each flower here was planted by a practitioner who chose to grow something together. 
+                    Now it's your turn to help it flourish.
                   </p>
                 </div>
 
@@ -502,7 +502,7 @@ export default function OnboardingPage() {
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  Set up my account <ArrowRight size={18} />
+                  I'm ready to begin <ArrowRight size={18} />
                 </button>
               </motion.div>
             )}

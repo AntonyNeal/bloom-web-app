@@ -10,7 +10,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, EyeOff, Check, AlertCircle, Loader2, User, Lock, FileText, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, Check, AlertCircle, Loader2, Lock, FileText, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { WildflowerMeadow } from '../components/flowers';
 
 // API URL
 const API_URL = import.meta.env.VITE_API_URL || 'https://bloom-functions-staging-new.azurewebsites.net/api';
@@ -339,17 +340,19 @@ export default function OnboardingPage() {
       padding: '40px 20px',
     }}>
       <div style={{ maxWidth: 600, margin: '0 auto' }}>
-        {/* Header */}
+        {/* Header - subtle, not competing with the meadow */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{ textAlign: 'center', marginBottom: 32 }}
+          style={{ textAlign: 'center', marginBottom: 24 }}
         >
-          <h1 style={{ fontSize: 32, color: colors.eucalyptusSage, marginBottom: 8 }}>
-            🌸 Welcome to Bloom
-          </h1>
-          <p style={{ color: '#666', fontSize: 16 }}>
-            Let's set up your practitioner account
+          <p style={{ 
+            color: colors.eucalyptusSage, 
+            fontSize: 14, 
+            fontWeight: 500,
+            letterSpacing: '0.02em',
+          }}>
+            Bloom Practitioner Portal
           </p>
         </motion.div>
 
@@ -388,7 +391,7 @@ export default function OnboardingPage() {
           }}
         >
           <AnimatePresence mode="wait">
-            {/* Step 1: Welcome */}
+            {/* Step 1: Welcome - A moment of arrival */}
             {step === 'welcome' && (
               <motion.div
                 key="welcome"
@@ -396,70 +399,81 @@ export default function OnboardingPage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
               >
-                <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                  <div style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: '50%',
-                    background: '#ecfdf5',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 16px',
+                {/* The Meadow - Their flower blooms among the community */}
+                <WildflowerMeadow
+                  heroFlower={practitioner?.favoriteFlower}
+                  practitionerName={practitioner?.firstName}
+                  height={240}
+                  animate={true}
+                />
+                
+                {/* Welcome message - warm, personal, community-focused */}
+                <div style={{ textAlign: 'center', marginTop: 28, marginBottom: 24 }}>
+                  <h2 style={{ 
+                    fontSize: 26, 
+                    color: colors.charcoalText, 
+                    marginBottom: 12,
+                    fontWeight: 600,
+                    lineHeight: 1.3,
                   }}>
-                    <User size={32} color={colors.success} />
-                  </div>
-                  <h2 style={{ fontSize: 24, color: colors.charcoalText, marginBottom: 8 }}>
-                    Hi {practitioner?.firstName}!
+                    Welcome to the garden, {practitioner?.firstName}
                   </h2>
-                  <p style={{ color: '#666' }}>
-                    We're excited to have you join Bloom. Let's confirm your details.
+                  <p style={{ 
+                    color: '#5a6c5f', 
+                    fontSize: 15, 
+                    lineHeight: 1.6,
+                    maxWidth: 420,
+                    margin: '0 auto',
+                  }}>
+                    You're joining a community of practitioners who believe 
+                    in accessible, compassionate care.
                   </p>
                 </div>
 
-                <div style={{ background: '#f9fafb', borderRadius: 12, padding: 20, marginBottom: 24 }}>
-                  <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontSize: 12, color: '#888', textTransform: 'uppercase' }}>Name</label>
-                    <p style={{ fontSize: 16, color: colors.charcoalText, fontWeight: 500 }}>
-                      {practitioner?.firstName} {practitioner?.lastName}
-                    </p>
-                  </div>
-                  <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontSize: 12, color: '#888', textTransform: 'uppercase' }}>Email</label>
-                    <p style={{ fontSize: 16, color: colors.charcoalText }}>{practitioner?.email}</p>
-                  </div>
-                  {practitioner?.ahpraNumber && (
-                    <div>
-                      <label style={{ fontSize: 12, color: '#888', textTransform: 'uppercase' }}>AHPRA Registration</label>
-                      <p style={{ fontSize: 16, color: colors.charcoalText }}>{practitioner.ahpraNumber}</p>
+                {/* Your details - subtle, not the focus */}
+                <div style={{ 
+                  background: '#f8faf9', 
+                  borderRadius: 12, 
+                  padding: 20, 
+                  marginBottom: 24,
+                  border: '1px solid rgba(107, 142, 127, 0.15)',
+                }}>
+                  <p style={{ 
+                    fontSize: 11, 
+                    color: '#7a8a7e', 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '0.05em',
+                    marginBottom: 16,
+                    fontWeight: 600,
+                  }}>
+                    Your details
+                  </p>
+                  <div style={{ 
+                    display: 'grid', 
+                    gap: 12,
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 13, color: '#6b7c6f' }}>Name</span>
+                      <span style={{ fontSize: 14, color: colors.charcoalText, fontWeight: 500 }}>
+                        {practitioner?.firstName} {practitioner?.lastName}
+                      </span>
                     </div>
-                  )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 13, color: '#6b7c6f' }}>Email</span>
+                      <span style={{ fontSize: 14, color: colors.charcoalText }}>
+                        {practitioner?.email}
+                      </span>
+                    </div>
+                    {practitioner?.ahpraNumber && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: 13, color: '#6b7c6f' }}>AHPRA</span>
+                        <span style={{ fontSize: 14, color: colors.charcoalText }}>
+                          {practitioner.ahpraNumber}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-                {/* Zoe's surprise - their favorite flower! 🌸 */}
-                {practitioner?.favoriteFlower && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5 }}
-                    style={{ 
-                      background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)', 
-                      borderRadius: 12, 
-                      padding: 20, 
-                      marginBottom: 24,
-                      textAlign: 'center',
-                      border: '1px solid #fbcfe8',
-                    }}
-                  >
-                    <p style={{ fontSize: 32, marginBottom: 8 }}>🌸</p>
-                    <p style={{ fontSize: 14, color: '#9d174d', fontWeight: 500 }}>
-                      We heard you love {practitioner.favoriteFlower.toLowerCase().endsWith('s') ? '' : 'a '}<strong>{practitioner.favoriteFlower}</strong>!
-                    </p>
-                    <p style={{ fontSize: 12, color: '#be185d', marginTop: 4 }}>
-                      Here's to growing something beautiful together 🌱
-                    </p>
-                  </motion.div>
-                )}
 
                 <button
                   onClick={() => setStep('password')}
@@ -477,9 +491,18 @@ export default function OnboardingPage() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 8,
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(107, 142, 127, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  Continue <ArrowRight size={18} />
+                  Set up my account <ArrowRight size={18} />
                 </button>
               </motion.div>
             )}

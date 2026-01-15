@@ -422,10 +422,10 @@ export default function OnboardingPage() {
                     color: '#5a6c5f', 
                     fontSize: 15, 
                     lineHeight: 1.7,
-                    maxWidth: 400,
+                    maxWidth: 420,
                     margin: '0 auto',
                   }}>
-                    We're glad you're here. Let's get you set up.
+                    You're joining a community of practitioners who believe mental health care should be accessible to everyone—not just those who can afford it.
                   </p>
                 </div>
 

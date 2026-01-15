@@ -25,7 +25,6 @@ import './functions/fix-unix-timestamps';
 import './functions/send-verification-code';
 import './functions/verify-code';
 import './functions/onboarding';
-import './functions/send-onboarding';
 import './functions/process-booking-notification';
 
 export * from './functions/health';

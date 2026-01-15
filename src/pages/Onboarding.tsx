@@ -425,7 +425,7 @@ export default function OnboardingPage() {
                     maxWidth: 420,
                     margin: '0 auto',
                   }}>
-                    You're joining a community of practitioners who believe mental health care should be accessible to everyone—not just those who can afford it.
+                    You're joining a community that believes in mutual support and growth.
                   </p>
                 </div>
 

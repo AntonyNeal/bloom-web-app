@@ -48,18 +48,18 @@ export class HalaxyClient {
 
   private constructor() {
     // Get Azure Function URL from environment
-    const functionUrl = process.env.NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL;
+    let functionUrl = process.env.NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL;
 
     if (!functionUrl) {
-      console.error(
-        '[HalaxyClient] NEXT_PUBLIC_HALAXY_BOOKING_FUNCTION_URL not configured'
-      );
-      // Fallback for development
-      this.AZURE_FUNCTION_URL =
-        'http://localhost:7071/api/create-halaxy-booking';
-    } else {
-      this.AZURE_FUNCTION_URL = functionUrl;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (apiUrl) {
+        functionUrl = `${apiUrl}/create-halaxy-booking`;
+      } else {
+        // Fallback for development
+        functionUrl = 'http://localhost:7071/api/create-halaxy-booking';
+      }
     }
+    this.AZURE_FUNCTION_URL = functionUrl;
   }
 
   static getInstance(): HalaxyClient {

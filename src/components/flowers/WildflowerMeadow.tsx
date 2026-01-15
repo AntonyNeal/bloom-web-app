@@ -64,37 +64,39 @@ function normalizeFlowerName(name: string): FlowerType {
   return flowerNameMap[normalized] || 'cherry-blossom';
 }
 
-// Generate a consistent but organic-looking meadow
-function generateMeadowFlowers(_heroFlowerType: FlowerType): MeadowFlower[] {
+// Generate a meadow featuring the applicant's chosen flower
+function generateMeadowFlowers(heroFlowerType: FlowerType): MeadowFlower[] {
   const flowers: MeadowFlower[] = [];
   
-  // Background flowers - scattered across the meadow
+  // All flowers are the applicant's chosen type - this is THEIR meadow
+  const flowerType = heroFlowerType;
+  
   // Left side cluster
   flowers.push(
-    { type: 'cherry-blossom', x: 5, y: 40, size: 0.5, delay: 0.3, opacity: 0.5, zIndex: 1 },
-    { type: 'hydrangea', x: 12, y: 55, size: 0.4, delay: 0.5, opacity: 0.45, zIndex: 1 },
-    { type: 'lily', x: 8, y: 70, size: 0.55, delay: 0.7, opacity: 0.5, zIndex: 2 },
+    { type: flowerType, x: 5, y: 40, size: 0.5, delay: 0.3, opacity: 0.5, zIndex: 1 },
+    { type: flowerType, x: 12, y: 55, size: 0.4, delay: 0.5, opacity: 0.45, zIndex: 1 },
+    { type: flowerType, x: 8, y: 70, size: 0.55, delay: 0.7, opacity: 0.5, zIndex: 2 },
   );
   
   // Right side cluster
   flowers.push(
-    { type: 'purple-rose', x: 88, y: 45, size: 0.5, delay: 0.4, opacity: 0.5, zIndex: 1 },
-    { type: 'sunflower', x: 92, y: 60, size: 0.45, delay: 0.6, opacity: 0.45, zIndex: 1 },
-    { type: 'cherry-blossom', x: 85, y: 75, size: 0.5, delay: 0.8, opacity: 0.5, zIndex: 2 },
+    { type: flowerType, x: 88, y: 45, size: 0.5, delay: 0.4, opacity: 0.5, zIndex: 1 },
+    { type: flowerType, x: 92, y: 60, size: 0.45, delay: 0.6, opacity: 0.45, zIndex: 1 },
+    { type: flowerType, x: 85, y: 75, size: 0.5, delay: 0.8, opacity: 0.5, zIndex: 2 },
   );
   
   // Mid-ground flowers - slightly larger, more visible
   flowers.push(
-    { type: 'lily', x: 18, y: 65, size: 0.65, delay: 0.2, opacity: 0.6, zIndex: 3 },
-    { type: 'hydrangea', x: 78, y: 58, size: 0.6, delay: 0.4, opacity: 0.55, zIndex: 3 },
-    { type: 'purple-rose', x: 25, y: 78, size: 0.55, delay: 0.5, opacity: 0.6, zIndex: 4 },
-    { type: 'cherry-blossom', x: 72, y: 72, size: 0.6, delay: 0.3, opacity: 0.55, zIndex: 4 },
+    { type: flowerType, x: 18, y: 65, size: 0.65, delay: 0.2, opacity: 0.6, zIndex: 3 },
+    { type: flowerType, x: 78, y: 58, size: 0.6, delay: 0.4, opacity: 0.55, zIndex: 3 },
+    { type: flowerType, x: 25, y: 78, size: 0.55, delay: 0.5, opacity: 0.6, zIndex: 4 },
+    { type: flowerType, x: 72, y: 72, size: 0.6, delay: 0.3, opacity: 0.55, zIndex: 4 },
   );
   
   // Additional scattered flowers for depth
   flowers.push(
-    { type: 'sunflower', x: 32, y: 48, size: 0.45, delay: 0.6, opacity: 0.4, zIndex: 2 },
-    { type: 'daisy', x: 65, y: 42, size: 0.4, delay: 0.7, opacity: 0.4, zIndex: 2 },
+    { type: flowerType, x: 32, y: 48, size: 0.45, delay: 0.6, opacity: 0.4, zIndex: 2 },
+    { type: flowerType, x: 65, y: 42, size: 0.4, delay: 0.7, opacity: 0.4, zIndex: 2 },
   );
   
   return flowers;

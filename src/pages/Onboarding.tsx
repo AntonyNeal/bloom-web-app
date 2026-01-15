@@ -407,7 +407,7 @@ export default function OnboardingPage() {
                   animate={true}
                 />
                 
-                {/* Message - shared ownership, not passive welcome */}
+                {/* Message - honest and direct */}
                 <div style={{ textAlign: 'center', marginTop: 28, marginBottom: 24 }}>
                   <h2 style={{ 
                     fontSize: 26, 
@@ -416,7 +416,7 @@ export default function OnboardingPage() {
                     fontWeight: 600,
                     lineHeight: 1.3,
                   }}>
-                    Your {practitioner?.favoriteFlower?.toLowerCase() || 'flower'} joins the garden
+                    Hi {practitioner?.firstName}
                   </h2>
                   <p style={{ 
                     color: '#5a6c5f', 
@@ -425,8 +425,7 @@ export default function OnboardingPage() {
                     maxWidth: 400,
                     margin: '0 auto',
                   }}>
-                    Each flower here was planted by a practitioner who chose to grow something together. 
-                    Now it's your turn to help it flourish.
+                    We're glad you're here. Let's get you set up.
                   </p>
                 </div>
 
@@ -502,7 +501,7 @@ export default function OnboardingPage() {
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  I'm ready to begin <ArrowRight size={18} />
+                  Continue <ArrowRight size={18} />
                 </button>
               </motion.div>
             )}

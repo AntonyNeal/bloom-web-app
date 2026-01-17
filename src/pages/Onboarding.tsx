@@ -412,7 +412,7 @@ export default function OnboardingPage() {
             style={{
               position: 'absolute',
               top: '0%',
-              left: 'calc(50% + 165px)',
+              left: 'calc(50% + 115px)',
               width: 380,
               height: 280,
               opacity: 0.85,
@@ -504,7 +504,7 @@ export default function OnboardingPage() {
             style={{
               position: 'absolute',
               top: '32%',
-              left: 'calc(50% + 165px)',
+              left: 'calc(50% + 115px)',
               width: 500,
               height: 450,
               opacity: 0.75,
@@ -590,7 +590,7 @@ export default function OnboardingPage() {
             style={{
               position: 'absolute',
               top: '5%',
-              right: 'calc(50% + 165px)',
+              right: 'calc(50% + 115px)',
               width: 340,
               height: 250,
               opacity: 0.8,
@@ -664,7 +664,7 @@ export default function OnboardingPage() {
             style={{
               position: 'absolute',
               top: '35%',
-              right: 'calc(50% + 145px)',
+              right: 'calc(50% + 95px)',
               width: 480,
               height: 410,
               opacity: 0.7,

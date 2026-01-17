@@ -1,11 +1,11 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import sql from 'mssql';
 import { getDbConfig } from '../services/database';
+import { HalaxyClient } from '../services/halaxy/client';
 
 /**
- * Verify that a practitioner has been created in Halaxy
- * This is triggered by admin confirmation - when the admin clicks verify,
- * we update the application record to mark Halaxy verification as complete
+ * Verify that a practitioner exists in Halaxy
+ * Actually searches Halaxy by email to confirm the practitioner exists
  */
 export async function verifyHalaxyPractitioner(
   request: HttpRequest,
@@ -47,24 +47,39 @@ export async function verifyHalaxyPractitioner(
 
     const application = appResult.recordset[0];
 
-    // Admin has manually verified the clinician in Halaxy
-    // Mark as verified in our database
-    const verified = true;
-    const practitionerId = application.practitioner_id || '';
+    // Actually check Halaxy for this practitioner by email
+    context.log(`Searching Halaxy for practitioner with email: ${application.email}`);
+    
+    const halaxyClient = new HalaxyClient();
+    const halaxyPractitioner = await halaxyClient.findPractitionerByEmail(application.email);
+    
+    if (!halaxyPractitioner) {
+      context.log(`Practitioner NOT found in Halaxy for email: ${application.email}`);
+      await pool.close();
+      return {
+        status: 404,
+        jsonBody: {
+          verified: false,
+          error: `Practitioner not found in Halaxy. Please create a practitioner in Halaxy with email: ${application.email}`,
+        },
+      };
+    }
 
-    context.log(`Marking application ${applicationId} as Halaxy verified`);
+    context.log(`Found Halaxy practitioner: ${halaxyPractitioner.id} for ${application.email}`);
 
-    // Update application record
+    // Update application record with the Halaxy practitioner ID
     await pool
       .request()
       .input('applicationId', sql.Int, applicationId)
-      .input('verified', sql.Bit, verified)
+      .input('verified', sql.Bit, true)
       .input('verifiedAt', sql.DateTime2, new Date())
+      .input('halaxyPractitionerId', sql.NVarChar, halaxyPractitioner.id)
       .query(`
         UPDATE applications 
         SET 
           halaxy_practitioner_verified = @verified,
-          halaxy_verified_at = @verifiedAt
+          halaxy_verified_at = @verifiedAt,
+          practitioner_id = @halaxyPractitionerId
         WHERE id = @applicationId
       `);
 
@@ -74,9 +89,10 @@ export async function verifyHalaxyPractitioner(
       status: 200,
       jsonBody: {
         verified: true,
-        practitioner_id: practitionerId,
+        practitioner_id: halaxyPractitioner.id,
+        practitioner_name: `${application.first_name} ${application.last_name}`,
         verified_at: new Date().toISOString(),
-        message: 'Clinician marked as verified in Halaxy',
+        message: `Found practitioner in Halaxy: ${halaxyPractitioner.id}`,
       },
     };
   } catch (error) {

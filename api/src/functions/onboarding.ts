@@ -243,54 +243,42 @@ async function onboardingHandler(
         };
       }
 
-      // Create practitioner in Halaxy - REQUIRED for scheduling to work
+      // Try to find existing Halaxy practitioner (created earlier by admin)
+      // This is optional - the practitioner should already exist from the admin workflow
       let halaxyPractitionerId: string | null = null;
       let halaxyPractitionerRoleId: string | null = null;
       
       const halaxyClient = new HalaxyClient();
-      const specializations = practitionerInfo.specializations 
-        ? JSON.parse(practitionerInfo.specializations) 
-        : [];
       
       try {
-        // Step 1: Create or find the Practitioner (the person)
+        // Try to find existing practitioner by email using the existing method
+        // createOrFindPractitioner will find existing OR create new if not found
         const halaxyPractitioner = await halaxyClient.createOrFindPractitioner({
           firstName: practitionerInfo.first_name,
           lastName: practitionerInfo.last_name,
           email: practitionerInfo.email,
-          phone: phone || practitionerInfo.phone,
+          phone: practitionerInfo.phone,
           ahpraNumber: practitionerInfo.ahpra_number,
-          specializations,
         });
         
         halaxyPractitionerId = halaxyPractitioner.id;
-        context.log(`✅ Created/found Halaxy practitioner: ${halaxyPractitionerId} for ${practitionerInfo.email}`);
-
-        // Step 2: Create or find the PractitionerRole (links to organization)
-        const halaxyPractitionerRole = await halaxyClient.findOrCreatePractitionerRole(
-          halaxyPractitionerId,
-          { specialties: specializations }
-        );
+        context.log(`✅ Found/created Halaxy practitioner: ${halaxyPractitionerId} for ${practitionerInfo.email}`);
         
-        halaxyPractitionerRoleId = halaxyPractitionerRole.id;
-        context.log(`✅ Created/found Halaxy PractitionerRole: ${halaxyPractitionerRoleId}`);
-        
+        // Try to find their PractitionerRole
+        try {
+          const roles = await halaxyClient.getPractitionerRolesByPractitioner(halaxyPractitionerId);
+          if (roles.length > 0) {
+            halaxyPractitionerRoleId = roles[0].id;
+            context.log(`✅ Found Halaxy PractitionerRole: ${halaxyPractitionerRoleId}`);
+          }
+        } catch (roleError) {
+          context.warn(`Could not find PractitionerRole for ${halaxyPractitionerId}:`, roleError);
+        }
       } catch (halaxyError) {
         const errorMessage = halaxyError instanceof Error ? halaxyError.message : String(halaxyError);
-        const errorStack = halaxyError instanceof Error ? halaxyError.stack : '';
-        context.error('Failed to create Halaxy practitioner/role:', errorMessage);
-        context.error('Halaxy error stack:', errorStack);
-        
-        // Halaxy integration is REQUIRED - fail onboarding if it fails
-        return {
-          status: 500,
-          headers,
-          jsonBody: { 
-            error: 'Unable to create your clinician profile in the scheduling system. Please contact admin@life-psychology.com.au for assistance.',
-            code: 'HALAXY_CREATION_FAILED',
-            details: errorMessage,
-          },
-        };
+        context.warn('Could not look up/create Halaxy practitioner (non-fatal):', errorMessage);
+        // Don't fail onboarding - Halaxy lookup is optional
+        // Azure AD account creation is the critical part
       }
 
       // Update practitioner to mark onboarding complete

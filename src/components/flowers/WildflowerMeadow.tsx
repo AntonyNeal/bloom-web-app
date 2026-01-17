@@ -15,19 +15,22 @@
 
 import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { LilyFlower, HydrangeaFlower, SunflowerFlower, CherryBlossomFlower, PurpleRoseFlower } from './index';
+import { Tier1Flower, Tier2Flower, Tier3Flower } from './index';
+import { LilyFlower, HydrangeaFlower } from './index';
 
 export interface WildflowerMeadowProps {
   /** The practitioner's chosen flower - blooms prominently */
   heroFlower?: string;
   /** Optional practitioner name for accessibility */
   practitionerName?: string;
-  /** Height of the meadow */
-  height?: number;
+  /** Height of the meadow - number (px) or string (e.g., '100%') */
+  height?: number | string;
   /** Whether to animate (respects prefers-reduced-motion) */
   animate?: boolean;
   /** Additional CSS classes */
   className?: string;
+  /** Border radius - set to 0 for full-screen backgrounds */
+  borderRadius?: number;
 }
 
 // Flower types available in the meadow
@@ -45,18 +48,29 @@ interface MeadowFlower {
 
 // Map user-friendly names to flower types
 const flowerNameMap: Record<string, FlowerType> = {
+  // Form values (exact matches after toLowerCase)
   'cherry blossom': 'cherry-blossom',
+  'purple rose': 'purple-rose',
+  'sunflower': 'sunflower',
+  // Alternative names people might enter in "Other"
   'cherry': 'cherry-blossom',
   'sakura': 'cherry-blossom',
-  'purple rose': 'purple-rose',
   'rose': 'purple-rose',
-  'sunflower': 'sunflower',
+  'roses': 'purple-rose',
   'lily': 'lily',
   'lillies': 'lily',
   'lilies': 'lily',
   'hydrangea': 'hydrangea',
+  'hydrangeas': 'hydrangea',
   'daisy': 'daisy',
   'daisies': 'daisy',
+  'tulip': 'cherry-blossom', // Map common flowers to closest match
+  'tulips': 'cherry-blossom',
+  'lavender': 'purple-rose',
+  'peony': 'cherry-blossom',
+  'peonies': 'cherry-blossom',
+  'orchid': 'purple-rose',
+  'orchids': 'purple-rose',
 };
 
 function normalizeFlowerName(name: string): FlowerType {
@@ -64,39 +78,63 @@ function normalizeFlowerName(name: string): FlowerType {
   return flowerNameMap[normalized] || 'cherry-blossom';
 }
 
-// Generate a meadow featuring the applicant's chosen flower
+// Generate a Miyazaki-inspired meadow - flowers everywhere, alive in the wind
 function generateMeadowFlowers(heroFlowerType: FlowerType): MeadowFlower[] {
   const flowers: MeadowFlower[] = [];
-  
-  // All flowers are the applicant's chosen type - this is THEIR meadow
   const flowerType = heroFlowerType;
   
-  // Left side cluster
+  // === TOP HORIZON - distant, smaller, dreamy ===
+  // Far away flowers catching the light
   flowers.push(
-    { type: flowerType, x: 5, y: 40, size: 0.5, delay: 0.3, opacity: 0.5, zIndex: 1 },
-    { type: flowerType, x: 12, y: 55, size: 0.4, delay: 0.5, opacity: 0.45, zIndex: 1 },
-    { type: flowerType, x: 8, y: 70, size: 0.55, delay: 0.7, opacity: 0.5, zIndex: 2 },
+    { type: flowerType, x: 8, y: 8, size: 0.35, delay: 0.9, opacity: 0.55, zIndex: 1 },
+    { type: flowerType, x: 22, y: 12, size: 0.4, delay: 1.1, opacity: 0.5, zIndex: 1 },
+    { type: flowerType, x: 38, y: 6, size: 0.32, delay: 1.3, opacity: 0.45, zIndex: 1 },
+    { type: flowerType, x: 55, y: 10, size: 0.38, delay: 1.0, opacity: 0.5, zIndex: 1 },
+    { type: flowerType, x: 72, y: 8, size: 0.35, delay: 1.2, opacity: 0.48, zIndex: 1 },
+    { type: flowerType, x: 88, y: 12, size: 0.4, delay: 0.95, opacity: 0.52, zIndex: 1 },
   );
   
-  // Right side cluster
+  // === UPPER-MID - growing closer, more detail ===
   flowers.push(
-    { type: flowerType, x: 88, y: 45, size: 0.5, delay: 0.4, opacity: 0.5, zIndex: 1 },
-    { type: flowerType, x: 92, y: 60, size: 0.45, delay: 0.6, opacity: 0.45, zIndex: 1 },
-    { type: flowerType, x: 85, y: 75, size: 0.5, delay: 0.8, opacity: 0.5, zIndex: 2 },
+    { type: flowerType, x: 5, y: 22, size: 0.5, delay: 0.7, opacity: 0.65, zIndex: 2 },
+    { type: flowerType, x: 18, y: 28, size: 0.55, delay: 0.8, opacity: 0.7, zIndex: 2 },
+    { type: flowerType, x: 35, y: 20, size: 0.48, delay: 0.6, opacity: 0.6, zIndex: 2 },
+    { type: flowerType, x: 50, y: 25, size: 0.52, delay: 0.75, opacity: 0.68, zIndex: 2 },
+    { type: flowerType, x: 68, y: 22, size: 0.5, delay: 0.65, opacity: 0.62, zIndex: 2 },
+    { type: flowerType, x: 82, y: 28, size: 0.55, delay: 0.85, opacity: 0.7, zIndex: 2 },
+    { type: flowerType, x: 95, y: 20, size: 0.45, delay: 0.9, opacity: 0.58, zIndex: 2 },
   );
   
-  // Mid-ground flowers - slightly larger, more visible
+  // === MID-GROUND - the heart of the meadow ===
   flowers.push(
-    { type: flowerType, x: 18, y: 65, size: 0.65, delay: 0.2, opacity: 0.6, zIndex: 3 },
-    { type: flowerType, x: 78, y: 58, size: 0.6, delay: 0.4, opacity: 0.55, zIndex: 3 },
-    { type: flowerType, x: 25, y: 78, size: 0.55, delay: 0.5, opacity: 0.6, zIndex: 4 },
-    { type: flowerType, x: 72, y: 72, size: 0.6, delay: 0.3, opacity: 0.55, zIndex: 4 },
+    { type: flowerType, x: 3, y: 42, size: 0.7, delay: 0.4, opacity: 0.85, zIndex: 3 },
+    { type: flowerType, x: 15, y: 48, size: 0.75, delay: 0.5, opacity: 0.9, zIndex: 3 },
+    { type: flowerType, x: 28, y: 38, size: 0.65, delay: 0.35, opacity: 0.82, zIndex: 3 },
+    { type: flowerType, x: 42, y: 45, size: 0.72, delay: 0.45, opacity: 0.88, zIndex: 4 },
+    { type: flowerType, x: 58, y: 40, size: 0.68, delay: 0.4, opacity: 0.85, zIndex: 3 },
+    { type: flowerType, x: 75, y: 48, size: 0.78, delay: 0.55, opacity: 0.92, zIndex: 4 },
+    { type: flowerType, x: 90, y: 42, size: 0.65, delay: 0.38, opacity: 0.8, zIndex: 3 },
   );
   
-  // Additional scattered flowers for depth
+  // === LOWER-MID - closer, bolder ===
   flowers.push(
-    { type: flowerType, x: 32, y: 48, size: 0.45, delay: 0.6, opacity: 0.4, zIndex: 2 },
-    { type: flowerType, x: 65, y: 42, size: 0.4, delay: 0.7, opacity: 0.4, zIndex: 2 },
+    { type: flowerType, x: 8, y: 62, size: 0.85, delay: 0.25, opacity: 0.95, zIndex: 5 },
+    { type: flowerType, x: 22, y: 68, size: 0.9, delay: 0.3, opacity: 0.98, zIndex: 5 },
+    { type: flowerType, x: 38, y: 58, size: 0.8, delay: 0.2, opacity: 0.92, zIndex: 5 },
+    { type: flowerType, x: 55, y: 65, size: 0.88, delay: 0.28, opacity: 0.96, zIndex: 6 },
+    { type: flowerType, x: 70, y: 60, size: 0.82, delay: 0.22, opacity: 0.94, zIndex: 5 },
+    { type: flowerType, x: 85, y: 68, size: 0.92, delay: 0.32, opacity: 0.98, zIndex: 6 },
+  );
+  
+  // === FOREGROUND - closest, largest, most vibrant ===
+  flowers.push(
+    { type: flowerType, x: 5, y: 82, size: 1.0, delay: 0.1, opacity: 1.0, zIndex: 7 },
+    { type: flowerType, x: 18, y: 88, size: 1.1, delay: 0.15, opacity: 1.0, zIndex: 8 },
+    { type: flowerType, x: 35, y: 78, size: 0.95, delay: 0.08, opacity: 0.98, zIndex: 7 },
+    { type: flowerType, x: 52, y: 85, size: 1.05, delay: 0.12, opacity: 1.0, zIndex: 8 },
+    { type: flowerType, x: 68, y: 80, size: 0.98, delay: 0.1, opacity: 0.99, zIndex: 7 },
+    { type: flowerType, x: 82, y: 88, size: 1.12, delay: 0.18, opacity: 1.0, zIndex: 8 },
+    { type: flowerType, x: 95, y: 82, size: 0.9, delay: 0.14, opacity: 0.95, zIndex: 7 },
   );
   
   return flowers;
@@ -112,32 +150,87 @@ const FlowerRenderer = memo(({
   isHero?: boolean;
   animate?: boolean;
 }) => {
-  const baseSize = isHero ? 88 : 48;
-  const size = baseSize * flower.size;
+  // Scale for meadow - Tier flowers are designed at 88px/74px, we want varied sizes
+  const baseSize = isHero ? 1.0 : 0.8;
+  const scale = baseSize * flower.size;
   
   const renderFlower = () => {
+    // Wrapper to neutralize Tier flower's built-in absolute positioning
+    const FlowerWrapper = ({ children }: { children: React.ReactNode }) => (
+      <div style={{ 
+        position: 'relative', 
+        width: 88 * scale, 
+        height: 88 * scale,
+        transform: `scale(${scale})`,
+        transformOrigin: 'center center',
+      }}>
+        <div style={{ 
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          // Override the Tier flower's absolute positioning
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          {/* Neutralize the flower's absolute + right positioning */}
+          <div style={{ 
+            position: 'relative',
+            transform: 'translateX(8px) translateY(0)', // Compensate for right: -8px/right: -10px
+          }}>
+            {children}
+          </div>
+        </div>
+      </div>
+    );
+    
     switch (flower.type) {
       case 'cherry-blossom':
-        return <CherryBlossomFlower size={size} animate={animate} />;
+        return (
+          <FlowerWrapper>
+            <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={!animate} />
+          </FlowerWrapper>
+        );
       case 'purple-rose':
-        return <PurpleRoseFlower size={size} animate={animate} />;
+        return (
+          <FlowerWrapper>
+            <Tier2Flower isChecked={true} isMobile={false} shouldReduceMotion={!animate} />
+          </FlowerWrapper>
+        );
       case 'sunflower':
-        return <SunflowerFlower size={size} animate={animate} />;
+        return (
+          <FlowerWrapper>
+            <Tier3Flower isChecked={true} isMobile={false} shouldReduceMotion={!animate} />
+          </FlowerWrapper>
+        );
       case 'lily':
-        return <LilyFlower size={size} animate={animate} variant="pink" />;
+        return <LilyFlower size={72 * scale} animate={animate} variant="pink" />;
       case 'hydrangea':
-        return <HydrangeaFlower size={size} animate={animate} variant="purple" />;
+        return <HydrangeaFlower size={72 * scale} animate={animate} variant="purple" />;
       case 'daisy':
         // Using cherry blossom as placeholder until daisy is created
-        return <CherryBlossomFlower size={size} animate={animate} />;
+        return (
+          <FlowerWrapper>
+            <Tier1Flower isChecked={true} isMobile={false} shouldReduceMotion={!animate} />
+          </FlowerWrapper>
+        );
       default:
         return null;
     }
   };
   
+  // Each flower sways gently - subtle, organic movement
+  // Smaller distant flowers sway more (lighter), larger close flowers sway less (grounded)
+  const swayDuration = 5 + (flower.x % 3) + (flower.y % 2); // 5-9 seconds
+  const swayDelay = (flower.x * 0.02) + (flower.y * 0.01); // staggered start
+  const swayAmount = 3 - (flower.zIndex * 0.25); // Distant flowers: ~2.5°, close flowers: ~1°
+  
+  // Atmospheric perspective - distant flowers are hazier
+  const blurAmount = Math.max(0, (3 - flower.zIndex) * 0.15); // zIndex 1: 0.3px blur, zIndex 2: 0.15px, zIndex 3+: 0
+  
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.5, y: 10 }}
+      initial={{ opacity: 0, scale: 0.5, y: 20 }}
       animate={{ 
         opacity: flower.opacity,
         scale: 1,
@@ -145,7 +238,7 @@ const FlowerRenderer = memo(({
       }}
       transition={{
         delay: flower.delay,
-        duration: 0.8,
+        duration: 1.0,
         ease: [0.4, 0, 0.2, 1],
       }}
       style={{
@@ -154,23 +247,29 @@ const FlowerRenderer = memo(({
         top: `${flower.y}%`,
         transform: 'translate(-50%, -50%)',
         zIndex: flower.zIndex,
-        width: size,
-        height: size,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        filter: blurAmount > 0 ? `blur(${blurAmount}px)` : undefined,
       }}
     >
-      <div style={{ 
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
+      {/* Inner wrapper for gentle swaying */}
+      <motion.div
+        animate={animate ? {
+          rotate: [-swayAmount, swayAmount, -swayAmount],
+        } : {}}
+        transition={{
+          duration: swayDuration,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: swayDelay,
+        }}
+        style={{
+          transformOrigin: 'center bottom',
+        }}
+      >
         {renderFlower()}
-      </div>
+      </motion.div>
     </motion.div>
   );
 });
@@ -396,6 +495,7 @@ export const WildflowerMeadow = memo(({
   height = 280,
   animate = true,
   className = '',
+  borderRadius = 16,
 }: WildflowerMeadowProps) => {
   // Normalize the hero flower name
   const heroFlowerType = heroFlower ? normalizeFlowerName(heroFlower) : 'cherry-blossom';
@@ -421,8 +521,18 @@ export const WildflowerMeadow = memo(({
         width: '100%',
         height,
         overflow: 'hidden',
-        background: 'linear-gradient(180deg, #F0F7F4 0%, #E8F3EC 50%, #DFF0E5 100%)',
-        borderRadius: 16,
+        // Miyazaki-inspired gradient: soft sky meets lush meadow
+        background: `
+          linear-gradient(180deg, 
+            #F5F9F7 0%,      /* Pale morning sky */
+            #E8F4EC 15%,     /* Light sage mist */
+            #DCF0E2 35%,     /* Soft meadow green */
+            #D0EBD8 55%,     /* Richer grass */
+            #C5E5CE 75%,     /* Deeper foreground */
+            #BAE0C5 100%     /* Grounded base */
+          )
+        `,
+        borderRadius,
       }}
       role="img"
       aria-label={
@@ -431,12 +541,43 @@ export const WildflowerMeadow = memo(({
           : 'A garden tended by practitioners, each flower representing someone who chose to grow something together'
       }
     >
-      {/* Soft gradient overlay for depth */}
+      {/* Atmospheric depth - subtle warmth from sun */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'radial-gradient(ellipse at center bottom, transparent 40%, rgba(107, 142, 127, 0.08) 100%)',
+          background: `
+            radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255, 248, 230, 0.4) 0%, transparent 50%),
+            radial-gradient(ellipse 100% 80% at 50% 100%, rgba(107, 142, 127, 0.12) 0%, transparent 60%)
+          `,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+      
+      {/* Soft light rays from top - Miyazaki touch */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: '20%',
+          right: '20%',
+          height: '60%',
+          background: 'linear-gradient(180deg, rgba(255, 252, 240, 0.3) 0%, transparent 100%)',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+      
+      {/* Ground shadow for depth */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '30%',
+          background: 'linear-gradient(180deg, transparent 0%, rgba(75, 110, 90, 0.08) 100%)',
           pointerEvents: 'none',
           zIndex: 20,
         }}

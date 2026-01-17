@@ -11,6 +11,7 @@ import * as sql from 'mssql';
 import * as crypto from 'crypto';
 import { createAzureUser, findAzureUserByEmail } from '../services/azure-ad';
 import { HalaxyClient } from '../services/halaxy/client';
+import { sendWelcomeEmail } from '../services/email';
 
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
@@ -157,10 +158,9 @@ async function onboardingHandler(
         displayName?: string;
         bio?: string;
         phone?: string;
-        contractAccepted?: boolean;
       };
 
-      const { password, displayName, bio, phone, contractAccepted } = body;
+      const { password, displayName, bio, phone } = body;
 
       // Validate password
       if (!password || password.length < 8) {
@@ -181,15 +181,6 @@ async function onboardingHandler(
           status: 400,
           headers,
           jsonBody: { error: 'Password must contain uppercase, lowercase, and a number' },
-        };
-      }
-
-      // Require contract acceptance
-      if (!contractAccepted) {
-        return {
-          status: 400,
-          headers,
-          jsonBody: { error: 'You must accept the Practitioner Agreement to continue' },
         };
       }
 
@@ -387,6 +378,25 @@ async function onboardingHandler(
         context.warn(`ATTENTION: Practitioner ${practitionerInfo.email} completed onboarding but company email was not created. Manual intervention required.`);
       } else if (!licenseAssigned) {
         context.warn(`ATTENTION: User ${companyEmail} created but M365 license was not assigned. Manual license assignment required.`);
+      }
+
+      // Send welcome email to their personal email with login details
+      if (companyEmail) {
+        try {
+          const emailResult = await sendWelcomeEmail({
+            firstName: practitionerInfo.first_name,
+            personalEmail: practitionerInfo.email,
+            companyEmail: companyEmail,
+          });
+          if (emailResult.success) {
+            context.log(`✅ Welcome email sent to ${practitionerInfo.email}`);
+          } else {
+            context.warn(`⚠️ Failed to send welcome email: ${emailResult.error}`);
+          }
+        } catch (emailError) {
+          context.warn(`⚠️ Error sending welcome email:`, emailError);
+          // Don't fail onboarding if email fails - they can still log in
+        }
       }
 
       return {

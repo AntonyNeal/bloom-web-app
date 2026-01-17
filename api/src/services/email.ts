@@ -904,6 +904,115 @@ Zoe & The ${COMPANY_NAME} Team
   );
 }
 
+/**
+ * Welcome Email - Sent after onboarding is completed
+ * Includes their new company email and login instructions
+ */
+interface WelcomeEmailContext {
+  firstName: string;
+  personalEmail: string;
+  companyEmail: string;
+}
+
+export async function sendWelcomeEmail(context: WelcomeEmailContext) {
+  const { firstName, personalEmail, companyEmail } = context;
+  
+  const bloomUrl = 'https://bloom.life-psychology.com.au';
+  const outlookUrl = 'https://outlook.office.com';
+
+  const htmlContent = wrapInTemplate(`
+    <h2 style="color: #333; margin-top: 0;">🌸 Welcome to Bloom, ${firstName}!</h2>
+    
+    <p>Your onboarding is complete and your accounts are ready to use.</p>
+    
+    <div style="background: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+      <h3 style="margin: 0 0 10px; color: #1e40af;">📧 Your New Email Address</h3>
+      <p style="margin: 0; font-size: 18px; font-weight: 600; color: #1e3a8a; font-family: monospace;">${companyEmail}</p>
+      <p style="margin: 10px 0 0; color: #3b82f6; font-size: 14px;">Use this email and your new password to sign in to all Life Psychology services.</p>
+    </div>
+    
+    <h3 style="color: #333; margin: 30px 0 15px;">Quick Links</h3>
+    
+    <table style="width: 100%; border-collapse: separate; border-spacing: 0 10px;">
+      <tr>
+        <td style="background: #ecfdf5; padding: 15px; border-radius: 8px;">
+          <strong style="color: #059669;">🌸 Bloom Portal</strong>
+          <p style="margin: 5px 0 10px; color: #666; font-size: 14px;">Access your dashboard, view your schedule, and connect with the team.</p>
+          <a href="${bloomUrl}" style="display: inline-block; background: #10b981; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px;">
+            Open Bloom →
+          </a>
+          <p style="margin: 10px 0 0; color: #888; font-size: 12px;">💡 Tip: Click the flower in the top-right corner of the homepage to log in.</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background: #fef3c7; padding: 15px; border-radius: 8px;">
+          <strong style="color: #92400e;">📬 Outlook Email & Calendar</strong>
+          <p style="margin: 5px 0 10px; color: #666; font-size: 14px;">Check your work email and manage your calendar.</p>
+          <a href="${outlookUrl}" style="display: inline-block; background: #f59e0b; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px;">
+            Open Outlook →
+          </a>
+        </td>
+      </tr>
+    </table>
+    
+    <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 25px 0;">
+      <p style="margin: 0; color: #666; font-size: 13px;">
+        <strong>Remember:</strong> Your username is <strong>${companyEmail}</strong> and you set your password during onboarding. 
+        If you forget your password, use the "Forgot password" link on the login page.
+      </p>
+    </div>
+    
+    <p>Welcome to the team! We're so glad to have you.</p>
+    
+    <p style="margin-top: 30px;">
+      Warm regards,<br>
+      <strong>Zoe & The ${COMPANY_NAME} Team</strong>
+    </p>
+  `);
+
+  const plainTextContent = `
+🌸 Welcome to Bloom, ${firstName}!
+
+Your onboarding is complete and your accounts are ready to use.
+
+YOUR NEW EMAIL ADDRESS
+----------------------
+${companyEmail}
+
+Use this email and your new password to sign in to all Life Psychology services.
+
+QUICK LINKS
+-----------
+
+🌸 Bloom Portal
+Access your dashboard, view your schedule, and connect with the team.
+${bloomUrl}
+Tip: Click the flower in the top-right corner of the homepage to log in.
+
+📬 Outlook Email & Calendar
+Check your work email and manage your calendar.
+${outlookUrl}
+
+REMEMBER
+--------
+Your username is ${companyEmail} and you set your password during onboarding.
+If you forget your password, use the "Forgot password" link on the login page.
+
+Welcome to the team! We're so glad to have you.
+
+Warm regards,
+Zoe & The ${COMPANY_NAME} Team
+  `.trim();
+
+  // Send to their personal email (the one they applied with)
+  return sendEmail(
+    personalEmail,
+    `🌸 Welcome to Life Psychology! Your account is ready`,
+    htmlContent,
+    plainTextContent
+  );
+}
+
 // Export email service
 export const emailService = {
   sendDenialEmail,
@@ -911,6 +1020,7 @@ export const emailService = {
   sendInterviewEmail,
   sendAcceptanceEmail,
   sendOfferEmail,
+  sendWelcomeEmail,
   sendClinicianBookingNotification,
   sendPatientBookingConfirmation,
 };

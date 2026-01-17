@@ -47,35 +47,20 @@ export async function verifyHalaxyPractitioner(
 
     const application = appResult.recordset[0];
 
-    // Search Halaxy for this practitioner
-    // Try by email first, then by name as fallback
-    context.log(`Searching Halaxy for practitioner: ${application.first_name} ${application.last_name} (${application.email})`);
+    // Search Halaxy for this practitioner by name
+    context.log(`Searching Halaxy for practitioner: ${application.first_name} ${application.last_name}`);
     
     const halaxyClient = new HalaxyClient();
-    
-    // Try email first
-    let halaxyPractitioner = await halaxyClient.findPractitionerByEmail(application.email);
-    
-    if (halaxyPractitioner) {
-      context.log(`Found Halaxy practitioner by email: ${halaxyPractitioner.id}`);
-    } else {
-      // Fall back to name search
-      context.log(`Not found by email, trying name search: ${application.first_name} ${application.last_name}`);
-      halaxyPractitioner = await halaxyClient.findPractitionerByName(application.first_name, application.last_name);
-      
-      if (halaxyPractitioner) {
-        context.log(`Found Halaxy practitioner by name: ${halaxyPractitioner.id}`);
-      }
-    }
+    const halaxyPractitioner = await halaxyClient.findPractitionerByName(application.first_name, application.last_name);
     
     if (!halaxyPractitioner) {
-      context.log(`Practitioner NOT found in Halaxy by email (${application.email}) or name (${application.first_name} ${application.last_name})`);
+      context.log(`Practitioner NOT found in Halaxy: ${application.first_name} ${application.last_name}`);
       await pool.close();
       return {
         status: 404,
         jsonBody: {
           verified: false,
-          error: `Practitioner not found in Halaxy. Searched by email (${application.email}) and name (${application.first_name} ${application.last_name}). Please create the practitioner in Halaxy first.`,
+          error: `Practitioner "${application.first_name} ${application.last_name}" not found in Halaxy. Please create the practitioner in Halaxy first.`,
         },
       };
     }

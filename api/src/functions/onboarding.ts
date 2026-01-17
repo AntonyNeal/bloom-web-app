@@ -306,8 +306,8 @@ async function onboardingHandler(
         };
       }
 
-      // Update practitioner with Azure AD Object ID, company email, and Halaxy IDs
-      // Note: halaxy_practitioner_role_id column may not exist in older schemas - we handle this gracefully
+      // Update practitioner with Azure AD Object ID and Halaxy IDs
+      // Note: Some columns may not exist in older schemas - we handle this gracefully
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
         .input('password_hash', sql.NVarChar, passwordHash)
@@ -315,7 +315,6 @@ async function onboardingHandler(
         .input('bio', sql.NVarChar, bio || null)
         .input('phone', sql.NVarChar, phone || null)
         .input('azure_ad_object_id', sql.NVarChar, azureObjectId)
-        .input('company_email', sql.NVarChar, companyEmail)
         .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
         .query(`
           UPDATE practitioners
@@ -326,12 +325,11 @@ async function onboardingHandler(
             phone = COALESCE(@phone, phone),
             azure_ad_object_id = @azure_ad_object_id,
             halaxy_practitioner_id = COALESCE(@halaxy_practitioner_id, halaxy_practitioner_id),
-            company_email = @company_email,
             onboarding_completed_at = GETDATE(),
             onboarding_token = NULL,
             onboarding_token_expires_at = NULL,
             updated_at = GETDATE()
-          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id, INSERTED.company_email, INSERTED.halaxy_practitioner_id
+          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id, INSERTED.halaxy_practitioner_id
           WHERE onboarding_token = @token
             AND onboarding_completed_at IS NULL
             AND onboarding_token_expires_at > GETDATE()
@@ -347,13 +345,13 @@ async function onboardingHandler(
 
       const practitioner = result.recordset[0];
       context.log(`Onboarding completed for practitioner ${practitioner.id}`);
-      context.log(`  Company email: ${practitioner.company_email || 'not created'}`);
+      context.log(`  Company email: ${companyEmail || 'not created'}`);
       context.log(`  Halaxy Practitioner ID: ${practitioner.halaxy_practitioner_id || 'not created'}`);
       context.log(`  Halaxy PractitionerRole ID: ${halaxyPractitionerRoleId || 'not created'}`);
       
       // Log their new email prominently
-      if (practitioner.company_email) {
-        context.log(`✅ NEW EMAIL CREATED: ${practitioner.company_email}`);
+      if (companyEmail) {
+        context.log(`✅ NEW EMAIL CREATED: ${companyEmail}`);
       }
       
       // Log Halaxy IDs
@@ -401,7 +399,7 @@ async function onboardingHandler(
           practitioner: {
             id: practitioner.id,
             personalEmail: practitionerInfo.email,
-            companyEmail: practitioner.company_email,
+            companyEmail: companyEmail,
             halaxyId: practitioner.halaxy_practitioner_id,
             firstName: practitioner.first_name,
             lastName: practitioner.last_name,

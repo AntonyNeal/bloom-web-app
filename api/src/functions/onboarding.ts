@@ -8,7 +8,6 @@
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
-import * as crypto from 'crypto';
 import { createAzureUser, findAzureUserByEmail } from '../services/azure-ad';
 import { HalaxyClient } from '../services/halaxy/client';
 import { sendWelcomeEmail } from '../services/email';
@@ -37,15 +36,6 @@ const headers = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
-
-/**
- * Hash password using PBKDF2
- */
-function hashPassword(password: string): string {
-  const salt = crypto.randomBytes(16).toString('hex');
-  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
-  return `${salt}:${hash}`;
-}
 
 /**
  * Onboarding handler
@@ -184,9 +174,6 @@ async function onboardingHandler(
         };
       }
 
-      // Hash the password for local backup auth (Azure AD is primary)
-      const passwordHash = hashPassword(password);
-
       // First, get the practitioner info to create Azure AD user and Halaxy clinician
       const practitionerResult = await pool.request()
         .input('token', sql.NVarChar, token)
@@ -306,22 +293,14 @@ async function onboardingHandler(
         };
       }
 
-      // Update practitioner with Halaxy ID
-      // Note: Some columns may not exist in older schemas - keeping query minimal
+      // Update practitioner to mark onboarding complete
+      // Note: Dev database has minimal schema - only updating columns that exist
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
-        .input('password_hash', sql.NVarChar, passwordHash)
-        .input('display_name', sql.NVarChar, displayName || null)
-        .input('bio', sql.NVarChar, bio || null)
-        .input('phone', sql.NVarChar, phone || null)
         .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
         .query(`
           UPDATE practitioners
           SET 
-            password_hash = @password_hash,
-            display_name = COALESCE(@display_name, display_name),
-            bio = COALESCE(@bio, bio),
-            phone = COALESCE(@phone, phone),
             halaxy_practitioner_id = COALESCE(@halaxy_practitioner_id, halaxy_practitioner_id),
             onboarding_completed_at = GETDATE(),
             onboarding_token = NULL,

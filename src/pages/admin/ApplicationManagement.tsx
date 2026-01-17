@@ -33,6 +33,7 @@ interface Application {
   certificate_url: string;
   photo_url: string;
   cover_letter: string;
+  favorite_flower: string;
   // New workflow fields
   admin_notes?: string;
   interview_scheduled_at?: string;
@@ -677,6 +678,13 @@ export function Admin() {
                   <Label className="font-medium">Cover Letter</Label>
                   <p className="text-sm whitespace-pre-wrap mt-1 p-3 bg-neutral-50 rounded-md">
                     {selectedApp.cover_letter}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="font-medium">Favourite Flower 🌸</Label>
+                  <p className="text-sm mt-1 p-3 bg-pink-50 rounded-md text-pink-800">
+                    {selectedApp.favorite_flower}
                   </p>
                 </div>
 

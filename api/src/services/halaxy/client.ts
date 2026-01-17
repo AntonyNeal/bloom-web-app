@@ -105,6 +105,29 @@ export class HalaxyClient {
   }
 
   /**
+   * Find a practitioner by their email address
+   * @returns The practitioner if found, null otherwise
+   */
+  async findPractitionerByEmail(email: string): Promise<FHIRPractitioner | null> {
+    const results = await this.getFirstPage<FHIRPractitioner>('/Practitioner', {
+      email: email,
+      _count: '1',
+    });
+    
+    // Filter out any invalid IDs (like 'warning' from FHIR OperationOutcome)
+    const validPractitioners = results.filter(p => 
+      p.id && 
+      typeof p.id === 'string' && 
+      p.id !== 'warning' && 
+      p.id !== 'error' &&
+      !p.id.startsWith('outcome') &&
+      p.id.length > 3
+    );
+    
+    return validPractitioners.length > 0 ? validPractitioners[0] : null;
+  }
+
+  /**
    * Get all practitioners for the organization
    */
   async getAllPractitioners(): Promise<FHIRPractitioner[]> {

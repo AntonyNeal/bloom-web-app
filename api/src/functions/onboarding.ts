@@ -243,42 +243,37 @@ async function onboardingHandler(
         };
       }
 
-      // Try to find existing Halaxy practitioner (created earlier by admin)
-      // This is optional - the practitioner should already exist from the admin workflow
-      let halaxyPractitionerId: string | null = null;
-      let halaxyPractitionerRoleId: string | null = null;
-      
+      // Find the Halaxy practitioner that was created by admin earlier in the workflow
+      // The admin must verify the practitioner exists in Halaxy before sending the onboarding email
+      // If the practitioner doesn't exist, that means the workflow wasn't followed correctly
       const halaxyClient = new HalaxyClient();
       
-      try {
-        // Try to find existing practitioner by email using the existing method
-        // createOrFindPractitioner will find existing OR create new if not found
-        const halaxyPractitioner = await halaxyClient.createOrFindPractitioner({
-          firstName: practitionerInfo.first_name,
-          lastName: practitionerInfo.last_name,
-          email: practitionerInfo.email,
-          phone: practitionerInfo.phone,
-          ahpraNumber: practitionerInfo.ahpra_number,
-        });
-        
-        halaxyPractitionerId = halaxyPractitioner.id;
-        context.log(`✅ Found/created Halaxy practitioner: ${halaxyPractitionerId} for ${practitionerInfo.email}`);
-        
-        // Try to find their PractitionerRole
-        try {
-          const roles = await halaxyClient.getPractitionerRolesByPractitioner(halaxyPractitionerId);
-          if (roles.length > 0) {
-            halaxyPractitionerRoleId = roles[0].id;
-            context.log(`✅ Found Halaxy PractitionerRole: ${halaxyPractitionerRoleId}`);
+      // Find practitioner by email (they should already exist)
+      const halaxyPractitioner = await halaxyClient.findPractitionerByEmail(practitionerInfo.email);
+      
+      if (!halaxyPractitioner) {
+        context.error(`Halaxy practitioner not found for ${practitionerInfo.email}. Admin must create the practitioner in Halaxy before sending the onboarding email.`);
+        return {
+          status: 400,
+          jsonBody: {
+            error: 'Halaxy practitioner not found. Please contact the admin - the practitioner must be set up in Halaxy before onboarding can complete.'
           }
-        } catch (roleError) {
-          context.warn(`Could not find PractitionerRole for ${halaxyPractitionerId}:`, roleError);
+        };
+      }
+      
+      const halaxyPractitionerId = halaxyPractitioner.id;
+      context.log(`✅ Found existing Halaxy practitioner: ${halaxyPractitionerId} for ${practitionerInfo.email}`);
+      
+      // Try to find their PractitionerRole (optional)
+      let halaxyPractitionerRoleId: string | null = null;
+      try {
+        const roles = await halaxyClient.getPractitionerRolesByPractitioner(halaxyPractitionerId);
+        if (roles.length > 0) {
+          halaxyPractitionerRoleId = roles[0].id;
+          context.log(`✅ Found Halaxy PractitionerRole: ${halaxyPractitionerRoleId}`);
         }
-      } catch (halaxyError) {
-        const errorMessage = halaxyError instanceof Error ? halaxyError.message : String(halaxyError);
-        context.warn('Could not look up/create Halaxy practitioner (non-fatal):', errorMessage);
-        // Don't fail onboarding - Halaxy lookup is optional
-        // Azure AD account creation is the critical part
+      } catch (roleError) {
+        context.warn(`Could not find PractitionerRole for ${halaxyPractitionerId}:`, roleError);
       }
 
       // Update practitioner to mark onboarding complete

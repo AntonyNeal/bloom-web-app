@@ -184,11 +184,6 @@ async function onboardingHandler(
         };
       }
 
-      // Get client IP for contract acceptance record
-      const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 
-                       request.headers.get('x-real-ip') || 
-                       'unknown';
-
       // Hash the password for local backup auth (Azure AD is primary)
       const passwordHash = hashPassword(password);
 
@@ -311,7 +306,7 @@ async function onboardingHandler(
         };
       }
 
-      // Update practitioner with contract acceptance, Azure AD Object ID, company email, and Halaxy IDs
+      // Update practitioner with Azure AD Object ID, company email, and Halaxy IDs
       // Note: halaxy_practitioner_role_id column may not exist in older schemas - we handle this gracefully
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
@@ -319,7 +314,6 @@ async function onboardingHandler(
         .input('display_name', sql.NVarChar, displayName || null)
         .input('bio', sql.NVarChar, bio || null)
         .input('phone', sql.NVarChar, phone || null)
-        .input('contract_ip_address', sql.NVarChar, clientIp)
         .input('azure_ad_object_id', sql.NVarChar, azureObjectId)
         .input('company_email', sql.NVarChar, companyEmail)
         .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
@@ -333,9 +327,6 @@ async function onboardingHandler(
             azure_ad_object_id = @azure_ad_object_id,
             halaxy_practitioner_id = COALESCE(@halaxy_practitioner_id, halaxy_practitioner_id),
             company_email = @company_email,
-            contract_accepted_at = GETDATE(),
-            contract_version = '1.0',
-            contract_ip_address = @contract_ip_address,
             onboarding_completed_at = GETDATE(),
             onboarding_token = NULL,
             onboarding_token_expires_at = NULL,

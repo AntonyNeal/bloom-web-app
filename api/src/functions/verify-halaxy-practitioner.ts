@@ -46,21 +46,25 @@ export async function verifyHalaxyPractitioner(
     }
 
     const application = appResult.recordset[0];
+    
+    // Trim whitespace from names (database may have trailing spaces)
+    const firstName = application.first_name?.trim() || '';
+    const lastName = application.last_name?.trim() || '';
 
     // Search Halaxy for this practitioner by name
-    context.log(`Searching Halaxy for practitioner: ${application.first_name} ${application.last_name}`);
+    context.log(`Searching Halaxy for practitioner: "${firstName}" "${lastName}"`);
     
     const halaxyClient = new HalaxyClient();
-    const halaxyPractitioner = await halaxyClient.findPractitionerByName(application.first_name, application.last_name);
+    const halaxyPractitioner = await halaxyClient.findPractitionerByName(firstName, lastName);
     
     if (!halaxyPractitioner) {
-      context.log(`Practitioner NOT found in Halaxy: ${application.first_name} ${application.last_name}`);
+      context.log(`Practitioner NOT found in Halaxy: ${firstName} ${lastName}`);
       await pool.close();
       return {
         status: 404,
         jsonBody: {
           verified: false,
-          error: `Practitioner "${application.first_name} ${application.last_name}" not found in Halaxy. Please create the practitioner in Halaxy first.`,
+          error: `Practitioner "${firstName} ${lastName}" not found in Halaxy. Please create the practitioner in Halaxy first.`,
         },
       };
     }

@@ -98,17 +98,9 @@ async function acceptApplicationHandler(
 
     context.log(`Application retrieved - Halaxy verified: ${application.halaxy_practitioner_verified} (type: ${typeof application.halaxy_practitioner_verified})`);
 
-    // SAFETY GATE: Verify Halaxy verification is complete
-    if (!application.halaxy_practitioner_verified) {
-      context.log(`Halaxy verification check failed. Value: ${application.halaxy_practitioner_verified}, Truthy: ${!!application.halaxy_practitioner_verified}`);
-      return {
-        status: 400,
-        headers,
-        jsonBody: { 
-          error: 'Cannot accept application - practitioner must be verified in Halaxy first. Please verify the clinician in Halaxy before proceeding.' 
-        },
-      };
-    }
+    // Note: Halaxy verification is NOT required to accept the application
+    // The admin can create the practitioner in Halaxy anytime before the practitioner completes onboarding
+    // The onboarding process will verify the practitioner exists in Halaxy at completion time
 
     // Check if already has a practitioner (find by email, not by practitioner_id which is Halaxy ID)
     const practResult = await pool.request()

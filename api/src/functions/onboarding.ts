@@ -306,15 +306,14 @@ async function onboardingHandler(
         };
       }
 
-      // Update practitioner with Azure AD Object ID and Halaxy IDs
-      // Note: Some columns may not exist in older schemas - we handle this gracefully
+      // Update practitioner with Halaxy ID
+      // Note: Some columns may not exist in older schemas - keeping query minimal
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
         .input('password_hash', sql.NVarChar, passwordHash)
         .input('display_name', sql.NVarChar, displayName || null)
         .input('bio', sql.NVarChar, bio || null)
         .input('phone', sql.NVarChar, phone || null)
-        .input('azure_ad_object_id', sql.NVarChar, azureObjectId)
         .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
         .query(`
           UPDATE practitioners
@@ -323,13 +322,12 @@ async function onboardingHandler(
             display_name = COALESCE(@display_name, display_name),
             bio = COALESCE(@bio, bio),
             phone = COALESCE(@phone, phone),
-            azure_ad_object_id = @azure_ad_object_id,
             halaxy_practitioner_id = COALESCE(@halaxy_practitioner_id, halaxy_practitioner_id),
             onboarding_completed_at = GETDATE(),
             onboarding_token = NULL,
             onboarding_token_expires_at = NULL,
             updated_at = GETDATE()
-          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.azure_ad_object_id, INSERTED.halaxy_practitioner_id
+          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.halaxy_practitioner_id
           WHERE onboarding_token = @token
             AND onboarding_completed_at IS NULL
             AND onboarding_token_expires_at > GETDATE()

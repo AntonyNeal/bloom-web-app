@@ -128,6 +128,31 @@ export class HalaxyClient {
   }
 
   /**
+   * Find a practitioner by name (first name and last name)
+   * @returns The practitioner if found, null otherwise
+   */
+  async findPractitionerByName(firstName: string, lastName: string): Promise<FHIRPractitioner | null> {
+    // FHIR uses 'given' for first name and 'family' for last name
+    const results = await this.getFirstPage<FHIRPractitioner>('/Practitioner', {
+      given: firstName,
+      family: lastName,
+      _count: '10', // Get a few in case of duplicates
+    });
+    
+    // Filter out any invalid IDs
+    const validPractitioners = results.filter(p => 
+      p.id && 
+      typeof p.id === 'string' && 
+      p.id !== 'warning' && 
+      p.id !== 'error' &&
+      !p.id.startsWith('outcome') &&
+      p.id.length > 3
+    );
+    
+    return validPractitioners.length > 0 ? validPractitioners[0] : null;
+  }
+
+  /**
    * Get all practitioners for the organization
    */
   async getAllPractitioners(): Promise<FHIRPractitioner[]> {

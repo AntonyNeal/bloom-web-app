@@ -1279,7 +1279,7 @@ export function Admin() {
                       )}
                       
                       {/* Halaxy Clinician Setup - Required before sending onboarding */}
-                      {!selectedApp.practitioner_id && (
+                      {!selectedApp.halaxy_practitioner_verified && (
                         <HalaxyClinicianSetup
                           applicationId={selectedApp.id}
                           clinicianName={`${selectedApp.first_name} ${selectedApp.last_name}`}

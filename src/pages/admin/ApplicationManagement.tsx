@@ -499,8 +499,6 @@ export function Admin() {
   return (
     <AuthenticatedLayout title="Application Management" backTo="/admin">
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold mb-4">Application Management</h1>
-        
         {/* Status Summary - Updated for new workflow */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
           <Card>

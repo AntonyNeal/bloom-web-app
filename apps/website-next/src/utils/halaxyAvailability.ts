@@ -38,20 +38,16 @@ export async function fetchAvailableSlots(
   params: AvailabilityParams
 ): Promise<AvailableSlot[]> {
   try {
-    // Get the Azure Function URL from environment or use relative path for SWA
-    const configuredUrl =
-      process.env.NEXT_PUBLIC_AVAILABILITY_FUNCTION_URL ||
-      process.env.NEXT_PUBLIC_HALAXY_AVAILABILITY_FUNCTION_URL;
+    // Get the Azure Function URL from environment
+    // NEXT_PUBLIC_API_URL is set by CI/CD (e.g., https://bloom-functions-prod.azurewebsites.net/api)
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-    const azureFunctionsBase =
-      process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL ||
-      process.env.NEXT_PUBLIC_AZURE_FUNCTIONS_URL;
+    if (!apiBaseUrl) {
+      log.error('NEXT_PUBLIC_API_URL not configured', 'HalaxyAvailability');
+      return [];
+    }
 
-    const defaultUrl = azureFunctionsBase
-      ? `${azureFunctionsBase.replace(/\/$/, '')}/api/halaxy/availability`
-      : '/api/halaxy/availability'; // Use relative path for SWA linked functions
-
-    const functionUrl = configuredUrl || defaultUrl;
+    const functionUrl = `${apiBaseUrl.replace(/\/$/, '')}/halaxy/availability`;
 
     // Format dates as ISO strings for the function
     const queryParams = new URLSearchParams({

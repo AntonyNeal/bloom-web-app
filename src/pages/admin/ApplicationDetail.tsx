@@ -297,8 +297,8 @@ function ApplicationDetailPage({ applicationId }: Props) {
       return ['deny', 'waitlist', 'interview', 'accept'];
     }
     if (status === 'Waitlisted') {
-      // Waitlisted = we liked them, just no space right now. Only interview when ready.
-      return ['interview'];
+      // Waitlisted = we liked them, just no space right now. Interview or accept when ready.
+      return ['interview', 'accept'];
     }
     if (status === 'Interview Scheduled') {
       return ['deny', 'waitlist', 'accept'];

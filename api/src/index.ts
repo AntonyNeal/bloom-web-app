@@ -36,6 +36,7 @@ import './functions/send-offer';
 import './functions/accept-offer';
 import './functions/upload-signed-contract';
 import './functions/verify-halaxy-practitioner';
+import './functions/send-appointment-reminders';
 
 export * from './functions/health';
 export * from './functions/applications';

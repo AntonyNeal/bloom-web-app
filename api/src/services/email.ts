@@ -192,61 +192,46 @@ function wrapInClientTemplate(content: string): string {
 
 /**
  * Denial Email Template (Practitioner Application)
- * Gracious rejection that leaves the door open and makes them feel valued
+ * Kind but honest - no false promises
  */
 export async function sendDenialEmail(context: EmailContext) {
   const { firstName, email } = context;
 
   const htmlContent = wrapInTemplate(`
-    <h2 style="color: #333; margin-top: 0;">Thank You, ${firstName} 💜</h2>
+    <h2 style="color: #333; margin-top: 0;">Thank You for Applying</h2>
     
     <p>Dear ${firstName},</p>
     
-    <p>Thank you so much for considering ${COMPANY_NAME} as part of your professional journey. We truly enjoyed learning about your background and experience.</p>
+    <p>Thank you for taking the time to apply to ${COMPANY_NAME}. We genuinely appreciate your interest in joining our team.</p>
     
-    <p>After careful review, we've decided to move forward with candidates whose profiles more closely match our current needs. This wasn't an easy decision — we see real talent in what you bring to the table.</p>
+    <p>After reviewing your application, we've decided not to move forward at this time. We know this isn't the news you were hoping for, and we're grateful for the effort you put into applying.</p>
     
-    <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #10b981;">
-      <p style="margin: 0; color: #334155; line-height: 1.6;">
-        <strong>Our door is always open.</strong> As we grow and our needs evolve, we'd genuinely love to hear from you again. 
-        Please don't hesitate to reapply in the future — circumstances change, and so do opportunities.
-      </p>
-    </div>
+    <p>We wish you all the best in finding the right opportunity for you.</p>
     
-    <p>In the meantime, we're cheering you on! The mental health field needs passionate practitioners like you, and we have no doubt you'll find the right fit.</p>
-    
-    <p>Wishing you every success,</p>
-    
-    <p style="margin-top: 20px;">
-      Warmly,<br>
-      <strong>Zoe & The ${COMPANY_NAME} Team</strong>
+    <p style="margin-top: 30px;">
+      Take care,<br>
+      <strong>The ${COMPANY_NAME} Team</strong>
     </p>
   `);
 
   const plainTextContent = `
-Thank You, ${firstName} 💜
+Thank You for Applying
 
 Dear ${firstName},
 
-Thank you so much for considering ${COMPANY_NAME} as part of your professional journey. We truly enjoyed learning about your background and experience.
+Thank you for taking the time to apply to ${COMPANY_NAME}. We genuinely appreciate your interest in joining our team.
 
-After careful review, we've decided to move forward with candidates whose profiles more closely match our current needs. This wasn't an easy decision — we see real talent in what you bring to the table.
+After reviewing your application, we've decided not to move forward at this time. We know this isn't the news you were hoping for, and we're grateful for the effort you put into applying.
 
-OUR DOOR IS ALWAYS OPEN
------------------------
-As we grow and our needs evolve, we'd genuinely love to hear from you again. Please don't hesitate to reapply in the future — circumstances change, and so do opportunities.
+We wish you all the best in finding the right opportunity for you.
 
-In the meantime, we're cheering you on! The mental health field needs passionate practitioners like you, and we have no doubt you'll find the right fit.
-
-Wishing you every success,
-
-Warmly,
-Zoe & The ${COMPANY_NAME} Team
+Take care,
+The ${COMPANY_NAME} Team
   `.trim();
 
   return sendEmail(
     email,
-    `Thank You for Applying, ${firstName} 💜`,
+    `Your Application to ${COMPANY_NAME}`,
     htmlContent,
     plainTextContent
   );

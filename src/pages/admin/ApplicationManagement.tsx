@@ -326,18 +326,16 @@ export function Admin() {
           : 'Practitioner created. Email will be sent after Halaxy verification.',
       });
 
-      // Small delay to ensure database has committed, then refresh
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Refresh the applications list
-      await fetchApplications();
-      
-      // Refresh the selected app to show updated onboarding_email_sent_at
-      if (selectedApp?.id === id) {
-        const appResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`);
-        if (appResponse.ok) {
-          const updatedApp = await appResponse.json();
-          setSelectedApp(updatedApp);
+      // Only refetch if email wasn't sent (to check status), otherwise trust optimistic update
+      if (!data.emailSent) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await fetchApplications();
+        if (selectedApp?.id === id) {
+          const appResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`);
+          if (appResponse.ok) {
+            const refetchedApp = await appResponse.json();
+            setSelectedApp(refetchedApp);
+          }
         }
       }
     } catch (error) {

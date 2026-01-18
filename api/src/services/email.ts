@@ -192,45 +192,61 @@ function wrapInClientTemplate(content: string): string {
 
 /**
  * Denial Email Template (Practitioner Application)
+ * Gracious rejection that leaves the door open and makes them feel valued
  */
 export async function sendDenialEmail(context: EmailContext) {
   const { firstName, email } = context;
 
   const htmlContent = wrapInTemplate(`
-    <h2 style="color: #333; margin-top: 0;">Your Practitioner Application</h2>
+    <h2 style="color: #333; margin-top: 0;">Thank You, ${firstName} 💜</h2>
     
     <p>Dear ${firstName},</p>
     
-    <p>Thank you for your interest in joining the ${COMPANY_NAME} team.</p>
+    <p>Thank you so much for considering ${COMPANY_NAME} as part of your professional journey. We truly enjoyed learning about your background and experience.</p>
     
-    <p>After careful consideration of your application, we regret to inform you that we are unable to proceed at this time.</p>
+    <p>After careful review, we've decided to move forward with candidates whose profiles more closely match our current needs. This wasn't an easy decision — we see real talent in what you bring to the table.</p>
     
-    <p>We appreciate the time and effort you put into your application, and we wish you all the best in your professional journey.</p>
+    <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #10b981;">
+      <p style="margin: 0; color: #334155; line-height: 1.6;">
+        <strong>Our door is always open.</strong> As we grow and our needs evolve, we'd genuinely love to hear from you again. 
+        Please don't hesitate to reapply in the future — circumstances change, and so do opportunities.
+      </p>
+    </div>
     
-    <p style="margin-top: 30px;">
-      Warm regards,<br>
-      <strong>The ${COMPANY_NAME} Team</strong>
+    <p>In the meantime, we're cheering you on! The mental health field needs passionate practitioners like you, and we have no doubt you'll find the right fit.</p>
+    
+    <p>Wishing you every success,</p>
+    
+    <p style="margin-top: 20px;">
+      Warmly,<br>
+      <strong>Zoe & The ${COMPANY_NAME} Team</strong>
     </p>
   `);
 
   const plainTextContent = `
-Your Practitioner Application
+Thank You, ${firstName} 💜
 
 Dear ${firstName},
 
-Thank you for your interest in joining the ${COMPANY_NAME} team.
+Thank you so much for considering ${COMPANY_NAME} as part of your professional journey. We truly enjoyed learning about your background and experience.
 
-After careful consideration of your application, we regret to inform you that we are unable to proceed at this time.
+After careful review, we've decided to move forward with candidates whose profiles more closely match our current needs. This wasn't an easy decision — we see real talent in what you bring to the table.
 
-We appreciate the time and effort you put into your application, and we wish you all the best in your professional journey.
+OUR DOOR IS ALWAYS OPEN
+-----------------------
+As we grow and our needs evolve, we'd genuinely love to hear from you again. Please don't hesitate to reapply in the future — circumstances change, and so do opportunities.
 
-Warm regards,
-The ${COMPANY_NAME} Team
+In the meantime, we're cheering you on! The mental health field needs passionate practitioners like you, and we have no doubt you'll find the right fit.
+
+Wishing you every success,
+
+Warmly,
+Zoe & The ${COMPANY_NAME} Team
   `.trim();
 
   return sendEmail(
     email,
-    `Your Practitioner Application - ${COMPANY_NAME}`,
+    `Thank You for Applying, ${firstName} 💜`,
     htmlContent,
     plainTextContent
   );

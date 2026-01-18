@@ -308,14 +308,19 @@ export function Admin() {
 
       // Optimistic update - immediately show the email was sent
       if (data.emailSent && selectedApp) {
-        setSelectedApp({
+        const updatedApp = {
           ...selectedApp,
           onboarding_email_sent_at: new Date().toISOString(),
-        });
+        };
+        setSelectedApp(updatedApp);
+        // Also update in the applications list
+        setApplications(prev => prev.map(app => 
+          app.id === id ? { ...app, onboarding_email_sent_at: updatedApp.onboarding_email_sent_at } : app
+        ));
       }
 
       toast({
-        title: "✅ Application Accepted!",
+        title: "✅ Onboarding Invite Sent!",
         description: data.emailSent 
           ? `Onboarding email sent to ${selectedApp?.email || 'applicant'}`
           : 'Practitioner created. Email will be sent after Halaxy verification.',

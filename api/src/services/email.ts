@@ -124,23 +124,26 @@ function wrapInTemplate(content: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${COMPANY_NAME}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-    <!-- Header -->
-    <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #10b981;">
-      <h1 style="margin: 0; color: #10b981; font-size: 28px;">🌸 ${BLOOM_NAME}</h1>
-      <p style="margin: 5px 0 0; color: #666; font-size: 14px;">${COMPANY_NAME}</p>
-    </div>
-    
-    <!-- Content -->
-    <div style="padding: 30px 0;">
-      ${content}
-    </div>
-    
-    <!-- Footer -->
-    <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px; text-align: center; color: #888; font-size: 12px;">
-      <p style="margin: 0;">This email was sent by ${COMPANY_NAME}</p>
-      <p style="margin: 5px 0 0;">© ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved.</p>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; background: linear-gradient(135deg, #fdf2f8 0%, #f0fdf4 50%, #ecfeff 100%);">
+  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    <!-- Email Card -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+      <!-- Header -->
+      <div style="text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border-bottom: 2px solid #10b981;">
+        <h1 style="margin: 0; color: #10b981; font-size: 28px; font-weight: 600;">🌸 ${BLOOM_NAME}</h1>
+        <p style="margin: 8px 0 0; color: #666; font-size: 14px;">${COMPANY_NAME}</p>
+      </div>
+      
+      <!-- Content -->
+      <div style="padding: 35px 30px;">
+        ${content}
+      </div>
+      
+      <!-- Footer -->
+      <div style="background: #f9fafb; border-top: 1px solid #eee; padding: 20px; text-align: center; color: #888; font-size: 12px;">
+        <p style="margin: 0;">This email was sent by ${COMPANY_NAME}</p>
+        <p style="margin: 5px 0 0;">© ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved.</p>
+      </div>
     </div>
   </div>
 </body>
@@ -161,23 +164,26 @@ function wrapInClientTemplate(content: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${COMPANY_NAME}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-    <!-- Header -->
-    <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #10b981;">
-      <h1 style="margin: 0; color: #10b981; font-size: 28px;">🌸 ${COMPANY_NAME}</h1>
-      <p style="margin: 5px 0 0; color: #666; font-size: 14px;">Telehealth Psychology Services</p>
-    </div>
-    
-    <!-- Content -->
-    <div style="padding: 30px 0;">
-      ${content}
-    </div>
-    
-    <!-- Footer -->
-    <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px; text-align: center; color: #888; font-size: 12px;">
-      <p style="margin: 0;">This email was sent by ${COMPANY_NAME}</p>
-      <p style="margin: 5px 0 0;">© ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved.</p>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; background: linear-gradient(135deg, #fdf2f8 0%, #f0fdf4 50%, #ecfeff 100%);">
+  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    <!-- Email Card -->
+    <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+      <!-- Header -->
+      <div style="text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border-bottom: 2px solid #10b981;">
+        <h1 style="margin: 0; color: #10b981; font-size: 28px; font-weight: 600;">🌸 ${COMPANY_NAME}</h1>
+        <p style="margin: 8px 0 0; color: #666; font-size: 14px;">Telehealth Psychology Services</p>
+      </div>
+      
+      <!-- Content -->
+      <div style="padding: 35px 30px;">
+        ${content}
+      </div>
+      
+      <!-- Footer -->
+      <div style="background: #f9fafb; border-top: 1px solid #eee; padding: 20px; text-align: center; color: #888; font-size: 12px;">
+        <p style="margin: 0;">This email was sent by ${COMPANY_NAME}</p>
+        <p style="margin: 5px 0 0;">© ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved.</p>
+      </div>
     </div>
   </div>
 </body>

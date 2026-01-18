@@ -1447,10 +1447,15 @@ export const PsychologistApplicationForm: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Why do you want to join Life Psychology Australia?{' '}
                     <span className="text-red-500">*</span>
                   </label>
+                  <p className="text-sm text-gray-500 mb-3">
+                    We're building a tech-forward, collaborative practice. We'd love to hear about your vision for your practice, 
+                    and any experience you have with technology, social media, or building a business — these aren't requirements, 
+                    just things we value.
+                  </p>
                   <FormField
                     name="motivation"
                     type="textarea"
@@ -1459,7 +1464,7 @@ export const PsychologistApplicationForm: React.FC = () => {
                     error={errors.motivation}
                     required
                     rows={6}
-                    placeholder="Please tell us about your interest in joining our practice, your experience with telehealth, and what you believe you can contribute to our team and clients..."
+                    placeholder="Tell us about your interest in joining our practice and what you'd bring to the team. Feel free to mention any tech skills, social media experience, or entrepreneurial interests..."
                   />
                 </div>
 

@@ -238,54 +238,72 @@ The ${COMPANY_NAME} Team
 
 /**
  * Waitlist Email Template (Practitioner Application)
+ * Designed to keep applicants engaged and excited about future opportunities
  */
 export async function sendWaitlistEmail(context: EmailContext) {
   const { firstName, email } = context;
 
   const htmlContent = wrapInTemplate(`
-    <h2 style="color: #333; margin-top: 0;">Your Practitioner Application - Waitlist</h2>
+    <h2 style="color: #333; margin-top: 0;">✨ You Made a Great Impression, ${firstName}!</h2>
     
     <p>Dear ${firstName},</p>
     
-    <p>Thank you for your application to join the ${COMPANY_NAME} team.</p>
+    <p>Thank you for taking the time to apply to ${COMPANY_NAME}. We've reviewed your application and we're genuinely impressed by your background and experience.</p>
     
-    <p>We were impressed with your credentials and experience. However, we don't currently have positions available that match your profile.</p>
-    
-    <div style="background: #f3e8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-      <p style="margin: 0; color: #7c3aed;">
-        <strong>📋 You've been added to our waitlist</strong><br>
-        We'll reach out when opportunities arise that match your expertise.
+    <div style="background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 100%); padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #8b5cf6;">
+      <h3 style="margin: 0 0 12px; color: #7c3aed;">🌟 You're on our Priority Waitlist</h3>
+      <p style="margin: 0; color: #6b21a8; line-height: 1.6;">
+        While we don't have an immediate opening that matches your expertise, we want to stay connected. 
+        <strong>You'll be among the first we reach out to</strong> when the right opportunity arises.
       </p>
     </div>
     
-    <p>We appreciate your patience and interest in working with us.</p>
+    <p><strong>What this means:</strong></p>
+    <ul style="color: #555; line-height: 1.8;">
+      <li>🔔 We'll notify you as soon as a suitable position opens up</li>
+      <li>⚡ Priority consideration — no need to reapply</li>
+      <li>💜 Your profile stays active in our system</li>
+    </ul>
+    
+    <p style="background: #f8fafc; padding: 15px 20px; border-radius: 8px; color: #64748b; font-size: 14px;">
+      <strong>In the meantime:</strong> Keep doing great work! We love seeing practitioners grow their practice and make an impact in their communities.
+    </p>
+    
+    <p>Thank you for your interest in joining our team — we hope to work together soon! 💜</p>
     
     <p style="margin-top: 30px;">
       Warm regards,<br>
-      <strong>The ${COMPANY_NAME} Team</strong>
+      <strong>Zoe & The ${COMPANY_NAME} Team</strong>
     </p>
   `);
 
   const plainTextContent = `
-Your Practitioner Application - Waitlist
+✨ You Made a Great Impression, ${firstName}!
 
 Dear ${firstName},
 
-Thank you for your application to join the ${COMPANY_NAME} team.
+Thank you for taking the time to apply to ${COMPANY_NAME}. We've reviewed your application and we're genuinely impressed by your background and experience.
 
-We were impressed with your credentials and experience. However, we don't currently have positions available that match your profile.
+🌟 YOU'RE ON OUR PRIORITY WAITLIST
+----------------------------------
+While we don't have an immediate opening that matches your expertise, we want to stay connected. You'll be among the first we reach out to when the right opportunity arises.
 
-You've been added to our waitlist. We'll reach out when opportunities arise that match your expertise.
+What this means:
+• 🔔 We'll notify you as soon as a suitable position opens up
+• ⚡ Priority consideration — no need to reapply
+• 💜 Your profile stays active in our system
 
-We appreciate your patience and interest in working with us.
+In the meantime: Keep doing great work! We love seeing practitioners grow their practice and make an impact in their communities.
+
+Thank you for your interest in joining our team — we hope to work together soon!
 
 Warm regards,
-The ${COMPANY_NAME} Team
+Zoe & The ${COMPANY_NAME} Team
   `.trim();
 
   return sendEmail(
     email,
-    `Your Practitioner Application - Waitlist`,
+    `You're on our Priority List! ✨`,
     htmlContent,
     plainTextContent
   );

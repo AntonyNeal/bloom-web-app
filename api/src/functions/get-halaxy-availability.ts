@@ -16,6 +16,9 @@ const DEFAULT_PRACTITIONER_ID = '1304541'; // Zoe Semmler
 const DEFAULT_CLINIC_ID = '1023041'; // Life Psychology Australia
 const DEFAULT_FEE_ID = '9381231'; // Standard session fee
 
+// Minimum booking notice - clients can only see slots 3+ hours away
+const MIN_BOOKING_NOTICE_HOURS = 3;
+
 interface HalaxyTimeslot {
   dateTimeKey: string;
   day: string;
@@ -104,6 +107,10 @@ async function fetchHalaxyAvailability(
 
   // Convert Halaxy timeslots to FHIR Slot format
   const slots: FHIRSlot[] = [];
+  
+  // Calculate minimum booking time (3 hours from now)
+  const now = new Date();
+  const minBookingTime = new Date(now.getTime() + MIN_BOOKING_NOTICE_HOURS * 60 * 60 * 1000);
 
   if (data.data?.timeslots) {
     Object.entries(data.data.timeslots).forEach(([_date, daySlots]) => {
@@ -133,6 +140,11 @@ async function fetchHalaxyAvailability(
         const sydneyOffsetMinutes = -11 * 60; // UTC+11 means subtract 11 hours to get UTC
         const localDate = new Date(Date.UTC(year, month, day, hour, minute, 0, 0));
         const utcDate = new Date(localDate.getTime() + sydneyOffsetMinutes * 60 * 1000);
+        
+        // Skip slots less than 3 hours away - give practitioner time to prepare
+        if (utcDate < minBookingTime) {
+          return;
+        }
         
         const endTime = new Date(utcDate.getTime() + duration * 60 * 1000);
 

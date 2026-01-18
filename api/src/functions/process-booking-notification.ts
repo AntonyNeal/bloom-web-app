@@ -14,7 +14,7 @@
 
 import { app, InvocationContext } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy/client';
-import { sendClinicianBookingSms } from '../services/sms';
+import { sendClinicianBookingSms, sendPatientBookingConfirmationSms, isPatientSmsNotificationEnabled } from '../services/sms';
 import { sendClinicianBookingNotification, sendPatientBookingConfirmation } from '../services/email';
 import { parseQueueMessage } from '../services/notifications/queue';
 import type { 
@@ -199,6 +199,8 @@ async function sendPatientConfirmationEmail(
       appointmentDateTime: new Date(message.booking.appointmentDateTime),
       appointmentType: message.booking.appointmentType,
       appointmentId: message.booking.appointmentId,
+      locationType: message.booking.locationType,
+      locationDetails: message.booking.locationDetails,
     });
 
     return {
@@ -248,15 +250,61 @@ async function processBookingNotification(
   if (message.type === 'patient_booking_confirmation') {
     context.log('[NotificationQueue] Sending patient booking confirmation...');
     
-    const emailResult = await sendPatientConfirmationEmail(message, context);
+    const results: { email?: ChannelResult; sms?: ChannelResult } = {};
+    
+    // Send email confirmation
+    if (message.channels.includes('email')) {
+      results.email = await sendPatientConfirmationEmail(message, context);
+      if (results.email.success) {
+        context.log('[NotificationQueue] Patient email sent successfully');
+      } else {
+        context.warn('[NotificationQueue] Patient email failed:', results.email.error);
+      }
+    }
+    
+    // Send SMS confirmation if phone available and SMS enabled
+    if (message.channels.includes('sms') && message.booking.patientPhone && isPatientSmsNotificationEnabled()) {
+      context.log('[NotificationQueue] Sending patient SMS confirmation...');
+      try {
+        const smsResult = await sendPatientBookingConfirmationSms({
+          patientPhone: message.booking.patientPhone,
+          patientFirstName: message.booking.patientFirstName,
+          practitionerName: message.practitionerName || 'Life Psychology',
+          appointmentDateTime: new Date(message.booking.appointmentDateTime),
+          appointmentType: message.booking.appointmentType,
+          locationType: message.booking.locationType,
+          locationDetails: message.booking.locationDetails,
+        });
+        
+        results.sms = {
+          success: smsResult.success,
+          messageId: smsResult.messageId,
+          error: smsResult.error,
+          provider: 'acs-sms',
+        };
+        
+        if (results.sms.success) {
+          context.log('[NotificationQueue] Patient SMS sent successfully');
+        } else {
+          context.warn('[NotificationQueue] Patient SMS failed:', results.sms.error);
+        }
+      } catch (error) {
+        context.error('[NotificationQueue] Patient SMS error:', error);
+        results.sms = {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
+    }
     
     const duration = Date.now() - startTime;
     context.log('[NotificationQueue] Patient confirmation complete', {
       messageId: message.messageId,
       patientEmail: message.booking.patientEmail,
+      patientPhone: message.booking.patientPhone ? 'present' : 'none',
       appointmentId: message.booking.appointmentId,
-      success: emailResult.success,
-      error: emailResult.error,
+      emailSuccess: results.email?.success ?? 'not-requested',
+      smsSuccess: results.sms?.success ?? 'not-requested',
       duration: `${duration}ms`,
     });
     return;

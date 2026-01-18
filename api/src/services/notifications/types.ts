@@ -36,6 +36,10 @@ export interface BookingNotificationMessage {
     patientPhone?: string;
     appointmentDateTime: string; // ISO string
     appointmentType?: string;
+    /** Location type: telehealth, in-person, or phone */
+    locationType?: 'telehealth' | 'in-person' | 'phone';
+    /** Location details: video link for telehealth, address for in-person */
+    locationDetails?: string;
   };
   /** Channels to send to (both will be attempted) */
   channels: NotificationChannel[];

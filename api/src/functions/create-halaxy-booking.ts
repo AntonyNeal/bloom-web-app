@@ -328,6 +328,10 @@ async function createHalaxyBooking(
           patientPhone: body.patient.phone,
           appointmentDateTime: new Date(body.appointmentDetails.startTime),
           appointmentType: body.appointmentDetails.appointmentType,
+          // All bookings are currently telehealth
+          locationType: 'telehealth',
+          // TODO: Get telehealth link from Halaxy appointment or practitioner config
+          // locationDetails: telehealthLink,
         },
         'Zoe Semmler' // TODO: Fetch practitioner name from Halaxy or database
       );

@@ -654,6 +654,10 @@ interface PatientBookingConfirmationContext {
   appointmentDateTime: Date;
   appointmentType?: string;
   appointmentId?: string;
+  /** Location type: telehealth, in-person, or phone */
+  locationType?: 'telehealth' | 'in-person' | 'phone';
+  /** Video link for telehealth, address for in-person */
+  locationDetails?: string;
 }
 
 /**
@@ -667,6 +671,8 @@ export async function sendPatientBookingConfirmation(context: PatientBookingConf
     practitionerName,
     appointmentDateTime,
     appointmentType,
+    locationType = 'telehealth',
+    locationDetails,
   } = context;
 
   // Format the appointment date/time nicely for Australian timezone
@@ -691,6 +697,76 @@ export async function sendPatientBookingConfirmation(context: PatientBookingConf
   const appointmentTypeDisplay = appointmentType === 'ndis-psychology-session' 
     ? 'NDIS Psychology Session'
     : 'Psychology Session';
+
+  // Determine location format display and content
+  const getLocationFormat = () => {
+    switch (locationType) {
+      case 'in-person':
+        return 'In-Person';
+      case 'phone':
+        return 'Phone Call';
+      case 'telehealth':
+      default:
+        return 'Telehealth (Video Call)';
+    }
+  };
+
+  // Build the join session section based on location type
+  const getJoinSessionSection = () => {
+    if (locationType === 'telehealth' && locationDetails) {
+      // Has a telehealth link - show prominent join button
+      return `
+    <div style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); padding: 24px; border-radius: 16px; margin: 24px 0; text-align: center;">
+      <h3 style="margin: 0 0 12px 0; color: #fff; font-size: 18px;">📹 Join Your Video Session</h3>
+      <p style="margin: 0 0 16px 0; color: #e0f2fe; font-size: 14px;">
+        Click the button below at your appointment time to join your session
+      </p>
+      <a href="${locationDetails}" target="_blank" style="display: inline-block; background: #fff; color: #0284c7; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+        🎥 Join Video Session
+      </a>
+      <p style="margin: 16px 0 0 0; color: #bae6fd; font-size: 12px;">
+        Please join 5 minutes before your scheduled time
+      </p>
+    </div>`;
+    } else if (locationType === 'telehealth') {
+      // Telehealth but no link yet - show placeholder
+      return `
+    <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #0ea5e9;">
+      <h3 style="margin: 0 0 12px 0; color: #0369a1; font-size: 16px;">📹 How to Join Your Session</h3>
+      <p style="margin: 0; color: #0c4a6e; font-size: 14px;">
+        You'll receive a Telehealth link closer to your appointment time. 
+        Please ensure you have a quiet, private space with a stable internet connection.
+      </p>
+    </div>`;
+    } else if (locationType === 'in-person' && locationDetails) {
+      // In-person with address
+      return `
+    <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #22c55e;">
+      <h3 style="margin: 0 0 12px 0; color: #166534; font-size: 16px;">📍 Appointment Location</h3>
+      <p style="margin: 0; color: #15803d; font-size: 14px;">
+        ${locationDetails}
+      </p>
+    </div>`;
+    } else if (locationType === 'phone') {
+      // Phone call
+      return `
+    <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #f59e0b;">
+      <h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 16px;">📞 Phone Session</h3>
+      <p style="margin: 0; color: #78350f; font-size: 14px;">
+        Your practitioner will call you at your registered phone number at your appointment time.
+        Please ensure you're in a quiet, private space and your phone is charged.
+      </p>
+    </div>`;
+    }
+    // Default fallback
+    return `
+    <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #0ea5e9;">
+      <h3 style="margin: 0 0 12px 0; color: #0369a1; font-size: 16px;">📹 Session Details</h3>
+      <p style="margin: 0; color: #0c4a6e; font-size: 14px;">
+        Further details about joining your session will be provided closer to your appointment time.
+      </p>
+    </div>`;
+  };
 
   const htmlContent = wrapInClientTemplate(`
     <h2 style="color: #333; margin-top: 0;">🎉 Your Appointment is Confirmed!</h2>
@@ -721,24 +797,18 @@ export async function sendPatientBookingConfirmation(context: PatientBookingConf
         </tr>
         <tr>
           <td style="padding: 10px 0; color: #047857; font-weight: 600;">Format:</td>
-          <td style="padding: 10px 0; color: #065f46;">Telehealth (Video Call)</td>
+          <td style="padding: 10px 0; color: #065f46;">${getLocationFormat()}</td>
         </tr>
       </table>
     </div>
     
-    <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #0ea5e9;">
-      <h3 style="margin: 0 0 12px 0; color: #0369a1; font-size: 16px;">📹 How to Join Your Session</h3>
-      <p style="margin: 0; color: #0c4a6e; font-size: 14px;">
-        You'll receive a Telehealth link closer to your appointment time. 
-        Please ensure you have a quiet, private space with a stable internet connection.
-      </p>
-    </div>
+    ${getJoinSessionSection()}
     
     <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #f59e0b;">
       <h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 16px;">📋 Before Your Appointment</h3>
       <ul style="margin: 0; padding-left: 20px; color: #78350f; font-size: 14px;">
         <li style="margin-bottom: 8px;">Ensure you're in a private, comfortable space</li>
-        <li style="margin-bottom: 8px;">Test your video and audio before the session</li>
+        ${locationType === 'telehealth' ? '<li style="margin-bottom: 8px;">Test your video and audio before the session</li>' : ''}
         <li style="margin-bottom: 8px;">Have a glass of water nearby</li>
         <li style="margin-bottom: 0;">Feel free to jot down any topics you'd like to discuss</li>
       </ul>
@@ -778,18 +848,28 @@ APPOINTMENT DETAILS
 ⏰ Time: ${formattedTime}
 🏷️ Type: ${appointmentTypeDisplay}
 👩‍⚕️ With: ${practitionerName}
-📹 Format: Telehealth (Video Call)
+📹 Format: ${getLocationFormat()}
 
-HOW TO JOIN YOUR SESSION
+${locationType === 'telehealth' && locationDetails ? `JOIN YOUR VIDEO SESSION
+-----------------------
+🎥 Click here to join: ${locationDetails}
+Please join 5 minutes before your scheduled time.
+` : locationType === 'telehealth' ? `HOW TO JOIN YOUR SESSION
 ------------------------
 You'll receive a Telehealth link closer to your appointment time.
 Please ensure you have a quiet, private space with a stable internet connection.
-
+` : locationType === 'in-person' && locationDetails ? `APPOINTMENT LOCATION
+--------------------
+📍 ${locationDetails}
+` : locationType === 'phone' ? `PHONE SESSION
+-------------
+Your practitioner will call you at your registered phone number at your appointment time.
+Please ensure you're in a quiet, private space and your phone is charged.
+` : ''}
 BEFORE YOUR APPOINTMENT
 -----------------------
 • Ensure you're in a private, comfortable space
-• Test your video and audio before the session
-• Have a glass of water nearby
+${locationType === 'telehealth' ? '• Test your video and audio before the session\n' : ''}• Have a glass of water nearby
 • Feel free to jot down any topics you'd like to discuss
 
 MEDICARE REBATES
@@ -1013,6 +1093,257 @@ Zoe & The ${COMPANY_NAME} Team
   );
 }
 
+// ============================================================================
+// APPOINTMENT REMINDER EMAIL - PATIENT
+// Client-facing - NO Bloom references, only Life Psychology Australia
+// ============================================================================
+
+interface PatientAppointmentReminderContext {
+  patientEmail: string;
+  patientFirstName: string;
+  practitionerName: string;
+  appointmentDateTime: Date;
+  telehealthLink?: string;
+}
+
+/**
+ * Send appointment reminder email to patient (24 hours before)
+ */
+export async function sendPatientAppointmentReminder(context: PatientAppointmentReminderContext) {
+  const {
+    patientEmail,
+    patientFirstName,
+    practitionerName,
+    appointmentDateTime,
+    telehealthLink,
+  } = context;
+
+  // Format the appointment date/time nicely for Australian timezone
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedDate = appointmentDateTime.toLocaleString('en-AU', dateOptions);
+  
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedTime = appointmentDateTime.toLocaleString('en-AU', timeOptions);
+
+  // Build join session section based on telehealth link availability
+  const joinSessionSection = telehealthLink ? `
+    <div style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); padding: 24px; border-radius: 16px; margin: 24px 0; text-align: center;">
+      <h3 style="margin: 0 0 12px 0; color: #fff; font-size: 18px;">📹 Join Your Session</h3>
+      <p style="margin: 0 0 16px 0; color: #e0f2fe; font-size: 14px;">
+        Click the button below at your appointment time
+      </p>
+      <a href="${telehealthLink}" target="_blank" style="display: inline-block; background: #fff; color: #0284c7; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+        🎥 Join Video Session
+      </a>
+      <p style="margin: 16px 0 0 0; color: #bae6fd; font-size: 12px;">
+        Please join 5 minutes before your scheduled time
+      </p>
+    </div>` : `
+    <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #0ea5e9;">
+      <h3 style="margin: 0 0 12px 0; color: #0369a1; font-size: 16px;">📹 Your Session</h3>
+      <p style="margin: 0; color: #0c4a6e; font-size: 14px;">
+        Please ensure you have a quiet, private space with a stable internet connection ready for your session.
+      </p>
+    </div>`;
+
+  const htmlContent = wrapInClientTemplate(`
+    <h2 style="color: #333; margin-top: 0;">⏰ Reminder: Your Appointment is Tomorrow!</h2>
+    
+    <p>Hi ${patientFirstName},</p>
+    
+    <p>This is a friendly reminder about your upcoming appointment with ${COMPANY_NAME}.</p>
+    
+    <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 24px; border-radius: 16px; margin: 24px 0; border: 1px solid #a7f3d0;">
+      <h3 style="margin: 0 0 16px 0; color: #065f46; font-size: 18px;">📅 Appointment Details</h3>
+      
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 10px 0; color: #047857; font-weight: 600; width: 100px;">Date:</td>
+          <td style="padding: 10px 0; color: #065f46; font-size: 16px;">${formattedDate}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; color: #047857; font-weight: 600;">Time:</td>
+          <td style="padding: 10px 0; color: #065f46; font-size: 16px; font-weight: 600;">${formattedTime}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; color: #047857; font-weight: 600;">With:</td>
+          <td style="padding: 10px 0; color: #065f46;">${practitionerName}</td>
+        </tr>
+      </table>
+    </div>
+    
+    ${joinSessionSection}
+    
+    <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #f59e0b;">
+      <h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 16px;">📋 Quick Checklist</h3>
+      <ul style="margin: 0; padding-left: 20px; color: #78350f; font-size: 14px;">
+        <li style="margin-bottom: 8px;">Find a private, comfortable space</li>
+        <li style="margin-bottom: 8px;">Test your video and audio</li>
+        <li style="margin-bottom: 8px;">Have a glass of water nearby</li>
+        <li style="margin-bottom: 0;">Note any topics you'd like to discuss</li>
+      </ul>
+    </div>
+    
+    <p style="color: #666; font-size: 14px; margin-top: 24px;">
+      Need to reschedule? Please let us know as soon as possible by replying to this email or contacting us at 
+      <a href="mailto:hello@life-psychology.com.au" style="color: #10b981;">hello@life-psychology.com.au</a>
+    </p>
+    
+    <p style="margin-top: 30px;">
+      We look forward to seeing you tomorrow!<br><br>
+      <strong>Warm regards,</strong><br>
+      <strong style="color: #10b981;">${practitionerName}</strong><br>
+      <span style="color: #666;">${COMPANY_NAME}</span>
+    </p>
+  `);
+
+  const plainTextContent = `
+⏰ Reminder: Your Appointment is Tomorrow!
+
+Hi ${patientFirstName},
+
+This is a friendly reminder about your upcoming appointment with ${COMPANY_NAME}.
+
+APPOINTMENT DETAILS
+-------------------
+📅 Date: ${formattedDate}
+⏰ Time: ${formattedTime}
+👩‍⚕️ With: ${practitionerName}
+${telehealthLink ? `\n🎥 Join Link: ${telehealthLink}` : ''}
+
+QUICK CHECKLIST
+---------------
+• Find a private, comfortable space
+• Test your video and audio
+• Have a glass of water nearby
+• Note any topics you'd like to discuss
+
+Need to reschedule? Please let us know as soon as possible by replying to this email or contacting us at hello@life-psychology.com.au
+
+We look forward to seeing you tomorrow!
+
+Warm regards,
+${practitionerName}
+${COMPANY_NAME}
+  `.trim();
+
+  return sendEmail(
+    patientEmail,
+    `⏰ Reminder: Appointment Tomorrow at ${formattedTime}`,
+    htmlContent,
+    plainTextContent
+  );
+}
+
+// ============================================================================
+// APPOINTMENT REMINDER EMAIL - CLINICIAN
+// Internal - can mention Bloom as the practitioner portal
+// ============================================================================
+
+interface ClinicianAppointmentReminderContext {
+  practitionerEmail: string;
+  practitionerFirstName: string;
+  patientName: string;
+  appointmentDateTime: Date;
+}
+
+/**
+ * Send appointment reminder email to clinician (24 hours before)
+ */
+export async function sendClinicianAppointmentReminder(context: ClinicianAppointmentReminderContext) {
+  const {
+    practitionerEmail,
+    practitionerFirstName,
+    patientName,
+    appointmentDateTime,
+  } = context;
+
+  // Format the appointment date/time nicely for Australian timezone
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedDate = appointmentDateTime.toLocaleString('en-AU', dateOptions);
+  
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedTime = appointmentDateTime.toLocaleString('en-AU', timeOptions);
+
+  const htmlContent = wrapInTemplate(`
+    <h2 style="color: #333; margin-top: 0;">⏰ Appointment Reminder - Tomorrow</h2>
+    
+    <p>Hi ${practitionerFirstName},</p>
+    
+    <p>Just a friendly reminder about your upcoming session.</p>
+    
+    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #fcd34d;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #92400e; font-weight: 600; width: 80px;">📅</td>
+          <td style="padding: 8px 0; color: #78350f;">${formattedDate}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #92400e; font-weight: 600;">⏰</td>
+          <td style="padding: 8px 0; color: #78350f; font-weight: 600;">${formattedTime}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #92400e; font-weight: 600;">👤</td>
+          <td style="padding: 8px 0; color: #78350f;">${patientName}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <p style="color: #666; font-size: 14px;">
+      View full details in <a href="https://app.halaxy.com" style="color: #10b981;">Halaxy</a> 
+      or your <a href="https://bloom.life-psychology.com.au" style="color: #10b981;">Bloom dashboard</a>.
+    </p>
+    
+    <p style="margin-top: 20px; color: #666;">
+      - Life Psychology Notifications
+    </p>
+  `);
+
+  const plainTextContent = `
+⏰ Appointment Reminder - Tomorrow
+
+Hi ${practitionerFirstName},
+
+Just a friendly reminder about your upcoming session.
+
+📅 ${formattedDate}
+⏰ ${formattedTime}
+👤 ${patientName}
+
+View full details in Halaxy or your Bloom dashboard.
+
+- Life Psychology Notifications
+  `.trim();
+
+  return sendEmail(
+    practitionerEmail,
+    `⏰ Tomorrow: ${patientName} at ${formattedTime}`,
+    htmlContent,
+    plainTextContent
+  );
+}
+
 // Export email service
 export const emailService = {
   sendDenialEmail,
@@ -1023,6 +1354,8 @@ export const emailService = {
   sendWelcomeEmail,
   sendClinicianBookingNotification,
   sendPatientBookingConfirmation,
+  sendPatientAppointmentReminder,
+  sendClinicianAppointmentReminder,
 };
 
 export default emailService;

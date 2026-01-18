@@ -59,6 +59,8 @@ export async function queueBookingNotification(
     patientPhone?: string;
     appointmentDateTime: Date;
     appointmentType?: string;
+    locationType?: 'telehealth' | 'in-person' | 'phone';
+    locationDetails?: string;
   },
   channels: NotificationChannel[] = ['sms', 'email']
 ): Promise<string | null> {
@@ -83,6 +85,8 @@ export async function queueBookingNotification(
       patientPhone: booking.patientPhone,
       appointmentDateTime: booking.appointmentDateTime.toISOString(),
       appointmentType: booking.appointmentType,
+      locationType: booking.locationType,
+      locationDetails: booking.locationDetails,
     },
     channels,
     queuedAt: new Date().toISOString(),
@@ -127,6 +131,8 @@ export async function queuePatientConfirmation(
     patientPhone?: string;
     appointmentDateTime: Date;
     appointmentType?: string;
+    locationType?: 'telehealth' | 'in-person' | 'phone';
+    locationDetails?: string;
   },
   practitionerName: string
 ): Promise<string | null> {
@@ -151,8 +157,10 @@ export async function queuePatientConfirmation(
       patientPhone: booking.patientPhone,
       appointmentDateTime: booking.appointmentDateTime.toISOString(),
       appointmentType: booking.appointmentType,
+      locationType: booking.locationType,
+      locationDetails: booking.locationDetails,
     },
-    channels: ['email'], // Patient confirmations are email only
+    channels: booking.patientPhone ? ['email', 'sms'] : ['email'], // Include SMS if phone available
     queuedAt: new Date().toISOString(),
     retryCount: 0,
   };

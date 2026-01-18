@@ -147,6 +147,106 @@ export async function sendClinicianBookingSms(context: ClinicianBookingSmsContex
 }
 
 /**
+ * Context for sending patient booking confirmation SMS
+ */
+interface PatientBookingConfirmationSmsContext {
+  patientPhone: string;
+  patientFirstName: string;
+  practitionerName: string;
+  appointmentDateTime: Date;
+  appointmentType?: string;
+  locationType?: 'telehealth' | 'in-person' | 'phone';
+  locationDetails?: string;
+}
+
+/**
+ * Send SMS confirmation to patient when a booking is made
+ */
+export async function sendPatientBookingConfirmationSms(context: PatientBookingConfirmationSmsContext): Promise<SmsResult> {
+  const {
+    patientPhone,
+    patientFirstName,
+    practitionerName,
+    appointmentDateTime,
+    appointmentType,
+    locationType,
+    locationDetails,
+  } = context;
+
+  // Format the appointment date/time for Australian timezone
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedDateTime = appointmentDateTime.toLocaleString('en-AU', dateOptions);
+
+  // Get appointment type display
+  const appointmentTypeDisplay = appointmentType === 'ndis-psychology-session' 
+    ? 'NDIS session' 
+    : 'session';
+
+  // Build message based on location type (keep under 160 chars for single SMS)
+  let message: string;
+  if (locationType === 'telehealth' && locationDetails) {
+    // Include video link for telehealth
+    message = `Hi ${patientFirstName}! Your ${appointmentTypeDisplay} with ${practitionerName} is confirmed for ${formattedDateTime}. Join: ${locationDetails}`;
+  } else {
+    // Default message with email reference
+    message = `Hi ${patientFirstName}! Your ${appointmentTypeDisplay} with ${practitionerName} is confirmed for ${formattedDateTime}. Check your email for details - Life Psychology`;
+  }
+
+  return sendSms(patientPhone, message);
+}
+
+/**
+ * Context for sending appointment reminder SMS
+ */
+interface AppointmentReminderSmsContext {
+  recipientPhone: string;
+  recipientFirstName: string;
+  appointmentDateTime: Date;
+  practitionerName?: string; // For patient reminders
+  patientName?: string; // For clinician reminders
+  telehealthLink?: string;
+}
+
+/**
+ * Send appointment reminder SMS to patient (24 hours before)
+ */
+export async function sendPatientAppointmentReminderSms(context: AppointmentReminderSmsContext): Promise<SmsResult> {
+  const {
+    recipientPhone,
+    recipientFirstName,
+    appointmentDateTime,
+    practitionerName,
+  } = context;
+
+  // Format time only (they know the date from booking)
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedTime = appointmentDateTime.toLocaleString('en-AU', timeOptions);
+  
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedDay = appointmentDateTime.toLocaleString('en-AU', dateOptions);
+
+  const message = `Hi ${recipientFirstName}! Reminder: Your session with ${practitionerName || 'Life Psychology'} is tomorrow (${formattedDay}) at ${formattedTime}. We'll email your telehealth link soon - Life Psychology`;
+
+  return sendSms(recipientPhone, message);
+}
+
+/**
  * Check if SMS notifications are enabled for clinicians
  */
 export function isSmsNotificationEnabled(): boolean {
@@ -155,9 +255,20 @@ export function isSmsNotificationEnabled(): boolean {
   return enabled !== 'false'; // Default to enabled
 }
 
+/**
+ * Check if patient SMS notifications are enabled
+ */
+export function isPatientSmsNotificationEnabled(): boolean {
+  const enabled = process.env.PATIENT_SMS_NOTIFICATIONS_ENABLED;
+  return enabled !== 'false'; // Default to enabled
+}
+
 export const smsService = {
   sendClinicianBookingSms,
+  sendPatientBookingConfirmationSms,
+  sendPatientAppointmentReminderSms,
   isSmsNotificationEnabled,
+  isPatientSmsNotificationEnabled,
 };
 
 export default smsService;

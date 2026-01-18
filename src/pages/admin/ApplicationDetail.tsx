@@ -290,17 +290,18 @@ function ApplicationDetailPage({ applicationId }: Props) {
   // Determine which workflow actions are available based on current status
   const getAvailableActions = (): WorkflowAction[] => {
     if (!application) return [];
-    const status = application.ApplicationStatus;
+    // Normalize status to lowercase for comparison (handles both 'Waitlisted' and 'waitlisted')
+    const status = application.ApplicationStatus?.toLowerCase();
     
     // Actions available based on current status
-    if (status === 'Received' || status === 'Reviewed') {
+    if (status === 'received' || status === 'reviewed') {
       return ['deny', 'waitlist', 'interview', 'accept'];
     }
-    if (status === 'Waitlisted') {
+    if (status === 'waitlisted') {
       // Waitlisted = we liked them, just no space right now. Interview or accept when ready.
       return ['interview', 'accept'];
     }
-    if (status === 'Interview Scheduled') {
+    if (status === 'interview scheduled') {
       return ['deny', 'waitlist', 'accept'];
     }
     return [];

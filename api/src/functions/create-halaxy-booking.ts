@@ -20,8 +20,9 @@ import {
 import { getHalaxyClient } from '../services/halaxy/client';
 import { getDbConnection } from '../services/database';
 import { queueBookingNotification, queuePatientConfirmation } from '../services/notifications/queue';
+import { sendAdminBookingNotificationSms } from '../services/sms';
+import { sendAdminBookingNotification } from '../services/email';
 import * as sql from 'mssql';
-
 interface PatientData {
   firstName: string;
   lastName: string;
@@ -292,7 +293,7 @@ async function createHalaxyBooking(
     // Step 3: Queue notifications for async processing (fire-and-forget)
     // Notification failures do NOT block the booking - it's already confirmed in Halaxy
     
-    // 3a: Queue clinician notification (email only - no SMS without phone numbers)
+    // 3a: Queue clinician notification (email + SMS)
     try {
       const notificationId = await queueBookingNotification(
         practitionerId,
@@ -305,7 +306,7 @@ async function createHalaxyBooking(
           appointmentDateTime: new Date(body.appointmentDetails.startTime),
           appointmentType: body.appointmentDetails.appointmentType,
         },
-        ['email'] // Email only - SMS disabled until phone numbers available
+        ['email', 'sms'] // Both channels - SMS fetches phone from Halaxy
       );
 
       if (notificationId) {
@@ -343,6 +344,42 @@ async function createHalaxyBooking(
       }
     } catch (queueError) {
       context.warn('Error queuing patient confirmation:', queueError);
+    }
+
+    // 3c: Send admin/owner notifications (Julian) - email + SMS
+    try {
+      // Admin email
+      const adminEmailResult = await sendAdminBookingNotification({
+        patientFirstName: body.patient.firstName,
+        patientLastName: body.patient.lastName,
+        patientEmail: body.patient.email,
+        patientPhone: body.patient.phone,
+        practitionerName: 'Zoe Semmler',
+        appointmentDateTime: new Date(body.appointmentDetails.startTime),
+        appointmentType: body.appointmentDetails.appointmentType,
+      });
+      
+      if (adminEmailResult.success) {
+        context.log(`Admin email sent: ${adminEmailResult.messageId}`);
+      } else {
+        context.warn('Admin email failed:', adminEmailResult.error);
+      }
+
+      // Admin SMS
+      const adminSmsResult = await sendAdminBookingNotificationSms({
+        patientFirstName: body.patient.firstName,
+        patientLastName: body.patient.lastName,
+        appointmentDateTime: new Date(body.appointmentDetails.startTime),
+        practitionerName: 'Zoe',
+      });
+      
+      if (adminSmsResult.success) {
+        context.log(`Admin SMS sent: ${adminSmsResult.messageId}`);
+      } else {
+        context.warn('Admin SMS failed:', adminSmsResult.error);
+      }
+    } catch (adminError) {
+      context.warn('Error sending admin notifications:', adminError);
     }
 
     context.log(`[PERF] Total booking time: ${Date.now() - bookingStartTime}ms`);

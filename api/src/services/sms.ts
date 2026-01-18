@@ -263,10 +263,41 @@ export function isPatientSmsNotificationEnabled(): boolean {
   return enabled !== 'false'; // Default to enabled
 }
 
+/**
+ * Send admin/owner notification for new bookings
+ * Julian Della Bosca receives SMS for every booking
+ */
+export async function sendAdminBookingNotificationSms(context: {
+  patientFirstName: string;
+  patientLastName: string;
+  appointmentDateTime: Date;
+  practitionerName?: string;
+}): Promise<SmsResult> {
+  const adminPhone = process.env.ADMIN_NOTIFICATION_PHONE || '0401527587';
+  
+  // Format the appointment date/time for Australian timezone
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedDateTime = context.appointmentDateTime.toLocaleString('en-AU', dateOptions);
+
+  const practitioner = context.practitionerName || 'Zoe';
+  const message = `New booking! ${context.patientFirstName} ${context.patientLastName} with ${practitioner} on ${formattedDateTime} - Life Psychology`;
+
+  return sendSms(adminPhone, message);
+}
+
 export const smsService = {
   sendClinicianBookingSms,
   sendPatientBookingConfirmationSms,
   sendPatientAppointmentReminderSms,
+  sendAdminBookingNotificationSms,
   isSmsNotificationEnabled,
   isPatientSmsNotificationEnabled,
 };

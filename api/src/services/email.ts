@@ -642,6 +642,113 @@ The ${COMPANY_NAME} Team
 }
 
 // ============================================================================
+// ADMIN BOOKING NOTIFICATION EMAIL
+// Internal - simple summary for business owner (Julian)
+// ============================================================================
+
+interface AdminBookingNotificationContext {
+  patientFirstName: string;
+  patientLastName: string;
+  patientEmail: string;
+  patientPhone?: string;
+  practitionerName: string;
+  appointmentDateTime: Date;
+  appointmentType?: string;
+}
+
+/**
+ * Send booking notification email to admin/business owner
+ * Simple summary - no telehealth link needed
+ */
+export async function sendAdminBookingNotification(context: AdminBookingNotificationContext) {
+  const {
+    patientFirstName,
+    patientLastName,
+    patientEmail,
+    patientPhone,
+    practitionerName,
+    appointmentDateTime,
+    appointmentType,
+  } = context;
+
+  // Format the appointment date/time for Australian timezone
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedDateTime = appointmentDateTime.toLocaleString('en-AU', dateOptions);
+
+  const appointmentTypeDisplay = appointmentType === 'ndis-psychology-session' 
+    ? 'NDIS Psychology Session'
+    : 'Standard Psychology Session';
+
+  const htmlContent = wrapInTemplate(`
+    <h2 style="color: #333; margin-top: 0;">💰 New Booking!</h2>
+    
+    <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #a7f3d0;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #047857; font-weight: 600; width: 120px;">Client:</td>
+          <td style="padding: 8px 0; color: #065f46; font-weight: 600;">${patientFirstName} ${patientLastName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #047857; font-weight: 600;">Practitioner:</td>
+          <td style="padding: 8px 0; color: #065f46;">${practitionerName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #047857; font-weight: 600;">When:</td>
+          <td style="padding: 8px 0; color: #065f46;">${formattedDateTime}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #047857; font-weight: 600;">Type:</td>
+          <td style="padding: 8px 0; color: #065f46;">${appointmentTypeDisplay}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #047857; font-weight: 600;">Email:</td>
+          <td style="padding: 8px 0; color: #065f46;"><a href="mailto:${patientEmail}" style="color: #10b981;">${patientEmail}</a></td>
+        </tr>
+        ${patientPhone ? `
+        <tr>
+          <td style="padding: 8px 0; color: #047857; font-weight: 600;">Phone:</td>
+          <td style="padding: 8px 0; color: #065f46;">${patientPhone}</td>
+        </tr>
+        ` : ''}
+      </table>
+    </div>
+    
+    <p style="color: #666; font-size: 14px;">
+      View in <a href="https://app.halaxy.com" style="color: #10b981;">Halaxy</a>
+    </p>
+  `);
+
+  const plainTextContent = `
+💰 New Booking!
+
+Client: ${patientFirstName} ${patientLastName}
+Practitioner: ${practitionerName}
+When: ${formattedDateTime}
+Type: ${appointmentTypeDisplay}
+Email: ${patientEmail}
+${patientPhone ? `Phone: ${patientPhone}` : ''}
+
+View in Halaxy: https://app.halaxy.com
+  `.trim();
+
+  return sendEmail(
+    ADMIN_NOTIFICATION_EMAIL,
+    `💰 New Booking: ${patientFirstName} ${patientLastName} - ${practitionerName}`,
+    htmlContent,
+    plainTextContent
+  );
+}
+
+// ============================================================================
 // PATIENT BOOKING CONFIRMATION EMAIL
 // Client-facing - NO Bloom references, only Life Psychology Australia
 // ============================================================================
@@ -1353,6 +1460,7 @@ export const emailService = {
   sendOfferEmail,
   sendWelcomeEmail,
   sendClinicianBookingNotification,
+  sendAdminBookingNotification,
   sendPatientBookingConfirmation,
   sendPatientAppointmentReminder,
   sendClinicianAppointmentReminder,

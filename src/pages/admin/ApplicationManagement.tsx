@@ -748,7 +748,7 @@ export function Admin() {
                           : 'bg-amber-50 border-amber-200'
                       }`}>
                         <p className="text-sm font-medium mb-2">
-                          📄 Contract Required for Accept
+                          📄 Contract Required for Offer
                         </p>
                         {selectedApp.contract_url ? (
                           <div className="flex items-center justify-between">
@@ -824,7 +824,21 @@ export function Admin() {
                       </div>
                       
                       {/* Action Buttons */}
-                      <div className="grid grid-cols-2 gap-2">
+                      {/* Send Offer - main action when contract is ready */}
+                      <Button
+                        onClick={() => sendOffer(selectedApp.id)}
+                        disabled={!selectedApp.contract_url || isSendingInvite}
+                        className={cn(
+                          "w-full",
+                          !selectedApp.contract_url && "opacity-30 bg-gray-400 cursor-not-allowed pointer-events-none",
+                          selectedApp.contract_url && "bg-emerald-600 hover:bg-emerald-700"
+                        )}
+                        size="sm"
+                      >
+                        {isSendingInvite ? "⏳ Sending..." : "📨 Send Offer (with Contract)"}
+                      </Button>
+                      
+                      <div className="grid grid-cols-3 gap-2">
                         <Button
                           onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
                           variant="secondary"
@@ -838,17 +852,6 @@ export function Admin() {
                           size="sm"
                         >
                           ⏳ Waitlist
-                        </Button>
-                        <Button
-                          onClick={() => updateStatus(selectedApp.id, "accepted")}
-                          disabled={!selectedApp.contract_url}
-                          className={cn(
-                            "bg-emerald-600 hover:bg-emerald-700",
-                            !selectedApp.contract_url && "opacity-30 bg-gray-400 cursor-not-allowed pointer-events-none hover:bg-gray-400"
-                          )}
-                          size="sm"
-                        >
-                          ✅ Accept
                         </Button>
                         <Button
                           onClick={() => updateStatus(selectedApp.id, "denied")}
@@ -1273,12 +1276,16 @@ export function Admin() {
                         ✓ Mark Interview Scheduled
                       </Button>
                       <Button
-                        onClick={() => updateStatus(selectedApp.id, "accepted")}
-                        variant="default"
+                        onClick={() => sendOffer(selectedApp.id)}
+                        disabled={!selectedApp.contract_url || isSendingInvite}
+                        className={cn(
+                          "w-full",
+                          !selectedApp.contract_url && "opacity-30 bg-gray-400 cursor-not-allowed pointer-events-none",
+                          selectedApp.contract_url && "bg-emerald-600 hover:bg-emerald-700"
+                        )}
                         size="sm"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700"
                       >
-                        ✅ Accept
+                        {isSendingInvite ? "⏳ Sending..." : selectedApp.contract_url ? "📨 Send Offer" : "📨 Send Offer (needs contract)"}
                       </Button>
                     </div>
                   )}

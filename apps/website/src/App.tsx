@@ -41,7 +41,6 @@ const Privacy = lazy(() => import('./pages/Privacy'));
 const CounsellingNewcastle = lazy(() => import('./pages/CounsellingNewcastle'));
 const BookingSuccess = lazy(() => import('./pages/BookingSuccess'));
 const TestConversions = lazy(() => import('./pages/TestConversions'));
-const JoinUs = lazy(() => import('./pages/JoinUs'));
 import { log } from './utils/logger';
 
 function App() {
@@ -193,7 +192,6 @@ function App() {
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/privacy" element={<Privacy />} />
-            <Route path="/join-us" element={<JoinUs />} />
             <Route
               path="/counselling-newcastle"
               element={<CounsellingNewcastle />}

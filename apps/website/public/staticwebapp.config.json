@@ -21,6 +21,11 @@
       "statusCode": 301
     },
     {
+      "route": "/join-us",
+      "redirect": "https://bloom.life-psychology.com.au/careers",
+      "statusCode": 301
+    },
+    {
       "route": "/about",
       "headers": {
         "Cache-Control": "no-cache, no-store, must-revalidate"
@@ -52,12 +57,6 @@
     },
     {
       "route": "/privacy",
-      "headers": {
-        "Cache-Control": "no-cache, no-store, must-revalidate"
-      }
-    },
-    {
-      "route": "/join-us",
       "headers": {
         "Cache-Control": "no-cache, no-store, must-revalidate"
       }

@@ -1222,12 +1222,30 @@ export function Admin() {
                         </p>
                       )}
                       <Button
-                        onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
+                        onClick={() => {
+                          // Open email to schedule interview - don't change status yet
+                          const subject = encodeURIComponent(`Interview Request - Bloom Psychology`);
+                          const body = encodeURIComponent(
+                            `Hi ${selectedApp.first_name},\n\n` +
+                            `We'd love to schedule an interview with you to discuss joining Bloom.\n\n` +
+                            `Please let us know your availability for a brief call.\n\n` +
+                            `Best regards,\nBloom Team`
+                          );
+                          window.open(`mailto:${selectedApp.email}?subject=${subject}&body=${body}`, '_blank');
+                        }}
                         variant="secondary"
                         size="sm"
                         className="w-full"
                       >
-                        📅 Schedule Interview
+                        📧 Email to Schedule Interview
+                      </Button>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        ✓ Mark Interview Scheduled
                       </Button>
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "accepted")}

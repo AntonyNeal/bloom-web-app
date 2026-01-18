@@ -306,6 +306,14 @@ export function Admin() {
         throw new Error(data.error || "Failed to send onboarding invite");
       }
 
+      // Optimistic update - immediately show the email was sent
+      if (data.emailSent && selectedApp) {
+        setSelectedApp({
+          ...selectedApp,
+          onboarding_email_sent_at: new Date().toISOString(),
+        });
+      }
+
       toast({
         title: "✅ Application Accepted!",
         description: data.emailSent 
@@ -313,12 +321,19 @@ export function Admin() {
           : 'Practitioner created. Email will be sent after Halaxy verification.',
       });
 
-      // Refresh
+      // Small delay to ensure database has committed, then refresh
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Refresh the applications list
       await fetchApplications();
+      
+      // Refresh the selected app to show updated onboarding_email_sent_at
       if (selectedApp?.id === id) {
         const appResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`);
-        const updatedApp = await appResponse.json();
-        setSelectedApp(updatedApp);
+        if (appResponse.ok) {
+          const updatedApp = await appResponse.json();
+          setSelectedApp(updatedApp);
+        }
       }
     } catch (error) {
       console.error("Failed to accept application:", error);

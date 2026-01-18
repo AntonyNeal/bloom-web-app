@@ -1308,13 +1308,25 @@ export function JoinUs() {
                   >
                     Cover Letter <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
                   </Label>
+                  <p
+                    style={{
+                      fontSize: '13px',
+                      color: '#6b7280',
+                      marginBottom: '12px',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    We're building a tech-forward, collaborative practice. We'd love to hear about your vision, 
+                    and any experience you have with technology, social media, or building a business — these aren't 
+                    requirements, just things we value.
+                  </p>
                   <Textarea
                     id="cover_letter"
                     required
                     rows={6}
                     value={formData.cover_letter}
                     onChange={(e) => setFormData({ ...formData, cover_letter: e.target.value })}
-                    placeholder="Tell us about yourself, your practice philosophy, and why you're interested in joining Life Psychology Australia."
+                    placeholder="Tell us about yourself, your practice philosophy, and why you're interested in joining. Feel free to mention any tech skills, social media experience, or entrepreneurial interests..."
                     style={{
                       width: '100%',
                       minHeight: '200px',

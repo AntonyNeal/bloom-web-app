@@ -1287,7 +1287,7 @@ export function JoinUs() {
                       letterSpacing: '-0.01em',
                     }}
                   >
-                    Cover Letter
+                    Tell Us About You
                   </h2>
                 </div>
 
@@ -1296,29 +1296,16 @@ export function JoinUs() {
                   initial={{ opacity: 0 }}
                   viewport={{ once: true }}
                 >
-                  <Label
-                    htmlFor="cover_letter"
-                    style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      color: '#3A3A3A',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    Cover Letter <span style={{ color: bloomStyles.colors.clayTerracotta }}>*</span>
-                  </Label>
                   <p
                     style={{
-                      fontSize: '13px',
+                      fontSize: '14px',
                       color: '#6b7280',
                       marginBottom: '12px',
-                      lineHeight: 1.5,
+                      lineHeight: 1.6,
                     }}
                   >
-                    We're building a tech-forward, collaborative practice. We'd love to hear about your vision, 
-                    and any experience you have with technology, social media, or building a business — these aren't 
-                    requirements, just things we value.
+                    Share your vision for your practice and what draws you to Bloom. 
+                    <span style={{ color: bloomStyles.colors.clayTerracotta }}> *</span>
                   </p>
                   <Textarea
                     id="cover_letter"
@@ -1326,7 +1313,7 @@ export function JoinUs() {
                     rows={6}
                     value={formData.cover_letter}
                     onChange={(e) => setFormData({ ...formData, cover_letter: e.target.value })}
-                    placeholder="Tell us about yourself, your practice philosophy, and why you're interested in joining. Feel free to mention any tech skills, social media experience, or entrepreneurial interests..."
+                    placeholder="What's your practice philosophy? Why Bloom? Bonus points for tech skills, social media savvy, or entrepreneurial spark — but definitely not required!"
                     style={{
                       width: '100%',
                       minHeight: '200px',

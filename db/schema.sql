@@ -120,6 +120,9 @@ GO
 CREATE TABLE practitioners (
   id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
   halaxy_practitioner_id NVARCHAR(100) UNIQUE NOT NULL,
+  halaxy_practitioner_role_id NVARCHAR(50) NULL,
+  azure_ad_object_id NVARCHAR(100) NULL,
+  company_email NVARCHAR(255) NULL,
   first_name NVARCHAR(100) NOT NULL,
   last_name NVARCHAR(100) NOT NULL,
   display_name NVARCHAR(200),
@@ -131,6 +134,9 @@ CREATE TABLE practitioners (
   status NVARCHAR(20) DEFAULT 'active',
   is_active BIT DEFAULT 1,
   sync_enabled BIT DEFAULT 1,
+  onboarding_token NVARCHAR(100) NULL,
+  onboarding_token_expires_at DATETIME2 NULL,
+  onboarding_completed_at DATETIME2 NULL,
   created_at DATETIME2 DEFAULT GETUTCDATE(),
   updated_at DATETIME2 DEFAULT GETUTCDATE(),
   last_synced_at DATETIME2
@@ -138,6 +144,8 @@ CREATE TABLE practitioners (
 
 CREATE INDEX idx_practitioners_halaxy_id ON practitioners(halaxy_practitioner_id);
 CREATE INDEX idx_practitioners_active ON practitioners(is_active);
+CREATE INDEX idx_practitioners_azure_ad ON practitioners(azure_ad_object_id) WHERE azure_ad_object_id IS NOT NULL;
+CREATE UNIQUE INDEX idx_practitioners_company_email ON practitioners(company_email) WHERE company_email IS NOT NULL;
 GO
 
 -- ============================================================================

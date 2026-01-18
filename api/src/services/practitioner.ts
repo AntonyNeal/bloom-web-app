@@ -243,6 +243,65 @@ export const practitionerService = {
   createPractitionerFromApplication,
   validateOnboardingToken,
   completeOnboarding,
+  getPractitionerByAzureId,
 };
 
 export default practitionerService;
+
+// ============================================================================
+// Database Lookup Functions
+// ============================================================================
+
+import { getDbConfig } from './database';
+
+/**
+ * Look up a practitioner by their Azure AD Object ID
+ * Used for dashboard authentication
+ */
+export async function getPractitionerByAzureId(azureAdObjectId: string): Promise<{
+  id: string;
+  halaxy_practitioner_id: string;
+  halaxy_practitioner_role_id: string | null;
+  first_name: string;
+  last_name: string;
+  display_name: string | null;
+  email: string;
+  company_email: string | null;
+} | null> {
+  let pool: sql.ConnectionPool | null = null;
+  
+  try {
+    pool = await sql.connect(getDbConfig());
+    
+    const result = await pool.request()
+      .input('azureAdObjectId', sql.NVarChar, azureAdObjectId)
+      .query(`
+        SELECT 
+          id,
+          halaxy_practitioner_id,
+          halaxy_practitioner_role_id,
+          first_name,
+          last_name,
+          display_name,
+          email,
+          company_email
+        FROM practitioners
+        WHERE azure_ad_object_id = @azureAdObjectId
+          AND is_active = 1
+          AND onboarding_completed_at IS NOT NULL
+      `);
+    
+    if (result.recordset.length === 0) {
+      return null;
+    }
+    
+    return result.recordset[0];
+  } catch (error) {
+    console.error('[getPractitionerByAzureId] Database error:', error);
+    throw error;
+  } finally {
+    if (pool) {
+      await pool.close();
+    }
+  }
+}

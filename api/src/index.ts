@@ -32,6 +32,7 @@ import './functions/accept-application';
 import './functions/resend-onboarding';
 import './functions/practitioners-admin';
 import './functions/admin-reset-application';
+import './functions/admin-register-practitioner';
 import './functions/send-offer';
 import './functions/accept-offer';
 import './functions/upload-signed-contract';

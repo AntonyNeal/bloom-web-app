@@ -20,6 +20,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy';
 import { getPractitionerConfig } from '../config/practitioner-mapping';
+import { getPractitionerByAzureId } from '../services/practitioner';
 import type { FHIRAppointment } from '../services/halaxy/types';
 
 // ============================================================================
@@ -189,9 +190,35 @@ async function clinicianDashboardHandler(
     }
 
     // ========================================================================
-    // Look up practitioner config from mapping
+    // Look up practitioner from database first, then fall back to config file
     // ========================================================================
-    const practitionerConfig = getPractitionerConfig(azureUserId);
+    let practitionerConfig: {
+      halaxyPractitionerId: string;
+      halaxyPractitionerRoleId: string;
+      displayName: string;
+      email: string;
+    } | null = null;
+
+    // First, try to find in the database (for practitioners who completed onboarding)
+    try {
+      const dbPractitioner = await getPractitionerByAzureId(azureUserId);
+      if (dbPractitioner) {
+        practitionerConfig = {
+          halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
+          halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id || `PR-${dbPractitioner.halaxy_practitioner_id}`,
+          displayName: dbPractitioner.display_name || `${dbPractitioner.first_name} ${dbPractitioner.last_name}`,
+          email: dbPractitioner.company_email || dbPractitioner.email,
+        };
+        context.log(`Found practitioner in database: ${practitionerConfig.displayName}`);
+      }
+    } catch (dbError) {
+      context.warn('Database lookup failed, falling back to config file:', dbError);
+    }
+
+    // Fall back to hardcoded config file (for existing/test practitioners)
+    if (!practitionerConfig) {
+      practitionerConfig = getPractitionerConfig(azureUserId);
+    }
     
     if (!practitionerConfig) {
       context.warn(`Unknown Azure user attempted dashboard access: ${azureUserId}`);
@@ -203,7 +230,7 @@ async function clinicianDashboardHandler(
           error: 'Access denied. Your account is not registered as a practitioner.',
           debug: {
             azureUserId,
-            message: 'Add this Azure User ID to api/src/config/practitioner-mapping.ts to grant access'
+            message: 'Complete onboarding or contact admin to register your account'
           }
         },
       };

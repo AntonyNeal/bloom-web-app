@@ -277,19 +277,25 @@ async function onboardingHandler(
       }
 
       // Update practitioner to mark onboarding complete
-      // Note: Dev database has minimal schema - only updating columns that exist
+      // Store Azure AD Object ID and company email for authentication mapping
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
         .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
+        .input('halaxy_practitioner_role_id', sql.NVarChar, halaxyPractitionerRoleId)
+        .input('azure_ad_object_id', sql.NVarChar, azureObjectId)
+        .input('company_email', sql.NVarChar, companyEmail)
         .query(`
           UPDATE practitioners
           SET 
             halaxy_practitioner_id = COALESCE(@halaxy_practitioner_id, halaxy_practitioner_id),
+            halaxy_practitioner_role_id = COALESCE(@halaxy_practitioner_role_id, halaxy_practitioner_role_id),
+            azure_ad_object_id = COALESCE(@azure_ad_object_id, azure_ad_object_id),
+            company_email = COALESCE(@company_email, company_email),
             onboarding_completed_at = GETDATE(),
             onboarding_token = NULL,
             onboarding_token_expires_at = NULL,
             updated_at = GETDATE()
-          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.halaxy_practitioner_id
+          OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.halaxy_practitioner_id, INSERTED.azure_ad_object_id, INSERTED.company_email
           WHERE onboarding_token = @token
             AND onboarding_completed_at IS NULL
             AND onboarding_token_expires_at > GETDATE()

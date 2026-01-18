@@ -1028,6 +1028,28 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
   monthlyStats: monthlyOverride,
 }) => {
   const prefersReducedMotion = useReducedMotion();
+  const [showDebug, setShowDebug] = useState(false);
+  const [azureUserId, setAzureUserId] = useState<string | null>(null);
+  
+  // Get Azure User ID for debugging
+  React.useEffect(() => {
+    const getAzureId = async () => {
+      try {
+        const msalInstance = (window as { msalInstance?: { getAllAccounts: () => { homeAccountId?: string; localAccountId?: string }[] } }).msalInstance;
+        if (msalInstance) {
+          const accounts = msalInstance.getAllAccounts();
+          if (accounts.length > 0) {
+            const account = accounts[0];
+            const userId = account.homeAccountId?.split('.')[0] || account.localAccountId || null;
+            setAzureUserId(userId);
+          }
+        }
+      } catch (e) {
+        console.error('Error getting Azure ID:', e);
+      }
+    };
+    getAzureId();
+  }, []);
   
   // Fetch dashboard data from API (or use sample data as fallback)
   const { dashboard, loading } = useDashboard(practitionerId);
@@ -1094,6 +1116,47 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}
     >
+      {/* Developer Debug Banner - shows Azure ID for account setup */}
+      {azureUserId && (
+        <div
+          onClick={() => setShowDebug(!showDebug)}
+          style={{
+            position: 'fixed',
+            bottom: '16px',
+            right: '16px',
+            background: showDebug ? colors.sage : 'rgba(122, 141, 122, 0.8)',
+            color: 'white',
+            padding: showDebug ? '12px 16px' : '8px 12px',
+            borderRadius: '8px',
+            fontSize: '12px',
+            fontFamily: 'monospace',
+            cursor: 'pointer',
+            zIndex: 1000,
+            boxShadow: shadows.lifted,
+            maxWidth: showDebug ? '400px' : 'auto',
+          }}
+        >
+          {showDebug ? (
+            <div>
+              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>🔧 Developer Info</div>
+              <div style={{ marginBottom: '4px' }}>Azure ID:</div>
+              <div style={{ 
+                background: 'rgba(255,255,255,0.2)', 
+                padding: '4px 8px', 
+                borderRadius: '4px',
+                wordBreak: 'break-all'
+              }}>
+                {azureUserId}
+              </div>
+              <div style={{ marginTop: '8px', fontSize: '10px', opacity: 0.8 }}>
+                {dashboard?.syncStatus?.isConnected ? '✅ Live data' : '📊 Sample data'}
+              </div>
+            </div>
+          ) : (
+            <span>🔧 Dev</span>
+          )}
+        </div>
+      )}
       {/* Global styles for animations */}
       <style>
         {`

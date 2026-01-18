@@ -9,14 +9,14 @@
  * - 24 hours before: Patient + Clinician (skip if recently booked)
  * - 1 hour before: Clinician + Admin (every appointment)
  * 
- * STATELESS DESIGN (Privacy-first):
- * - No patient data stored locally
- * - Halaxy is the single source of truth  
- * - Reminders sent based on appointment time window only
- * - Tight time window minimizes duplicate risk without storing tracking data
+ * DEDUPLICATION:
+ * - Uses reminder_sent table to track which reminders have been sent
+ * - Each (appointment_id, reminder_type, recipient_type) combination is unique
+ * - Prevents duplicate reminders even if function runs multiple times
  */
 
 import { app, InvocationContext, Timer } from '@azure/functions';
+import * as sql from 'mssql';
 import { getHalaxyClient } from '../services/halaxy/client';
 import { sendPatientAppointmentReminderSms, sendAdminAppointmentReminderSms } from '../services/sms';
 import { sendPatientAppointmentReminder, sendClinicianAppointmentReminder, sendAdminAppointmentReminder } from '../services/email';
@@ -33,6 +33,55 @@ const REMINDER_WINDOW_MINUTES = 30; // +/- 30 min window = 1 hour total
 // Skip 24h reminders for appointments booked within this many hours of the appointment time
 // This prevents sending both confirmation and reminder for same-day/next-day bookings
 const MIN_BOOKING_TO_APPOINTMENT_HOURS = 4;
+
+/**
+ * Check if a reminder has already been sent
+ */
+async function hasReminderBeenSent(
+  pool: sql.ConnectionPool,
+  appointmentId: string,
+  reminderType: string,
+  recipientType: string
+): Promise<boolean> {
+  const result = await pool.request()
+    .input('appointmentId', sql.NVarChar, appointmentId)
+    .input('reminderType', sql.NVarChar, reminderType)
+    .input('recipientType', sql.NVarChar, recipientType)
+    .query(`
+      SELECT 1 FROM reminder_sent 
+      WHERE appointment_id = @appointmentId 
+        AND reminder_type = @reminderType 
+        AND recipient_type = @recipientType
+    `);
+  return result.recordset.length > 0;
+}
+
+/**
+ * Record that a reminder has been sent
+ */
+async function recordReminderSent(
+  pool: sql.ConnectionPool,
+  appointmentId: string,
+  reminderType: string,
+  recipientType: string
+): Promise<void> {
+  try {
+    await pool.request()
+      .input('appointmentId', sql.NVarChar, appointmentId)
+      .input('reminderType', sql.NVarChar, reminderType)
+      .input('recipientType', sql.NVarChar, recipientType)
+      .query(`
+        INSERT INTO reminder_sent (appointment_id, reminder_type, recipient_type)
+        VALUES (@appointmentId, @reminderType, @recipientType)
+      `);
+  } catch (error) {
+    // Ignore duplicate key errors (reminder already recorded)
+    const sqlError = error as { number?: number };
+    if (sqlError.number !== 2627) { // 2627 = unique constraint violation
+      throw error;
+    }
+  }
+}
 
 /**
  * Get appointments in a specific time window
@@ -270,7 +319,7 @@ async function sendClinicianReminder(
  * - 24h: Patient + Clinician (skip if recently booked)
  * - 1h: Clinician + Admin (every appointment - final heads-up)
  * 
- * Stateless: No tracking data stored. Uses tight time windows to prevent duplicates.
+ * Uses reminder_sent table to prevent duplicate reminders.
  */
 async function sendAppointmentReminders(
   timer: Timer,
@@ -283,10 +332,14 @@ async function sendAppointmentReminders(
     context.log('[Reminders] Timer is past due, running catch-up');
   }
 
+  // Get database connection for deduplication tracking
+  const pool = await getDbConnection();
+
   let patientRemindersSent = 0;
   let clinician24hRemindersSent = 0;
   let clinician1hRemindersSent = 0;
   let admin1hRemindersSent = 0;
+  let skippedDuplicates = 0;
 
   // ==========================================
   // 24-HOUR REMINDERS (Patient + Clinician)
@@ -315,13 +368,29 @@ async function sendAppointmentReminders(
   for (const appointment of eligible24h) {
     const participants = parseAppointmentParticipants(appointment);
 
-    // Send patient reminder (email + SMS)
-    const patientSent = await sendPatientReminder(appointment, participants, context);
-    if (patientSent) patientRemindersSent++;
+    // Check if patient reminder already sent
+    if (!await hasReminderBeenSent(pool, appointment.id, '24h', 'patient')) {
+      const patientSent = await sendPatientReminder(appointment, participants, context);
+      if (patientSent) {
+        await recordReminderSent(pool, appointment.id, '24h', 'patient');
+        patientRemindersSent++;
+      }
+    } else {
+      context.log(`[Reminders] Skipping duplicate 24h patient reminder for ${appointment.id}`);
+      skippedDuplicates++;
+    }
 
-    // Send clinician reminder
-    const clinicianSent = await sendClinicianReminder(appointment, participants, context);
-    if (clinicianSent) clinician24hRemindersSent++;
+    // Check if clinician reminder already sent
+    if (!await hasReminderBeenSent(pool, appointment.id, '24h', 'clinician')) {
+      const clinicianSent = await sendClinicianReminder(appointment, participants, context);
+      if (clinicianSent) {
+        await recordReminderSent(pool, appointment.id, '24h', 'clinician');
+        clinician24hRemindersSent++;
+      }
+    } else {
+      context.log(`[Reminders] Skipping duplicate 24h clinician reminder for ${appointment.id}`);
+      skippedDuplicates++;
+    }
   }
 
   // ==========================================
@@ -337,26 +406,40 @@ async function sendAppointmentReminders(
     const patientName = participants.patientName || 'Patient';
     const practitionerName = participants.practitionerName || 'Practitioner';
 
-    // Send clinician 1-hour reminder
-    const clinicianSent = await sendClinicianReminder(appointment, participants, context, true);
-    if (clinicianSent) clinician1hRemindersSent++;
+    // Check if clinician 1h reminder already sent
+    if (!await hasReminderBeenSent(pool, appointment.id, '1h', 'clinician')) {
+      const clinicianSent = await sendClinicianReminder(appointment, participants, context, true);
+      if (clinicianSent) {
+        await recordReminderSent(pool, appointment.id, '1h', 'clinician');
+        clinician1hRemindersSent++;
+      }
+    } else {
+      context.log(`[Reminders] Skipping duplicate 1h clinician reminder for ${appointment.id}`);
+      skippedDuplicates++;
+    }
 
-    // Send admin 1-hour reminder (email + SMS)
-    try {
-      await sendAdminAppointmentReminder({
-        patientName,
-        practitionerName,
-        appointmentDateTime,
-      });
-      await sendAdminAppointmentReminderSms({
-        patientName,
-        practitionerName,
-        appointmentDateTime,
-      });
-      admin1hRemindersSent++;
-      context.log(`[Reminders] Admin 1h reminder sent for appointment ${appointment.id}`);
-    } catch (error) {
-      context.warn(`[Reminders] Failed to send admin 1h reminder for ${appointment.id}:`, error);
+    // Check if admin 1h reminder already sent
+    if (!await hasReminderBeenSent(pool, appointment.id, '1h', 'admin')) {
+      try {
+        await sendAdminAppointmentReminder({
+          patientName,
+          practitionerName,
+          appointmentDateTime,
+        });
+        await sendAdminAppointmentReminderSms({
+          patientName,
+          practitionerName,
+          appointmentDateTime,
+        });
+        await recordReminderSent(pool, appointment.id, '1h', 'admin');
+        admin1hRemindersSent++;
+        context.log(`[Reminders] Admin 1h reminder sent for appointment ${appointment.id}`);
+      } catch (error) {
+        context.warn(`[Reminders] Failed to send admin 1h reminder for ${appointment.id}:`, error);
+      }
+    } else {
+      context.log(`[Reminders] Skipping duplicate 1h admin reminder for ${appointment.id}`);
+      skippedDuplicates++;
     }
   }
 
@@ -368,18 +451,17 @@ async function sendAppointmentReminders(
     clinician24hRemindersSent,
     clinician1hRemindersSent,
     admin1hRemindersSent,
+    skippedDuplicates,
   });
 }
 
 // Register the timer trigger
-// DISABLED: Timer is sending duplicate reminders because we have no deduplication
-// TODO: Add reminder_sent tracking table to prevent duplicates
 // Runs every hour at minute 0 (0:00, 1:00, 2:00, etc.)
-// app.timer('send-appointment-reminders', {
-//   schedule: '0 0 * * * *',
-//   handler: sendAppointmentReminders,
-//   runOnStartup: false,
-// });
+// Uses reminder_sent table for deduplication
+app.timer('send-appointment-reminders', {
+  schedule: '0 0 * * * *',
+  handler: sendAppointmentReminders,
+  runOnStartup: false,
+});
 
-// Temporarily export handler for manual triggering only
 export { sendAppointmentReminders };

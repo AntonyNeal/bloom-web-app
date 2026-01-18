@@ -212,4 +212,21 @@ JOIN practitioners p ON a.practitioner_id = p.id
 WHERE a.slot_start_unix > DATEDIFF_BIG(SECOND, '1970-01-01', DATEADD(DAY, -7, GETUTCDATE()));
 GO
 
+-- ============================================================================
+-- REMINDER TRACKING TABLE
+-- ============================================================================
+CREATE TABLE reminder_sent (
+  id INT PRIMARY KEY IDENTITY(1,1),
+  appointment_id NVARCHAR(100) NOT NULL,
+  reminder_type NVARCHAR(20) NOT NULL,  -- '24h', '1h'
+  recipient_type NVARCHAR(20) NOT NULL, -- 'patient', 'clinician', 'admin'
+  sent_at DATETIME2 DEFAULT GETUTCDATE(),
+  
+  CONSTRAINT UQ_reminder_sent UNIQUE (appointment_id, reminder_type, recipient_type)
+);
+
+CREATE INDEX IX_reminder_sent_appointment ON reminder_sent(appointment_id);
+CREATE INDEX IX_reminder_sent_date ON reminder_sent(sent_at);
+GO
+
 PRINT 'Database schema created successfully!';

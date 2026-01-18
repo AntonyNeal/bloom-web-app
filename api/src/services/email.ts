@@ -210,9 +210,14 @@ export async function sendDenialEmail(context: EmailContext) {
     
     <p>Thank you for taking the time to apply to ${COMPANY_NAME}. We genuinely appreciate your interest in joining our team.</p>
     
-    <p>After reviewing your application, we've decided not to move forward at this time. We know this isn't the news you were hoping for, and we're grateful for the effort you put into applying.</p>
+    <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 24px; border-radius: 12px; margin: 24px 0; border-left: 4px solid #94a3b8;">
+      <p style="margin: 0; color: #475569; line-height: 1.7;">
+        After reviewing your application, we've decided not to move forward at this time. 
+        We know this isn't the news you were hoping for, and we're grateful for the effort you put into applying.
+      </p>
+    </div>
     
-    <p>We wish you all the best in finding the right opportunity for you.</p>
+    <p style="color: #64748b;">We wish you all the best in finding the right opportunity for you.</p>
     
     <p style="margin-top: 30px;">
       Take care,<br>

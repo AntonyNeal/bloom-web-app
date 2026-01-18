@@ -248,11 +248,20 @@ async function onboardingHandler(
       // If the practitioner doesn't exist, that means the workflow wasn't followed correctly
       const halaxyClient = new HalaxyClient();
       
-      // Find practitioner by email (they should already exist)
-      const halaxyPractitioner = await halaxyClient.findPractitionerByEmail(practitionerInfo.email);
+      // First try to find practitioner by email
+      let halaxyPractitioner = await halaxyClient.findPractitionerByEmail(practitionerInfo.email.trim());
+      
+      // If not found by email, try by name (email in Halaxy might be different)
+      if (!halaxyPractitioner) {
+        context.log(`Practitioner not found by email ${practitionerInfo.email}, trying by name: ${practitionerInfo.first_name} ${practitionerInfo.last_name}`);
+        halaxyPractitioner = await halaxyClient.findPractitionerByName(
+          practitionerInfo.first_name?.trim() || '',
+          practitionerInfo.last_name?.trim() || ''
+        );
+      }
       
       if (!halaxyPractitioner) {
-        context.error(`Halaxy practitioner not found for ${practitionerInfo.email}. Admin must create the practitioner in Halaxy before sending the onboarding email.`);
+        context.error(`Halaxy practitioner not found for ${practitionerInfo.first_name} ${practitionerInfo.last_name} (${practitionerInfo.email}). Admin must create the practitioner in Halaxy before sending the onboarding email.`);
         return {
           status: 400,
           jsonBody: {
@@ -262,7 +271,7 @@ async function onboardingHandler(
       }
       
       const halaxyPractitionerId = halaxyPractitioner.id;
-      context.log(`✅ Found existing Halaxy practitioner: ${halaxyPractitionerId} for ${practitionerInfo.email}`);
+      context.log(`✅ Found existing Halaxy practitioner: ${halaxyPractitionerId} for ${practitionerInfo.first_name} ${practitionerInfo.last_name}`);
       
       // Try to find their PractitionerRole (optional)
       let halaxyPractitionerRoleId: string | null = null;

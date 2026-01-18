@@ -1213,7 +1213,7 @@ export function Admin() {
                     </div>
                   )}
 
-                  {/* Waitlisted: Can be moved to interview */}
+                  {/* Waitlisted: Can be moved to interview or accepted */}
                   {selectedApp.status === "waitlisted" && (
                     <div className="space-y-2">
                       {selectedApp.waitlisted_at && (
@@ -1230,12 +1230,12 @@ export function Admin() {
                         📅 Schedule Interview
                       </Button>
                       <Button
-                        onClick={() => updateStatus(selectedApp.id, "denied")}
-                        variant="destructive"
+                        onClick={() => updateStatus(selectedApp.id, "accepted")}
+                        variant="default"
                         size="sm"
-                        className="w-full"
+                        className="w-full bg-emerald-600 hover:bg-emerald-700"
                       >
-                        ❌ Deny
+                        ✅ Accept
                       </Button>
                     </div>
                   )}

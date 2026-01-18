@@ -1172,6 +1172,15 @@ export function Admin() {
                         />
                       )}
 
+                      {/* Show if onboarding invite was already sent */}
+                      {selectedApp.onboarding_email_sent_at && (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                          <p className="text-sm text-emerald-700">
+                            ✅ Onboarding invite sent: {new Date(selectedApp.onboarding_email_sent_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      )}
+
                       {/* Onboard Button - only enabled after Halaxy verification */}
                       <Button
                         onClick={() => acceptApplication(selectedApp.id)}
@@ -1183,7 +1192,7 @@ export function Admin() {
                         size="sm"
                         disabled={!selectedApp.signed_contract_url || !selectedApp.halaxy_practitioner_verified || isSendingInvite}
                       >
-                        {isSendingInvite ? '⏳ Sending...' : selectedApp.signed_contract_url && selectedApp.halaxy_practitioner_verified ? '🚀 Send Onboarding Invite' : '🔒 Send Onboarding Invite (Locked)'}
+                        {isSendingInvite ? '⏳ Sending...' : selectedApp.onboarding_email_sent_at ? '📧 Resend Onboarding Invite' : selectedApp.signed_contract_url && selectedApp.halaxy_practitioner_verified ? '🚀 Send Onboarding Invite' : '🔒 Send Onboarding Invite (Locked)'}
                       </Button>
                       
                       {selectedApp.signed_contract_url && !selectedApp.halaxy_practitioner_verified && (

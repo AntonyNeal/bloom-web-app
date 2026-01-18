@@ -24,11 +24,11 @@ import { getDbConnection } from '../services/database';
 import type { FHIRAppointment } from '../services/halaxy/types';
 
 // Reminder window configuration
-// Tight 30-minute window ensures each appointment only gets one reminder per window
-// Even if function runs twice, the window moves and won't pick up same appointments
+// Use asymmetric window: appointments that start 23.5h-24.5h from now (for 24h)
+// and 0.5h-1.5h from now (for 1h) to avoid overlap between hourly runs
 const REMINDER_24H_HOURS_BEFORE = 24;
 const REMINDER_1H_HOURS_BEFORE = 1;
-const REMINDER_WINDOW_MINUTES = 30;
+const REMINDER_WINDOW_MINUTES = 30; // +/- 30 min window = 1 hour total
 
 // Skip 24h reminders for appointments booked within this many hours of the appointment time
 // This prevents sending both confirmation and reminder for same-day/next-day bookings
@@ -372,9 +372,14 @@ async function sendAppointmentReminders(
 }
 
 // Register the timer trigger
+// DISABLED: Timer is sending duplicate reminders because we have no deduplication
+// TODO: Add reminder_sent tracking table to prevent duplicates
 // Runs every hour at minute 0 (0:00, 1:00, 2:00, etc.)
-app.timer('send-appointment-reminders', {
-  schedule: '0 0 * * * *',
-  handler: sendAppointmentReminders,
-  runOnStartup: false,
-});
+// app.timer('send-appointment-reminders', {
+//   schedule: '0 0 * * * *',
+//   handler: sendAppointmentReminders,
+//   runOnStartup: false,
+// });
+
+// Temporarily export handler for manual triggering only
+export { sendAppointmentReminders };

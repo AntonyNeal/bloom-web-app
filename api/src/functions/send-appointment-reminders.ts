@@ -26,6 +26,10 @@ import type { FHIRAppointment } from '../services/halaxy/types';
 const REMINDER_HOURS_BEFORE = 24;
 const REMINDER_WINDOW_MINUTES = 30;
 
+// Skip reminders for appointments booked within this many hours of the appointment time
+// This prevents sending both confirmation and reminder for same-day/next-day bookings
+const MIN_BOOKING_TO_APPOINTMENT_HOURS = 4;
+
 /**
  * Get appointments that need reminders
  * Returns appointments scheduled 24 hours (+/- 30 min) from now
@@ -266,7 +270,27 @@ async function sendAppointmentReminders(
   }
 
   // Get appointments that need reminders from Halaxy
-  const appointments = await getUpcomingAppointments(context);
+  const allAppointments = await getUpcomingAppointments(context);
+
+  // Filter out recently booked appointments (they just got a confirmation)
+  const appointments = allAppointments.filter(appt => {
+    if (!appt.created) {
+      // No created timestamp - send reminder to be safe
+      return true;
+    }
+    
+    const createdTime = new Date(appt.created).getTime();
+    const appointmentTime = new Date(appt.start).getTime();
+    const hoursFromBookingToAppointment = (appointmentTime - createdTime) / (1000 * 60 * 60);
+    
+    if (hoursFromBookingToAppointment < MIN_BOOKING_TO_APPOINTMENT_HOURS) {
+      context.log(`[Reminders] Skipping ${appt.id} - booked only ${hoursFromBookingToAppointment.toFixed(1)}h before appointment (confirmation was recent)`);
+      return false;
+    }
+    return true;
+  });
+
+  context.log(`[Reminders] ${allAppointments.length} appointments found, ${appointments.length} eligible for reminders (${allAppointments.length - appointments.length} recently booked)`);
 
   if (appointments.length === 0) {
     context.log('[Reminders] No appointments need reminders at this time');

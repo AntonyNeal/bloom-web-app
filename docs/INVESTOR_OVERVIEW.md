@@ -1,243 +1,567 @@
-# Bloom Platform — Investor Overview
+# Bloom Platform — System Architecture & Technical Overview
 
 **Life Psychology Australia**  
 *January 2026*
 
 ---
 
-## The Honest Summary
+## System Overview
 
-Bloom is the technology backbone we've built to run Life Psychology Australia — a psychology practice currently operating in Newcastle with plans to expand across the Hunter region and eventually Australia.
+Bloom is a full-stack web platform consisting of three main applications, a serverless API layer, and integrations with external services. This document describes the technical architecture, not the business model.
 
-This isn't a pitch for the next unicorn. It's a practical, working system that solves real problems we encountered trying to scale a psychology practice. We built it because the existing solutions (Cliniko, Halaxy alone, etc.) weren't designed for what we needed: a modern, tech-forward practice that could onboard practitioners efficiently and give them tools to grow.
-
----
-
-## What Problem Are We Solving?
-
-**The Mental Health Supply Crisis**
-
-Australia has a severe shortage of psychologists. Wait times for appointments are 6-8 weeks in cities, often months in regional areas. There's enormous demand but fragmented supply — most psychologists work solo, struggle with admin, and have no path to scale.
-
-**Our Thesis**
-
-We believe the solution is creating a **practitioner-friendly network** with:
-1. Low friction onboarding (not 3-month credentialing nightmares)
-2. Modern tools that make running a practice easier, not harder
-3. A brand that attracts both practitioners AND clients
-4. Technology that handles the boring stuff so clinicians can focus on therapy
-
----
-
-## What We've Built (Honestly)
-
-### The Practitioner Pipeline
-
-A complete system for recruiting and onboarding psychologists:
-
-| Stage | What Happens |
-|-------|--------------|
-| **Application** | Multi-step form validating AHPRA registration, qualifications, and fit |
-| **Review** | Admin dashboard with workflow states (reviewing, waitlisted, interview, accepted) |
-| **Verification** | Integration with Halaxy to confirm practitioner identity |
-| **Onboarding** | Contract signing, profile setup, dashboard access |
-
-**What's working:** The pipeline is live. We've processed applications and onboarded practitioners through it.
-
-**What's honest:** It's still manual in places. An admin reviews each application. That's fine for now, but won't scale past ~50 practitioners without more automation.
-
-### The Marketing Website
-
-A full client-facing website at **life-psychology.com.au** with:
-
-- Service pages (Anxiety, Couples, NDIS, Neurodiversity, Trauma)
-- Online booking connected to real practitioner availability
-- SEO optimization for Newcastle/Hunter region searches
-- Conversion tracking and analytics
-
-**What's working:** The site ranks, drives traffic, and converts visitors to bookings.
-
-**What's honest:** We're one practice in one city. The SEO moat is regional, not national.
-
-### Analytics & Marketing Integration
-
-| Platform | What We Track |
-|----------|---------------|
-| **Google Analytics 4** | Full funnel: page views → booking intent → completed bookings |
-| **Google Ads** | Conversion tracking with $250 booking value attribution |
-| **Application Insights** | Infrastructure monitoring, API performance |
-| **A/B Testing** | Custom infrastructure for testing booking flows, hero images, copy |
-
-**Conversion ID:** `AW-11563740075`
-
-We track the entire journey:
 ```
-Page View → View Service → Book Now Click → Start Booking → Complete Details → Select Time → Confirm Booking
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              CLIENT LAYER                                    │
+├─────────────────────┬─────────────────────┬─────────────────────────────────┤
+│   Bloom Portal      │   Marketing Site    │   Admin Dashboard               │
+│   (React SPA)       │   (React SPA)       │   (within Bloom Portal)         │
+│   bloom.life-...    │   life-psychology.  │   /admin/*                      │
+│                     │   com.au            │                                 │
+└─────────┬───────────┴─────────┬───────────┴─────────────────┬───────────────┘
+          │                     │                             │
+          ▼                     ▼                             ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           AZURE STATIC WEB APPS                              │
+│   CDN + Hosting + SSL + Custom Domains                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+          │
+          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           API LAYER (Azure Functions)                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ~45 HTTP Endpoints    │  Timer Triggers     │  Webhook Handlers            │
+│  - Applications CRUD   │  - Halaxy Sync      │  - Halaxy Webhooks           │
+│  - Practitioners       │  - Reminders        │  - Payment Webhooks          │
+│  - Bookings            │                     │                              │
+│  - Documents           │                     │                              │
+└─────────┬───────────────────────┬───────────────────────┬───────────────────┘
+          │                       │                       │
+          ▼                       ▼                       ▼
+┌─────────────────┐   ┌─────────────────┐   ┌─────────────────────────────────┐
+│  Azure SQL      │   │  Azure Blob     │   │  External Services              │
+│  Database       │   │  Storage        │   │  - Halaxy (FHIR API)            │
+│                 │   │                 │   │  - Azure Comm Services (Email)  │
+│  25 migrations  │   │  CVs, Certs,    │   │  - Stripe (Payments)            │
+│  applied        │   │  Contracts      │   │  - Google Analytics             │
+└─────────────────┘   └─────────────────┘   └─────────────────────────────────┘
 ```
 
-Each step has a conversion value. We know our CAC.
+---
 
-### The Practitioner Dashboard
+## 1. Frontend Architecture
 
-Once onboarded, practitioners get:
+### Technology Stack
 
-- **Blossom Tree** — A visual representation of practice growth (clients as flowers, sessions as blooms)
-- **Business Coach** — Analytics showing revenue, sessions, client retention
-- **Today View** — Upcoming sessions with client context
-- **Client Timeline** — Relationship history, MHCP sessions remaining
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| React | 18.x | UI framework |
+| TypeScript | 5.x | Type safety |
+| Vite | 5.x | Build tool, dev server, HMR |
+| Tailwind CSS | 3.x | Utility-first styling |
+| shadcn/ui | - | Component library (Radix primitives) |
+| Framer Motion | 11.x | Animations |
+| React Router | 6.x | Client-side routing |
+| TanStack Query | 5.x | Server state management |
+| React Hook Form | 7.x | Form handling |
+| Zod | 3.x | Schema validation |
 
-**What's working:** The dashboard exists and displays real data synced from Halaxy.
+### Application Structure
 
-**What's honest:** Most practitioners still primarily use Halaxy directly. We need to add more value to make Bloom their default interface.
+```
+src/
+├── components/           # Reusable UI components
+│   ├── ui/              # shadcn/ui primitives (Button, Input, etc.)
+│   ├── bloom/           # Bloom-specific components
+│   └── forms/           # Form components
+├── pages/               # Route components
+│   ├── admin/           # Admin dashboard pages
+│   ├── practitioner/    # Practitioner portal pages
+│   └── public/          # Public pages (login, apply)
+├── services/            # API client functions
+├── hooks/               # Custom React hooks
+├── lib/                 # Utility functions
+├── config/              # Configuration (API URLs, etc.)
+└── styles/              # Global styles, Bloom design tokens
+```
 
-### Halaxy Integration
+### Design System
 
-We integrate with Halaxy (our clinical practice management system) via their FHIR-R4 API:
+The UI follows a custom "Bloom" design language inspired by Studio Ghibli aesthetics:
 
-- **Sync practitioners, patients, appointments** every 15 minutes
-- **Real-time webhooks** for instant updates
-- **Availability slots** pulled for booking system
+```typescript
+// Core color palette
+const bloomStyles = {
+  colors: {
+    petalPink: '#F8E8E8',
+    eucalyptusSage: '#6B8E7F',
+    honeyAmber: '#E8B86D',
+    clayTerracotta: '#C17767',
+    skyMist: '#E8F4F8',
+    paperWhite: '#FDFCFB',
+    inkCharcoal: '#3A3A3A',
+  }
+};
+```
 
-**What's working:** The sync is reliable. Bookings made on our site appear in Halaxy.
+**Animation Philosophy:**
+- Subtle, organic movements
+- Framer Motion for entrance/exit animations
+- Reduced motion support via `prefers-reduced-motion`
+- Custom flower/plant growth animations for progress indicators
 
-**What's honest:** We're dependent on Halaxy. If they change their API or pricing, we have a problem. This is intentional — they handle clinical compliance, we handle growth.
+### State Management
+
+- **Server State:** TanStack Query for API data caching, refetching, optimistic updates
+- **Form State:** React Hook Form with Zod validation schemas
+- **UI State:** Local React state (useState/useReducer)
+- **No Redux:** Intentionally avoided for simplicity; most state is server-derived
 
 ---
 
-## Technical Architecture
+## 2. Backend Architecture (Azure Functions)
 
-### Stack
+### Runtime
 
-| Layer | Technology | Why |
-|-------|------------|-----|
-| **Frontend** | React + TypeScript + Vite | Fast, modern, type-safe |
-| **Styling** | Tailwind + shadcn/ui | Rapid UI development |
-| **Backend** | Azure Functions (Node.js) | Serverless, pay-per-use |
-| **Database** | Azure SQL | Reliable, managed |
-| **Files** | Azure Blob Storage | CV uploads, contracts |
-| **Auth** | Azure AD B2C | Enterprise-grade auth |
-| **Hosting** | Azure Static Web Apps | CDN, auto-scaling |
+- **Runtime:** Node.js 18 (Azure Functions v4 programming model)
+- **Language:** TypeScript
+- **Deployment:** Azure Static Web Apps managed functions
 
-### Why Azure?
+### API Endpoints
 
-Honest answer: I knew Azure better than AWS. It's also slightly cheaper for our scale and has good compliance certifications for healthcare-adjacent applications.
+```
+api/src/functions/
+├── applications.ts          # CRUD for practitioner applications
+├── accept-application.ts    # Accept + create practitioner record
+├── accept-offer.ts          # Candidate accepts their offer
+├── send-offer.ts            # Send offer email with contract
+├── upload.ts                # File upload to Blob Storage
+├── get-document-url.ts      # Generate SAS URLs for documents
+├── practitioners-admin.ts   # Admin practitioner management
+├── list-practitioners.ts    # Public practitioner listing
+├── onboarding.ts            # Onboarding flow handlers
+├── create-payment-intent.ts # Stripe payment creation
+├── capture-payment.ts       # Stripe payment capture
+├── get-halaxy-availability.ts  # Fetch practitioner slots
+├── create-halaxy-booking.ts    # Create appointment in Halaxy
+├── halaxy-webhook.ts        # Receive Halaxy real-time updates
+├── halaxy-sync-timer.ts     # Scheduled sync trigger
+├── trigger-halaxy-sync.ts   # Manual sync trigger
+├── verify-halaxy-practitioner.ts  # Verify practitioner in Halaxy
+├── send-appointment-reminders.ts  # Scheduled reminder emails
+├── ab-test.ts               # A/B test variant assignment
+├── track-ab-test.ts         # Conversion tracking
+├── smoke-test.ts            # Health check endpoint
+└── health.ts                # Basic health endpoint
+```
 
-### Infrastructure Cost
+### Database Schema (Azure SQL)
 
-Current monthly Azure spend: **~$150-200 AUD**
+**Core Tables:**
 
-This covers:
-- Static Web Apps (frontend hosting)
-- Functions (serverless API)
-- SQL Database (basic tier)
-- Blob Storage
-- Container Apps (Halaxy sync worker)
+```sql
+-- Applications (practitioner recruitment)
+applications (
+  id, first_name, last_name, email, phone,
+  ahpra_registration, specializations, experience_years,
+  cv_url, certificate_url, photo_url, cover_letter,
+  status, created_at, updated_at, reviewed_by,
+  waitlisted_at, accepted_at, interview_scheduled_at,
+  contract_url, offer_sent_at, decision_reason
+)
 
-It'll increase as we scale, but serverless architecture means we only pay for what we use.
+-- Practitioners (approved clinicians)
+practitioners (
+  id, first_name, last_name, email,
+  halaxy_practitioner_id, ahpra_number,
+  specializations, bio, photo_url,
+  onboarding_token, onboarding_completed_at,
+  status, created_at
+)
 
----
+-- Availability (synced from Halaxy)
+availability_slots (
+  id, practitioner_id, halaxy_slot_id,
+  start_time, end_time, service_type,
+  is_available, created_at, synced_at
+)
 
-## What's NOT Built Yet
+-- A/B Testing
+ab_test_experiments (id, name, description, status)
+ab_test_variants (id, experiment_id, name, weight)
+ab_test_assignments (id, experiment_id, variant_id, session_id)
+ab_test_conversions (id, assignment_id, event_type, value)
+```
 
-Being honest about gaps:
-
-| Feature | Status | Why It Matters |
-|---------|--------|----------------|
-| **Client Portal** | Planned | Clients can't self-manage bookings/payments |
-| **Mobile App** | Planned | Most users are on mobile |
-| **Multi-Location** | Planned | Only set up for one practice location |
-| **AI Features** | Researching | Session notes assistance, client insights |
-| **Automated Scheduling** | Partial | Still relies on Halaxy for complex scheduling |
-
----
-
-## The Business Model
-
-**Current:**
-- Practitioners pay us 30-40% of session fees (industry standard)
-- We provide: Brand, marketing, admin systems, client acquisition
-- They get: Clients, zero admin headaches, flexibility
-
-**Future Vision:**
-- Scale to 20-50 practitioners in Hunter region
-- Expand model to other regions via licensing or acquisition
-- Technology platform potentially licensable to other practices
-
----
-
-## Competitive Landscape
-
-| Competitor | What They Do | Our Differentiation |
-|------------|--------------|---------------------|
-| **Headspace** | Corporate mental health | We're clinical, Medicare-focused |
-| **BetterHelp** | Online-only | We're hybrid (telehealth + in-person) |
-| **Solo practices** | Fragmented | We're networked, branded, tech-enabled |
-| **Hospital outpatient** | Long waits, limited hours | We're flexible, modern |
-
-**Honest assessment:** We're a small regional practice with good technology. The moat is execution and culture, not proprietary tech.
-
----
-
-## Traction
-
-**Current State (January 2026):**
-- Marketing website live and ranking for regional keywords
-- Practitioner application pipeline processing applicants
-- Admin dashboard managing applications
-- Halaxy integration syncing real data
-- GA4 + Google Ads tracking full conversion funnel
-
-**What We Need:**
-- More practitioners (supply)
-- More client bookings (demand)
-- Proof that the model works before expanding
+**Migration System:**
+- 25 versioned SQL migrations
+- Applied via custom migration runner (not Flyway)
+- Idempotent migrations with version tracking
 
 ---
 
-## Use of Funds (If Applicable)
+## 3. Halaxy Integration
 
-If we were seeking investment, it would go to:
+Halaxy is the clinical practice management system. We integrate via their FHIR-R4 API.
 
-| Category | Allocation | Purpose |
-|----------|------------|---------|
-| **Marketing** | 40% | Google Ads, SEO, brand awareness |
-| **Hiring** | 30% | Admin support, potentially another dev |
-| **Tech** | 20% | Mobile app, AI features, scale infrastructure |
-| **Buffer** | 10% | Healthcare is unpredictable |
+### Architecture
 
-We're not burning cash to grow. The model is designed to be unit-economic positive from day one.
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Bloom Portal   │────▶│  Azure Functions │────▶│  Halaxy API     │
+│                 │     │  (API Layer)     │     │  (FHIR-R4)      │
+└─────────────────┘     └────────┬─────────┘     └─────────────────┘
+                                 │
+                                 ▼
+                        ┌─────────────────┐
+                        │  Halaxy Sync    │
+                        │  Worker         │
+                        │  (Container App)│
+                        └─────────────────┘
+                                 │
+                                 ▼
+                        ┌─────────────────┐
+                        │  Azure SQL      │
+                        │  (cached data)  │
+                        └─────────────────┘
+```
+
+### Sync Worker (Azure Container Apps)
+
+- **Image:** Custom Docker container
+- **Schedule:** Every 15 minutes via timer trigger
+- **Also:** Real-time webhooks for immediate updates
+
+**Data Synced:**
+- Practitioners → `practitioners` table
+- Patients → Used for client matching
+- Appointments → `availability_slots` / appointment records
+- Availability → Booking system slot display
+
+### Authentication
+
+```typescript
+// OAuth2 flow with Halaxy
+const getAccessToken = async (): Promise<string> => {
+  // Tokens cached for 15 minutes
+  // Auto-refresh on expiry
+  // Credentials stored in Azure Key Vault
+};
+```
 
 ---
 
-## Risks (The Honest Part)
+## 4. File Storage (Azure Blob Storage)
 
-| Risk | Mitigation |
-|------|------------|
-| **Halaxy dependency** | Could migrate to Cliniko or build our own clinical system, but costly |
-| **Solo founder tech risk** | Core functionality works; could hire if needed |
-| **Regulatory changes** | Medicare rebates could change; NDIS is politically volatile |
-| **Practitioner churn** | Culture and tooling need to be genuinely better than going solo |
-| **Competition** | Big players could enter regional markets |
+### Container Structure
 
----
+```
+bloom-documents/
+├── applications/
+│   └── {applicationId}/
+│       ├── cv.pdf
+│       ├── certificate.pdf
+│       └── photo.jpg
+├── contracts/
+│   └── {applicationId}/
+│       ├── contract.pdf
+│       └── signed-contract.pdf
+└── practitioners/
+    └── {practitionerId}/
+        └── profile-photo.jpg
+```
 
-## Why Might This Work?
+### Security
 
-1. **The demand is real** — Mental health crisis isn't going away
-2. **The tech is working** — Not vaporware; it's deployed and processing real applications
-3. **The model is proven** — Practice networks exist; we're just adding better tech
-4. **Regional focus** — Less competition, strong community ties
-5. **Practitioner-centric** — If practitioners love it, they'll stay and refer others
-
----
-
-## Contact
-
-Life Psychology Australia  
-Newcastle, NSW  
-Website: [life-psychology.com.au](https://life-psychology.com.au)  
-Bloom Platform: [bloom.life-psychology.com.au](https://bloom.life-psychology.com.au)
+- **Upload:** Signed URLs with 15-minute expiry
+- **Download:** SAS tokens generated on-demand
+- **Access:** Private containers, no public access
 
 ---
 
-*This document was prepared to be honest, not impressive. If you want glossy projections and hockey-stick graphs, we can produce those too — but they'd be fiction. What we have is a working system solving a real problem in a market with genuine demand.*
+## 5. Email & Notifications
+
+### Azure Communication Services
+
+```typescript
+// Email service structure
+const sendEmail = async (params: {
+  to: string;
+  subject: string;
+  htmlContent: string;
+}) => {
+  // Uses verified domain: life-psychology.com.au
+  // Sender: noreply@life-psychology.com.au
+};
+```
+
+### Email Templates
+
+| Template | Trigger |
+|----------|---------|
+| Application Received | New application submitted |
+| Application Denied | Admin denies application |
+| Waitlisted | Admin waitlists application |
+| Interview Invitation | Admin schedules interview |
+| Offer Sent | Admin sends offer |
+| Acceptance Confirmation | Candidate accepts offer |
+| Onboarding Instructions | After offer accepted |
+
+**Template System:**
+- HTML templates with inline CSS (email client compatibility)
+- Gradient backgrounds matching Bloom aesthetic
+- Responsive design
+
+---
+
+## 6. Analytics & Tracking
+
+### Google Analytics 4
+
+```typescript
+// GA4 integration via react-ga4
+import ReactGA from 'react-ga4';
+
+ReactGA.initialize('G-XXXXXXXXXX');
+
+// Page views
+ReactGA.send({ hitType: 'pageview', page: '/booking' });
+
+// Events
+ReactGA.event({
+  category: 'Booking',
+  action: 'start_booking',
+  label: 'anxiety-therapy'
+});
+```
+
+### Google Ads Conversion Tracking
+
+```typescript
+// Conversion tracking
+const trackConversion = (conversionId: string, value?: number) => {
+  window.gtag('event', 'conversion', {
+    send_to: `AW-11563740075/${conversionId}`,
+    value: value,
+    currency: 'AUD'
+  });
+};
+
+// Tracked conversions:
+// - Booking intent
+// - Book now clicks  
+// - Completed bookings ($250 value)
+// - Contact form submissions
+// - Phone clicks
+```
+
+### Conversion Funnel
+
+```
+Awareness     Interest      Decision      Action        Retention
+    │             │             │            │              │
+    ▼             ▼             ▼            ▼              ▼
+page_view → view_service → book_now → start_booking → confirm_booking
+                    └──────────────────────────────────────────┘
+                           Full funnel tracked with values
+```
+
+### A/B Testing Infrastructure
+
+Custom-built A/B testing system:
+
+```typescript
+// Variant assignment (deterministic by session)
+const getVariant = async (experimentName: string, sessionId: string) => {
+  // Returns consistent variant for session
+  // Weighted random assignment
+  // Stored in ab_test_assignments table
+};
+
+// Conversion tracking
+const trackConversion = async (sessionId: string, eventType: string, value?: number) => {
+  // Links conversion to variant
+  // Enables statistical analysis
+};
+```
+
+**Current Experiments:**
+- Hero image variants
+- Booking flow copy
+- CTA button colors
+
+---
+
+## 7. Marketing Website
+
+### Separate Application
+
+```
+apps/website/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   │   ├── Home.tsx
+│   │   ├── About.tsx
+│   │   ├── Services/
+│   │   │   ├── AnxietyDepression.tsx
+│   │   │   ├── CouplesTherapy.tsx
+│   │   │   ├── Neurodiversity.tsx
+│   │   │   ├── NDIS.tsx
+│   │   │   └── TraumaRecovery.tsx
+│   │   ├── Pricing.tsx
+│   │   ├── Appointments.tsx
+│   │   ├── Contact.tsx
+│   │   └── FAQ.tsx
+│   └── services/
+│       └── applicationApi.ts
+├── public/
+│   ├── staticwebapp.config.json
+│   └── sitemap.xml
+└── package.json
+```
+
+### SEO Implementation
+
+- **React Helmet** for meta tags
+- **Sitemap.xml** for search engines
+- **Canonical URLs** to prevent duplicates
+- **Structured data** (JSON-LD) for services
+- **Performance optimized** (Lighthouse scores monitored)
+
+### Booking Integration
+
+The marketing site connects to the same API for:
+- Fetching practitioner availability
+- Creating booking sessions
+- Processing payments (Stripe)
+
+---
+
+## 8. Infrastructure & Deployment
+
+### Environments
+
+| Environment | Branch | Frontend URL | API URL |
+|-------------|--------|--------------|---------|
+| Development | `develop` | gray-stone-xxx.azurestaticapps.net | bloom-functions-dev |
+| Staging | `staging` | lpa-bloom-staging.azurestaticapps.net | bloom-functions-staging |
+| Production | `main` | bloom.life-psychology.com.au | bloom-platform-functions-v2 |
+
+### CI/CD Pipeline (GitHub Actions)
+
+```yaml
+# Simplified workflow
+on:
+  push:
+    branches: [develop, staging, main]
+
+jobs:
+  detect-changes:
+    # Smart change detection - only deploy what changed
+    
+  quality-checks:
+    # Parallel: lint, typecheck
+    
+  deploy-bloom-portal:
+    if: needs.detect-changes.outputs.bloom-changed == 'true'
+    # Build and deploy React app
+    
+  deploy-website:
+    if: needs.detect-changes.outputs.website-changed == 'true'
+    # Build and deploy marketing site
+    
+  deploy-api:
+    if: needs.detect-changes.outputs.api-changed == 'true'
+    # Build and deploy Azure Functions
+    
+  run-migrations:
+    if: needs.detect-changes.outputs.migrations-changed == 'true'
+    # Apply database migrations
+```
+
+### Azure Resources
+
+| Resource | SKU/Tier | Purpose |
+|----------|----------|---------|
+| Static Web Apps | Free/Standard | Frontend hosting |
+| Functions | Consumption | Serverless API |
+| SQL Database | Basic (5 DTU) | Primary database |
+| Blob Storage | Standard LRS | File storage |
+| Communication Services | Pay-as-you-go | Email/SMS |
+| Container Apps | Consumption | Halaxy sync worker |
+| Key Vault | Standard | Secrets |
+| Application Insights | Pay-as-you-go | Monitoring |
+
+### Monthly Infrastructure Cost
+
+~$150-200 AUD (primarily SQL Database + Functions execution)
+
+---
+
+## 9. Security
+
+### Authentication
+
+- **Azure AD B2C** for practitioner/admin authentication
+- **MSAL.js** library for token management
+- **JWT tokens** with role claims
+
+### API Security
+
+- CORS configured per environment
+- HTTPS enforced
+- Input validation (Zod schemas)
+- SQL injection prevention (parameterized queries)
+
+### Data Protection
+
+- Blob storage: Private access only
+- Database: Azure-managed encryption at rest
+- Secrets: Azure Key Vault
+- No PII in logs
+
+---
+
+## 10. Monitoring & Observability
+
+### Application Insights
+
+- API request tracking
+- Dependency tracking (SQL, Halaxy, Blob)
+- Custom metrics
+- Exception logging
+
+### Health Endpoints
+
+```
+GET /api/health        # Basic health check
+GET /api/smoke-test    # Full system test (DB, Blob, Email)
+```
+
+### Alerting
+
+- Azure Monitor alerts on:
+  - API error rate > 5%
+  - Response time > 2s
+  - Failed deployments
+
+---
+
+## Summary
+
+**What Exists:**
+- Production-ready React applications (portal + marketing site)
+- Serverless API with 45+ endpoints
+- Full CI/CD with environment promotion
+- Halaxy integration (sync + real-time)
+- Complete analytics stack (GA4 + Ads + custom A/B)
+- Email notification system
+- File upload/storage system
+- Database with 25 migrations
+
+**Architecture Principles:**
+- Serverless-first (pay for what you use)
+- TypeScript everywhere (type safety)
+- Component-based UI (shadcn/ui + custom)
+- API-first design (frontend agnostic)
+- Environment parity (dev ≈ staging ≈ prod)

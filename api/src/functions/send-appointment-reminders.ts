@@ -1,10 +1,13 @@
 /**
  * Send Appointment Reminders Timer Function
  * 
- * Azure Function that runs on a schedule to send appointment reminder
- * notifications to patients and clinicians.
+ * Azure Function that runs on a schedule to send appointment reminders.
  * 
- * Schedule: Runs every hour to catch appointments 24 hours away
+ * Schedule: Runs every hour
+ * 
+ * Reminder Windows:
+ * - 24 hours before: Patient + Clinician (skip if recently booked)
+ * - 1 hour before: Clinician + Admin (every appointment)
  * 
  * STATELESS DESIGN (Privacy-first):
  * - No patient data stored locally
@@ -15,37 +18,40 @@
 
 import { app, InvocationContext, Timer } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy/client';
-import { sendPatientAppointmentReminderSms } from '../services/sms';
-import { sendPatientAppointmentReminder, sendClinicianAppointmentReminder } from '../services/email';
+import { sendPatientAppointmentReminderSms, sendAdminAppointmentReminderSms } from '../services/sms';
+import { sendPatientAppointmentReminder, sendClinicianAppointmentReminder, sendAdminAppointmentReminder } from '../services/email';
 import { getDbConnection } from '../services/database';
 import type { FHIRAppointment } from '../services/halaxy/types';
 
 // Reminder window configuration
-// Tight 30-minute window ensures each appointment only gets one reminder
+// Tight 30-minute window ensures each appointment only gets one reminder per window
 // Even if function runs twice, the window moves and won't pick up same appointments
-const REMINDER_HOURS_BEFORE = 24;
+const REMINDER_24H_HOURS_BEFORE = 24;
+const REMINDER_1H_HOURS_BEFORE = 1;
 const REMINDER_WINDOW_MINUTES = 30;
 
-// Skip reminders for appointments booked within this many hours of the appointment time
+// Skip 24h reminders for appointments booked within this many hours of the appointment time
 // This prevents sending both confirmation and reminder for same-day/next-day bookings
 const MIN_BOOKING_TO_APPOINTMENT_HOURS = 4;
 
 /**
- * Get appointments that need reminders
- * Returns appointments scheduled 24 hours (+/- 30 min) from now
+ * Get appointments in a specific time window
+ * @param hoursAhead - How many hours ahead to look
+ * @param context - Invocation context for logging
  */
-async function getUpcomingAppointments(
+async function getAppointmentsInWindow(
+  hoursAhead: number,
   context: InvocationContext
 ): Promise<FHIRAppointment[]> {
   const halaxyClient = getHalaxyClient();
   
-  // Calculate target window (24 hours from now, +/- 30 min)
+  // Calculate target window (X hours from now, +/- 30 min)
   const now = new Date();
-  const targetTime = new Date(now.getTime() + REMINDER_HOURS_BEFORE * 60 * 60 * 1000);
+  const targetTime = new Date(now.getTime() + hoursAhead * 60 * 60 * 1000);
   const windowStart = new Date(targetTime.getTime() - REMINDER_WINDOW_MINUTES * 60 * 1000);
   const windowEnd = new Date(targetTime.getTime() + REMINDER_WINDOW_MINUTES * 60 * 1000);
   
-  context.log(`[Reminders] Looking for appointments between ${windowStart.toISOString()} and ${windowEnd.toISOString()}`);
+  context.log(`[Reminders] Looking for ${hoursAhead}h window: ${windowStart.toISOString()} to ${windowEnd.toISOString()}`);
 
   try {
     // Get active practitioner IDs from database (just IDs, no patient data)
@@ -201,11 +207,13 @@ async function sendPatientReminder(
 /**
  * Send reminder to clinician
  * Fetches contact info from Halaxy just-in-time
+ * @param isShortNotice - If true, this is the 1-hour "heads up" reminder
  */
 async function sendClinicianReminder(
   appointment: FHIRAppointment,
   participants: ReturnType<typeof parseAppointmentParticipants>,
-  context: InvocationContext
+  context: InvocationContext,
+  isShortNotice: boolean = false
 ): Promise<boolean> {
   if (!participants.practitionerId) {
     context.warn(`[Reminders] No practitioner found for appointment ${appointment.id}`);
@@ -232,6 +240,7 @@ async function sendClinicianReminder(
 
     const appointmentDateTime = new Date(appointment.start);
     const patientName = participants.patientName || 'Patient';
+    const reminderType = isShortNotice ? '1h' : '24h';
 
     try {
       await sendClinicianAppointmentReminder({
@@ -239,11 +248,12 @@ async function sendClinicianReminder(
         practitionerFirstName,
         patientName,
         appointmentDateTime,
+        isShortNotice,
       });
-      context.log(`[Reminders] Email sent to clinician for appointment ${appointment.id}`);
+      context.log(`[Reminders] ${reminderType} email sent to clinician for appointment ${appointment.id}`);
       return true;
     } catch (error) {
-      context.warn(`[Reminders] Failed to send clinician email for ${appointment.id}:`, error);
+      context.warn(`[Reminders] Failed to send ${reminderType} clinician email for ${appointment.id}:`, error);
       return false;
     }
   } catch (error) {
@@ -254,9 +264,13 @@ async function sendClinicianReminder(
 
 /**
  * Main timer trigger handler
- * Runs every hour to send 24-hour appointment reminders
+ * Runs every hour to send appointment reminders
  * 
- * Stateless: No tracking data stored. Uses tight time window to prevent duplicates.
+ * Two reminder windows:
+ * - 24h: Patient + Clinician (skip if recently booked)
+ * - 1h: Clinician + Admin (every appointment - final heads-up)
+ * 
+ * Stateless: No tracking data stored. Uses tight time windows to prevent duplicates.
  */
 async function sendAppointmentReminders(
   timer: Timer,
@@ -269,14 +283,20 @@ async function sendAppointmentReminders(
     context.log('[Reminders] Timer is past due, running catch-up');
   }
 
-  // Get appointments that need reminders from Halaxy
-  const allAppointments = await getUpcomingAppointments(context);
+  let patientRemindersSent = 0;
+  let clinician24hRemindersSent = 0;
+  let clinician1hRemindersSent = 0;
+  let admin1hRemindersSent = 0;
+
+  // ==========================================
+  // 24-HOUR REMINDERS (Patient + Clinician)
+  // ==========================================
+  const appointments24h = await getAppointmentsInWindow(REMINDER_24H_HOURS_BEFORE, context);
 
   // Filter out recently booked appointments (they just got a confirmation)
-  const appointments = allAppointments.filter(appt => {
+  const eligible24h = appointments24h.filter(appt => {
     if (!appt.created) {
-      // No created timestamp - send reminder to be safe
-      return true;
+      return true; // No timestamp - send to be safe
     }
     
     const createdTime = new Date(appt.created).getTime();
@@ -284,40 +304,70 @@ async function sendAppointmentReminders(
     const hoursFromBookingToAppointment = (appointmentTime - createdTime) / (1000 * 60 * 60);
     
     if (hoursFromBookingToAppointment < MIN_BOOKING_TO_APPOINTMENT_HOURS) {
-      context.log(`[Reminders] Skipping ${appt.id} - booked only ${hoursFromBookingToAppointment.toFixed(1)}h before appointment (confirmation was recent)`);
+      context.log(`[Reminders] Skipping 24h reminder for ${appt.id} - booked only ${hoursFromBookingToAppointment.toFixed(1)}h before appointment`);
       return false;
     }
     return true;
   });
 
-  context.log(`[Reminders] ${allAppointments.length} appointments found, ${appointments.length} eligible for reminders (${allAppointments.length - appointments.length} recently booked)`);
+  context.log(`[Reminders] 24h window: ${appointments24h.length} found, ${eligible24h.length} eligible`);
 
-  if (appointments.length === 0) {
-    context.log('[Reminders] No appointments need reminders at this time');
-    return;
-  }
-
-  let patientRemindersSent = 0;
-  let clinicianRemindersSent = 0;
-
-  // Process each appointment
-  for (const appointment of appointments) {
+  for (const appointment of eligible24h) {
     const participants = parseAppointmentParticipants(appointment);
 
-    // Send patient reminder
+    // Send patient reminder (email + SMS)
     const patientSent = await sendPatientReminder(appointment, participants, context);
     if (patientSent) patientRemindersSent++;
 
-    // Send clinician reminder  
+    // Send clinician reminder
     const clinicianSent = await sendClinicianReminder(appointment, participants, context);
-    if (clinicianSent) clinicianRemindersSent++;
+    if (clinicianSent) clinician24hRemindersSent++;
+  }
+
+  // ==========================================
+  // 1-HOUR REMINDERS (Clinician + Admin - ALL appointments)
+  // ==========================================
+  const appointments1h = await getAppointmentsInWindow(REMINDER_1H_HOURS_BEFORE, context);
+  
+  context.log(`[Reminders] 1h window: ${appointments1h.length} appointments found`);
+
+  for (const appointment of appointments1h) {
+    const participants = parseAppointmentParticipants(appointment);
+    const appointmentDateTime = new Date(appointment.start);
+    const patientName = participants.patientName || 'Patient';
+    const practitionerName = participants.practitionerName || 'Practitioner';
+
+    // Send clinician 1-hour reminder
+    const clinicianSent = await sendClinicianReminder(appointment, participants, context, true);
+    if (clinicianSent) clinician1hRemindersSent++;
+
+    // Send admin 1-hour reminder (email + SMS)
+    try {
+      await sendAdminAppointmentReminder({
+        patientName,
+        practitionerName,
+        appointmentDateTime,
+      });
+      await sendAdminAppointmentReminderSms({
+        patientName,
+        practitionerName,
+        appointmentDateTime,
+      });
+      admin1hRemindersSent++;
+      context.log(`[Reminders] Admin 1h reminder sent for appointment ${appointment.id}`);
+    } catch (error) {
+      context.warn(`[Reminders] Failed to send admin 1h reminder for ${appointment.id}:`, error);
+    }
   }
 
   const duration = Date.now() - startTime;
   context.log(`[Reminders] Job completed in ${duration}ms`, {
-    appointmentsProcessed: appointments.length,
+    appointments24h: eligible24h.length,
+    appointments1h: appointments1h.length,
     patientRemindersSent,
-    clinicianRemindersSent,
+    clinician24hRemindersSent,
+    clinician1hRemindersSent,
+    admin1hRemindersSent,
   });
 }
 

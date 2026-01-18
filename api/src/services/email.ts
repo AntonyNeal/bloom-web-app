@@ -1363,10 +1363,12 @@ interface ClinicianAppointmentReminderContext {
   practitionerFirstName: string;
   patientName: string;
   appointmentDateTime: Date;
+  isShortNotice?: boolean; // true for 1-hour reminder
 }
 
 /**
- * Send appointment reminder email to clinician (24 hours before)
+ * Send appointment reminder email to clinician
+ * @param isShortNotice - If true, sends a "starting soon" reminder instead of "tomorrow"
  */
 export async function sendClinicianAppointmentReminder(context: ClinicianAppointmentReminderContext) {
   const {
@@ -1374,6 +1376,7 @@ export async function sendClinicianAppointmentReminder(context: ClinicianAppoint
     practitionerFirstName,
     patientName,
     appointmentDateTime,
+    isShortNotice = false,
   } = context;
 
   // Format the appointment date/time nicely for Australian timezone
@@ -1393,26 +1396,47 @@ export async function sendClinicianAppointmentReminder(context: ClinicianAppoint
   };
   const formattedTime = appointmentDateTime.toLocaleString('en-AU', timeOptions);
 
+  // Different content based on reminder type
+  const heading = isShortNotice
+    ? '🔔 Session Starting Soon!'
+    : '⏰ Appointment Reminder - Tomorrow';
+  
+  const introText = isShortNotice
+    ? `Your session with <strong>${patientName}</strong> is starting in about 1 hour.`
+    : 'Just a friendly reminder about your upcoming session.';
+  
+  const subjectLine = isShortNotice
+    ? `🔔 Starting in 1 hour: ${patientName} at ${formattedTime}`
+    : `⏰ Tomorrow: ${patientName} at ${formattedTime}`;
+
+  const bgGradient = isShortNotice
+    ? 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)'
+    : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
+  
+  const borderColor = isShortNotice ? '#fca5a5' : '#fcd34d';
+  const textColor = isShortNotice ? '#991b1b' : '#92400e';
+  const lightTextColor = isShortNotice ? '#7f1d1d' : '#78350f';
+
   const htmlContent = wrapInTemplate(`
-    <h2 style="color: #333; margin-top: 0;">⏰ Appointment Reminder - Tomorrow</h2>
+    <h2 style="color: #333; margin-top: 0;">${heading}</h2>
     
     <p>Hi ${practitionerFirstName},</p>
     
-    <p>Just a friendly reminder about your upcoming session.</p>
+    <p>${introText}</p>
     
-    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #fcd34d;">
+    <div style="background: ${bgGradient}; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid ${borderColor};">
       <table style="width: 100%; border-collapse: collapse;">
         <tr>
-          <td style="padding: 8px 0; color: #92400e; font-weight: 600; width: 80px;">📅</td>
-          <td style="padding: 8px 0; color: #78350f;">${formattedDate}</td>
+          <td style="padding: 8px 0; color: ${textColor}; font-weight: 600; width: 80px;">📅</td>
+          <td style="padding: 8px 0; color: ${lightTextColor};">${formattedDate}</td>
         </tr>
         <tr>
-          <td style="padding: 8px 0; color: #92400e; font-weight: 600;">⏰</td>
-          <td style="padding: 8px 0; color: #78350f; font-weight: 600;">${formattedTime}</td>
+          <td style="padding: 8px 0; color: ${textColor}; font-weight: 600;">⏰</td>
+          <td style="padding: 8px 0; color: ${lightTextColor}; font-weight: 600;">${formattedTime}</td>
         </tr>
         <tr>
-          <td style="padding: 8px 0; color: #92400e; font-weight: 600;">👤</td>
-          <td style="padding: 8px 0; color: #78350f;">${patientName}</td>
+          <td style="padding: 8px 0; color: ${textColor}; font-weight: 600;">👤</td>
+          <td style="padding: 8px 0; color: ${lightTextColor};">${patientName}</td>
         </tr>
       </table>
     </div>
@@ -1428,11 +1452,11 @@ export async function sendClinicianAppointmentReminder(context: ClinicianAppoint
   `);
 
   const plainTextContent = `
-⏰ Appointment Reminder - Tomorrow
+${isShortNotice ? '🔔 Session Starting Soon!' : '⏰ Appointment Reminder - Tomorrow'}
 
 Hi ${practitionerFirstName},
 
-Just a friendly reminder about your upcoming session.
+${isShortNotice ? `Your session with ${patientName} is starting in about 1 hour.` : 'Just a friendly reminder about your upcoming session.'}
 
 📅 ${formattedDate}
 ⏰ ${formattedTime}
@@ -1445,7 +1469,72 @@ View full details in Halaxy or your Bloom dashboard.
 
   return sendEmail(
     practitionerEmail,
-    `⏰ Tomorrow: ${patientName} at ${formattedTime}`,
+    subjectLine,
+    htmlContent,
+    plainTextContent
+  );
+}
+
+/**
+ * Send admin 1-hour appointment reminder
+ * Julian Della Bosca receives email 1 hour before every appointment
+ */
+export async function sendAdminAppointmentReminder(context: {
+  patientName: string;
+  practitionerName: string;
+  appointmentDateTime: Date;
+}) {
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'julian.dellabosca@gmail.com';
+  
+  const { patientName, practitionerName, appointmentDateTime } = context;
+
+  // Format time for Australian timezone
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedTime = appointmentDateTime.toLocaleString('en-AU', timeOptions);
+
+  const htmlContent = wrapInTemplate(`
+    <h2 style="color: #333; margin-top: 0;">🔔 Session Starting in 1 Hour</h2>
+    
+    <div style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #fca5a5;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #991b1b; font-weight: 600; width: 100px;">⏰ Time:</td>
+          <td style="padding: 8px 0; color: #7f1d1d; font-weight: 600;">${formattedTime}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #991b1b; font-weight: 600;">👤 Client:</td>
+          <td style="padding: 8px 0; color: #7f1d1d;">${patientName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #991b1b; font-weight: 600;">👩‍⚕️ With:</td>
+          <td style="padding: 8px 0; color: #7f1d1d;">${practitionerName}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <p style="margin-top: 20px; color: #666;">
+      - Life Psychology Notifications
+    </p>
+  `);
+
+  const plainTextContent = `
+🔔 Session Starting in 1 Hour
+
+⏰ Time: ${formattedTime}
+👤 Client: ${patientName}
+👩‍⚕️ With: ${practitionerName}
+
+- Life Psychology Notifications
+  `.trim();
+
+  return sendEmail(
+    adminEmail,
+    `🔔 1hr: ${patientName} with ${practitionerName} at ${formattedTime}`,
     htmlContent,
     plainTextContent
   );
@@ -1461,6 +1550,7 @@ export const emailService = {
   sendWelcomeEmail,
   sendClinicianBookingNotification,
   sendAdminBookingNotification,
+  sendAdminAppointmentReminder,
   sendPatientBookingConfirmation,
   sendPatientAppointmentReminder,
   sendClinicianAppointmentReminder,

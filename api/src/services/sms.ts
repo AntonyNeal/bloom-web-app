@@ -293,11 +293,37 @@ export async function sendAdminBookingNotificationSms(context: {
   return sendSms(adminPhone, message);
 }
 
+/**
+ * Send admin 1-hour appointment reminder
+ * Julian Della Bosca receives SMS 1 hour before every appointment
+ */
+export async function sendAdminAppointmentReminderSms(context: {
+  patientName: string;
+  practitionerName: string;
+  appointmentDateTime: Date;
+}): Promise<SmsResult> {
+  const adminPhone = process.env.ADMIN_NOTIFICATION_PHONE || '0401527587';
+  
+  // Format time only (date is "today" at 1 hour notice)
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedTime = context.appointmentDateTime.toLocaleString('en-AU', timeOptions);
+
+  const message = `🔔 Starting in 1hr: ${context.patientName} with ${context.practitionerName} at ${formattedTime} - Life Psychology`;
+
+  return sendSms(adminPhone, message);
+}
+
 export const smsService = {
   sendClinicianBookingSms,
   sendPatientBookingConfirmationSms,
   sendPatientAppointmentReminderSms,
   sendAdminBookingNotificationSms,
+  sendAdminAppointmentReminderSms,
   isSmsNotificationEnabled,
   isPatientSmsNotificationEnabled,
 };

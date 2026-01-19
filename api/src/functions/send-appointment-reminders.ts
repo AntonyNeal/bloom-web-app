@@ -469,19 +469,29 @@ async function sendAppointmentReminders(
     // Check if admin 1h reminder already sent
     if (!await hasReminderBeenSent(pool, appointment.id, '1h', 'admin')) {
       try {
+        // Send email
         await sendAdminAppointmentReminder({
           patientName,
           practitionerName,
           appointmentDateTime,
         });
-        await sendAdminAppointmentReminderSms({
+        context.log(`[Reminders] Admin email sent for ${appointment.id}`);
+        
+        // Send SMS
+        const smsResult = await sendAdminAppointmentReminderSms({
           patientName,
           practitionerName,
           appointmentDateTime,
         });
+        if (smsResult.success) {
+          context.log(`[Reminders] Admin SMS sent for ${appointment.id}: ${smsResult.messageId}`);
+        } else {
+          context.warn(`[Reminders] Admin SMS failed for ${appointment.id}: ${smsResult.error}`);
+        }
+        
         await recordReminderSent(pool, appointment.id, '1h', 'admin');
         admin1hRemindersSent++;
-        context.log(`[Reminders] Admin 1h reminder sent for appointment ${appointment.id}: ${patientName} with ${practitionerName}`);
+        context.log(`[Reminders] Admin 1h reminder completed for appointment ${appointment.id}: ${patientName} with ${practitionerName}`);
       } catch (error) {
         context.warn(`[Reminders] Failed to send admin 1h reminder for ${appointment.id}:`, error);
       }

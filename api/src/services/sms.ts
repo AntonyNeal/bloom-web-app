@@ -69,9 +69,15 @@ function normalizePhoneNumber(phone: string): string {
  */
 async function sendSms(to: string, message: string): Promise<SmsResult> {
   const client = getSmsClient();
-  const senderId = process.env.SMS_SENDER_ID || 'LifePsych'; // Alphanumeric sender ID
+  
+  // Use phone number if available, otherwise try alphanumeric sender ID
+  // Note: Australian regulations may require a phone number, not alphanumeric
+  const senderId = process.env.AZURE_COMMUNICATION_SERVICES_PHONE_NUMBER 
+    || process.env.SMS_SENDER_ID 
+    || 'LifePsych';
 
   if (!client) {
+    console.error('[SMS] SMS client not available - ACS not configured');
     return { success: false, error: 'SMS service not configured' };
   }
 
@@ -79,6 +85,7 @@ async function sendSms(to: string, message: string): Promise<SmsResult> {
     const normalizedTo = normalizePhoneNumber(to);
     
     console.log(`[SMS] Sending to ${normalizedTo} from ${senderId}`);
+    console.log(`[SMS] Message: ${message}`);
     
     const sendResults = await client.send({
       from: senderId,

@@ -14,7 +14,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ClinicianVideoCall } from './ClinicianVideoCall';
 import { NotesReview } from './NotesReview';
-import { LoadingState } from '../../components/common/LoadingState';
+import LoadingState from '../../components/common/LoadingState';
 import { API_BASE_URL } from '../../config/api';
 
 interface SessionData {
@@ -95,7 +95,7 @@ export function SessionPage() {
         },
         body: JSON.stringify({
           appointmentId,
-          practitionerId: user?.sub || user?.oid,
+          practitionerId: (user?.idTokenClaims as Record<string, unknown>)?.sub || (user?.idTokenClaims as Record<string, unknown>)?.oid || user?.localAccountId,
           appointmentTime: appointment.time,
           durationMinutes: appointment.duration || 50,
         }),
@@ -146,7 +146,7 @@ export function SessionPage() {
         body: JSON.stringify({
           appointmentId: sessionData.appointmentId,
           participantType: 'clinician',
-          participantId: user.sub || user.oid,
+          participantId: (user.idTokenClaims as Record<string, unknown>)?.sub || (user.idTokenClaims as Record<string, unknown>)?.oid || user.localAccountId,
           participantName: user.name || 'Clinician',
         }),
       });

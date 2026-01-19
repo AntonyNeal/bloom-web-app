@@ -196,7 +196,8 @@ export function ClinicianVideoCall({
                 const videoStream = vs as { isAvailable: boolean };
                 if (videoStream.isAvailable && remoteVideoContainerRef.current) {
                   try {
-                    const renderer = new VideoStreamRenderer(vs);
+                    // Cast to RemoteVideoStream type for VideoStreamRenderer
+                    const renderer = new VideoStreamRenderer(vs as Parameters<typeof VideoStreamRenderer>[0]);
                     const view = await renderer.createView({ scalingMode: 'Crop' });
                     remoteVideoContainerRef.current.innerHTML = '';
                     remoteVideoContainerRef.current.appendChild(view.target);

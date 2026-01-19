@@ -8,7 +8,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LoadingState } from '../../components/common/LoadingState';
+import LoadingState from '../../components/common/LoadingState';
 import { API_BASE_URL } from '../../config/api';
 
 interface WeekSession {

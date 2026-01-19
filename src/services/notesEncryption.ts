@@ -19,7 +19,8 @@
  * - If clinician can authenticate with Authenticator, they can decrypt
  */
 
-import { PublicClientApplication, AccountInfo } from '@azure/msal-browser';
+import { PublicClientApplication } from '@azure/msal-browser';
+import type { AccountInfo } from '@azure/msal-browser';
 
 // ============================================================================
 // Configuration
@@ -149,7 +150,7 @@ class NotesEncryptionService {
 
     return {
       ciphertext: this.arrayBufferToBase64(ciphertextBytes),
-      iv: this.arrayBufferToBase64(iv),
+      iv: this.arrayBufferToBase64(iv.buffer),
       algorithm: 'AES-256-GCM',
       keyVersion: this.dekVersion,
     };
@@ -307,13 +308,13 @@ class NotesEncryptionService {
     return btoa(binary);
   }
 
-  private base64ToArrayBuffer(base64: string): Uint8Array {
+  private base64ToArrayBuffer(base64: string): ArrayBuffer {
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }
-    return bytes;
+    return bytes.buffer;
   }
 
   private base64UrlToArrayBuffer(base64url: string): ArrayBuffer {

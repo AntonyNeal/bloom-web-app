@@ -12,11 +12,10 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 // ============================================================================
 
 // ACS SDK types (will be fully typed when package is installed)
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
-type _CallClient = any;
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type CallAgent = any;
 type Call = any;
-/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 interface VideoCallProps {
   token: string;
@@ -116,8 +115,7 @@ export function VideoCall({
 
         // Create local video stream
         const localVideoStream = new LocalVideoStream(cameras[0]);
-        const stream = await localVideoStream.getMediaStreamTrack();
-        const mediaStream = new MediaStream([stream]);
+        const mediaStream = await localVideoStream.getMediaStream();
         
         if (!mounted) return;
         setLocalStream(mediaStream);

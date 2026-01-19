@@ -5,6 +5,7 @@ import {
   type ApplicationDocument,
 } from '../../services/adminService';
 import LoadingState from '@/components/common/LoadingState';
+import { API_BASE_URL } from '@/config/api';
 
 // Loading spinner for buttons
 function ButtonSpinner() {
@@ -200,8 +201,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
       formData.append('applicationId', applicationId);
       formData.append('type', 'contract');
       
-      const API_URL = import.meta.env.VITE_API_URL || 'https://bloom-functions-staging-new.azurewebsites.net/api';
-      const response = await fetch(`${API_URL}/upload`, {
+      const response = await fetch(`${API_BASE_URL}/upload`, {
         method: 'POST',
         body: formData,
       });

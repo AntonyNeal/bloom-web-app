@@ -12,6 +12,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
+import { API_BASE_URL } from '../config/api';
 
 // ============================================================================
 // Types (matching API response)
@@ -72,7 +73,6 @@ interface UseClinicianDashboardResult {
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 const REFRESH_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes - faster since it's live data
 
 // ============================================================================

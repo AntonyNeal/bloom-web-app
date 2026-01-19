@@ -12,14 +12,31 @@
  * Local development uses Vite proxy (/api -> dev backend) via vite.config.ts
  * 
  * SINGLE SOURCE OF TRUTH: Only VITE_API_URL is needed. All other URLs are derived.
+ * NO FALLBACKS: If VITE_API_URL is not set in production, the app should fail fast.
  */
 
 const isDevelopmentServer = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 
-// Use injected API URL from build, fallback to /api for local dev (Vite proxy)
-export const API_BASE_URL = isDevelopmentServer
-  ? '/api' // Vite proxy for local development
-  : (import.meta.env.VITE_API_URL || 'https://bloom-platform-functions-v2.azurewebsites.net/api');
+// Validate API URL is set in non-local environments
+function getApiUrl(): string {
+  if (isDevelopmentServer) {
+    return '/api'; // Vite proxy for local development
+  }
+  
+  const apiUrl = import.meta.env.VITE_API_URL;
+  if (!apiUrl) {
+    const error = 'FATAL: VITE_API_URL environment variable is not set. Build configuration error.';
+    console.error(error);
+    // Show error to user in production
+    if (typeof document !== 'undefined') {
+      document.body.innerHTML = `<div style="color: red; padding: 20px; font-family: monospace;">${error}</div>`;
+    }
+    throw new Error(error);
+  }
+  return apiUrl;
+}
+
+export const API_BASE_URL = getApiUrl();
 
 // Base URL without /api suffix (for endpoints that add /api themselves)
 export const FUNCTIONS_BASE_URL = isDevelopmentServer

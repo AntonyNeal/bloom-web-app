@@ -3,7 +3,7 @@
  * Tracks A/B test events to the backend for real data collection
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fnt42kldozqahcu.azurewebsites.net';
+import { API_BASE_URL } from '../config/api';
 
 interface ABTestEvent {
   testName: string;

@@ -11,9 +11,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Check, AlertCircle, Loader2, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { WildflowerMeadow } from '../components/flowers';
+import { API_BASE_URL } from '../config/api';
 
-// API URL
-const API_URL = import.meta.env.VITE_API_URL || 'https://bloom-functions-staging-new.azurewebsites.net/api';
+// API URL - uses centralized config (fails fast if not set)
+const API_URL = API_BASE_URL;
 
 // Bloom colors
 const colors = {

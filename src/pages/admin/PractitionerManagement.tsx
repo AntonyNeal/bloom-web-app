@@ -15,8 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Users, CheckCircle2, Clock, UserX } from 'lucide-react';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://bloom-functions-staging-new.azurewebsites.net/api';
+import { API_BASE_URL } from '@/config/api';
 
 interface Practitioner {
   id: string;

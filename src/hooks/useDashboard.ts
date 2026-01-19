@@ -15,6 +15,7 @@ import type {
   SyncStatus,
   Practitioner,
 } from '@/types/bloom';
+import { API_BASE_URL } from '../config/api';
 
 // ============================================================================
 // Azure AD Integration
@@ -55,7 +56,6 @@ async function getAzureUserId(): Promise<string | null> {
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 // ============================================================================

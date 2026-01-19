@@ -15,6 +15,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { API_BASE_URL } from '@/config/api';
 
 // ============================================================================
 // TYPES
@@ -179,17 +180,13 @@ export function SmokeTestDashboard() {
   const [testResults, setTestResults] = useState<SmokeTestResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Use Vite proxy for local dev (/api -> bloom-functions-dev.azurewebsites.net)
-  // In production, VITE_API_URL is set by CI/CD pipeline
-  const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
-
   const runSmokeTests = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     setTestResults(null);
 
     try {
-      const response = await fetch(`${apiBaseUrl}/smoke-test`);
+      const response = await fetch(`${API_BASE_URL}/smoke-test`);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -202,7 +199,7 @@ export function SmokeTestDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [apiBaseUrl]);
+  }, []);
 
   return (
     <AuthenticatedLayout title="Smoke Tests" backTo="/admin">

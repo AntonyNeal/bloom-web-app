@@ -81,7 +81,7 @@ async function generateSessionToken(
     if (existing.recordset.length > 0) {
       // Return existing valid token
       const existingToken = existing.recordset[0];
-      const sessionUrl = `${process.env.BLOOM_URL || 'https://bloom.life-psychology.com.au'}/session/${existingToken.token}`;
+      const sessionUrl = `${process.env.BLOOM_URL || 'https://bloom.life-psychology.com.au'}/session?token=${existingToken.token}`;
       
       return {
         status: 200,
@@ -132,7 +132,7 @@ async function generateSessionToken(
         )
       `);
 
-    const sessionUrl = `${process.env.BLOOM_URL || 'https://bloom.life-psychology.com.au'}/session/${token}`;
+    const sessionUrl = `${process.env.BLOOM_URL || 'https://bloom.life-psychology.com.au'}/session?token=${token}`;
 
     context.log(`Generated session token for appointment ${body.appointmentId}`);
 

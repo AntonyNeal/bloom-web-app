@@ -236,6 +236,7 @@ export async function sendPatientAppointmentReminderSms(context: AppointmentRemi
     recipientFirstName,
     appointmentDateTime,
     practitionerName,
+    telehealthLink,
   } = context;
 
   // Format time only (they know the date from booking)
@@ -253,7 +254,13 @@ export async function sendPatientAppointmentReminderSms(context: AppointmentRemi
   };
   const formattedDay = appointmentDateTime.toLocaleString('en-AU', dateOptions);
 
-  const message = `Hi ${recipientFirstName}! Reminder: Your session with ${practitionerName || 'Life Psychology'} is tomorrow (${formattedDay}) at ${formattedTime}. We'll email your telehealth link soon - Life Psychology`;
+  // Build message - include link if available
+  let message: string;
+  if (telehealthLink) {
+    message = `Hi ${recipientFirstName}! Reminder: Session with ${practitionerName || 'Life Psychology'} tomorrow (${formattedDay}) at ${formattedTime}. Join: ${telehealthLink}`;
+  } else {
+    message = `Hi ${recipientFirstName}! Reminder: Session with ${practitionerName || 'Life Psychology'} tomorrow (${formattedDay}) at ${formattedTime}. Check email for details - Life Psychology`;
+  }
 
   return sendSms(recipientPhone, message);
 }

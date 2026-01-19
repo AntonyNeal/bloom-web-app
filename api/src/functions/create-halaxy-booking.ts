@@ -347,7 +347,7 @@ async function createHalaxyBooking(
             )
           `);
 
-        telehealthLink = `${process.env.BLOOM_URL || 'https://bloom.life-psychology.com.au'}/session/${token}`;
+        telehealthLink = `${process.env.BLOOM_URL || 'https://bloom.life-psychology.com.au'}/session?token=${token}`;
         context.log(`Generated session token for appointment ${appointment.id}`);
       }
     } catch (tokenError) {

@@ -45,6 +45,7 @@ import './functions/telehealth-room';
 import './functions/clinical-notes';
 import './functions/clinical-notes-key';
 import './functions/clinical-notes-llm';
+import './functions/session-workflow';
 
 export * from './functions/health';
 export * from './functions/applications';

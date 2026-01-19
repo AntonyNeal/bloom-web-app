@@ -23,6 +23,7 @@ import { queueBookingNotification, queuePatientConfirmation } from '../services/
 import { sendAdminBookingNotificationSms } from '../services/sms';
 import { sendAdminBookingNotification } from '../services/email';
 import * as sql from 'mssql';
+import * as crypto from 'crypto';
 interface PatientData {
   firstName: string;
   lastName: string;

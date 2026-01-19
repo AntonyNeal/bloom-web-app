@@ -38,6 +38,13 @@ import './functions/accept-offer';
 import './functions/upload-signed-contract';
 import './functions/verify-halaxy-practitioner';
 import './functions/send-appointment-reminders';
+import './functions/session-token';
+import './functions/session-consent';
+import './functions/session-transcription';
+import './functions/telehealth-room';
+import './functions/clinical-notes';
+import './functions/clinical-notes-key';
+import './functions/clinical-notes-llm';
 
 export * from './functions/health';
 export * from './functions/applications';

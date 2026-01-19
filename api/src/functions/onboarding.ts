@@ -11,6 +11,8 @@ import * as sql from 'mssql';
 import { createAzureUser, findAzureUserByEmail } from '../services/azure-ad';
 import { HalaxyClient } from '../services/halaxy/client';
 import { sendWelcomeEmail } from '../services/email';
+import { DefaultAzureCredential } from '@azure/identity';
+import { KeyClient, CryptographyClient } from '@azure/keyvault-keys';
 
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
@@ -337,6 +339,78 @@ async function onboardingHandler(
         context.log(`✅ HALAXY ROLE: ${halaxyPractitionerRoleId}`);
       }
 
+      // Create clinical notes encryption key for this practitioner
+      // Creates RSA key in Key Vault + wraps a DEK that's stored in DB
+      let notesKeyCreated = false;
+      if (azureObjectId) {
+        try {
+          const KEY_VAULT_NAME = process.env.KEY_VAULT_NAME || 'kv-bloom-notes';
+          const KEY_VAULT_URL = `https://${KEY_VAULT_NAME}.vault.azure.net`;
+          const keyName = `notes-key-${azureObjectId}`;
+          
+          const credential = new DefaultAzureCredential();
+          const keyClient = new KeyClient(KEY_VAULT_URL, credential);
+          
+          // Create RSA key in Key Vault
+          let rsaKey;
+          try {
+            rsaKey = await keyClient.createRsaKey(keyName, {
+              keySize: 4096,
+              keyOps: ['wrapKey', 'unwrapKey'],
+              tags: {
+                purpose: 'clinical-notes-dek-wrapping',
+                practitioner: azureObjectId,
+                email: practitioner.email,
+                created: new Date().toISOString(),
+              },
+            });
+          } catch (keyError: unknown) {
+            const err = keyError as { code?: string; statusCode?: number };
+            if (err.code === 'KeyAlreadyExists' || err.statusCode === 409) {
+              rsaKey = await keyClient.getKey(keyName);
+            } else {
+              throw keyError;
+            }
+          }
+          
+          // Generate random DEK
+          const dekBytes = new Uint8Array(32);
+          crypto.getRandomValues(dekBytes);
+          
+          // Wrap DEK with RSA key
+          const cryptoClient = new CryptographyClient(rsaKey.id!, credential);
+          const wrapResult = await cryptoClient.wrapKey('RSA-OAEP-256', dekBytes);
+          const wrappedDekBase64 = Buffer.from(wrapResult.result).toString('base64');
+          
+          // Store wrapped DEK in database
+          await pool.request()
+            .input('practitioner_id', sql.UniqueIdentifier, practitioner.id)
+            .input('azure_object_id', sql.NVarChar, azureObjectId)
+            .input('key_name', sql.NVarChar, rsaKey.name)
+            .input('key_version', sql.NVarChar, rsaKey.properties.version)
+            .input('wrapped_dek', sql.NVarChar, wrappedDekBase64)
+            .query(`
+              INSERT INTO practitioner_encryption_keys (
+                practitioner_id, azure_object_id, key_name, key_version, 
+                wrapped_dek, is_active, created_at
+              ) VALUES (
+                @practitioner_id, @azure_object_id, @key_name, @key_version,
+                @wrapped_dek, 1, GETDATE()
+              );
+              
+              UPDATE practitioners
+              SET notes_enabled = 1, notes_key_created_at = GETDATE()
+              WHERE id = @practitioner_id;
+            `);
+          
+          notesKeyCreated = true;
+          context.log(`✅ CLINICAL NOTES KEY CREATED for ${companyEmail || practitioner.email}`);
+        } catch (keyError) {
+          // Don't fail onboarding if key creation fails - can be done manually later
+          context.warn(`⚠️ Failed to create clinical notes encryption key:`, keyError);
+        }
+      }
+
       // Notify admin if Azure AD creation failed
       if (!companyEmail) {
         context.warn(`ATTENTION: Practitioner ${practitionerInfo.email} completed onboarding but company email was not created. Manual intervention required.`);
@@ -384,6 +458,7 @@ async function onboardingHandler(
             email: companyEmail,
             licenseAssigned,
             halaxyCreated: !!halaxyPractitionerId,
+            notesEnabled: notesKeyCreated,
             message: companyEmail 
               ? licenseAssigned
                 ? `Your new email is ${companyEmail}. You can sign in to Outlook and Bloom with this address.`

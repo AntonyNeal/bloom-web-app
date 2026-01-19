@@ -17,6 +17,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@azure/communication-calling": "^1.28.0",
+    "@azure/communication-common": "^2.3.0",
     "@azure/msal-react": "^2.0.0",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.0.18",

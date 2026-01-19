@@ -290,10 +290,74 @@ async function createHalaxyBooking(
     context.log(`Appointment created - ID: ${appointment.id}, Status: ${appointment.status}`);
     context.log(`[PERF] Appointment created at +${Date.now() - bookingStartTime}ms`);
 
-    // Step 3: Queue notifications for async processing (fire-and-forget)
+    // Step 3: Generate session token for telehealth link
+    let telehealthLink: string | undefined;
+    let practitionerUuid: string | undefined;
+    let practitionerName = 'Your Psychologist';
+    
+    try {
+      const pool = await getDbConnection();
+      
+      // Get practitioner UUID and name from halaxy_practitioner_id
+      const practResult = await pool.request()
+        .input('halaxyId', sql.NVarChar, practitionerId)
+        .query(`
+          SELECT id, first_name, last_name 
+          FROM practitioners 
+          WHERE halaxy_practitioner_id = @halaxyId
+        `);
+      
+      if (practResult.recordset.length > 0) {
+        const pract = practResult.recordset[0];
+        practitionerUuid = pract.id;
+        practitionerName = `${pract.first_name} ${pract.last_name}`.trim() || practitionerName;
+        
+        // Generate session token
+        const token = crypto.randomBytes(32).toString('base64url');
+        
+        const tokenId = crypto.randomUUID();
+        const appointmentDateTime = new Date(body.appointmentDetails.startTime);
+        const durationMinutes = 50; // Default duration
+        
+        // Token expires 24 hours after appointment
+        const expiresAt = new Date(appointmentDateTime.getTime() + 24 * 60 * 60 * 1000);
+
+        await pool.request()
+          .input('id', sql.UniqueIdentifier, tokenId)
+          .input('token', sql.NVarChar, token)
+          .input('appointmentId', sql.NVarChar, appointment.id)
+          .input('patientId', sql.NVarChar, patient.id)
+          .input('patientFirstName', sql.NVarChar, body.patient.firstName)
+          .input('patientEmail', sql.NVarChar, body.patient.email)
+          .input('practitionerId', sql.UniqueIdentifier, practitionerUuid)
+          .input('practitionerName', sql.NVarChar, practitionerName)
+          .input('appointmentTime', sql.DateTime2, appointmentDateTime)
+          .input('appointmentDuration', sql.Int, durationMinutes)
+          .input('expiresAt', sql.DateTime2, expiresAt)
+          .query(`
+            INSERT INTO session_tokens (
+              id, token, appointment_halaxy_id, patient_halaxy_id,
+              patient_first_name, patient_email, practitioner_id, practitioner_name,
+              appointment_time, appointment_duration_mins, expires_at, created_at
+            ) VALUES (
+              @id, @token, @appointmentId, @patientId,
+              @patientFirstName, @patientEmail, @practitionerId, @practitionerName,
+              @appointmentTime, @appointmentDuration, @expiresAt, GETUTCDATE()
+            )
+          `);
+
+        telehealthLink = `${process.env.BLOOM_URL || 'https://bloom.life-psychology.com.au'}/session/${token}`;
+        context.log(`Generated session token for appointment ${appointment.id}`);
+      }
+    } catch (tokenError) {
+      context.warn('Failed to generate session token (booking still successful):', tokenError);
+      // Continue without telehealth link - not critical for booking
+    }
+
+    // Step 4: Queue notifications for async processing (fire-and-forget)
     // Notification failures do NOT block the booking - it's already confirmed in Halaxy
     
-    // 3a: Queue clinician notification (email + SMS)
+    // 4a: Queue clinician notification (email + SMS)
     try {
       const notificationId = await queueBookingNotification(
         practitionerId,
@@ -318,7 +382,7 @@ async function createHalaxyBooking(
       context.warn('Error queuing clinician notification:', queueError);
     }
 
-    // 3b: Queue patient booking confirmation email
+    // Step 5: Queue patient booking confirmation email
     try {
       const patientNotificationId = await queuePatientConfirmation(
         {
@@ -331,10 +395,10 @@ async function createHalaxyBooking(
           appointmentType: body.appointmentDetails.appointmentType,
           // All bookings are currently telehealth
           locationType: 'telehealth',
-          // TODO: Get telehealth link from Halaxy appointment or practitioner config
-          // locationDetails: telehealthLink,
+          // Include generated telehealth link
+          locationDetails: telehealthLink,
         },
-        'Zoe Semmler' // TODO: Fetch practitioner name from Halaxy or database
+        practitionerName
       );
 
       if (patientNotificationId) {
@@ -346,7 +410,7 @@ async function createHalaxyBooking(
       context.warn('Error queuing patient confirmation:', queueError);
     }
 
-    // 3c: Send admin/owner notifications (Julian) - email + SMS
+    // Step 6: Send admin/owner notifications (Julian) - email + SMS
     try {
       // Admin email
       const adminEmailResult = await sendAdminBookingNotification({
@@ -354,7 +418,7 @@ async function createHalaxyBooking(
         patientLastName: body.patient.lastName,
         patientEmail: body.patient.email,
         patientPhone: body.patient.phone,
-        practitionerName: 'Zoe Semmler',
+        practitionerName: practitionerName,
         appointmentDateTime: new Date(body.appointmentDetails.startTime),
         appointmentType: body.appointmentDetails.appointmentType,
       });
@@ -365,12 +429,13 @@ async function createHalaxyBooking(
         context.warn('Admin email failed:', adminEmailResult.error);
       }
 
-      // Admin SMS
+      // Admin SMS (use first name only)
+      const practFirstName = practitionerName.split(' ')[0] || 'Practitioner';
       const adminSmsResult = await sendAdminBookingNotificationSms({
         patientFirstName: body.patient.firstName,
         patientLastName: body.patient.lastName,
         appointmentDateTime: new Date(body.appointmentDetails.startTime),
-        practitionerName: 'Zoe',
+        practitionerName: practFirstName,
       });
       
       if (adminSmsResult.success) {

@@ -37,6 +37,7 @@ const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
 const BusinessCoach = lazy(() => import('./pages/BusinessCoach'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const AcceptOffer = lazy(() => import('./pages/AcceptOffer'));
+const PatientTherapyRoom = lazy(() => import('./components/session/PatientTherapyRoom'));
 
 // Lazy-loaded flower components with preloading
 const Tier1Flower = lazy(() =>
@@ -462,6 +463,18 @@ function AnimatedRoutes() {
             <ErrorBoundary>
               <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
                 <Onboarding />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
+
+        {/* Patient therapy room - Telehealth session (token-based access) */}
+        <Route
+          path="/session/:token"
+          element={
+            <ErrorBoundary>
+              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Connecting to your session...</div>}>
+                <PatientTherapyRoom />
               </Suspense>
             </ErrorBoundary>
           }

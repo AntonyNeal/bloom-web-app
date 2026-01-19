@@ -259,6 +259,72 @@ async function sendPatientReminder(
     const appointmentDateTime = new Date(appointment.start);
     const practitionerName = participants.practitionerName || 'Your Psychologist';
 
+    // Generate session token for telehealth link
+    let telehealthLink: string | undefined;
+    try {
+      const pool = await getDbConnection();
+      
+      // Get practitioner UUID from halaxy_practitioner_id
+      const practResult = await pool.request()
+        .input('halaxyId', sql.NVarChar, participants.practitionerId)
+        .query(`SELECT id FROM practitioners WHERE halaxy_practitioner_id = @halaxyId`);
+      
+      if (practResult.recordset.length > 0) {
+        const practitionerUuid = practResult.recordset[0].id;
+        const durationMinutes = appointment.minutesDuration || 50;
+        
+        // Generate token directly
+        const crypto = await import('crypto');
+        const token = crypto.randomBytes(32).toString('base64url');
+        const tokenId = crypto.randomUUID();
+        
+        // Token expires 24 hours after appointment
+        const expiresAt = new Date(appointmentDateTime.getTime() + 24 * 60 * 60 * 1000);
+
+        await pool.request()
+          .input('id', sql.UniqueIdentifier, tokenId)
+          .input('token', sql.NVarChar, token)
+          .input('appointmentId', sql.NVarChar, appointment.id)
+          .input('patientId', sql.NVarChar, participants.patientId)
+          .input('patientFirstName', sql.NVarChar, patientFirstName)
+          .input('patientEmail', sql.NVarChar, patientEmail)
+          .input('practitionerId', sql.UniqueIdentifier, practitionerUuid)
+          .input('practitionerName', sql.NVarChar, practitionerName)
+          .input('appointmentTime', sql.DateTime2, appointmentDateTime)
+          .input('appointmentDuration', sql.Int, durationMinutes)
+          .input('expiresAt', sql.DateTime2, expiresAt)
+          .query(`
+            -- Insert or update existing token
+            MERGE session_tokens AS target
+            USING (SELECT @appointmentId AS appointment_halaxy_id) AS source
+            ON target.appointment_halaxy_id = source.appointment_halaxy_id
+            WHEN MATCHED AND target.expires_at > GETUTCDATE() THEN
+              UPDATE SET id = target.id -- No-op, token already exists and valid
+            WHEN NOT MATCHED THEN
+              INSERT (id, token, appointment_halaxy_id, patient_halaxy_id,
+                      patient_first_name, patient_email, practitioner_id, practitioner_name,
+                      appointment_time, appointment_duration_mins, expires_at, created_at)
+              VALUES (@id, @token, @appointmentId, @patientId,
+                      @patientFirstName, @patientEmail, @practitionerId, @practitionerName,
+                      @appointmentTime, @appointmentDuration, @expiresAt, GETUTCDATE());
+          `);
+        
+        // Get the token (in case it was already there)
+        const tokenResult = await pool.request()
+          .input('appointmentId', sql.NVarChar, appointment.id)
+          .query(`SELECT token FROM session_tokens WHERE appointment_halaxy_id = @appointmentId`);
+        
+        if (tokenResult.recordset.length > 0) {
+          const finalToken = tokenResult.recordset[0].token;
+          telehealthLink = `${process.env.BLOOM_URL || 'https://bloom.life-psychology.com.au'}/session/${finalToken}`;
+          context.log(`[Reminders] Generated session link for appointment ${appointment.id}`);
+        }
+      }
+    } catch (error) {
+      context.warn(`[Reminders] Failed to generate session token for ${appointment.id}:`, error);
+      // Continue without telehealth link - not critical
+    }
+
     let success = false;
 
     // Send email reminder
@@ -269,6 +335,7 @@ async function sendPatientReminder(
           patientFirstName,
           practitionerName,
           appointmentDateTime,
+          telehealthLink, // Include session link if generated
         });
         context.log(`[Reminders] Email sent to patient for appointment ${appointment.id}`);
         success = true;

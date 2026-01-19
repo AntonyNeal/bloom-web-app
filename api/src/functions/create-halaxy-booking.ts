@@ -23,7 +23,7 @@ import { queueBookingNotification, queuePatientConfirmation } from '../services/
 import { sendAdminBookingNotificationSms } from '../services/sms';
 import { sendAdminBookingNotification } from '../services/email';
 import * as sql from 'mssql';
-import * as crypto from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 interface PatientData {
   firstName: string;
   lastName: string;
@@ -314,9 +314,9 @@ async function createHalaxyBooking(
         practitionerName = `${pract.first_name} ${pract.last_name}`.trim() || practitionerName;
         
         // Generate session token
-        const token = crypto.randomBytes(32).toString('base64url');
+        const token = randomBytes(32).toString('base64url');
         
-        const tokenId = crypto.randomUUID();
+        const tokenId = randomUUID();
         const appointmentDateTime = new Date(body.appointmentDetails.startTime);
         const durationMinutes = 50; // Default duration
         

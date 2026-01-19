@@ -73,13 +73,10 @@ async function createAcsRoom(
     validFrom,
     validUntil,
   });
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const roomAny = room as any;
   
   return {
     id: room.id,
-    createdAt: roomAny.createdAt?.toISOString() || new Date().toISOString(),
+    createdAt: new Date().toISOString(),  // Room creation time is now
     validFrom: room.validFrom?.toISOString() || validFrom.toISOString(),
     validUntil: room.validUntil?.toISOString() || validUntil.toISOString(),
   };

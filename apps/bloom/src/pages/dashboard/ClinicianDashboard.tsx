@@ -1,16 +1,17 @@
 /**
  * Clinician Dashboard
  * 
- * Shows today's sessions with ability to start telehealth calls.
+ * Shows today's sessions and week calendar with ability to start telehealth calls.
  * Replaces the basic AdminDashboard for practitioners.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingState } from '../../components/common/LoadingState';
 import { API_BASE_URL } from '../../config/api';
 
+// Today's session format
 interface Session {
   id: string;
   time: string;
@@ -22,6 +23,35 @@ interface Session {
   isUpNext: boolean;
   locationType: 'telehealth' | 'in-person';
   notes?: string;
+}
+
+// Week schedule format
+interface WeekSession {
+  id: string;
+  date: string;
+  time: string;
+  endTime: string;
+  clientInitials: string;
+  clientName: string;
+  sessionType: string;
+  duration: number;
+  status: 'booked' | 'confirmed' | 'arrived' | 'in-progress' | 'completed' | 'cancelled' | 'no-show';
+  locationType: 'telehealth' | 'in-person';
+}
+
+interface DaySessions {
+  date: string;
+  dayName: string;
+  sessions: WeekSession[];
+  totalMinutes: number;
+}
+
+interface WeekSchedule {
+  startDate: string;
+  endDate: string;
+  days: DaySessions[];
+  totalSessions: number;
+  totalMinutes: number;
 }
 
 interface DashboardData {
@@ -43,6 +73,8 @@ interface DashboardData {
   fetchedAt: string;
 }
 
+type ViewMode = 'today' | 'week';
+
 export function ClinicianDashboard() {
   const navigate = useNavigate();
   const { user, logout, getAccessToken } = useAuth();
@@ -50,10 +82,21 @@ export function ClinicianDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [weekSchedule, setWeekSchedule] = useState<WeekSchedule | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('today');
+  const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, 1 = next week, etc.
+  const [loadingWeek, setLoadingWeek] = useState(false);
 
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  // Load week schedule when switching to week view or changing week
+  useEffect(() => {
+    if (viewMode === 'week') {
+      loadWeekSchedule();
+    }
+  }, [viewMode, weekOffset]);
 
   const loadDashboard = async () => {
     try {
@@ -81,8 +124,77 @@ export function ClinicianDashboard() {
     }
   };
 
+  const loadWeekSchedule = useCallback(async () => {
+    try {
+      setLoadingWeek(true);
+      const token = await getAccessToken();
+      
+      // Calculate start date based on week offset
+      const startDate = new Date();
+      const day = startDate.getDay();
+      const diff = startDate.getDate() - day + (day === 0 ? -6 : 1) + (weekOffset * 7);
+      startDate.setDate(diff);
+      
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 6);
+      
+      const params = new URLSearchParams({
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+      });
+      
+      const res = await fetch(`${API_BASE_URL}/clinician/schedule?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to load week schedule');
+      }
+
+      const data = await res.json();
+      setWeekSchedule(data.data);
+    } catch (err) {
+      console.error('Error loading week schedule:', err);
+    } finally {
+      setLoadingWeek(false);
+    }
+  }, [getAccessToken, weekOffset]);
+
   const handleStartSession = (sessionId: string) => {
     navigate(`/session/${sessionId}`);
+  };
+
+  const formatWeekRange = () => {
+    if (!weekSchedule) return '';
+    const start = new Date(weekSchedule.startDate);
+    const end = new Date(weekSchedule.endDate);
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    return `${start.toLocaleDateString('en-AU', options)} - ${end.toLocaleDateString('en-AU', options)}`;
+  };
+
+  const isToday = (dateStr: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    return dateStr === today;
+  };
+
+  const getStatusStyle = (status: string): React.CSSProperties => {
+    switch (status) {
+      case 'completed':
+        return { background: '#DEF7EC', color: '#03543F' };
+      case 'confirmed':
+        return { background: '#E1EFFE', color: '#1E429F' };
+      case 'arrived':
+        return { background: '#FDF6B2', color: '#723B13' };
+      case 'in-progress':
+        return { background: '#EDEBFE', color: '#5521B5' };
+      case 'cancelled':
+      case 'no-show':
+        return { background: '#FDE8E8', color: '#9B1C1C' };
+      default:
+        return { background: '#F3F4F6', color: '#374151' };
+    }
   };
 
   if (loading) {
@@ -139,25 +251,49 @@ export function ClinicianDashboard() {
 
       {/* Main content */}
       <main style={styles.main}>
-        {/* Summary cards */}
-        <div style={styles.summaryGrid}>
-          <div style={styles.summaryCard}>
-            <div style={styles.summaryNumber}>{dashboard.today.summary.totalSessions}</div>
-            <div style={styles.summaryLabel}>Total Sessions</div>
-          </div>
-          <div style={{ ...styles.summaryCard, ...styles.summaryCardHighlight }}>
-            <div style={styles.summaryNumber}>{dashboard.today.summary.upcomingSessions}</div>
-            <div style={styles.summaryLabel}>Upcoming</div>
-          </div>
-          <div style={styles.summaryCard}>
-            <div style={styles.summaryNumber}>{dashboard.today.summary.completedSessions}</div>
-            <div style={styles.summaryLabel}>Completed</div>
-          </div>
+        {/* View Toggle */}
+        <div style={styles.viewToggle}>
+          <button
+            onClick={() => setViewMode('today')}
+            style={{
+              ...styles.viewToggleButton,
+              ...(viewMode === 'today' ? styles.viewToggleButtonActive : {}),
+            }}
+          >
+            Today
+          </button>
+          <button
+            onClick={() => setViewMode('week')}
+            style={{
+              ...styles.viewToggleButton,
+              ...(viewMode === 'week' ? styles.viewToggleButtonActive : {}),
+            }}
+          >
+            Week
+          </button>
         </div>
 
-        {/* Upcoming Sessions */}
-        <section style={styles.section}>
-          <h2 style={styles.sectionTitle}>Upcoming Sessions</h2>
+        {viewMode === 'today' ? (
+          <>
+            {/* Summary cards */}
+            <div style={styles.summaryGrid}>
+              <div style={styles.summaryCard}>
+                <div style={styles.summaryNumber}>{dashboard.today.summary.totalSessions}</div>
+                <div style={styles.summaryLabel}>Total Sessions</div>
+              </div>
+              <div style={{ ...styles.summaryCard, ...styles.summaryCardHighlight }}>
+                <div style={styles.summaryNumber}>{dashboard.today.summary.upcomingSessions}</div>
+                <div style={styles.summaryLabel}>Upcoming</div>
+              </div>
+              <div style={styles.summaryCard}>
+                <div style={styles.summaryNumber}>{dashboard.today.summary.completedSessions}</div>
+                <div style={styles.summaryLabel}>Completed</div>
+              </div>
+            </div>
+
+            {/* Upcoming Sessions */}
+            <section style={styles.section}>
+              <h2 style={styles.sectionTitle}>Upcoming Sessions</h2>
           
           {activeSessions.length === 0 ? (
             <div style={styles.emptyState}>
@@ -268,6 +404,127 @@ export function ClinicianDashboard() {
             </button>
           </div>
         </section>
+          </>
+        ) : (
+          /* Week Calendar View */
+          <div style={styles.weekViewContainer}>
+            {/* Week Navigation */}
+            <div style={styles.weekNavigation}>
+              <button
+                onClick={() => setWeekOffset(weekOffset - 1)}
+                style={styles.weekNavButton}
+              >
+                ← Previous
+              </button>
+              <div style={styles.weekRangeDisplay}>
+                <span style={styles.weekRangeText}>{formatWeekRange()}</span>
+                {weekOffset !== 0 && (
+                  <button
+                    onClick={() => setWeekOffset(0)}
+                    style={styles.todayButton}
+                  >
+                    Today
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => setWeekOffset(weekOffset + 1)}
+                style={styles.weekNavButton}
+              >
+                Next →
+              </button>
+            </div>
+
+            {/* Week Summary */}
+            {weekSchedule && (
+              <div style={styles.weekSummary}>
+                <span>{weekSchedule.totalSessions} sessions</span>
+                <span style={styles.weekSummaryDivider}>•</span>
+                <span>{Math.floor(weekSchedule.totalMinutes / 60)}h {weekSchedule.totalMinutes % 60}m total</span>
+              </div>
+            )}
+
+            {loadingWeek ? (
+              <LoadingState message="Loading week schedule..." />
+            ) : weekSchedule ? (
+              <div style={styles.weekGrid}>
+                {weekSchedule.days.map((day) => (
+                  <div 
+                    key={day.date} 
+                    style={{
+                      ...styles.dayColumn,
+                      ...(isToday(day.date) ? styles.dayColumnToday : {}),
+                    }}
+                  >
+                    <div style={styles.dayHeader}>
+                      <div style={styles.dayName}>{day.dayName}</div>
+                      <div style={styles.dayDate}>
+                        {new Date(day.date).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' })}
+                      </div>
+                      {isToday(day.date) && <span style={styles.todayIndicator}>Today</span>}
+                    </div>
+                    
+                    <div style={styles.daySessionsList}>
+                      {day.sessions.length === 0 ? (
+                        <div style={styles.noSessions}>No sessions</div>
+                      ) : (
+                        day.sessions.map((session) => (
+                          <div 
+                            key={session.id} 
+                            style={{
+                              ...styles.weekSessionCard,
+                              ...(session.status === 'completed' ? styles.weekSessionCompleted : {}),
+                              ...(session.status === 'cancelled' ? styles.weekSessionCancelled : {}),
+                            }}
+                          >
+                            <div style={styles.weekSessionTime}>
+                              {session.time} - {session.endTime}
+                            </div>
+                            <div style={styles.weekSessionClient}>
+                              <span style={styles.weekClientInitials}>{session.clientInitials}</span>
+                              {session.clientName}
+                            </div>
+                            <div style={styles.weekSessionType}>{session.sessionType}</div>
+                            <div style={styles.weekSessionMeta}>
+                              <span style={{
+                                ...styles.weekLocationBadge,
+                                ...(session.locationType === 'telehealth' ? styles.weekTelehealthBadge : {}),
+                              }}>
+                                {session.locationType === 'telehealth' ? '📹' : '🏢'}
+                              </span>
+                              <span style={{
+                                ...styles.weekStatusBadge,
+                                ...getStatusStyle(session.status),
+                              }}>
+                                {session.status}
+                              </span>
+                            </div>
+                            {session.locationType === 'telehealth' && 
+                             isToday(day.date) && 
+                             !['completed', 'cancelled', 'no-show'].includes(session.status) && (
+                              <button
+                                onClick={() => handleStartSession(session.id)}
+                                style={styles.weekStartButton}
+                              >
+                                Start
+                              </button>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    
+                    {day.sessions.length > 0 && (
+                      <div style={styles.dayFooter}>
+                        {day.sessions.filter(s => !['cancelled', 'no-show'].includes(s.status)).length} sessions
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        )}
       </main>
 
       {/* Footer */}
@@ -568,6 +825,224 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '14px',
     fontWeight: 500,
     cursor: 'pointer',
+  },
+  // View Toggle styles
+  viewToggle: {
+    display: 'flex',
+    background: 'white',
+    borderRadius: '10px',
+    padding: '4px',
+    marginBottom: '24px',
+    width: 'fit-content',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+  },
+  viewToggleButton: {
+    padding: '10px 24px',
+    background: 'transparent',
+    color: '#718096',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: 500,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+  viewToggleButtonActive: {
+    background: '#6B8E7F',
+    color: 'white',
+  },
+  // Week view styles
+  weekViewContainer: {
+    marginBottom: '32px',
+  },
+  weekNavigation: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+    background: 'white',
+    borderRadius: '12px',
+    padding: '12px 20px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+  },
+  weekNavButton: {
+    padding: '8px 16px',
+    background: 'transparent',
+    color: '#4A5568',
+    border: '1px solid #E2E8F0',
+    borderRadius: '8px',
+    fontSize: '13px',
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
+  weekRangeDisplay: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  weekRangeText: {
+    fontSize: '16px',
+    fontWeight: 600,
+    color: '#2D3748',
+  },
+  todayButton: {
+    padding: '6px 12px',
+    background: '#6B8E7F',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
+  weekSummary: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '16px',
+    fontSize: '14px',
+    color: '#718096',
+  },
+  weekSummaryDivider: {
+    color: '#CBD5E0',
+  },
+  weekGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(7, 1fr)',
+    gap: '12px',
+    overflowX: 'auto',
+  },
+  dayColumn: {
+    background: 'white',
+    borderRadius: '12px',
+    minWidth: '150px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+    overflow: 'hidden',
+  },
+  dayColumnToday: {
+    border: '2px solid #6B8E7F',
+    boxShadow: '0 4px 12px rgba(107, 142, 127, 0.15)',
+  },
+  dayHeader: {
+    padding: '12px',
+    background: '#F7FAFC',
+    borderBottom: '1px solid #EDF2F7',
+    textAlign: 'center',
+  },
+  dayName: {
+    fontSize: '14px',
+    fontWeight: 600,
+    color: '#2D3748',
+  },
+  dayDate: {
+    fontSize: '12px',
+    color: '#718096',
+    marginTop: '2px',
+  },
+  todayIndicator: {
+    display: 'inline-block',
+    fontSize: '10px',
+    fontWeight: 600,
+    color: '#276749',
+    background: '#C6F6D5',
+    padding: '2px 8px',
+    borderRadius: '10px',
+    marginTop: '4px',
+  },
+  daySessionsList: {
+    padding: '8px',
+    minHeight: '100px',
+    maxHeight: '400px',
+    overflowY: 'auto',
+  },
+  noSessions: {
+    fontSize: '12px',
+    color: '#A0AEC0',
+    textAlign: 'center',
+    padding: '20px 8px',
+  },
+  weekSessionCard: {
+    background: '#F7FAFC',
+    borderRadius: '8px',
+    padding: '10px',
+    marginBottom: '8px',
+    fontSize: '12px',
+    borderLeft: '3px solid #6B8E7F',
+  },
+  weekSessionCompleted: {
+    opacity: 0.6,
+    borderLeftColor: '#A0AEC0',
+  },
+  weekSessionCancelled: {
+    opacity: 0.5,
+    borderLeftColor: '#FC8181',
+    textDecoration: 'line-through',
+  },
+  weekSessionTime: {
+    fontWeight: 600,
+    color: '#2D3748',
+    marginBottom: '4px',
+  },
+  weekSessionClient: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    color: '#4A5568',
+    marginBottom: '4px',
+  },
+  weekClientInitials: {
+    width: '20px',
+    height: '20px',
+    borderRadius: '50%',
+    background: '#E2E8F0',
+    color: '#4A5568',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '9px',
+    fontWeight: 600,
+  },
+  weekSessionType: {
+    color: '#718096',
+    marginBottom: '6px',
+  },
+  weekSessionMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    flexWrap: 'wrap',
+  },
+  weekLocationBadge: {
+    fontSize: '10px',
+  },
+  weekTelehealthBadge: {
+    // Already has emoji
+  },
+  weekStatusBadge: {
+    padding: '2px 6px',
+    borderRadius: '8px',
+    fontSize: '10px',
+    fontWeight: 500,
+    textTransform: 'capitalize',
+  },
+  weekStartButton: {
+    width: '100%',
+    marginTop: '8px',
+    padding: '6px 10px',
+    background: 'linear-gradient(135deg, #6B8E7F 0%, #8FA892 100%)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '11px',
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  dayFooter: {
+    padding: '8px 12px',
+    borderTop: '1px solid #EDF2F7',
+    fontSize: '11px',
+    color: '#718096',
+    textAlign: 'center',
   },
 };
 

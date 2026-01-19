@@ -13,6 +13,7 @@
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { AzureOpenAI } from 'openai';
+import { getPractitionerByAzureId } from '../services/practitioner';
 
 // ============================================================================
 // Configuration
@@ -186,6 +187,32 @@ function getOpenAIClient(): AzureOpenAI {
 }
 
 // ============================================================================
+// Helper: Validate Practitioner Authentication
+// ============================================================================
+
+async function validatePractitioner(request: HttpRequest): Promise<{
+  practitionerId: string;
+  azureObjectId: string;
+} | null> {
+  const azureUserId = request.headers.get('X-Azure-User-Id');
+  
+  if (!azureUserId) {
+    return null;
+  }
+  
+  const practitioner = await getPractitionerByAzureId(azureUserId);
+  
+  if (!practitioner) {
+    return null;
+  }
+  
+  return {
+    practitionerId: practitioner.id,
+    azureObjectId: azureUserId,
+  };
+}
+
+// ============================================================================
 // Generate Draft Note from Transcription
 // ============================================================================
 
@@ -196,6 +223,16 @@ async function generateDraftNote(
   context.log('LLM: Generate draft note from transcription');
 
   try {
+    // Validate practitioner authentication
+    const auth = await validatePractitioner(request);
+    if (!auth) {
+      return {
+        status: 401,
+        jsonBody: { success: false, error: 'Unauthorized - practitioner authentication required' },
+      };
+    }
+    context.log(`LLM: Authorized request from practitioner ${auth.practitionerId}`);
+
     const body = await request.json() as {
       transcription: string;
       patientInitials: string;
@@ -267,6 +304,16 @@ async function generatePrepSummary(
   context.log('LLM: Generate prep summary');
 
   try {
+    // Validate practitioner authentication
+    const auth = await validatePractitioner(request);
+    if (!auth) {
+      return {
+        status: 401,
+        jsonBody: { success: false, error: 'Unauthorized - practitioner authentication required' },
+      };
+    }
+    context.log(`LLM: Authorized prep summary request from practitioner ${auth.practitionerId}`);
+
     const body = await request.json() as {
       previousNotes: Array<{
         sessionDate: string;

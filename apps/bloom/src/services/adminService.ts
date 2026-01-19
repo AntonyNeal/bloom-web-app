@@ -1,31 +1,45 @@
 // Application types (defined inline since @shared/types package doesn't exist)
+// Note: Property names match Cosmos DB document structure (PascalCase)
 export interface ApplicationDTO {
-  id: string;
-  applicantName: string;
-  email: string;
-  phone?: string;
-  status: string;
-  submittedAt: string;
-  reviewedAt?: string;
-  reviewedBy?: string;
+  ApplicationID: string;
+  FirstName: string;
+  LastName: string;
+  Email: string;
+  Phone?: string;
+  RegistrationType?: string;
+  YearsRegistered?: number;
+  ApplicationStatus: string;
+  SubmittedAt: string;
+  ReviewedAt?: string;
+  ReviewedBy?: string;
 }
 
 export interface ApplicationDetailDTO extends ApplicationDTO {
-  ahpraNumber?: string;
-  qualifications?: string;
-  experience?: string;
-  specializations?: string[];
-  availability?: string;
-  reviewNotes?: string;
+  AHPRANumber?: string;
+  IsPhDHolder?: boolean;
+  HasTelehealthExperience?: boolean;
+  PreferredHoursPerWeek?: number;
+  InsuranceProvider?: string;
+  InsurancePolicyNumber?: string;
+  Specializations?: string;
+  TherapeuticApproaches?: string;
+  AgeGroupsServed?: string;
+  Reference1Name?: string;
+  Reference1Relationship?: string;
+  Reference1Contact?: string;
+  Reference2Name?: string;
+  Reference2Relationship?: string;
+  Reference2Contact?: string;
+  ReviewNotes?: string;
 }
 
 export interface ApplicationDocumentDTO {
-  id: string;
-  applicationId: string;
-  documentType: string;
-  blobName: string;
-  fileName: string;
-  uploadedAt: string;
+  DocumentID: string;
+  ApplicationID: string;
+  DocumentType: string;
+  BlobName: string;
+  FileName: string;
+  UploadedAt: string;
 }
 
 const BASE_URL = import.meta.env.VITE_AZURE_FUNCTIONS_URL;

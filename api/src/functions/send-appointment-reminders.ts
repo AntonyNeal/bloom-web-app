@@ -176,6 +176,53 @@ function parseAppointmentParticipants(appointment: FHIRAppointment): {
 }
 
 /**
+ * Get actual names by fetching from Halaxy if display names are empty
+ */
+async function resolveParticipantNames(
+  participants: ReturnType<typeof parseAppointmentParticipants>,
+  context: InvocationContext
+): Promise<{ patientName: string; practitionerName: string }> {
+  const halaxyClient = getHalaxyClient();
+  let patientName = participants.patientName || '';
+  let practitionerName = participants.practitionerName || '';
+
+  // Fetch patient name if not available
+  if (!patientName && participants.patientId) {
+    try {
+      const patient = await halaxyClient.getPatient(participants.patientId);
+      if (patient?.name?.[0]) {
+        const name = patient.name[0];
+        const given = name.given?.join(' ') || '';
+        const family = name.family || '';
+        patientName = `${given} ${family}`.trim();
+      }
+    } catch (error) {
+      context.warn(`[Reminders] Failed to fetch patient ${participants.patientId}:`, error);
+    }
+  }
+
+  // Fetch practitioner name if not available
+  if (!practitionerName && participants.practitionerId) {
+    try {
+      const practitioner = await halaxyClient.getPractitioner(participants.practitionerId);
+      if (practitioner?.name?.[0]) {
+        const name = practitioner.name[0];
+        const given = name.given?.join(' ') || '';
+        const family = name.family || '';
+        practitionerName = `${given} ${family}`.trim();
+      }
+    } catch (error) {
+      context.warn(`[Reminders] Failed to fetch practitioner ${participants.practitionerId}:`, error);
+    }
+  }
+
+  return {
+    patientName: patientName || 'Patient',
+    practitionerName: practitionerName || 'Practitioner',
+  };
+}
+
+/**
  * Send reminder to patient
  * Fetches contact info from Halaxy just-in-time, doesn't store it
  */
@@ -403,8 +450,9 @@ async function sendAppointmentReminders(
   for (const appointment of appointments1h) {
     const participants = parseAppointmentParticipants(appointment);
     const appointmentDateTime = new Date(appointment.start);
-    const patientName = participants.patientName || 'Patient';
-    const practitionerName = participants.practitionerName || 'Practitioner';
+    
+    // Resolve actual names from Halaxy if display names are missing
+    const { patientName, practitionerName } = await resolveParticipantNames(participants, context);
 
     // Check if clinician 1h reminder already sent
     if (!await hasReminderBeenSent(pool, appointment.id, '1h', 'clinician')) {
@@ -433,7 +481,7 @@ async function sendAppointmentReminders(
         });
         await recordReminderSent(pool, appointment.id, '1h', 'admin');
         admin1hRemindersSent++;
-        context.log(`[Reminders] Admin 1h reminder sent for appointment ${appointment.id}`);
+        context.log(`[Reminders] Admin 1h reminder sent for appointment ${appointment.id}: ${patientName} with ${practitionerName}`);
       } catch (error) {
         context.warn(`[Reminders] Failed to send admin 1h reminder for ${appointment.id}:`, error);
       }

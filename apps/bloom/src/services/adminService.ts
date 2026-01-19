@@ -1,8 +1,32 @@
-import type {
-  ApplicationDTO,
-  ApplicationDetailDTO,
-  ApplicationDocumentDTO,
-} from '@shared/types';
+// Application types (defined inline since @shared/types package doesn't exist)
+export interface ApplicationDTO {
+  id: string;
+  applicantName: string;
+  email: string;
+  phone?: string;
+  status: string;
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+export interface ApplicationDetailDTO extends ApplicationDTO {
+  ahpraNumber?: string;
+  qualifications?: string;
+  experience?: string;
+  specializations?: string[];
+  availability?: string;
+  reviewNotes?: string;
+}
+
+export interface ApplicationDocumentDTO {
+  id: string;
+  applicationId: string;
+  documentType: string;
+  blobName: string;
+  fileName: string;
+  uploadedAt: string;
+}
 
 const BASE_URL = import.meta.env.VITE_AZURE_FUNCTIONS_URL;
 

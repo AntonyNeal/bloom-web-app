@@ -1,6 +1,13 @@
-const LoadingState = () => {
+interface LoadingStateProps {
+  message?: string;
+}
+
+const LoadingState = ({ message }: LoadingStateProps) => {
   return (
     <div className="space-y-4">
+      {message && (
+        <p className="text-sage-600 text-center mb-4">{message}</p>
+      )}
       {/* Show 3 skeleton cards */}
       {[1, 2, 3].map((i) => (
         <div

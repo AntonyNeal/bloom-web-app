@@ -25,6 +25,16 @@ const ABTestDashboard = lazy(() =>
   import('./pages/admin/ABTestDashboard').then((m) => ({ default: m.ABTestDashboard }))
 );
 
+// Session page for telehealth video calls
+const SessionPage = lazy(() =>
+  import('./pages/session/SessionPage').then((m) => ({ default: m.SessionPage }))
+);
+
+// Clinician dashboard with today's sessions
+const ClinicianDashboard = lazy(() =>
+  import('./pages/dashboard/ClinicianDashboard').then((m) => ({ default: m.ClinicianDashboard }))
+);
+
 // Lazy-loaded flower components - keep original React components for visual fidelity
 const Tier1Flower = lazy(() =>
   import('@/components/flowers/Tier1Flower').then((m) => ({ default: m.Tier1Flower }))
@@ -630,6 +640,22 @@ function AnimatedRoutes() {
                 <Suspense
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
                 >
+                  <ClinicianDashboard />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Legacy admin dashboard route */}
+        <Route
+          path="/admin/legacy-dashboard"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
                   <AdminDashboard />
                 </Suspense>
                 <Toaster />
@@ -682,6 +708,22 @@ function AnimatedRoutes() {
                   <ABTestDashboard />
                 </Suspense>
                 <Toaster />
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Telehealth Session - Clinician video call interface */}
+        <Route
+          path="/session/:appointmentId"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Preparing session...</div>}
+                >
+                  <SessionPage />
+                </Suspense>
               </ErrorBoundary>
             </ProtectedRoute>
           }

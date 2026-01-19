@@ -20,12 +20,12 @@ The roadmap is organized into **themes** (Epics in Jira), with each theme contai
 
 ### 🔥 P0 - Critical / Immediate
 
-| Epic | Description | Est. SP |
-|------|-------------|---------|
-| Privacy & Security Policy Revalidation | Compliance risk from Next.js migration reversion | 5 |
-| Unified Clinician Interface | Video + booking + AI assistant + **real calendar** in one place | 34 |
-| Multi-Practitioner Infrastructure | Foundation for scaling - auto-extend website when clinicians added | 21 |
-| Psychologist Onboarding Pipeline | Auto-provision accepted applicants → active clinicians | 21 |
+| Epic | Description | Est. SP | Status |
+|------|-------------|---------|--------|
+| ~~Privacy & Security Policy Revalidation~~ | ~~Compliance risk from Next.js migration reversion~~ | ~~5~~ | ✅ **DONE** |
+| ~~Psychologist Onboarding Pipeline~~ | ~~Auto-provision accepted applicants → active clinicians~~ | ~~21~~ | ✅ **DONE** |
+| Unified Clinician Interface | Video + booking + AI assistant + **real calendar** in one place | 34 | |
+| Multi-Practitioner Infrastructure | Foundation for scaling - auto-extend website when clinicians added | 21 | |
 
 ### 🔴 P1 - High Priority
 
@@ -92,13 +92,13 @@ Each ticket in this document includes:
 
 ## 🏗️ Development Themes (Epics)
 
-### NEW Epic: Privacy & Security Policy Revalidation (P0)
+### ✅ COMPLETED Epic: Privacy & Security Policy Revalidation (P0) - January 2026
 
 ### NEW Epic: Unified Clinician Interface (P0)
 
 ### NEW Epic: Multi-Practitioner Infrastructure (P0)
 
-### NEW Epic: Psychologist Onboarding Pipeline (P0)
+### ✅ COMPLETED Epic: Psychologist Onboarding Pipeline (P0) - January 2026
 
 ### NEW Epic: Azure Communication Services (P1)
 
@@ -136,13 +136,17 @@ Each ticket in this document includes:
 
 ---
 
-## � NEW EPIC: Privacy & Security Policy Revalidation (P0)
+## ✅ COMPLETED EPIC: Privacy & Security Policy Revalidation (P0)
 
 **Epic Description**: Audit and restore privacy/security policies that reverted during Next.js migration. Legal/regulatory compliance risk.
 
 **Business Value**: Ensures compliance with Australian privacy law, reduces legal exposure, maintains trust.
 
 **Story Points**: 5 total
+
+**Status**: ✅ **COMPLETED** - January 19, 2026
+
+**Audit Result**: website-next privacy page is fully compliant with Privacy Act 1988, AHPRA, APS Code of Ethics, includes confidentiality section with mandatory reporting, data security certifications, and policy update notifications.
 
 ### Tickets
 

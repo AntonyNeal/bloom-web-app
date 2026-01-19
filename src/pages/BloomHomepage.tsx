@@ -1052,7 +1052,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
   }, []);
   
   // Fetch dashboard data from API (or use sample data as fallback)
-  const { dashboard, loading } = useDashboard(practitionerId);
+  const { dashboard, loading, isUsingDemoData, authStatus, lastFetched, refetch } = useDashboard(practitionerId);
 
   // Transform dashboard data to local types, or use overrides/samples
   const todaysSessions: Session[] = sessionsOverride || (dashboard ? 
@@ -1116,6 +1116,90 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}
     >
+      {/* Demo Mode Banner */}
+      {isUsingDemoData && (
+        <div
+          style={{
+            background: 'linear-gradient(90deg, #E8B77D 0%, #D4A59A 100%)',
+            color: colors.charcoal,
+            padding: '10px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            fontSize: '14px',
+            fontWeight: 500,
+          }}
+        >
+          <span>📊</span>
+          <span>
+            {authStatus === 'unauthenticated' 
+              ? 'Demo Mode — Sign in with your practitioner account to see your real calendar'
+              : 'Demo Mode — Unable to load live data'}
+          </span>
+          {authStatus === 'unauthenticated' && (
+            <Link
+              to="/login"
+              style={{
+                background: colors.white,
+                color: colors.charcoal,
+                padding: '6px 12px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
+            >
+              Sign In
+            </Link>
+          )}
+        </div>
+      )}
+      
+      {/* Live Data Indicator */}
+      {!isUsingDemoData && lastFetched && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '16px',
+            left: '16px',
+            background: 'rgba(122, 180, 122, 0.95)',
+            color: 'white',
+            padding: '8px 12px',
+            borderRadius: '8px',
+            fontSize: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            zIndex: 1000,
+            boxShadow: shadows.subtle,
+          }}
+        >
+          <span style={{ 
+            width: '8px', 
+            height: '8px', 
+            background: '#4ade80', 
+            borderRadius: '50%',
+            animation: 'pulse 2s infinite',
+          }} />
+          <span>Live from Halaxy</span>
+          <button
+            onClick={() => refetch()}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              border: 'none',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: '11px',
+            }}
+          >
+            ↻ Refresh
+          </button>
+        </div>
+      )}
+      
       {/* Developer Debug Banner - shows Azure ID for account setup */}
       {azureUserId && (
         <div
@@ -1149,7 +1233,10 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
                 {azureUserId}
               </div>
               <div style={{ marginTop: '8px', fontSize: '10px', opacity: 0.8 }}>
-                {dashboard?.syncStatus?.isConnected ? '✅ Live data' : '📊 Sample data'}
+                {isUsingDemoData ? '📊 Demo data' : '✅ Live from Halaxy'}
+              </div>
+              <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.8 }}>
+                Auth: {authStatus}
               </div>
             </div>
           ) : (
@@ -1171,6 +1258,11 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
               opacity: 1;
               transform: translateY(0);
             }
+          }
+          
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
           }
 
           @keyframes blossomFloat {

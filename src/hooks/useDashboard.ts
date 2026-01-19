@@ -84,6 +84,10 @@ interface UseDashboardResult {
   lastFetched: Date | null;
   /** Sync status with external systems */
   syncStatus: SyncStatus | null;
+  /** Authentication status */
+  authStatus: 'authenticated' | 'unauthenticated' | 'checking';
+  /** Whether using sample/demo data */
+  isUsingDemoData: boolean;
 }
 
 // ============================================================================
@@ -256,11 +260,15 @@ export function useDashboard(
   const [loading, setLoading] = useState(!skip);
   const [error, setError] = useState<string | null>(null);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [authStatus, setAuthStatus] = useState<'authenticated' | 'unauthenticated' | 'checking'>('checking');
+  const [isUsingDemoData, setIsUsingDemoData] = useState(false);
 
   const fetchDashboard = useCallback(async () => {
     if (skip) {
-      // Use sample data when skipped
+      // Use sample data when skipped (explicit demo mode)
       setDashboard(sampleDashboard);
+      setIsUsingDemoData(true);
+      setAuthStatus('unauthenticated');
       setLoading(false);
       return;
     }
@@ -268,6 +276,7 @@ export function useDashboard(
     try {
       setLoading(true);
       setError(null);
+      setIsUsingDemoData(false);
 
       // Get Azure AD user from MSAL (if available)
       const azureUserId = await getAzureUserId();
@@ -275,11 +284,15 @@ export function useDashboard(
       console.log('[useDashboard] Azure User ID:', azureUserId);
       
       if (!azureUserId) {
-        console.warn('[useDashboard] No Azure authentication, using sample data');
+        console.warn('[useDashboard] No Azure authentication - showing demo data');
         setDashboard(sampleDashboard);
+        setIsUsingDemoData(true);
+        setAuthStatus('unauthenticated');
         setLoading(false);
         return;
       }
+
+      setAuthStatus('authenticated');
 
       // Use the clinician-dashboard endpoint (fetches live Halaxy data)
       const url = new URL(`${API_BASE_URL}/clinician/dashboard`);
@@ -300,9 +313,20 @@ export function useDashboard(
       console.log('[useDashboard] Response status:', response.status);
 
       if (!response.ok) {
-        // If API fails, fall back to sample data
-        console.warn('[useDashboard] Dashboard API unavailable, using sample data');
+        // Handle specific error codes
+        if (response.status === 403) {
+          const errorData = await response.json().catch(() => ({}));
+          setError('Your account is not registered as a practitioner. Please contact support.');
+          setDashboard(sampleDashboard);
+          setIsUsingDemoData(true);
+          setLastFetched(new Date());
+          console.error('[useDashboard] 403 Forbidden - not a registered practitioner', errorData);
+          return;
+        }
+        // API unavailable - show demo data with warning
+        console.warn('[useDashboard] Dashboard API unavailable, using demo data');
         setDashboard(sampleDashboard);
+        setIsUsingDemoData(true);
         setLastFetched(new Date());
         return;
       }
@@ -374,11 +398,13 @@ export function useDashboard(
       };
 
       setDashboard(transformedDashboard);
+      setIsUsingDemoData(false);
       setLastFetched(new Date());
     } catch (err) {
       console.error('Dashboard fetch error:', err);
-      // Fall back to sample data on error
+      // Fall back to demo data on error
       setDashboard(sampleDashboard);
+      setIsUsingDemoData(true);
       setError(err instanceof Error ? err.message : 'Failed to load dashboard');
     } finally {
       setLoading(false);
@@ -405,6 +431,8 @@ export function useDashboard(
     refetch: fetchDashboard,
     lastFetched,
     syncStatus: dashboard?.syncStatus || null,
+    authStatus,
+    isUsingDemoData,
   };
 }
 

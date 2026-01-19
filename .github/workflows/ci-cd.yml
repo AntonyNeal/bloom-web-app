@@ -310,7 +310,11 @@ jobs:
           cache: 'npm'
       - name: Install Root Dependencies
         run: npm ci
-      - name: Root Type Check
+      - name: Install Bloom Dependencies
+        working-directory: apps/bloom
+        run: npm ci
+      - name: Bloom Type Check
+        working-directory: apps/bloom
         run: npx tsc --noEmit
       - name: Install Website-Next Dependencies
         working-directory: apps/website-next
@@ -627,10 +631,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install Dependencies
+      - name: Install Bloom Dependencies
+        working-directory: apps/bloom
         run: npm ci
 
       - name: Build Bloom Application
+        working-directory: apps/bloom
         env:
           MODE: ${{ needs.determine-environment.outputs.environment == 'production' && 'production' || 'development' }}
           # Single source of truth: VITE_API_URL (all other URLs derived in code)
@@ -639,10 +645,11 @@ jobs:
           echo "🌸 Building Bloom Frontend..."
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
           echo "🔗 API URL: $VITE_API_URL"
-          npm run build:bloom -- --mode $MODE
+          npm run build -- --mode $MODE
           echo "✅ Build complete"
 
       - name: Verify Build Output
+        working-directory: apps/bloom
         run: |
           if [ ! -f "dist/index.html" ]; then
             echo "❌ dist/index.html not found!"
@@ -651,6 +658,7 @@ jobs:
           echo "✅ Build verified"
 
       - name: Package Artifacts
+        working-directory: apps/bloom
         run: |
           tar -czf bloom-frontend-dist.tar.gz dist
           sha256sum bloom-frontend-dist.tar.gz > bloom-frontend-dist.tar.gz.sha256
@@ -660,8 +668,8 @@ jobs:
         with:
           name: bloom-frontend-${{ needs.determine-environment.outputs.environment }}
           path: |
-            bloom-frontend-dist.tar.gz
-            bloom-frontend-dist.tar.gz.sha256
+            apps/bloom/bloom-frontend-dist.tar.gz
+            apps/bloom/bloom-frontend-dist.tar.gz.sha256
           if-no-files-found: error
           retention-days: 7
 

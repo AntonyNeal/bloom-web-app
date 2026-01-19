@@ -30,9 +30,14 @@ const SessionPage = lazy(() =>
   import('./pages/session/SessionPage').then((m) => ({ default: m.SessionPage }))
 );
 
-// Clinician dashboard with today's sessions
+// Clinician dashboard (feed-style home page)
 const ClinicianDashboard = lazy(() =>
   import('./pages/dashboard/ClinicianDashboard').then((m) => ({ default: m.ClinicianDashboard }))
+);
+
+// Clinician calendar (week view)
+const ClinicianCalendar = lazy(() =>
+  import('./pages/calendar/ClinicianCalendar').then((m) => ({ default: m.ClinicianCalendar }))
 );
 
 // Lazy-loaded flower components - keep original React components for visual fidelity
@@ -641,6 +646,22 @@ function AnimatedRoutes() {
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
                 >
                   <ClinicianDashboard />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Clinician Calendar (week view) */}
+        <Route
+          path="/calendar"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
+                  <ClinicianCalendar />
                 </Suspense>
               </ErrorBoundary>
             </ProtectedRoute>

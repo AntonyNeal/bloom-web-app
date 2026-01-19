@@ -1,7 +1,10 @@
 {
   "files": [],
   "references": [
-    { "path": "./tsconfig.app.json" },
+    { "path": "./apps/bloom" },
+    { "path": "./apps/website" },
+    { "path": "./apps/website-next" },
+    { "path": "./api" },
     { "path": "./tsconfig.node.json" }
   ]
 }

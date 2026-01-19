@@ -170,8 +170,6 @@ export async function createPractitionerFromApplication(
       onboardingToken,
       onboardingLink,
     };
-      onboardingLink,
-    };
   } catch (error) {
     console.error('[PractitionerService] Error creating practitioner:', error);
     return {

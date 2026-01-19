@@ -959,7 +959,7 @@ function ApplicationDetailPage({ applicationId }: Props) {
                   <ul className="text-sm text-gray-600 mt-1 ml-4 list-disc space-y-1">
                     <li><strong>Name:</strong> {application.FirstName} {application.LastName}</li>
                     <li><strong>Email:</strong> {application.Email}</li>
-                    <li><strong>AHPRA:</strong> {application.AHPRARegistration}</li>
+                    <li><strong>AHPRA:</strong> {application.AHPRANumber}</li>
                     <li><strong>Specializations:</strong> {application.Specializations}</li>
                   </ul>
                 </div>

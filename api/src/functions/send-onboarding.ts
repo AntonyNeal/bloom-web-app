@@ -8,11 +8,28 @@
  * Body: { halaxyPractitionerId: string }
  */
 
-import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azurefunctions/core';
+import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
-import { getConfig } from '../config/database';
 import { createPractitionerFromApplication } from '../services/practitioner';
 import { HalaxyClient } from '../services/halaxy/client';
+
+// Support both connection string and individual credentials
+const getConfig = (): string | sql.config => {
+  const connectionString = process.env.SQL_CONNECTION_STRING;
+  if (connectionString) {
+    return connectionString;
+  }
+  return {
+    server: process.env.SQL_SERVER!,
+    database: process.env.SQL_DATABASE!,
+    user: process.env.SQL_USER!,
+    password: process.env.SQL_PASSWORD!,
+    options: {
+      encrypt: true,
+      trustServerCertificate: false,
+    },
+  };
+};
 
 const headers = {
   'Access-Control-Allow-Origin': '*',

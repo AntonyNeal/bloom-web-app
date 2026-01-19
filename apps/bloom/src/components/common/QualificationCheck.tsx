@@ -62,60 +62,29 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
   const [showInkSpread, setShowInkSpread] = useState(false);
   const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([]);
 
-  // Phase 6: Garden recognition states
+  // Phase 6: Calculate years-based recognition - derive from state instead of effect
   type YearsIcon = 'none' | 'leaf' | 'bud' | 'flower' | 'honored';
-  const [yearsIcon, setYearsIcon] = useState<YearsIcon>('none');
-  const [showDelayedBloom, setShowDelayedBloom] = useState(false);
-
-  // Phase 6: Calculate years-based recognition
-  useEffect(() => {
-    if (yearsRegistered >= 16) setYearsIcon('honored');
-    else if (yearsRegistered >= 8) setYearsIcon('flower');
-    else if (yearsRegistered >= 5) setYearsIcon('bud');
-    else if (yearsRegistered >= 3) setYearsIcon('leaf');
-    else setYearsIcon('none');
+  const yearsIcon: YearsIcon = useMemo(() => {
+    if (yearsRegistered >= 16) return 'honored';
+    if (yearsRegistered >= 8) return 'flower';
+    if (yearsRegistered >= 5) return 'bud';
+    if (yearsRegistered >= 3) return 'leaf';
+    return 'none';
   }, [yearsRegistered]);
 
   // Phase 6: Track if qualifications are complete
   const hasQualification = isRegisteredPsychologist || hasPhd;
   const allQualified = hasQualification || yearsRegistered >= 8;
 
-  // Phase 6: iPhone-Safe delayed bloom - using requestAnimationFrame instead of setTimeout
-  useEffect(() => {
-    if (yearsRegistered >= 8 && hasQualification && !showDelayedBloom) {
-      setShowDelayedBloom(true);
-      // iPhone-Safe: Use requestAnimationFrame with fallback
-      const animationId = requestAnimationFrame(() => {
-        setTimeout(() => setShowDelayedBloom(false), 2000);
-      });
-      return () => cancelAnimationFrame(animationId);
-    }
-  }, [hasQualification, yearsRegistered, showDelayedBloom]);
+  // Phase 6: Delayed bloom - derived from qualification state
+  const showDelayedBloom = yearsRegistered >= 8 && hasQualification;
 
-  // Phase 6: Screen reader announcements for qualification recognition
-  const [srAnnouncement, setSrAnnouncement] = useState('');
-
-  // iPhone-Safe screen reader announcements using requestAnimationFrame
-  useEffect(() => {
-    let message = '';
-
-    if (isRegisteredPsychologist) {
-      message = 'Clinical Psychologist qualification recognized';
-    } else if (hasPhd) {
-      message = 'PhD qualification recognized with highest honors';
-    } else if (yearsRegistered >= 8) {
-      message = 'Eight or more years of experience recognized';
-    }
-
-    if (message) {
-      setSrAnnouncement(message);
-      // iPhone-Safe: Use requestAnimationFrame before setTimeout
-      const animationId = requestAnimationFrame(() => {
-        const timer = setTimeout(() => setSrAnnouncement(''), 3000);
-        return () => clearTimeout(timer);
-      });
-      return () => cancelAnimationFrame(animationId);
-    }
+  // Phase 6: Screen reader announcements - derive message from state
+  const srAnnouncement = useMemo(() => {
+    if (isRegisteredPsychologist) return 'Clinical Psychologist qualification recognized';
+    if (hasPhd) return 'PhD qualification recognized with highest honors';
+    if (yearsRegistered >= 8) return 'Eight or more years of experience recognized';
+    return '';
   }, [isRegisteredPsychologist, hasPhd, yearsRegistered]);
 
   // Phase 2: Mobile-first entrance animations
@@ -151,8 +120,8 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
     [isMobile, shouldReduceMotion]
   );
 
-  // Stable random values for floating seeds (prevents recalculation on each render)
-  const seedValues = useMemo(() => {
+  // Stable random values for floating seeds - generated once on mount
+  const [seedValues] = useState(() => {
     const count = isMobile ? 15 : 25;
     return Array.from({ length: count }, (_, i) => {
       const startX = (i / count) * 100 + (Math.random() - 0.5) * 20;
@@ -166,16 +135,16 @@ export function QualificationCheck({ onEligible }: QualificationCheckProps) {
         blur: 0.5 + Math.random() * 0.5,
       };
     });
-  }, [isMobile]);
+  });
 
-  // Stable random values for ground wildflowers (prevents recalculation on each render)
-  const wildflowerValues = useMemo(() => {
+  // Stable random values for ground wildflowers - generated once on mount
+  const [wildflowerValues] = useState(() => {
     const count = isMobile ? 12 : 20;
     return Array.from({ length: count }, () => ({
       stemHeight: 30 + Math.random() * 50,
       flowerSize: 6 + Math.random() * 8,
     }));
-  }, [isMobile]);
+  });
 
   const handleCheckEligibility = useCallback(() => {
     // iPhone-Safe Implementation: No setTimeout delays

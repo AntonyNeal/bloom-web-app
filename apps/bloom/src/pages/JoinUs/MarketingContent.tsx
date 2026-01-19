@@ -5,7 +5,7 @@ import { Tier1Flower, Tier2Flower, Tier3Flower } from '@/components/flowers';
 const bloomColors = colors.bloom;
 
 // Miyazaki-inspired floating particle component - More visible
-const FloatingPetal = ({ delay, duration, x, type = 'pink' }: { delay: number; duration: number; x: string; type?: 'pink' | 'purple' | 'yellow' }) => {
+const FloatingPetal = ({ delay, duration, x, type = 'pink', repeatDelay = 6 }: { delay: number; duration: number; x: string; type?: 'pink' | 'purple' | 'yellow'; repeatDelay?: number }) => {
   const petalColors = {
     pink: 'linear-gradient(135deg, #FFB6C1 0%, #FFA8BA 100%)',
     purple: 'linear-gradient(135deg, #DDA0DD 0%, #C7ABD9 100%)',
@@ -26,7 +26,7 @@ const FloatingPetal = ({ delay, duration, x, type = 'pink' }: { delay: number; d
         delay: delay,
         repeat: Infinity,
         ease: 'easeInOut',
-        repeatDelay: Math.random() * 8 + 4
+        repeatDelay: repeatDelay
       }}
       style={{
         position: 'absolute',

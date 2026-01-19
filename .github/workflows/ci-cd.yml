@@ -286,14 +286,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
       - name: Install Root Dependencies
-        run: npm ci
+        run: npm install
       - name: Run Root ESLint
         run: npm run lint
       - name: Install Website-Next Dependencies
         working-directory: apps/website-next
-        run: npm ci
+        run: npm install
       - name: Run Website-Next ESLint
         working-directory: apps/website-next
         run: npm run lint
@@ -307,18 +306,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
       - name: Install Root Dependencies
-        run: npm ci
+        run: npm install
       - name: Install Bloom Dependencies
         working-directory: apps/bloom
-        run: npm ci
+        run: npm install
       - name: Bloom Type Check
         working-directory: apps/bloom
         run: npx tsc --noEmit
       - name: Install Website-Next Dependencies
         working-directory: apps/website-next
-        run: npm ci
+        run: npm install
       - name: Website-Next Type Check
         working-directory: apps/website-next
         run: npx tsc --noEmit
@@ -344,12 +342,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION_API }}
-          cache: 'npm'
-          cache-dependency-path: api/package-lock.json
 
       - name: Install Dependencies
         working-directory: api
-        run: npm ci
+        run: npm install
 
       - name: Build API
         working-directory: api
@@ -412,12 +408,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION_API }}
-          cache: 'npm'
-          cache-dependency-path: api/package-lock.json
 
       - name: Install Dependencies
         working-directory: api
-        run: npm ci
+        run: npm install
 
       - name: Build API
         working-directory: api
@@ -466,7 +460,7 @@ jobs:
           echo "🚀 Running database migrations for ${{ needs.determine-environment.outputs.db-environment }}..."
           
           # Install dependencies for migration script
-          npm ci
+          npm install
           
           # First, repair any checksum mismatches from line-ending differences
           echo "🔧 Repairing checksum mismatches (if any)..."
@@ -629,11 +623,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
 
       - name: Install Bloom Dependencies
         working-directory: apps/bloom
-        run: npm ci
+        run: npm install
 
       - name: Build Bloom Application
         working-directory: apps/bloom
@@ -694,11 +687,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
 
       - name: Install Website Dependencies
         working-directory: apps/website-next
-        run: npm ci
+        run: npm install
 
       - name: Build Next.js Application
         working-directory: apps/website-next
@@ -757,12 +749,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION_API }}
-          cache: 'npm'
-          cache-dependency-path: api/package-lock.json
 
       - name: Install API Dependencies
         working-directory: ./api
-        run: npm ci
+        run: npm install
 
       - name: Build Bloom API
         working-directory: ./api
@@ -919,12 +909,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: services/halaxy-sync-worker/package-lock.json
 
       - name: Install Worker Dependencies
         working-directory: ./services/halaxy-sync-worker
-        run: npm ci
+        run: npm install
 
       - name: Build Worker
         working-directory: ./services/halaxy-sync-worker

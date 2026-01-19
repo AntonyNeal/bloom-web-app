@@ -1,11 +1,14 @@
 /**
  * SMS Service
  * 
- * Handles SMS notifications using Azure Communication Services.
- * ACS is configured with Infobip as the SMS backend via "Messaging Connect".
- * Used for sending booking notifications to clinicians.
+ * Handles SMS notifications using Infobip's direct API.
+ * 
+ * Configuration required:
+ * - INFOBIP_API_KEY
+ * - INFOBIP_BASE_URL (optional, defaults to api.infobip.com)
+ * - SMS_SENDER_ID (optional, defaults to "LifePsych")
  */
-import { SmsClient } from '@azure/communication-sms';
+import https from 'https';
 
 interface SmsResult {
   success: boolean;
@@ -22,29 +25,8 @@ interface ClinicianBookingSmsContext {
   appointmentType?: string;
 }
 
-// Singleton SMS client
-let smsClient: SmsClient | null = null;
-
 /**
- * Get or create the SMS client
- */
-function getSmsClient(): SmsClient | null {
-  if (smsClient) {
-    return smsClient;
-  }
-
-  const connectionString = process.env.AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING;
-  if (!connectionString) {
-    console.error('[SMS] Azure Communication Services connection string not configured');
-    return null;
-  }
-
-  smsClient = new SmsClient(connectionString);
-  return smsClient;
-}
-
-/**
- * Normalize phone number to E.164 format
+ * Normalize phone number to E.164 format (without +)
  * Handles Australian phone numbers
  */
 function normalizePhoneNumber(phone: string): string {
@@ -56,65 +38,88 @@ function normalizePhoneNumber(phone: string): string {
     normalized = '61' + normalized.substring(1);
   }
   
-  // Add + prefix for E.164 format (ACS requires this)
-  if (!normalized.startsWith('+')) {
-    normalized = '+' + normalized;
+  // Remove + prefix if present (Infobip doesn't need it)
+  if (normalized.startsWith('+')) {
+    normalized = normalized.substring(1);
   }
   
   return normalized;
 }
 
 /**
- * Send an SMS message via Azure Communication Services
+ * Send an SMS message via Infobip direct API
  */
 async function sendSms(to: string, message: string): Promise<SmsResult> {
-  const client = getSmsClient();
-  
-  // Use phone number if available, otherwise try alphanumeric sender ID
-  // Note: Australian regulations may require a phone number, not alphanumeric
-  const senderId = process.env.AZURE_COMMUNICATION_SERVICES_PHONE_NUMBER 
-    || process.env.SMS_SENDER_ID 
-    || 'LifePsych';
+  const apiKey = process.env.INFOBIP_API_KEY;
+  const baseUrl = process.env.INFOBIP_BASE_URL || 'api.infobip.com';
+  const senderId = process.env.SMS_SENDER_ID || 'LifePsych';
 
-  if (!client) {
-    console.error('[SMS] SMS client not available - ACS not configured');
-    return { success: false, error: 'SMS service not configured' };
+  if (!apiKey) {
+    console.error('[SMS] INFOBIP_API_KEY not configured');
+    return { success: false, error: 'Infobip API key not configured' };
   }
 
-  try {
-    const normalizedTo = normalizePhoneNumber(to);
-    
-    console.log(`[SMS] Sending to ${normalizedTo} from ${senderId}`);
-    console.log(`[SMS] Message: ${message}`);
-    
-    const sendResults = await client.send({
+  const normalizedTo = normalizePhoneNumber(to);
+  
+  console.log(`[SMS] Sending to ${normalizedTo} from ${senderId} via Infobip`);
+  console.log(`[SMS] Message: ${message}`);
+
+  const data = JSON.stringify({
+    messages: [{
+      destinations: [{ to: normalizedTo }],
       from: senderId,
-      to: [normalizedTo],
-      message: message,
+      text: message,
+    }],
+  });
+
+  return new Promise((resolve) => {
+    const options = {
+      hostname: baseUrl,
+      path: '/sms/2/text/advanced',
+      method: 'POST',
+      headers: {
+        'Authorization': `App ${apiKey}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', (chunk) => { body += chunk; });
+      res.on('end', () => {
+        try {
+          const response = JSON.parse(body);
+          
+          if (res.statusCode === 200 && response.messages?.[0]) {
+            const msg = response.messages[0];
+            console.log(`[SMS] Message sent successfully: ${msg.messageId}, status: ${msg.status?.name}`);
+            resolve({
+              success: true,
+              messageId: msg.messageId,
+            });
+          } else {
+            console.error('[SMS] Infobip error:', body);
+            resolve({
+              success: false,
+              error: response.requestError?.serviceException?.text || `HTTP ${res.statusCode}`,
+            });
+          }
+        } catch (parseError) {
+          console.error('[SMS] Failed to parse response:', body);
+          resolve({ success: false, error: 'Invalid response from Infobip' });
+        }
+      });
     });
 
-    const result = sendResults[0];
-    
-    if (result.successful) {
-      console.log('[SMS] Message sent successfully:', result.messageId);
-      return { 
-        success: true, 
-        messageId: result.messageId 
-      };
-    }
+    req.on('error', (error) => {
+      console.error('[SMS] Request error:', error.message);
+      resolve({ success: false, error: error.message });
+    });
 
-    console.error('[SMS] Message failed:', result.errorMessage);
-    return { 
-      success: false, 
-      error: result.errorMessage || 'SMS send failed'
-    };
-  } catch (error) {
-    console.error('[SMS] Error sending:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    };
-  }
+    req.write(data);
+    req.end();
+  });
 }
 
 /**

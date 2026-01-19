@@ -54,8 +54,8 @@ async function main() {
       const patient = await client.createOrFindPatient(patientData);
       patients.push(patient);
       console.log(`   ✅ Patient ID: ${patient.id}`);
-    } catch (error: any) {
-      console.log(`   ❌ Error: ${error.message}`);
+    } catch (error) {
+      console.log(`   ❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -103,8 +103,8 @@ async function main() {
         practitionerRoleId,
       );
       console.log(`   Found ${slots.length} available slots`);
-    } catch (error: any) {
-      console.log(`   ⚠️ Could not find slots: ${error.message}`);
+    } catch (error) {
+      console.log(`   ⚠️ Could not find slots: ${error instanceof Error ? error.message : 'Unknown error'}`);
       continue;
     }
 
@@ -137,8 +137,8 @@ async function main() {
         
         appointments.push(appointment);
         console.log(`      ✅ Appointment booked: ${appointment.id}`);
-      } catch (error: any) {
-        console.log(`      ❌ Failed: ${error.message}`);
+      } catch (error) {
+        console.log(`      ❌ Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
 
       // Small delay to avoid rate limiting

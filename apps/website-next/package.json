@@ -12,6 +12,8 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@azure/communication-calling": "^1.41.1",
+    "@azure/communication-common": "^2.4.0",
     "@stripe/react-stripe-js": "^5.4.1",
     "@stripe/stripe-js": "^8.6.0",
     "@tailwindcss/forms": "^0.5.11",

@@ -5,7 +5,7 @@
  * Separated from the feed-style home page.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import LoadingState from '../../components/common/LoadingState';
@@ -47,10 +47,25 @@ export function ClinicianCalendar() {
   const [weekSchedule, setWeekSchedule] = useState<WeekSchedule | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const fetchingRef = useRef(false);
 
   const loadWeekSchedule = useCallback(async () => {
+    // Prevent duplicate fetches
+    if (fetchingRef.current) return;
+    
+    // Don't fetch until user is available
+    const azureUserId = user?.localAccountId || user?.homeAccountId?.split('.')[0];
+    if (!azureUserId) return;
+    
+    fetchingRef.current = true;
+    
     try {
-      setLoading(true);
+      // Only show loading spinner on initial load, not on week changes
+      if (!initialLoadComplete) {
+        setLoading(true);
+      }
+      
       const token = await getAccessToken();
       
       const startDate = new Date();
@@ -76,17 +91,7 @@ export function ClinicianCalendar() {
       }
       
       // Send Azure User ID for practitioner lookup
-      // localAccountId is the Object ID, homeAccountId contains tenant info
-      const azureUserId = user?.localAccountId || user?.homeAccountId?.split('.')[0];
-      if (azureUserId) {
-        headers['X-Azure-User-Id'] = azureUserId;
-        console.log('[Calendar] Using Azure User ID:', azureUserId);
-      } else {
-        console.warn('[Calendar] No Azure User ID available:', { 
-          localAccountId: user?.localAccountId, 
-          homeAccountId: user?.homeAccountId 
-        });
-      }
+      headers['X-Azure-User-Id'] = azureUserId;
       
       const res = await fetch(`${API_BASE_URL}/clinician/schedule?${params}`, { headers });
 
@@ -94,12 +99,14 @@ export function ClinicianCalendar() {
 
       const data = await res.json();
       setWeekSchedule(data.data);
+      setInitialLoadComplete(true);
     } catch (err) {
       console.error('Error loading week schedule:', err);
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
-  }, [getAccessToken, weekOffset]);
+  }, [getAccessToken, weekOffset, user?.localAccountId, user?.homeAccountId, initialLoadComplete]);
 
   useEffect(() => {
     loadWeekSchedule();

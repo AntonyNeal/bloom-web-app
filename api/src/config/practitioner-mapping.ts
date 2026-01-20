@@ -59,7 +59,7 @@ export const PRACTITIONER_MAP: Record<string, PractitionerConfig> = {
   // PRODUCTION MAPPINGS
   // ==========================================================================
 
-  // Current logged-in user
+  // Zoe Semmler
   '03f17678-7885-4e63-9b95-86e0498db620': {
     halaxyPractitionerId: '1304541',
     halaxyPractitionerRoleId: 'PR-2442591',

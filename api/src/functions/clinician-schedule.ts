@@ -13,7 +13,6 @@
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy';
-import { getPractitionerConfig } from '../config/practitioner-mapping';
 import { getPractitionerByAzureId } from '../services/practitioner';
 import type { FHIRAppointment } from '../services/halaxy/types';
 
@@ -166,7 +165,7 @@ async function clinicianScheduleHandler(
     context.log(`[clinician-schedule] Looking up practitioner with Azure ID: ${azureUserId}`);
 
     // ========================================================================
-    // Look up practitioner config
+    // Look up practitioner from database (fail fast - no fallback)
     // ========================================================================
     let practitionerConfig: {
       halaxyPractitionerId: string;
@@ -175,33 +174,20 @@ async function clinicianScheduleHandler(
       email: string;
     } | null = null;
 
-    try {
-      const dbPractitioner = await getPractitionerByAzureId(azureUserId);
-      if (dbPractitioner) {
-        context.log(`[clinician-schedule] Found practitioner in DB: ${dbPractitioner.first_name} ${dbPractitioner.last_name}`);
-        practitionerConfig = {
-          halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
-          halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id || `PR-${dbPractitioner.halaxy_practitioner_id}`,
-          displayName: dbPractitioner.display_name || `${dbPractitioner.first_name} ${dbPractitioner.last_name}`,
-          email: dbPractitioner.company_email || dbPractitioner.email,
-        };
-      } else {
-        context.log(`[clinician-schedule] No practitioner found in DB for Azure ID: ${azureUserId}`);
-      }
-    } catch (dbError) {
-      context.error(`[clinician-schedule] DB lookup error:`, dbError);
-      // Fall back to config
-    }
-
-    if (!practitionerConfig) {
-      practitionerConfig = getPractitionerConfig(azureUserId);
-      if (practitionerConfig) {
-        context.log(`[clinician-schedule] Found practitioner in config: ${practitionerConfig.displayName}`);
-      }
+    const dbPractitioner = await getPractitionerByAzureId(azureUserId);
+    if (dbPractitioner) {
+      context.log(`[clinician-schedule] Found practitioner in DB: ${dbPractitioner.first_name} ${dbPractitioner.last_name}`);
+      practitionerConfig = {
+        halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
+        halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id || `PR-${dbPractitioner.halaxy_practitioner_id}`,
+        displayName: dbPractitioner.display_name || `${dbPractitioner.first_name} ${dbPractitioner.last_name}`,
+        email: dbPractitioner.company_email || dbPractitioner.email,
+      };
+    } else {
+      context.warn(`[clinician-schedule] No practitioner found in DB for Azure ID: ${azureUserId}`);
     }
     
     if (!practitionerConfig) {
-      context.warn(`[clinician-schedule] Access denied - Azure ID not registered: ${azureUserId}`);
       return {
         status: 403,
         headers,

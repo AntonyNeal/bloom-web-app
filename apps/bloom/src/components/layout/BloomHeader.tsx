@@ -16,7 +16,6 @@ import { FloatingLeavesNav } from '@/components/navigation/FloatingLeavesNav';
 // ============================================================================
 const colors = {
   sage: '#7B8D7B',
-  charcoalLight: '#5A5A5A',
   lavender: '#E8E2F0',
   white: '#FFFFFF',
 };
@@ -31,15 +30,6 @@ const LeafIcon = () => (
   </svg>
 );
 
-const CalendarIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-    <line x1="16" x2="16" y1="2" y2="6" />
-    <line x1="8" x2="8" y1="2" y2="6" />
-    <line x1="3" x2="21" y1="10" y2="10" />
-  </svg>
-);
-
 interface BloomHeaderProps {
   /** Show admin tools link (default: true) */
   showAdminTools?: boolean;
@@ -50,20 +40,6 @@ interface BloomHeaderProps {
 export function BloomHeader({ showAdminTools = true, showHomeLink = false }: BloomHeaderProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
-  const today = new Date();
-  
-  // Short format for mobile, full format for desktop
-  const mobileDate = today.toLocaleDateString('en-AU', {
-    day: 'numeric',
-    month: 'short',
-  });
-  
-  const desktopDate = today.toLocaleDateString('en-AU', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'short',
-  });
 
   // Get display name - handle different user object shapes
   const displayName = user?.name || user?.username || 'User';
@@ -124,33 +100,6 @@ export function BloomHeader({ showAdminTools = true, showHomeLink = false }: Blo
         </span>
       </Link>
 
-      {/* Center: Date */}
-      <div
-        className="bloom-header-date"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'clamp(4px, 1vw, 8px)',
-          color: colors.charcoalLight,
-          fontSize: 'clamp(11px, 2.5vw, 14px)',
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-        }}
-      >
-        <div style={{ 
-          width: 'clamp(12px, 3vw, 16px)', 
-          height: 'clamp(12px, 3vw, 16px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <CalendarIcon />
-        </div>
-        <span className="bloom-date-mobile" style={{ display: 'none' }}>{mobileDate}</span>
-        <span className="bloom-date-desktop">Today: {desktopDate}</span>
-      </div>
-
       {/* Right: FloatingLeavesNav - Ghibli-inspired dropdown */}
       <FloatingLeavesNav
         showAdmin={showAdminTools}
@@ -160,32 +109,6 @@ export function BloomHeader({ showAdminTools = true, showHomeLink = false }: Blo
 
       {/* Responsive CSS */}
       <style>{`
-        /* Extra small screens (< 360px) - hide date entirely */
-        @media (max-width: 359px) {
-          .bloom-header-date {
-            display: none !important;
-          }
-        }
-        
-        /* Small screens (360px - 480px) - abbreviated date */
-        @media (min-width: 360px) and (max-width: 480px) {
-          .bloom-date-desktop { display: none !important; }
-          .bloom-date-mobile { display: inline !important; }
-        }
-        
-        /* Medium+ screens - full date */
-        @media (min-width: 481px) {
-          .bloom-date-desktop { display: inline !important; }
-          .bloom-date-mobile { display: none !important; }
-        }
-        
-        /* Touch device optimizations */
-        @media (hover: none) and (pointer: coarse) {
-          .bloom-header-date {
-            padding: 8px;
-          }
-        }
-        
         /* High contrast mode */
         @media (prefers-contrast: high) {
           header {

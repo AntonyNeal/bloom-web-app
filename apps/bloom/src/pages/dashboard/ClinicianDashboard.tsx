@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import LoadingState from '../../components/common/LoadingState';
 import { API_BASE_URL } from '../../config/api';
-import { FloatingNav } from '../../components/navigation/FloatingNav';
+import { BloomHeader } from '../../components/layout/BloomHeader';
 
 interface Session {
   id: string;
@@ -276,26 +276,8 @@ export function ClinicianDashboard() {
 
   return (
     <div style={styles.container}>
-      {/* Header */}
-      <header style={styles.header}>
-        <div style={styles.headerContent}>
-          <div style={styles.logoArea}>
-            <div style={styles.logo}>🌸</div>
-            <span style={styles.logoText}>Bloom</span>
-          </div>
-          
-          {/* Miyazaki-style floating page navigation */}
-          <FloatingNav />
-          
-          <div style={styles.headerActions}>
-            <div style={styles.profileMenu} onClick={() => navigate('/settings')}>
-              <div style={styles.avatar}>
-                {dashboard.practitioner.displayName.split(' ').map(n => n[0]).join('').slice(0, 2)}
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Shared header with FloatingLeavesNav */}
+      <BloomHeader showHomeLink={true} />
 
       <div style={styles.layout}>
         {/* Left sidebar - Profile & Stats */}
@@ -530,64 +512,6 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     minHeight: '100vh',
     background: '#F0EBE3',
-  },
-  header: {
-    background: 'white',
-    borderBottom: '1px solid #E2E8F0',
-    padding: '12px 24px',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-  },
-  headerContent: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  logoArea: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  logo: {
-    fontSize: '24px',
-  },
-  logoText: {
-    fontSize: '20px',
-    fontWeight: 600,
-    color: '#6B8E7F',
-  },
-  headerActions: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-  },
-  calendarButton: {
-    padding: '8px 16px',
-    background: '#F7FAFC',
-    color: '#4A5568',
-    border: '1px solid #E2E8F0',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: 500,
-    cursor: 'pointer',
-  },
-  profileMenu: {
-    cursor: 'pointer',
-  },
-  avatar: {
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #6B8E7F 0%, #8FA892 100%)',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '13px',
-    fontWeight: 600,
   },
   layout: {
     maxWidth: '1400px',

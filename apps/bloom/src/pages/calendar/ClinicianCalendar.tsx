@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import LoadingState from '../../components/common/LoadingState';
 import { API_BASE_URL } from '../../config/api';
-import { FloatingNav } from '../../components/navigation/FloatingNav';
+import { BloomHeader } from '../../components/layout/BloomHeader';
 
 interface WeekSession {
   id: string;
@@ -143,18 +143,8 @@ export function ClinicianCalendar() {
 
   return (
     <div style={styles.container}>
-      {/* Header */}
-      <header style={styles.header}>
-        <div style={styles.logoArea}>
-          <div style={styles.logo}>🌸</div>
-          <span style={styles.logoText}>Bloom</span>
-        </div>
-        
-        {/* Miyazaki-style floating page navigation */}
-        <FloatingNav />
-        
-        <div style={styles.headerSpacer} />
-      </header>
+      {/* Shared header with FloatingLeavesNav */}
+      <BloomHeader showHomeLink={true} />
 
       <main style={styles.main}>
         {/* Week Navigation */}
@@ -264,33 +254,6 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     minHeight: '100vh',
     background: 'linear-gradient(135deg, #FAF7F2 0%, #F0EBE3 100%)',
-  },
-  header: {
-    background: 'white',
-    borderBottom: '1px solid #E2E8F0',
-    padding: '12px 24px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-  },
-  logoArea: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  logo: {
-    fontSize: '24px',
-  },
-  logoText: {
-    fontSize: '20px',
-    fontWeight: 600,
-    color: '#6B8E7F',
-  },
-  headerSpacer: {
-    width: '100px',
   },
   main: {
     maxWidth: '1400px',

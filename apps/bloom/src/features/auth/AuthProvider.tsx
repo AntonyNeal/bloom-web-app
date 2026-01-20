@@ -38,9 +38,19 @@ const isAuthConfigured = () => {
  */
 let msalInstance: PublicClientApplication | null = null;
 
+// Extend window type for MSAL instance
+declare global {
+  interface Window {
+    msalInstance?: PublicClientApplication;
+  }
+}
+
 if (isAuthConfigured()) {
   try {
     msalInstance = new PublicClientApplication(msalConfig);
+    
+    // Expose MSAL instance on window for hooks to access
+    window.msalInstance = msalInstance;
     
     // Initialize MSAL with timeout protection
     const initTimeout = setTimeout(() => {

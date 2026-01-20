@@ -626,7 +626,7 @@ jobs:
 
       - name: Install Bloom Dependencies
         working-directory: apps/bloom
-        run: npm install
+        run: npm install --include=dev
 
       - name: Build Bloom Application
         working-directory: apps/bloom

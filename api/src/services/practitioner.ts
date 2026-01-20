@@ -7,6 +7,7 @@
 
 import * as sql from 'mssql';
 import * as crypto from 'crypto';
+import { getDbConnection } from './database';
 
 // Onboarding configuration
 const ONBOARDING_TOKEN_EXPIRY_DAYS = 7;
@@ -252,8 +253,6 @@ export default practitionerService;
 // Database Lookup Functions
 // ============================================================================
 
-import { getDbConfig } from './database';
-
 /**
  * Look up a practitioner by their Azure AD Object ID
  * Used for dashboard authentication
@@ -268,10 +267,9 @@ export async function getPractitionerByAzureId(azureAdObjectId: string): Promise
   email: string;
   company_email: string | null;
 } | null> {
-  let pool: sql.ConnectionPool | null = null;
-  
   try {
-    pool = await sql.connect(getDbConfig());
+    // Use shared connection pool instead of creating new connection per request
+    const pool = await getDbConnection();
     
     const result = await pool.request()
       .input('azureAdObjectId', sql.NVarChar, azureAdObjectId)
@@ -299,9 +297,6 @@ export async function getPractitionerByAzureId(azureAdObjectId: string): Promise
   } catch (error) {
     console.error('[getPractitionerByAzureId] Database error:', error);
     throw error;
-  } finally {
-    if (pool) {
-      await pool.close();
-    }
   }
+  // Note: Don't close pool - it's a shared singleton managed by database.ts
 }

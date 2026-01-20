@@ -206,6 +206,116 @@ async function activatePractitionerHandler(
   }
 }
 
+/**
+ * PATCH /api/practitioners/:id - Update practitioner details
+ * Used for admin tasks like linking Azure AD accounts, setting company email, etc.
+ */
+async function updatePractitionerHandler(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  context.log(`Update practitioner request: ${request.method} ${request.url}`);
+
+  if (request.method === 'OPTIONS') {
+    return { status: 204, headers };
+  }
+
+  const practitionerId = request.params.id;
+  if (!practitionerId) {
+    return {
+      status: 400,
+      headers,
+      jsonBody: { error: 'Practitioner ID is required' },
+    };
+  }
+
+  let pool: sql.ConnectionPool | null = null;
+
+  try {
+    const body = await request.json() as {
+      azure_ad_object_id?: string;
+      company_email?: string;
+      halaxy_practitioner_id?: string;
+      halaxy_practitioner_role_id?: string;
+      display_name?: string;
+    };
+
+    pool = await sql.connect(getConfig());
+
+    // Check practitioner exists
+    const checkResult = await pool.request()
+      .input('id', sql.UniqueIdentifier, practitionerId)
+      .query(`SELECT id, email, first_name, last_name FROM practitioners WHERE id = @id`);
+
+    if (checkResult.recordset.length === 0) {
+      return {
+        status: 404,
+        headers,
+        jsonBody: { error: 'Practitioner not found' },
+      };
+    }
+
+    const practitioner = checkResult.recordset[0];
+
+    // Build dynamic update query
+    const updates: string[] = ['updated_at = GETDATE()'];
+    const request2 = pool.request().input('id', sql.UniqueIdentifier, practitionerId);
+
+    if (body.azure_ad_object_id) {
+      updates.push('azure_ad_object_id = @azure_ad_object_id');
+      request2.input('azure_ad_object_id', sql.NVarChar, body.azure_ad_object_id);
+    }
+    if (body.company_email) {
+      updates.push('company_email = @company_email');
+      request2.input('company_email', sql.NVarChar, body.company_email);
+    }
+    if (body.halaxy_practitioner_id) {
+      updates.push('halaxy_practitioner_id = @halaxy_practitioner_id');
+      request2.input('halaxy_practitioner_id', sql.NVarChar, body.halaxy_practitioner_id);
+    }
+    if (body.halaxy_practitioner_role_id) {
+      updates.push('halaxy_practitioner_role_id = @halaxy_practitioner_role_id');
+      request2.input('halaxy_practitioner_role_id', sql.NVarChar, body.halaxy_practitioner_role_id);
+    }
+    if (body.display_name) {
+      updates.push('display_name = @display_name');
+      request2.input('display_name', sql.NVarChar, body.display_name);
+    }
+
+    // If azure_ad_object_id is being set, also mark onboarding as complete
+    if (body.azure_ad_object_id) {
+      updates.push('onboarding_completed_at = COALESCE(onboarding_completed_at, GETDATE())');
+    }
+
+    await request2.query(`UPDATE practitioners SET ${updates.join(', ')} WHERE id = @id`);
+
+    context.log(`Updated practitioner ${practitionerId}: ${Object.keys(body).join(', ')}`);
+
+    return {
+      status: 200,
+      headers,
+      jsonBody: {
+        success: true,
+        message: `Practitioner ${practitioner.first_name} ${practitioner.last_name} updated`,
+        updated: Object.keys(body),
+      },
+    };
+
+  } catch (error) {
+    context.error('Error in update-practitioner handler:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    return {
+      status: 500,
+      headers,
+      jsonBody: { error: errorMessage },
+    };
+  } finally {
+    if (pool) {
+      await pool.close();
+    }
+  }
+}
+
 // Register endpoints
 app.http('practitioners-admin', {
   methods: ['GET', 'OPTIONS'],
@@ -219,4 +329,11 @@ app.http('activate-practitioner', {
   authLevel: 'anonymous',
   route: 'practitioners/{id}/activate',
   handler: activatePractitionerHandler,
+});
+
+app.http('update-practitioner', {
+  methods: ['PATCH', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'practitioners/{id}',
+  handler: updatePractitionerHandler,
 });

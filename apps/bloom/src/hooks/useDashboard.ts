@@ -243,7 +243,7 @@ const sampleDashboard: PractitionerDashboard = {
 };
 
 // ============================================================================
-// In-Memory Cache (persists across navigation within session)
+// In-Memory Cache (persists for entire browser session)
 // ============================================================================
 
 interface DashboardCache {
@@ -253,7 +253,7 @@ interface DashboardCache {
 }
 
 let dashboardCache: DashboardCache | null = null;
-const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes - show cached data, refresh in background
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes - only expire if truly stale
 
 function getCachedDashboard(date?: string): PractitionerDashboard | null {
   if (!dashboardCache) return null;
@@ -261,10 +261,14 @@ function getCachedDashboard(date?: string): PractitionerDashboard | null {
   const now = Date.now();
   const cacheDate = date || new Date().toISOString().split('T')[0];
   
-  // Return cached data if it's for the same date and not too old
-  if (dashboardCache.date === cacheDate && (now - dashboardCache.timestamp) < CACHE_TTL_MS) {
-    console.log('[useDashboard] Using cached dashboard data');
-    return dashboardCache.data;
+  // Return cached data if it's for the same date (don't expire during session)
+  // Only invalidate if it's a different date or cache is very old (30+ min)
+  if (dashboardCache.date === cacheDate) {
+    const age = now - dashboardCache.timestamp;
+    if (age < CACHE_TTL_MS) {
+      console.log('[useDashboard] Using cached dashboard data (age: ' + Math.round(age/1000) + 's)');
+      return dashboardCache.data;
+    }
   }
   
   return null;

@@ -1,12 +1,47 @@
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
-import { loginRequest } from '../config/authConfig';
-import { InteractionStatus } from '@azure/msal-browser';
+import { loginRequest, isAuthEnabled } from '../config/authConfig';
+import { InteractionStatus, type AccountInfo } from '@azure/msal-browser';
 
 /**
- * Custom hook for authentication operations
+ * Check if auth is properly configured
+ * Must match the logic in AuthProvider.tsx
+ */
+const isAuthConfigured = (() => {
+  try {
+    const clientId = import.meta.env.VITE_B2C_CLIENT_ID || '';
+    const authority = import.meta.env.VITE_B2C_AUTHORITY || '';
+    
+    const hasValidClientId = clientId.length > 30 && !clientId.includes('your-client-id');
+    const hasValidAuthority = authority.startsWith('https://') && authority.includes('microsoft');
+    const isEnabled = isAuthEnabled();
+    
+    return hasValidClientId && hasValidAuthority && isEnabled;
+  } catch {
+    return false;
+  }
+})();
+
+/**
+ * Stub implementation when auth is not configured
+ */
+const stubAuth = {
+  isAuthenticated: false,
+  user: null as AccountInfo | null,
+  login: async () => {
+    console.warn('[Auth] Authentication is not configured');
+  },
+  logout: async () => {
+    console.warn('[Auth] Authentication is not configured');
+  },
+  getAccessToken: async () => null as string | null,
+  isLoading: false,
+};
+
+/**
+ * Custom hook for authentication operations when MSAL is configured
  * Wraps MSAL hooks for easier use throughout the app
  */
-export const useAuth = () => {
+const useAuthWithMsal = () => {
   const { instance, accounts, inProgress } = useMsal();
   const isAuthenticated = useIsAuthenticated();
 
@@ -79,3 +114,9 @@ export const useAuth = () => {
     isLoading: inProgress !== InteractionStatus.None,
   };
 };
+
+/**
+ * Main useAuth hook - use this in components
+ * Returns stub if auth is not configured, otherwise uses MSAL
+ */
+export const useAuth = isAuthConfigured ? useAuthWithMsal : () => stubAuth;

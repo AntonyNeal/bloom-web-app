@@ -637,10 +637,16 @@ jobs:
           MODE: ${{ needs.determine-environment.outputs.environment == 'production' && 'production' || 'development' }}
           # Single source of truth: VITE_API_URL (all other URLs derived in code)
           VITE_API_URL: ${{ needs.determine-environment.outputs.bloom-api-url }}
+          # Azure AD B2C Authentication
+          VITE_B2C_ENABLED: 'true'
+          VITE_B2C_CLIENT_ID: ${{ secrets.VITE_B2C_CLIENT_ID }}
+          VITE_B2C_AUTHORITY: ${{ secrets.VITE_B2C_AUTHORITY }}
+          VITE_B2C_SCOPES: 'openid profile email User.Read'
         run: |
           echo "🌸 Building Bloom Frontend..."
           echo "🌍 Environment: ${{ needs.determine-environment.outputs.environment }}"
           echo "🔗 API URL: $VITE_API_URL"
+          echo "🔐 Auth enabled: $VITE_B2C_ENABLED"
           npm run build -- --mode $MODE
           echo "✅ Build complete"
 

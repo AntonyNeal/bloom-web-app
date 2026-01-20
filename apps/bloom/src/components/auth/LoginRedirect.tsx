@@ -16,9 +16,9 @@ const LoginRedirect = () => {
     }
 
     if (isAuthenticated) {
-      // User is already authenticated, redirect to dashboard
-      console.log('[LoginRedirect] User already authenticated, redirecting to dashboard');
-      navigate('/admin/dashboard');
+      // User is already authenticated, redirect to bloom-home
+      console.log('[LoginRedirect] User already authenticated, redirecting to bloom-home');
+      navigate('/bloom-home');
     } else {
       // User is not authenticated, trigger Azure AD login
       console.log('[LoginRedirect] Triggering Azure AD login');

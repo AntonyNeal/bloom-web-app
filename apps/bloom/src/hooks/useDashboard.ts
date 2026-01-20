@@ -84,6 +84,10 @@ interface UseDashboardResult {
   lastFetched: Date | null;
   /** Sync status with external systems */
   syncStatus: SyncStatus | null;
+  /** Whether we're showing sample/demo data instead of live data */
+  isUsingDemoData: boolean;
+  /** Authentication status */
+  authStatus: 'authenticated' | 'unauthenticated' | 'loading';
 }
 
 // ============================================================================
@@ -256,11 +260,15 @@ export function useDashboard(
   const [loading, setLoading] = useState(!skip);
   const [error, setError] = useState<string | null>(null);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [isUsingDemoData, setIsUsingDemoData] = useState(false);
+  const [authStatus, setAuthStatus] = useState<'authenticated' | 'unauthenticated' | 'loading'>('loading');
 
   const fetchDashboard = useCallback(async () => {
     if (skip) {
-      // Use sample data when skipped
-      setDashboard(sampleDashboard);
+      // When skipped, return null - no fake data
+      setDashboard(null);
+      setIsUsingDemoData(false);
+      setAuthStatus('authenticated');
       setLoading(false);
       return;
     }
@@ -275,11 +283,16 @@ export function useDashboard(
       console.log('[useDashboard] Azure User ID:', azureUserId);
       
       if (!azureUserId) {
-        console.warn('[useDashboard] No Azure authentication, using sample data');
-        setDashboard(sampleDashboard);
+        console.warn('[useDashboard] No Azure authentication - cannot fetch real data');
+        setDashboard(null);
+        setIsUsingDemoData(false);
+        setAuthStatus('unauthenticated');
+        setError('Please sign in to view your appointments');
         setLoading(false);
         return;
       }
+      
+      setAuthStatus('authenticated');
 
       // Use the clinician-dashboard endpoint (fetches live Halaxy data)
       const url = new URL(`${API_BASE_URL}/clinician/dashboard`);
@@ -300,9 +313,11 @@ export function useDashboard(
       console.log('[useDashboard] Response status:', response.status);
 
       if (!response.ok) {
-        // If API fails, fall back to sample data
-        console.warn('[useDashboard] Dashboard API unavailable, using sample data');
-        setDashboard(sampleDashboard);
+        // API failed - show error, no fallback
+        console.error('[useDashboard] Dashboard API failed:', response.status);
+        setDashboard(null);
+        setIsUsingDemoData(false);
+        setError(`Failed to load appointments (${response.status})`);
         setLastFetched(new Date());
         return;
       }
@@ -374,11 +389,13 @@ export function useDashboard(
       };
 
       setDashboard(transformedDashboard);
+      setIsUsingDemoData(false);
       setLastFetched(new Date());
     } catch (err) {
       console.error('Dashboard fetch error:', err);
-      // Fall back to sample data on error
-      setDashboard(sampleDashboard);
+      // Show error - no fallback to sample data
+      setDashboard(null);
+      setIsUsingDemoData(false);
       setError(err instanceof Error ? err.message : 'Failed to load dashboard');
     } finally {
       setLoading(false);
@@ -405,6 +422,8 @@ export function useDashboard(
     refetch: fetchDashboard,
     lastFetched,
     syncStatus: dashboard?.syncStatus || null,
+    isUsingDemoData,
+    authStatus,
   };
 }
 

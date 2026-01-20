@@ -1051,10 +1051,10 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
     getAzureId();
   }, []);
   
-  // Fetch dashboard data from API (or use sample data as fallback)
-  const { dashboard, loading } = useDashboard(practitionerId);
+  // Fetch dashboard data from API - NO FALLBACKS, only real data
+  const { dashboard, loading, isUsingDemoData, authStatus, lastFetched, refetch, error } = useDashboard(practitionerId);
 
-  // Transform dashboard data to local types, or use overrides/samples
+  // Transform dashboard data to local types - NO FALLBACKS, only real data
   const todaysSessions: Session[] = sessionsOverride || (dashboard ? 
     dashboard.todaysSessions.map(s => ({
       id: s.id,
@@ -1068,19 +1068,19 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
       isUpNext: s.isUpNext,
       status: s.status,
       locationType: s.locationType,
-    })) : sampleSessions);
+    })) : []);
 
   const weeklyStats: WeeklyStats = weeklyOverride || (dashboard 
     ? dashboard.weeklyStats 
-    : sampleWeeklyStats);
+    : { weekStartDate: '', weekEndDate: '', currentSessions: 0, scheduledSessions: 0, maxSessions: 0, currentRevenue: 0, completionRate: 0, noShowCount: 0, cancellationCount: 0 });
 
   const upcomingStats: UpcomingStats = upcomingOverride || (dashboard 
     ? dashboard.upcomingStats 
-    : sampleUpcomingStats);
+    : { tomorrowSessions: 0, remainingThisWeek: 0, nextWeekSessions: 0, mhcpEndingSoon: 0, clientsNeedingFollowUp: 0, unbookedRegulars: 0 });
 
   const monthlyStats: MonthlyStats = monthlyOverride || (dashboard 
     ? dashboard.monthlyStats 
-    : sampleMonthlyStats);
+    : { currentRevenue: 0, monthName: new Date().toLocaleDateString('en-AU', { month: 'long' }) });
 
   // Show loading state
   if (loading && !dashboard) {
@@ -1102,8 +1102,70 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
           <LeafIcon />
         </motion.div>
         <p style={{ color: colors.charcoalLight, fontSize: '14px' }}>
-          Growing your garden...
+          Loading your appointments from Halaxy...
         </p>
+      </div>
+    );
+  }
+
+  // Show error state if failed to load
+  if (error && !dashboard) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: colors.cream,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: '16px',
+        padding: '24px',
+      }}>
+        <div style={{
+          width: '64px',
+          height: '64px',
+          borderRadius: '50%',
+          backgroundColor: colors.terracottaLight,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '28px',
+        }}>
+          ⚠️
+        </div>
+        <h2 style={{
+          fontFamily: "'Crimson Text', Georgia, serif",
+          fontSize: '24px',
+          fontWeight: 500,
+          color: colors.charcoal,
+          margin: 0,
+        }}>
+          Unable to Load Appointments
+        </h2>
+        <p style={{ 
+          color: colors.charcoalLight, 
+          fontSize: '14px',
+          textAlign: 'center',
+          maxWidth: '400px',
+        }}>
+          {error}
+        </p>
+        <button
+          onClick={() => refetch()}
+          style={{
+            marginTop: '8px',
+            padding: '12px 24px',
+            backgroundColor: colors.sage,
+            color: colors.white,
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: 500,
+            cursor: 'pointer',
+          }}
+        >
+          Try Again
+        </button>
       </div>
     );
   }

@@ -626,7 +626,10 @@ jobs:
 
       - name: Install Bloom Dependencies
         working-directory: apps/bloom
-        run: npm install --include=dev
+        run: |
+          npm ci
+          echo "📦 Verifying vite installation..."
+          ls -la node_modules/.bin/vite || echo "vite not found!"
 
       - name: Build Bloom Application
         working-directory: apps/bloom

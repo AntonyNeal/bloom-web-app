@@ -243,6 +243,42 @@ const sampleDashboard: PractitionerDashboard = {
 };
 
 // ============================================================================
+// In-Memory Cache (persists across navigation within session)
+// ============================================================================
+
+interface DashboardCache {
+  data: PractitionerDashboard;
+  timestamp: number;
+  date: string; // The date the dashboard was fetched for
+}
+
+let dashboardCache: DashboardCache | null = null;
+const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes - show cached data, refresh in background
+
+function getCachedDashboard(date?: string): PractitionerDashboard | null {
+  if (!dashboardCache) return null;
+  
+  const now = Date.now();
+  const cacheDate = date || new Date().toISOString().split('T')[0];
+  
+  // Return cached data if it's for the same date and not too old
+  if (dashboardCache.date === cacheDate && (now - dashboardCache.timestamp) < CACHE_TTL_MS) {
+    console.log('[useDashboard] Using cached dashboard data');
+    return dashboardCache.data;
+  }
+  
+  return null;
+}
+
+function setCachedDashboard(data: PractitionerDashboard, date?: string): void {
+  dashboardCache = {
+    data,
+    timestamp: Date.now(),
+    date: date || new Date().toISOString().split('T')[0],
+  };
+}
+
+// ============================================================================
 // Hook Implementation
 // ============================================================================
 
@@ -256,14 +292,16 @@ export function useDashboard(
     skip = false,
   } = options;
 
-  const [dashboard, setDashboard] = useState<PractitionerDashboard | null>(null);
-  const [loading, setLoading] = useState(!skip);
+  // Initialize with cached data if available (prevents loading flash on navigation)
+  const cachedData = getCachedDashboard(date);
+  const [dashboard, setDashboard] = useState<PractitionerDashboard | null>(cachedData);
+  const [loading, setLoading] = useState(!skip && !cachedData);
   const [error, setError] = useState<string | null>(null);
-  const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [lastFetched, setLastFetched] = useState<Date | null>(cachedData ? new Date() : null);
   const [isUsingDemoData, setIsUsingDemoData] = useState(false);
-  const [authStatus, setAuthStatus] = useState<'authenticated' | 'unauthenticated' | 'loading'>('loading');
+  const [authStatus, setAuthStatus] = useState<'authenticated' | 'unauthenticated' | 'loading'>(cachedData ? 'authenticated' : 'loading');
 
-  const fetchDashboard = useCallback(async () => {
+  const fetchDashboard = useCallback(async (isBackgroundRefresh = false) => {
     if (skip) {
       // When skipped, return null - no fake data
       setDashboard(null);
@@ -274,7 +312,10 @@ export function useDashboard(
     }
 
     try {
-      setLoading(true);
+      // Only show loading if no cached data and not background refresh
+      if (!isBackgroundRefresh && !dashboard) {
+        setLoading(true);
+      }
       setError(null);
 
       // Get Azure AD user from MSAL (if available)
@@ -389,6 +430,7 @@ export function useDashboard(
       };
 
       setDashboard(transformedDashboard);
+      setCachedDashboard(transformedDashboard, date); // Cache for navigation
       setIsUsingDemoData(false);
       setLastFetched(new Date());
     } catch (err) {
@@ -400,18 +442,25 @@ export function useDashboard(
     } finally {
       setLoading(false);
     }
-  }, [date, skip]);
+  }, [date, skip, dashboard]);
 
-  // Initial fetch
+  // Initial fetch (or background refresh if using cached data)
   useEffect(() => {
-    fetchDashboard();
-  }, [fetchDashboard]);
+    const cachedData = getCachedDashboard(date);
+    if (cachedData) {
+      // We have cached data - do a background refresh
+      fetchDashboard(true);
+    } else {
+      // No cache - do a full fetch with loading state
+      fetchDashboard(false);
+    }
+  }, [fetchDashboard, date]);
 
-  // Auto-refresh
+  // Auto-refresh (always background)
   useEffect(() => {
     if (refreshInterval <= 0 || skip) return;
 
-    const interval = setInterval(fetchDashboard, refreshInterval);
+    const interval = setInterval(() => fetchDashboard(true), refreshInterval);
     return () => clearInterval(interval);
   }, [fetchDashboard, refreshInterval, skip]);
 
@@ -419,7 +468,7 @@ export function useDashboard(
     dashboard,
     loading,
     error,
-    refetch: fetchDashboard,
+    refetch: () => fetchDashboard(false),
     lastFetched,
     syncStatus: dashboard?.syncStatus || null,
     isUsingDemoData,

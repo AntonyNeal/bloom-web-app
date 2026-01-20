@@ -14,7 +14,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import LoadingState from '../../components/common/LoadingState';
 import { API_BASE_URL } from '../../config/api';
-import { FloatingCalendar } from '../../components/calendar/FloatingCalendar';
 
 interface Session {
   id: string;
@@ -86,7 +85,6 @@ export function ClinicianDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     loadDashboard();
@@ -284,16 +282,6 @@ export function ClinicianDashboard() {
             <div style={styles.logo}>🌸</div>
             <span style={styles.logoText}>Bloom</span>
           </div>
-          
-          {/* Miyazaki-Inspired Floating Calendar */}
-          <FloatingCalendar 
-            selectedDate={selectedDate} 
-            onDateSelect={(date) => {
-              setSelectedDate(date);
-              // Navigate to calendar page for that date
-              navigate(`/calendar?date=${date.toISOString().split('T')[0]}`);
-            }} 
-          />
           
           <div style={styles.headerActions}>
             <button onClick={() => navigate('/calendar')} style={styles.calendarButton}>

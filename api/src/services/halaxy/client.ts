@@ -243,6 +243,8 @@ export class HalaxyClient {
       actor: fullRef,
       date: `ge${formatDate(startDate)}`,
       'date:lt': formatDate(endDate),
+      // Include patient data so we get actual names
+      '_include': 'Appointment:patient',
     };
 
     if (statuses && statuses.length > 0) {
@@ -250,6 +252,87 @@ export class HalaxyClient {
     }
 
     return this.getAllPages<FHIRAppointment>('/Appointment', params);
+  }
+
+  /**
+   * Get appointments with full patient details populated
+   * Fetches appointments then enriches with patient names from the Patient resource
+   */
+  async getAppointmentsWithPatientDetails(
+    practitionerId: string,
+    startDate: Date,
+    endDate: Date,
+    statuses?: string[]
+  ): Promise<FHIRAppointment[]> {
+    const appointments = await this.getAppointmentsByPractitioner(
+      practitionerId,
+      startDate,
+      endDate,
+      statuses
+    );
+
+    // Extract unique patient IDs
+    const patientIds = new Set<string>();
+    for (const apt of appointments) {
+      const patientParticipant = apt.participant?.find(
+        p => p.actor?.reference?.includes('Patient/')
+      );
+      if (patientParticipant?.actor?.reference) {
+        // Extract patient ID from reference like "Patient/123" or full URL
+        const ref = patientParticipant.actor.reference;
+        const match = ref.match(/Patient\/([^/]+)$/);
+        if (match) {
+          patientIds.add(match[1]);
+        }
+      }
+    }
+
+    // Fetch patient details in batches
+    const patientMap = new Map<string, FHIRPatient>();
+    const patientIdArray = Array.from(patientIds);
+    
+    // Fetch up to 10 patients in parallel to speed things up
+    const batchSize = 10;
+    for (let i = 0; i < patientIdArray.length; i += batchSize) {
+      const batch = patientIdArray.slice(i, i + batchSize);
+      const patientPromises = batch.map(id => 
+        this.getPatient(id).catch(err => {
+          console.warn(`[HalaxyClient] Failed to fetch patient ${id}:`, err);
+          return null;
+        })
+      );
+      const patients = await Promise.all(patientPromises);
+      patients.forEach((patient, idx) => {
+        if (patient) {
+          patientMap.set(batch[idx], patient);
+        }
+      });
+    }
+
+    // Enrich appointments with patient display names
+    for (const apt of appointments) {
+      const patientParticipant = apt.participant?.find(
+        p => p.actor?.reference?.includes('Patient/')
+      );
+      if (patientParticipant?.actor?.reference) {
+        const ref = patientParticipant.actor.reference;
+        const match = ref.match(/Patient\/([^/]+)$/);
+        if (match) {
+          const patient = patientMap.get(match[1]);
+          if (patient && patient.name?.[0]) {
+            const name = patient.name[0];
+            const fullName = [
+              ...(name.given || []),
+              name.family
+            ].filter(Boolean).join(' ');
+            // Update the display name in the participant
+            patientParticipant.actor.display = fullName || patientParticipant.actor.display;
+          }
+        }
+      }
+    }
+
+    return appointments;
   }
 
   /**

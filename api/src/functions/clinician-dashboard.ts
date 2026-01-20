@@ -273,7 +273,7 @@ async function clinicianDashboardHandler(
     todayEnd.setHours(23, 59, 59, 999);
 
     // ========================================================================
-    // Fetch appointments from Halaxy
+    // Fetch appointments from Halaxy (with patient details)
     // ========================================================================
     const client = getHalaxyClient();
     
@@ -282,13 +282,14 @@ async function clinicianDashboardHandler(
       context.log(`Fetching appointments for practitioner role: ${practitionerConfig.halaxyPractitionerRoleId}`);
       context.log(`Date range: ${todayStart.toISOString()} to ${todayEnd.toISOString()}`);
       
-      appointments = await client.getAppointmentsByPractitioner(
+      // Use the new method that enriches appointments with patient names
+      appointments = await client.getAppointmentsWithPatientDetails(
         practitionerConfig.halaxyPractitionerRoleId,
         todayStart,
         todayEnd
       );
       
-      context.log(`Successfully fetched ${appointments.length} appointments`);
+      context.log(`Successfully fetched ${appointments.length} appointments with patient details`);
     } catch (halaxyError) {
       context.error('Halaxy API error:', halaxyError);
       const errorMessage = halaxyError instanceof Error ? halaxyError.message : 'Unknown error';

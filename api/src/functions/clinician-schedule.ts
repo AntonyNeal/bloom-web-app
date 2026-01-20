@@ -235,18 +235,19 @@ async function clinicianScheduleHandler(
     context.log(`Fetching schedule for ${practitionerConfig.displayName}: ${formatDate(startDate)} to ${formatDate(endDate)}`);
 
     // ========================================================================
-    // Fetch appointments from Halaxy
+    // Fetch appointments from Halaxy (with patient details)
     // ========================================================================
     const client = getHalaxyClient();
     
     let appointments: FHIRAppointment[];
     try {
-      appointments = await client.getAppointmentsByPractitioner(
+      // Use the method that enriches appointments with patient names
+      appointments = await client.getAppointmentsWithPatientDetails(
         practitionerConfig.halaxyPractitionerRoleId,
         startDate,
         endDate
       );
-      context.log(`Fetched ${appointments.length} appointments`);
+      context.log(`Fetched ${appointments.length} appointments with patient details`);
     } catch (halaxyError) {
       context.error('Halaxy API error:', halaxyError);
       return {

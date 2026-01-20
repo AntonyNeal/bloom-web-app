@@ -76,10 +76,16 @@ export function ClinicianCalendar() {
       }
       
       // Send Azure User ID for practitioner lookup
-      if (user?.localAccountId) {
-        headers['X-Azure-User-Id'] = user.localAccountId;
-      } else if (user?.homeAccountId) {
-        headers['X-Azure-User-Id'] = user.homeAccountId.split('.')[0];
+      // localAccountId is the Object ID, homeAccountId contains tenant info
+      const azureUserId = user?.localAccountId || user?.homeAccountId?.split('.')[0];
+      if (azureUserId) {
+        headers['X-Azure-User-Id'] = azureUserId;
+        console.log('[Calendar] Using Azure User ID:', azureUserId);
+      } else {
+        console.warn('[Calendar] No Azure User ID available:', { 
+          localAccountId: user?.localAccountId, 
+          homeAccountId: user?.homeAccountId 
+        });
       }
       
       const res = await fetch(`${API_BASE_URL}/clinician/schedule?${params}`, { headers });

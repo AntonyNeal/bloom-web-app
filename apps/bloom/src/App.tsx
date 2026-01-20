@@ -518,9 +518,9 @@ function LandingPage() {
               e.currentTarget.style.boxShadow = '0 8px 24px rgba(107, 142, 127, 0.35)';
               e.currentTarget.style.background =
                 'linear-gradient(135deg, #7A9B8C 0%, #9FB8A5 100%)';
-              // Animate arrow on hover
-              const arrow = e.currentTarget.querySelector('span:last-child') as HTMLElement;
-              if (arrow) arrow.style.transform = 'translateX(4px)';
+              // Animate arrow on hover - move left
+              const arrow = e.currentTarget.querySelector('span:first-child') as HTMLElement;
+              if (arrow) arrow.style.transform = 'translateX(-6px)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0) scale(1)';
@@ -528,8 +528,8 @@ function LandingPage() {
               e.currentTarget.style.background =
                 'linear-gradient(135deg, #6B8E7F 0%, #8FA892 100%)';
               // Reset arrow position
-              const arrow = e.currentTarget.querySelector('span:last-child') as HTMLElement;
-              if (arrow) arrow.style.transform = 'translateX(2px)';
+              const arrow = e.currentTarget.querySelector('span:first-child') as HTMLElement;
+              if (arrow) arrow.style.transform = 'translateX(-2px)';
             }}
             onMouseDown={(e) => {
               e.currentTarget.style.transform = 'translateY(1px) scale(0.98)';
@@ -549,19 +549,19 @@ function LandingPage() {
                 pointerEvents: 'none',
               }}
             />
-            <span style={{ position: 'relative', zIndex: 1 }}>Explore Joining</span>
-            {/* Subtle arrow indicator */}
+            {/* Subtle arrow indicator - pointing inward */}
             <span
               style={{
                 position: 'relative',
                 zIndex: 1,
                 fontSize: '14px',
-                transform: 'translateX(2px)',
+                transform: 'translateX(-2px)',
                 transition: 'transform 0.3s ease',
               }}
             >
-              →
+              ←
             </span>
+            <span style={{ position: 'relative', zIndex: 1 }}>Explore Joining</span>
           </button>
         </div>
       </main>

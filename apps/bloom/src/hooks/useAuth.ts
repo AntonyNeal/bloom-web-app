@@ -23,12 +23,15 @@ const isAuthConfigured = (() => {
 
 /**
  * Stub implementation when auth is not configured
+ * Redirects to /login to show user that auth flow is being attempted
  */
 const stubAuth = {
   isAuthenticated: false,
   user: null as AccountInfo | null,
   login: async () => {
-    console.warn('[Auth] Authentication is not configured');
+    console.warn('[Auth] Authentication is not configured, redirecting to /login');
+    // Navigate to login page to show user something is happening
+    window.location.href = '/login';
   },
   logout: async () => {
     console.warn('[Auth] Authentication is not configured');

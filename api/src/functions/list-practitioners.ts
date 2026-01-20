@@ -51,10 +51,14 @@ async function listPractitionersHandler(
       SELECT 
         id,
         halaxy_practitioner_id,
+        halaxy_practitioner_role_id,
+        azure_ad_object_id,
         display_name,
         email,
+        company_email,
         status,
-        last_synced_at
+        last_synced_at,
+        onboarding_completed_at
       FROM practitioners
       ORDER BY display_name
     `);
@@ -63,10 +67,14 @@ async function listPractitionersHandler(
     const practitioners = result.recordset.map(row => ({
       id: row.id,
       halaxyId: row.halaxy_practitioner_id,
+      halaxyRoleId: row.halaxy_practitioner_role_id,
+      azureAdObjectId: row.azure_ad_object_id,
       displayName: row.display_name,
       email: row.email,
+      companyEmail: row.company_email,
       status: row.status,
       lastSynced: row.last_synced_at,
+      onboardingCompleted: row.onboarding_completed_at,
     }));
 
     // Get counts

@@ -1,5 +1,5 @@
-﻿import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+﻿import React, { useState, useMemo, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { BlossomTreeSophisticated } from '@/components/bloom-tree/BlossomTreeSophisticated';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useDashboard } from '@/hooks/useDashboard';
@@ -300,7 +300,7 @@ const ClientStoryBubble: React.FC<{ session: Session; isNext?: boolean }> = ({ s
 // ============================================================================
 // SESSION FEED CARD - Social media post style
 // ============================================================================
-const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: number }> = ({ session, isUpNext, index }) => {
+const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: number; onStartSession?: (id: string) => void }> = ({ session, isUpNext, index, onStartSession }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const prefersReducedMotion = useReducedMotion();
@@ -308,6 +308,8 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
   const mhcpPercentage = (session.mhcpRemaining / session.mhcpTotal) * 100;
   const isNewClient = session.relationshipMonths === 0;
   const isMhcpLow = session.mhcpRemaining <= 2;
+  const isTelehealth = session.locationType === 'telehealth';
+  const canStartSession = isTelehealth && !['completed', 'cancelled', 'no-show'].includes(session.status || '');
 
   const formatRelationship = (months: number) => {
     if (months === 0) return 'New client';
@@ -554,7 +556,39 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
           paddingTop: '12px',
           borderTop: `1px solid ${colors.lavenderLight}`,
           paddingLeft: '66px',
+          flexWrap: 'wrap',
         }}>
+          {/* Start Session Button - Only for telehealth appointments */}
+          {canStartSession && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={(e) => { e.stopPropagation(); onStartSession?.(session.id); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 20px',
+                background: `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`,
+                border: 'none',
+                borderRadius: '24px',
+                cursor: 'pointer',
+                color: colors.white,
+                fontSize: '14px',
+                fontWeight: 600,
+                transition: 'all 0.2s ease',
+                boxShadow: `0 2px 8px ${colors.sage}40`,
+                marginRight: '8px',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="23 7 16 12 23 17 23 7" />
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+              </svg>
+              <span>Start Session</span>
+            </motion.button>
+          )}
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -700,7 +734,7 @@ const EmptyState: React.FC = () => (
 // ============================================================================
 // TODAY'S SESSIONS - Social Feed Style
 // ============================================================================
-const SessionFeed: React.FC<{ sessions: Session[] }> = ({ sessions }) => {
+const SessionFeed: React.FC<{ sessions: Session[]; onStartSession: (id: string) => void }> = ({ sessions, onStartSession }) => {
   // Sort sessions by time and identify the next one
   const sortedSessions = useMemo(() => {
     return [...sessions].sort((a, b) => {
@@ -748,6 +782,7 @@ const SessionFeed: React.FC<{ sessions: Session[] }> = ({ sessions }) => {
           session={session} 
           isUpNext={session.id === nextSessionId}
           index={index}
+          onStartSession={onStartSession}
         />
       ))}
     </div>
@@ -1027,9 +1062,15 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
   upcomingStats: upcomingOverride,
   monthlyStats: monthlyOverride,
 }) => {
+  const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const [showDebug, setShowDebug] = useState(false);
   const [azureUserId, setAzureUserId] = useState<string | null>(null);
+  
+  // Handler for starting a telehealth session
+  const handleStartSession = useCallback((sessionId: string) => {
+    navigate(`/session/${sessionId}`);
+  }, [navigate]);
   
   // Get Azure User ID for debugging
   React.useEffect(() => {
@@ -1389,7 +1430,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
 
         {/* Session Feed - The main content */}
         <div className="feed-column">
-          <SessionFeed sessions={todaysSessions} />
+          <SessionFeed sessions={todaysSessions} onStartSession={handleStartSession} />
         </div>
 
         {/* Quick Stats - At bottom like engagement summary */}

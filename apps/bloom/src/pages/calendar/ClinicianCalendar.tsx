@@ -41,7 +41,7 @@ interface WeekSchedule {
 
 export function ClinicianCalendar() {
   const navigate = useNavigate();
-  const { getAccessToken } = useAuth();
+  const { getAccessToken, user } = useAuth();
   
   const [weekSchedule, setWeekSchedule] = useState<WeekSchedule | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
@@ -65,9 +65,23 @@ export function ClinicianCalendar() {
         endDate: endDate.toISOString().split('T')[0],
       });
       
-      const res = await fetch(`${API_BASE_URL}/clinician/schedule?${params}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      // Build headers with auth info
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      // Send Azure User ID for practitioner lookup
+      if (user?.localAccountId) {
+        headers['X-Azure-User-Id'] = user.localAccountId;
+      } else if (user?.homeAccountId) {
+        headers['X-Azure-User-Id'] = user.homeAccountId.split('.')[0];
+      }
+      
+      const res = await fetch(`${API_BASE_URL}/clinician/schedule?${params}`, { headers });
 
       if (!res.ok) throw new Error('Failed to load schedule');
 

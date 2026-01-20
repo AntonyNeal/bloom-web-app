@@ -79,7 +79,7 @@ interface InsightData {
 
 export function ClinicianDashboard() {
   const navigate = useNavigate();
-  const { logout, getAccessToken } = useAuth();
+  const { logout, getAccessToken, user } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,9 +95,24 @@ export function ClinicianDashboard() {
       setLoading(true);
       const token = await getAccessToken();
       
-      const res = await fetch(`${API_BASE_URL}/clinician/dashboard`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      // Build headers with auth info
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      // Send Azure User ID for practitioner lookup
+      if (user?.localAccountId) {
+        headers['X-Azure-User-Id'] = user.localAccountId;
+      } else if (user?.homeAccountId) {
+        // Fallback to homeAccountId if localAccountId not available
+        headers['X-Azure-User-Id'] = user.homeAccountId.split('.')[0];
+      }
+      
+      const res = await fetch(`${API_BASE_URL}/clinician/dashboard`, { headers });
 
       if (!res.ok) {
         const errorData = await res.json();

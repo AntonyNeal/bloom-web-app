@@ -37,17 +37,17 @@ const BloomLoginButton = ({ isMobile }: BloomLoginButtonProps) => {
       console.log('[BloomLoginButton] Triggering Azure AD login');
       try {
         await login();
-        // If login() returns without redirecting (stub auth), navigate to bloom home
-        console.log('[BloomLoginButton] Login completed, navigating to bloom home');
-        navigate('/bloom-home');
+        // If login() returns without redirecting (stub auth), navigate to dashboard
+        console.log('[BloomLoginButton] Login completed, navigating to dashboard');
+        navigate('/admin/dashboard');
       } catch (error) {
         console.error('[BloomLoginButton] Login failed:', error);
-        // Still navigate to bloom home for dev experience
-        navigate('/bloom-home');
+        // Still navigate to dashboard for dev experience
+        navigate('/admin/dashboard');
       }
     } else {
-      console.log('[BloomLoginButton] Already authenticated, navigating to bloom home');
-      navigate('/bloom-home');
+      console.log('[BloomLoginButton] Already authenticated, navigating to dashboard');
+      navigate('/admin/dashboard');
     }
   };
 

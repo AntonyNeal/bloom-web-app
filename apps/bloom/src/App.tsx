@@ -66,11 +66,11 @@ function LandingPage() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Auto-redirect to bloom home if already authenticated
+  // Auto-redirect to dashboard if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      console.log('[LandingPage] User already authenticated, redirecting to bloom home');
-      navigate('/bloom-home', { replace: true });
+      console.log('[LandingPage] User already authenticated, redirecting to dashboard');
+      navigate('/admin/dashboard', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
 

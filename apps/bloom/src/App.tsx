@@ -25,6 +25,12 @@ const ABTestDashboard = lazy(() =>
   import('./pages/admin/ABTestDashboard').then((m) => ({ default: m.ABTestDashboard }))
 );
 
+// Bloom Homepage (main authenticated home)
+const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
+const BusinessCoach = lazy(() => import('./pages/BusinessCoach'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
+const AcceptOffer = lazy(() => import('./pages/AcceptOffer'));
+
 // Session page for telehealth video calls
 const SessionPage = lazy(() =>
   import('./pages/session/SessionPage').then((m) => ({ default: m.SessionPage }))
@@ -60,11 +66,11 @@ function LandingPage() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Auto-redirect to dashboard if already authenticated
+  // Auto-redirect to bloom home if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      console.log('[LandingPage] User already authenticated, redirecting to dashboard');
-      navigate('/admin/dashboard', { replace: true });
+      console.log('[LandingPage] User already authenticated, redirecting to bloom home');
+      navigate('/bloom-home', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
 
@@ -649,6 +655,68 @@ function AnimatedRoutes() {
                 </Suspense>
               </ErrorBoundary>
             </ProtectedRoute>
+          }
+        />
+
+        {/* Bloom Homepage - main authenticated home */}
+        <Route
+          path="/bloom-home"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
+                  <BloomHomepage />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Business Coach */}
+        <Route
+          path="/business-coach"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
+                  <BusinessCoach />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Onboarding */}
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
+                  <Onboarding />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Accept Offer */}
+        <Route
+          path="/accept-offer"
+          element={
+            <ErrorBoundary>
+              <Suspense
+                fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+              >
+                <AcceptOffer />
+              </Suspense>
+            </ErrorBoundary>
           }
         />
 

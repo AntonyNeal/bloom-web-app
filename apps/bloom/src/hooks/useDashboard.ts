@@ -253,22 +253,16 @@ interface DashboardCache {
 }
 
 let dashboardCache: DashboardCache | null = null;
-const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes - only expire if truly stale
 
 function getCachedDashboard(date?: string): PractitionerDashboard | null {
   if (!dashboardCache) return null;
   
-  const now = Date.now();
   const cacheDate = date || new Date().toISOString().split('T')[0];
   
-  // Return cached data if it's for the same date (don't expire during session)
-  // Only invalidate if it's a different date or cache is very old (30+ min)
+  // Return cached data if it's for the same date - never expires during session
   if (dashboardCache.date === cacheDate) {
-    const age = now - dashboardCache.timestamp;
-    if (age < CACHE_TTL_MS) {
-      console.log('[useDashboard] Using cached dashboard data (age: ' + Math.round(age/1000) + 's)');
-      return dashboardCache.data;
-    }
+    console.log('[useDashboard] Using cached dashboard data');
+    return dashboardCache.data;
   }
   
   return null;

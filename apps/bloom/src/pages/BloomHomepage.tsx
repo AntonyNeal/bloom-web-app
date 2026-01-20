@@ -374,7 +374,7 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
           textTransform: 'uppercase',
         }}>
           <SparkleIcon />
-          Up Next ┬╖ {getTimeUntil()}
+          UP NEXT · {getTimeUntil()}
         </div>
       )}
 
@@ -427,7 +427,7 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
                 fontSize: '12px',
                 color: colors.charcoalLight,
               }}>
-                ┬╖ {formatRelationship(session.relationshipMonths)}
+                · {formatRelationship(session.relationshipMonths)}
               </span>
             </div>
             <div style={{
@@ -439,7 +439,7 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
             }}>
               <ClockIcon />
               <span style={{ fontWeight: 500, color: colors.charcoal }}>{session.time}</span>
-              {!isUpNext && <span style={{ fontSize: '13px' }}>┬╖ {getTimeUntil()}</span>}
+              {!isUpNext && <span style={{ fontSize: '13px' }}> · {getTimeUntil()}</span>}
             </div>
           </div>
 
@@ -458,7 +458,7 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
                 letterSpacing: '0.3px',
               }}
             >
-              Γ£¿ New
+              ✨ New
             </motion.span>
           )}
         </div>
@@ -1375,7 +1375,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
               color: colors.sageLight,
               opacity: 0.8,
             }}>
-              Tap to explore your Business Coach ΓåÆ
+              Tap to explore your Business Coach →
             </div>
           </motion.div>
         </Link>

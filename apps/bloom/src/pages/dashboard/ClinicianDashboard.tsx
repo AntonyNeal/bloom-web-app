@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import LoadingState from '../../components/common/LoadingState';
 import { API_BASE_URL } from '../../config/api';
+import { FloatingNav } from '../../components/navigation/FloatingNav';
 
 interface Session {
   id: string;
@@ -283,11 +284,11 @@ export function ClinicianDashboard() {
             <span style={styles.logoText}>Bloom</span>
           </div>
           
+          {/* Miyazaki-style floating page navigation */}
+          <FloatingNav />
+          
           <div style={styles.headerActions}>
-            <button onClick={() => navigate('/calendar')} style={styles.calendarButton}>
-              📅 Calendar
-            </button>
-            <div style={styles.profileMenu}>
+            <div style={styles.profileMenu} onClick={() => navigate('/settings')}>
               <div style={styles.avatar}>
                 {dashboard.practitioner.displayName.split(' ').map(n => n[0]).join('').slice(0, 2)}
               </div>

@@ -23,18 +23,18 @@ const isAuthConfigured = (() => {
 
 /**
  * Stub implementation when auth is not configured
- * Redirects to /login to show user that auth flow is being attempted
+ * For local development without Azure AD
  */
 const stubAuth = {
   isAuthenticated: false,
   user: null as AccountInfo | null,
   login: async () => {
-    console.warn('[Auth] Authentication is not configured, redirecting to /login');
-    // Navigate to login page to show user something is happening
-    window.location.href = '/login';
+    console.warn('[Auth] Authentication is not configured - this is expected in local dev');
+    // Don't redirect - the button handler will navigate directly
   },
   logout: async () => {
     console.warn('[Auth] Authentication is not configured');
+    window.location.href = '/';
   },
   getAccessToken: async () => null as string | null,
   isLoading: false,

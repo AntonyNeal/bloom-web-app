@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import LoadingState from '../../components/common/LoadingState';
 import { API_BASE_URL } from '../../config/api';
+import { FloatingNav } from '../../components/navigation/FloatingNav';
 
 interface WeekSession {
   id: string;
@@ -131,10 +132,14 @@ export function ClinicianCalendar() {
     <div style={styles.container}>
       {/* Header */}
       <header style={styles.header}>
-        <button onClick={() => navigate('/admin/dashboard')} style={styles.backButton}>
-          ← Back to Feed
-        </button>
-        <h1 style={styles.title}>Schedule</h1>
+        <div style={styles.logoArea}>
+          <div style={styles.logo}>🌸</div>
+          <span style={styles.logoText}>Bloom</span>
+        </div>
+        
+        {/* Miyazaki-style floating page navigation */}
+        <FloatingNav />
+        
         <div style={styles.headerSpacer} />
       </header>
 
@@ -250,25 +255,26 @@ const styles: Record<string, React.CSSProperties> = {
   header: {
     background: 'white',
     borderBottom: '1px solid #E2E8F0',
-    padding: '16px 24px',
+    padding: '12px 24px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
+    position: 'sticky',
+    top: 0,
+    zIndex: 100,
   },
-  backButton: {
-    padding: '8px 16px',
-    background: 'transparent',
-    color: '#6B8E7F',
-    border: 'none',
-    fontSize: '14px',
-    fontWeight: 500,
-    cursor: 'pointer',
+  logoArea: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
   },
-  title: {
-    fontSize: '18px',
+  logo: {
+    fontSize: '24px',
+  },
+  logoText: {
+    fontSize: '20px',
     fontWeight: 600,
-    color: '#2D3748',
-    margin: 0,
+    color: '#6B8E7F',
   },
   headerSpacer: {
     width: '100px',

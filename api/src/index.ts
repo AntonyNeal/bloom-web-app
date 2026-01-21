@@ -24,6 +24,7 @@ import './functions/halaxy-sync-timer';
 import './functions/trigger-halaxy-sync';
 import './functions/halaxy-api-discovery';
 import './functions/debug-slots';
+import './functions/debug-find-practitioner';
 import './functions/fix-unix-timestamps';
 import './functions/send-verification-code';
 import './functions/verify-code';

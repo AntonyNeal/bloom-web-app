@@ -181,7 +181,7 @@ async function adminFixPractitionerRole(
 app.http('adminFixPractitionerRole', {
   methods: ['POST', 'GET', 'OPTIONS'],
   authLevel: 'anonymous', // TODO: Add admin auth
-  route: 'admin/fix-practitioner-role',
+  route: 'management/fix-practitioner-role',
   handler: adminFixPractitionerRole,
 });
 

@@ -271,6 +271,21 @@ export class HalaxyClient {
       statuses
     );
 
+    console.log(`[HalaxyClient] Got ${appointments.length} appointments, checking for patient data...`);
+    
+    // Log first appointment structure to see what we're getting
+    if (appointments.length > 0) {
+      const first = appointments[0];
+      console.log(`[HalaxyClient] First appointment structure:`, {
+        id: first.id,
+        participantCount: first.participant?.length,
+        participants: first.participant?.map(p => ({
+          reference: p.actor?.reference,
+          display: p.actor?.display,
+        })),
+      });
+    }
+
     // Extract unique patient IDs
     const patientIds = new Set<string>();
     for (const apt of appointments) {
@@ -287,9 +302,13 @@ export class HalaxyClient {
       }
     }
 
+    console.log(`[HalaxyClient] Found ${patientIds.size} unique patient IDs:`, Array.from(patientIds));
+
     // Fetch patient details in batches
     const patientMap = new Map<string, FHIRPatient>();
     const patientIdArray = Array.from(patientIds);
+    
+    console.log(`[HalaxyClient] Fetching ${patientIdArray.length} patients...`);
     
     // Fetch up to 10 patients in parallel to speed things up
     const batchSize = 10;
@@ -305,9 +324,12 @@ export class HalaxyClient {
       patients.forEach((patient, idx) => {
         if (patient) {
           patientMap.set(batch[idx], patient);
+          console.log(`[HalaxyClient] Fetched patient ${batch[idx]}:`, patient.name);
         }
       });
     }
+    
+    console.log(`[HalaxyClient] Successfully fetched ${patientMap.size} patients`);
 
     // Enrich appointments with patient display names
     for (const apt of appointments) {

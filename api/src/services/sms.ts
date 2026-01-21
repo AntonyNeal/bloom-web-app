@@ -31,6 +31,38 @@ interface ClinicianBookingSmsContext {
 let smsClient: SmsClient | null = null;
 
 /**
+ * Get human-readable display name for appointment type
+ * Maps appointment type slugs from booking form to display names
+ */
+function getAppointmentTypeDisplay(appointmentType: string | undefined, forPatient: boolean = false): string {
+  if (!appointmentType) {
+    return forPatient ? 'session' : 'Standard';
+  }
+
+  // Map appointment type slugs to display names
+  const displayMap: Record<string, { clinician: string; patient: string }> = {
+    'psychologist-session': { clinician: 'Standard', patient: 'Psychology session' },
+    'medicare-psychologist-session': { clinician: 'Medicare', patient: 'Medicare Psychology session' },
+    'couples-session': { clinician: 'Couples', patient: 'Couples session' },
+    'ndis-psychology-session': { clinician: 'NDIS', patient: 'NDIS session' },
+  };
+
+  const display = displayMap[appointmentType];
+  if (display) {
+    return forPatient ? display.patient : display.clinician;
+  }
+
+  // Fallback: convert slug to readable format
+  // e.g., 'some-other-type' -> 'Some Other Type'
+  const fallback = appointmentType
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+  
+  return forPatient ? fallback : fallback;
+}
+
+/**
  * Get or create the SMS client instance
  */
 function getSmsClient(): SmsClient | null {
@@ -151,10 +183,8 @@ export async function sendClinicianBookingSms(context: ClinicianBookingSmsContex
   };
   const formattedDateTime = appointmentDateTime.toLocaleString('en-AU', dateOptions);
 
-  // Get appointment type display
-  const appointmentTypeDisplay = appointmentType === 'ndis-psychology-session' 
-    ? 'NDIS' 
-    : 'Standard';
+  // Get appointment type display using helper function
+  const appointmentTypeDisplay = getAppointmentTypeDisplay(appointmentType, false);
 
   // Keep SMS concise (SMS has 160 char limit for single message)
   const message = `Hi ${clinicianFirstName}! New booking: ${patientFirstName} ${patientLastName} on ${formattedDateTime} (${appointmentTypeDisplay}). Check Halaxy for details - Life Psychology`;
@@ -201,10 +231,8 @@ export async function sendPatientBookingConfirmationSms(context: PatientBookingC
   };
   const formattedDateTime = appointmentDateTime.toLocaleString('en-AU', dateOptions);
 
-  // Get appointment type display
-  const appointmentTypeDisplay = appointmentType === 'ndis-psychology-session' 
-    ? 'NDIS session' 
-    : 'session';
+  // Get appointment type display using helper function (patient-friendly format)
+  const appointmentTypeDisplay = getAppointmentTypeDisplay(appointmentType, true);
 
   // Build message based on location type (keep under 160 chars for single SMS)
   let message: string;

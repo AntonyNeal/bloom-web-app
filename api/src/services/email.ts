@@ -22,6 +22,60 @@ const INTERVIEW_BOOKING_URL = process.env.INTERVIEW_BOOKING_URL || 'https://cale
 // Onboarding base URL
 const ONBOARDING_BASE_URL = process.env.ONBOARDING_BASE_URL || 'https://staging.bloom.life-psychology.com.au';
 
+/**
+ * Get human-readable display name for appointment type
+ * Maps appointment type slugs from booking form to display names
+ */
+function getAppointmentTypeDisplay(appointmentType: string | undefined, options?: { 
+  withEmoji?: boolean;
+  forPatient?: boolean;
+}): string {
+  const { withEmoji = false, forPatient = false } = options || {};
+
+  if (!appointmentType) {
+    return withEmoji ? '💜 Psychology Session' : 'Psychology Session';
+  }
+
+  // Map appointment type slugs to display names
+  const displayMap: Record<string, { emoji: string; clinician: string; patient: string }> = {
+    'psychologist-session': { 
+      emoji: '💜', 
+      clinician: 'Standard Psychology Session', 
+      patient: 'Psychology Session' 
+    },
+    'medicare-psychologist-session': { 
+      emoji: '🏥', 
+      clinician: 'Medicare Psychology Session', 
+      patient: 'Medicare Psychology Session' 
+    },
+    'couples-session': { 
+      emoji: '💕', 
+      clinician: 'Couples Session', 
+      patient: 'Couples Session' 
+    },
+    'ndis-psychology-session': { 
+      emoji: '🟢', 
+      clinician: 'NDIS Psychology Session', 
+      patient: 'NDIS Psychology Session' 
+    },
+  };
+
+  const display = displayMap[appointmentType];
+  if (display) {
+    const text = forPatient ? display.patient : display.clinician;
+    return withEmoji ? `${display.emoji} ${text}` : text;
+  }
+
+  // Fallback: convert slug to readable format
+  // e.g., 'some-other-type' -> 'Some Other Type'
+  const fallback = appointmentType
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+  
+  return withEmoji ? `📋 ${fallback}` : fallback;
+}
+
 interface EmailContext {
   firstName: string;
   lastName: string;
@@ -577,10 +631,8 @@ export async function sendClinicianBookingNotification(context: BookingNotificat
   };
   const formattedTime = appointmentDateTime.toLocaleString('en-AU', timeOptions);
 
-  // Get appointment type display text
-  const appointmentTypeDisplay = appointmentType === 'ndis-psychology-session' 
-    ? '🟢 NDIS Psychology Session'
-    : '💜 Standard Psychology Session';
+  // Get appointment type display text using helper function
+  const appointmentTypeDisplay = getAppointmentTypeDisplay(appointmentType, { withEmoji: true });
 
   const htmlContent = wrapInTemplate(`
     <h2 style="color: #333; margin-top: 0;">📅 New Booking Alert</h2>
@@ -714,9 +766,8 @@ export async function sendAdminBookingNotification(context: AdminBookingNotifica
   };
   const formattedDateTime = appointmentDateTime.toLocaleString('en-AU', dateOptions);
 
-  const appointmentTypeDisplay = appointmentType === 'ndis-psychology-session' 
-    ? 'NDIS Psychology Session'
-    : 'Standard Psychology Session';
+  // Get appointment type display using helper function
+  const appointmentTypeDisplay = getAppointmentTypeDisplay(appointmentType);
 
   const htmlContent = wrapInTemplate(`
     <h2 style="color: #333; margin-top: 0;">💰 New Booking!</h2>
@@ -830,10 +881,8 @@ export async function sendPatientBookingConfirmation(context: PatientBookingConf
   };
   const formattedTime = appointmentDateTime.toLocaleString('en-AU', timeOptions);
 
-  // Get appointment type display text
-  const appointmentTypeDisplay = appointmentType === 'ndis-psychology-session' 
-    ? 'NDIS Psychology Session'
-    : 'Psychology Session';
+  // Get appointment type display text using helper function (patient-friendly)
+  const appointmentTypeDisplay = getAppointmentTypeDisplay(appointmentType, { forPatient: true });
 
   // Determine location format display and content
   const getLocationFormat = () => {

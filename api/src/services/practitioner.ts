@@ -20,6 +20,9 @@ interface ApplicationData {
   email: string;
   phone?: string;
   favorite_flower?: string; // Zoe's secret intel for onboarding surprise
+  // Halaxy IDs (set during verification)
+  practitioner_id?: string;
+  practitioner_role_id?: string;
 }
 
 interface CreatePractitionerResult {
@@ -67,12 +70,16 @@ export async function createPractitionerFromApplication(
     const tokenExpiresAt = new Date();
     tokenExpiresAt.setDate(tokenExpiresAt.getDate() + ONBOARDING_TOKEN_EXPIRY_DAYS);
 
-    // Generate a placeholder halaxy_practitioner_id for manual practitioners (app-{applicationId})
-    const halaxyPractitionerId = `app-${application.id}`;
+    // Use verified Halaxy IDs from application, or generate placeholder if not verified
+    const halaxyPractitionerId = application.practitioner_id || `app-${application.id}`;
+    const halaxyPractitionerRoleId = application.practitioner_role_id || null;
+    
+    console.log(`[PractitionerService] Using Halaxy IDs: practitioner=${halaxyPractitionerId}, role=${halaxyPractitionerRoleId}`);
 
     // Create practitioner record
     const result = await pool.request()
       .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
+      .input('halaxy_practitioner_role_id', sql.NVarChar, halaxyPractitionerRoleId)
       .input('first_name', sql.NVarChar, application.first_name)
       .input('last_name', sql.NVarChar, application.last_name)
       .input('email', sql.NVarChar, application.email)
@@ -83,6 +90,7 @@ export async function createPractitionerFromApplication(
       .query(`
         INSERT INTO practitioners (
           halaxy_practitioner_id,
+          halaxy_practitioner_role_id,
           first_name,
           last_name,
           email,
@@ -96,6 +104,7 @@ export async function createPractitionerFromApplication(
         ) OUTPUT INSERTED.id
         VALUES (
           @halaxy_practitioner_id,
+          @halaxy_practitioner_role_id,
           @first_name,
           @last_name,
           @email,

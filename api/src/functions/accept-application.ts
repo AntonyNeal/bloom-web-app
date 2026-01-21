@@ -80,6 +80,7 @@ async function acceptApplicationHandler(
           favorite_flower,
           status,
           practitioner_id,
+          practitioner_role_id,
           contract_url,
           halaxy_practitioner_verified
         FROM applications
@@ -177,6 +178,9 @@ async function acceptApplicationHandler(
       email: application.email,
       phone: application.phone,
       favorite_flower: application.favorite_flower, // Zoe's secret intel 🌸
+      // Pass verified Halaxy IDs from application
+      practitioner_id: application.practitioner_id,
+      practitioner_role_id: application.practitioner_role_id,
     });
 
     if (!result.success) {

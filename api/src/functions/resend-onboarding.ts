@@ -117,7 +117,7 @@ async function resendOnboardingHandler(
         .query(`
           SELECT 
             id, first_name, last_name, email, phone,
-            favorite_flower
+            favorite_flower, practitioner_id, practitioner_role_id
           FROM applications
           WHERE id = @id
         `);
@@ -140,6 +140,9 @@ async function resendOnboardingHandler(
         email: fullApp.email,
         phone: fullApp.phone,
         favorite_flower: fullApp.favorite_flower,
+        // Pass verified Halaxy IDs from application
+        practitioner_id: fullApp.practitioner_id,
+        practitioner_role_id: fullApp.practitioner_role_id,
       });
       
       if (!createResult.success) {

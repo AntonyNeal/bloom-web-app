@@ -71,19 +71,39 @@ export async function verifyHalaxyPractitioner(
 
     context.log(`✅ Found Halaxy practitioner: ${halaxyPractitioner.id}`);
 
-    // Update application record with the Halaxy practitioner ID
+    // Get the PractitionerRole ID (needed for appointments API)
+    let practitionerRoleId: string | null = null;
+    try {
+      const roles = await halaxyClient.getPractitionerRolesByPractitioner(halaxyPractitioner.id);
+      if (roles && roles.length > 0) {
+        // Use the first active role, or fall back to PR- prefix format
+        practitionerRoleId = roles[0].id || `PR-${halaxyPractitioner.id}`;
+        context.log(`✅ Found PractitionerRole: ${practitionerRoleId}`);
+      } else {
+        // Fallback: construct PR-{practitionerId} format
+        practitionerRoleId = `PR-${halaxyPractitioner.id}`;
+        context.log(`⚠️ No PractitionerRole found, using fallback: ${practitionerRoleId}`);
+      }
+    } catch (roleError) {
+      context.warn('Could not fetch PractitionerRole, using fallback:', roleError);
+      practitionerRoleId = `PR-${halaxyPractitioner.id}`;
+    }
+
+    // Update application record with both the Practitioner ID and PractitionerRole ID
     await pool
       .request()
       .input('applicationId', sql.Int, applicationId)
       .input('verified', sql.Bit, true)
       .input('verifiedAt', sql.DateTime2, new Date())
       .input('halaxyPractitionerId', sql.NVarChar, halaxyPractitioner.id)
+      .input('halaxyPractitionerRoleId', sql.NVarChar, practitionerRoleId)
       .query(`
         UPDATE applications 
         SET 
           halaxy_practitioner_verified = @verified,
           halaxy_verified_at = @verifiedAt,
-          practitioner_id = @halaxyPractitionerId
+          practitioner_id = @halaxyPractitionerId,
+          practitioner_role_id = @halaxyPractitionerRoleId
         WHERE id = @applicationId
       `);
 
@@ -94,9 +114,10 @@ export async function verifyHalaxyPractitioner(
       jsonBody: {
         verified: true,
         practitioner_id: halaxyPractitioner.id,
+        practitioner_role_id: practitionerRoleId,
         practitioner_name: `${application.first_name} ${application.last_name}`,
         verified_at: new Date().toISOString(),
-        message: `Found practitioner in Halaxy: ${halaxyPractitioner.id}`,
+        message: `Found practitioner in Halaxy: ${halaxyPractitioner.id} (Role: ${practitionerRoleId})`,
       },
     };
   } catch (error) {

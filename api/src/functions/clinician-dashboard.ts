@@ -375,6 +375,24 @@ async function clinicianDashboardHandler(
       monthAppointments = monthResult;
       
       context.log(`Fetched: ${todayAppointments.length} today, ${weekAppointments.length} this week, ${monthAppointments.length} this month`);
+      
+      // Debug: Log today's appointment details
+      if (todayAppointments.length > 0) {
+        context.log('=== TODAY\'S APPOINTMENTS DEBUG ===');
+        for (const appt of todayAppointments) {
+          const patientName = extractPatientName(appt);
+          context.log(`  ID: ${appt.id}`);
+          context.log(`    Patient: ${patientName}`);
+          context.log(`    Status: ${appt.status}`);
+          context.log(`    Start: ${appt.start}`);
+          context.log(`    ServiceType: ${appt.serviceType?.[0]?.coding?.[0]?.display}`);
+          context.log(`    Participants: ${JSON.stringify(appt.participant?.map(p => ({
+            ref: p.actor?.reference,
+            display: p.actor?.display
+          })))}`);
+        }
+        context.log('=================================');
+      }
     } catch (halaxyError) {
       context.error('Halaxy API error:', halaxyError);
       const errorMessage = halaxyError instanceof Error ? halaxyError.message : 'Unknown error';

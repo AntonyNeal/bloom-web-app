@@ -59,6 +59,23 @@ interface DashboardData {
     sessions: SessionItem[];
     summary: DaySummary;
   };
+  // Extended stats from real Halaxy data
+  weekStats: {
+    weekStartDate: string;
+    weekEndDate: string;
+    totalSessions: number;
+    completedSessions: number;
+    scheduledSessions: number;
+    cancelledSessions: number;
+    tomorrowSessions: number;
+    remainingThisWeek: number;
+  };
+  monthStats: {
+    monthName: string;
+    completedSessions: number;
+    totalRevenue: number; // Estimated at $220/session
+    targetRevenue: number;
+  };
   dataSource: 'halaxy-live';
   fetchedAt: string;
 }
@@ -272,24 +289,65 @@ async function clinicianDashboardHandler(
     const todayEnd = new Date(now);
     todayEnd.setHours(23, 59, 59, 999);
 
+    // Calculate week boundaries (Monday to Sunday)
+    const dayOfWeek = now.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() + mondayOffset);
+    weekStart.setHours(0, 0, 0, 0);
+    
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    // Calculate tomorrow
+    const tomorrowStart = new Date(now);
+    tomorrowStart.setDate(now.getDate() + 1);
+    tomorrowStart.setHours(0, 0, 0, 0);
+    
+    const tomorrowEnd = new Date(tomorrowStart);
+    tomorrowEnd.setHours(23, 59, 59, 999);
+
+    // Calculate month boundaries
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
     // ========================================================================
     // Fetch appointments from Halaxy (with patient details)
     // ========================================================================
     const client = getHalaxyClient();
     
-    let appointments: FHIRAppointment[];
+    let todayAppointments: FHIRAppointment[];
+    let weekAppointments: FHIRAppointment[];
+    let monthAppointments: FHIRAppointment[];
+    
     try {
       context.log(`Fetching appointments for practitioner role: ${practitionerConfig.halaxyPractitionerRoleId}`);
-      context.log(`Date range: ${todayStart.toISOString()} to ${todayEnd.toISOString()}`);
       
-      // Use the new method that enriches appointments with patient names
-      appointments = await client.getAppointmentsWithPatientDetails(
-        practitionerConfig.halaxyPractitionerRoleId,
-        todayStart,
-        todayEnd
-      );
+      // Fetch all three ranges in parallel for better performance
+      const [todayResult, weekResult, monthResult] = await Promise.all([
+        client.getAppointmentsWithPatientDetails(
+          practitionerConfig.halaxyPractitionerRoleId,
+          todayStart,
+          todayEnd
+        ),
+        client.getAppointmentsByPractitioner(
+          practitionerConfig.halaxyPractitionerRoleId,
+          weekStart,
+          weekEnd
+        ),
+        client.getAppointmentsByPractitioner(
+          practitionerConfig.halaxyPractitionerRoleId,
+          monthStart,
+          monthEnd
+        ),
+      ]);
       
-      context.log(`Successfully fetched ${appointments.length} appointments with patient details`);
+      todayAppointments = todayResult;
+      weekAppointments = weekResult;
+      monthAppointments = monthResult;
+      
+      context.log(`Fetched: ${todayAppointments.length} today, ${weekAppointments.length} this week, ${monthAppointments.length} this month`);
     } catch (halaxyError) {
       context.error('Halaxy API error:', halaxyError);
       const errorMessage = halaxyError instanceof Error ? halaxyError.message : 'Unknown error';
@@ -313,7 +371,7 @@ async function clinicianDashboardHandler(
     // ========================================================================
     // Transform FHIR appointments to dashboard format
     // ========================================================================
-    const sessions: SessionItem[] = appointments
+    const sessions: SessionItem[] = todayAppointments
       .map((apt): SessionItem => {
         const startTime = new Date(apt.start || '');
         const endTime = new Date(apt.end || '');
@@ -365,6 +423,50 @@ async function clinicianDashboardHandler(
     };
 
     // ========================================================================
+    // Calculate week stats from weekAppointments
+    // ========================================================================
+    const isCompleted = (apt: FHIRAppointment) => apt.status?.toLowerCase() === 'fulfilled';
+    const isCancelled = (apt: FHIRAppointment) => ['cancelled', 'noshow'].includes(apt.status?.toLowerCase() || '');
+    const isScheduled = (apt: FHIRAppointment) => ['booked', 'pending', 'proposed', 'arrived'].includes(apt.status?.toLowerCase() || '');
+    
+    // Count tomorrow's appointments
+    const tomorrowCount = weekAppointments.filter(apt => {
+      const aptDate = new Date(apt.start || '');
+      return aptDate >= tomorrowStart && aptDate <= tomorrowEnd && !isCancelled(apt);
+    }).length;
+
+    // Count remaining this week (after today, excluding cancelled)
+    const remainingThisWeek = weekAppointments.filter(apt => {
+      const aptDate = new Date(apt.start || '');
+      return aptDate > todayEnd && !isCancelled(apt);
+    }).length;
+
+    const weekStats = {
+      weekStartDate: weekStart.toISOString().split('T')[0],
+      weekEndDate: weekEnd.toISOString().split('T')[0],
+      totalSessions: weekAppointments.filter(apt => !isCancelled(apt)).length,
+      completedSessions: weekAppointments.filter(isCompleted).length,
+      scheduledSessions: weekAppointments.filter(isScheduled).length,
+      cancelledSessions: weekAppointments.filter(isCancelled).length,
+      tomorrowSessions: tomorrowCount,
+      remainingThisWeek,
+    };
+
+    // ========================================================================
+    // Calculate month stats from monthAppointments
+    // ========================================================================
+    const monthCompleted = monthAppointments.filter(isCompleted).length;
+    const AVERAGE_SESSION_RATE = 220; // Average rebate/fee per session
+    const TARGET_SESSIONS_PER_MONTH = 100; // ~25/week target
+    
+    const monthStats = {
+      monthName: now.toLocaleDateString('en-AU', { month: 'long' }),
+      completedSessions: monthCompleted,
+      totalRevenue: monthCompleted * AVERAGE_SESSION_RATE,
+      targetRevenue: TARGET_SESSIONS_PER_MONTH * AVERAGE_SESSION_RATE,
+    };
+
+    // ========================================================================
     // Build response
     // ========================================================================
     const response: DashboardResponse = {
@@ -380,6 +482,8 @@ async function clinicianDashboardHandler(
           sessions,
           summary,
         },
+        weekStats,
+        monthStats,
         dataSource: 'halaxy-live',
         fetchedAt: new Date().toISOString(),
       },

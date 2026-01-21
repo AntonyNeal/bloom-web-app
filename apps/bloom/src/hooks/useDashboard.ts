@@ -401,22 +401,37 @@ export function useDashboard(
           isUpNext: s.isUpNext,
           locationType: s.locationType,
         })),
+        // Use real week stats from API
         weeklyStats: {
-          weekStartDate: clinicianData.today.date,
-          weekEndDate: clinicianData.today.date,
-          currentSessions: clinicianData.today.summary.completedSessions,
-          scheduledSessions: clinicianData.today.summary.upcomingSessions,
+          weekStartDate: clinicianData.weekStats?.weekStartDate || clinicianData.today.date,
+          weekEndDate: clinicianData.weekStats?.weekEndDate || clinicianData.today.date,
+          currentSessions: clinicianData.weekStats?.completedSessions || clinicianData.today.summary.completedSessions,
+          scheduledSessions: clinicianData.weekStats?.scheduledSessions || clinicianData.today.summary.upcomingSessions,
           maxSessions: 25,
-          currentRevenue: clinicianData.today.summary.completedSessions * 220, // Estimate
+          currentRevenue: (clinicianData.weekStats?.completedSessions || clinicianData.today.summary.completedSessions) * 220,
           targetRevenue: 5500,
-          completionRate: clinicianData.today.summary.totalSessions > 0 
-            ? Math.round((clinicianData.today.summary.completedSessions / clinicianData.today.summary.totalSessions) * 100)
+          completionRate: clinicianData.weekStats?.totalSessions > 0 
+            ? Math.round((clinicianData.weekStats.completedSessions / clinicianData.weekStats.totalSessions) * 100)
             : 0,
-          noShowCount: clinicianData.today.summary.cancelledSessions,
-          cancellationCount: clinicianData.today.summary.cancelledSessions,
+          noShowCount: clinicianData.weekStats?.cancelledSessions || 0,
+          cancellationCount: clinicianData.weekStats?.cancelledSessions || 0,
         },
-        upcomingStats: sampleUpcomingStats, // Not available from current API
-        monthlyStats: sampleMonthlyStats, // Not available from current API
+        // Use real upcoming stats from API
+        upcomingStats: {
+          tomorrowSessions: clinicianData.weekStats?.tomorrowSessions || 0,
+          remainingThisWeek: clinicianData.weekStats?.remainingThisWeek || 0,
+          nextWeekSessions: 0, // Would need additional API call
+          mhcpEndingSoon: 0, // Not available from Halaxy
+          clientsNeedingFollowUp: 0, // Not available
+          unbookedRegulars: 0, // Not available
+        },
+        // Use real month stats from API
+        monthlyStats: {
+          currentRevenue: clinicianData.monthStats?.totalRevenue || 0,
+          monthName: clinicianData.monthStats?.monthName || new Date().toLocaleDateString('en-AU', { month: 'long' }),
+          targetRevenue: clinicianData.monthStats?.targetRevenue || 22000,
+          completedSessions: clinicianData.monthStats?.completedSessions || 0,
+        },
         lastUpdated: clinicianData.fetchedAt,
         syncStatus: {
           isConnected: true,

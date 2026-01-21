@@ -85,7 +85,7 @@ async function debugFindPractitioner(
 app.http('debugFindPractitioner', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'debug/find-practitioner',
+  route: 'halaxy/find-practitioner',
   handler: debugFindPractitioner,
 });
 

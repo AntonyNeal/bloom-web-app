@@ -137,8 +137,9 @@ function _isUpcoming(startTime: Date, status: string): boolean {
 
 function extractPatientName(appointment: FHIRAppointment): string {
   // Try to get from participant display
+  // Note: Halaxy returns full URLs like https://au-api.halaxy.com/main/Patient/123
   const patientParticipant = appointment.participant?.find(
-    p => p.actor?.reference?.startsWith('Patient/')
+    p => p.actor?.reference?.includes('Patient/')
   );
   if (patientParticipant?.actor?.display) {
     return patientParticipant.actor.display;
@@ -148,10 +149,12 @@ function extractPatientName(appointment: FHIRAppointment): string {
 
 function _extractPatientId(appointment: FHIRAppointment): string | null {
   const patientParticipant = appointment.participant?.find(
-    p => p.actor?.reference?.startsWith('Patient/')
+    p => p.actor?.reference?.includes('Patient/')
   );
   if (patientParticipant?.actor?.reference) {
-    return patientParticipant.actor.reference.replace('Patient/', '');
+    // Extract ID from full URL or relative reference
+    const match = patientParticipant.actor.reference.match(/Patient\/([^/]+)$/);
+    return match ? match[1] : null;
   }
   return null;
 }

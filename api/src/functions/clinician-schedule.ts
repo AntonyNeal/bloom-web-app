@@ -177,9 +177,23 @@ async function clinicianScheduleHandler(
     const dbPractitioner = await getPractitionerByAzureId(azureUserId);
     if (dbPractitioner) {
       context.log(`[clinician-schedule] Found practitioner in DB: ${dbPractitioner.first_name} ${dbPractitioner.last_name}`);
+      
+      // Require valid Halaxy IDs - no fallbacks to fake PR- prefixed IDs
+      if (!dbPractitioner.halaxy_practitioner_role_id) {
+        context.error(`[clinician-schedule] Missing halaxy_practitioner_role_id for ${dbPractitioner.email}`);
+        return {
+          status: 500,
+          headers,
+          jsonBody: { 
+            success: false, 
+            error: 'Halaxy role not configured. Please contact admin to complete your Halaxy setup.' 
+          },
+        };
+      }
+      
       practitionerConfig = {
         halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
-        halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id || `PR-${dbPractitioner.halaxy_practitioner_id}`,
+        halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id,
         displayName: dbPractitioner.display_name || `${dbPractitioner.first_name} ${dbPractitioner.last_name}`,
         email: dbPractitioner.company_email || dbPractitioner.email,
       };

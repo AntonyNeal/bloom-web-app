@@ -222,8 +222,8 @@ jobs:
               ;;
             development)
               BLOOM_FRONTEND_APP="lpa-bloom-dev"
-              BLOOM_API_APP="bloom-platform-functions-dev"
-              BLOOM_API_URL="https://bloom-platform-functions-dev.azurewebsites.net/api"
+              BLOOM_API_APP="bloom-functions-dev"
+              BLOOM_API_URL="https://bloom-functions-dev.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET="AZURE_STATIC_WEB_APPS_API_TOKEN_BLOOM_DEV"
               BLOOM_API_SECRET="BLOOM_DEV_API_PUBLISH_PROFILE"
               WEBSITE_FRONTEND_APP="lpa-frontend-dev"
@@ -232,8 +232,8 @@ jobs:
               ;;
             preview)
               BLOOM_FRONTEND_APP="lpa-bloom-dev"
-              BLOOM_API_APP="bloom-platform-functions-dev"
-              BLOOM_API_URL="https://bloom-platform-functions-dev.azurewebsites.net/api"
+              BLOOM_API_APP="bloom-functions-dev"
+              BLOOM_API_URL="https://bloom-functions-dev.azurewebsites.net/api"
               BLOOM_FRONTEND_SECRET=""
               BLOOM_API_SECRET=""
               WEBSITE_FRONTEND_APP="lpa-frontend-dev"

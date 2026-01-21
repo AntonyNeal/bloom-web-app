@@ -58,11 +58,39 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
     else setTimeOfDay('night');
   }, []);
   
-  // Calculate growth metrics
-  // Use targetRevenue if provided, otherwise estimate based on current revenue (assume 80% of way there)
-  const effectiveTarget = monthlyStats.targetRevenue || Math.max(monthlyStats.currentRevenue * 1.25, 1);
-  const growthPercentage = Math.min((monthlyStats.currentRevenue / effectiveTarget) * 100, 100);
-  const growthFactor = growthPercentage / 100; // 0 to 1
+  // Calculate growth based on ABSOLUTE revenue milestones (not percentages)
+  // Each milestone unlocks new visual growth - a treat as clinicians progress in their career
+  const revenue = monthlyStats.currentRevenue;
+  
+  // Revenue milestones - each unlocks new visual elements
+  // These are absolute dollar amounts, so clinicians always see new growth as they earn more
+  const MILESTONES = {
+    SEEDLING: 0,        // Just planted - bare trunk
+    SPROUTING: 500,     // First signs of life
+    BUDDING: 1500,      // Early buds appearing
+    GROWING: 3000,      // Branches starting to form
+    LEAFING: 5000,      // Canopy developing
+    BLOOMING: 8000,     // Flowers beginning
+    FLOURISHING: 12000, // Rich with blossoms
+    ABUNDANT: 18000,    // Nearly full bloom
+    MAGNIFICENT: 25000, // Peak beauty
+  };
+  
+  // Calculate growth factor (0-1) based on where we are between milestones
+  // This creates smooth transitions between stages
+  const getGrowthFactor = (rev: number): number => {
+    if (rev >= MILESTONES.MAGNIFICENT) return 1.0;
+    if (rev >= MILESTONES.ABUNDANT) return 0.85 + (rev - MILESTONES.ABUNDANT) / (MILESTONES.MAGNIFICENT - MILESTONES.ABUNDANT) * 0.15;
+    if (rev >= MILESTONES.FLOURISHING) return 0.7 + (rev - MILESTONES.FLOURISHING) / (MILESTONES.ABUNDANT - MILESTONES.FLOURISHING) * 0.15;
+    if (rev >= MILESTONES.BLOOMING) return 0.55 + (rev - MILESTONES.BLOOMING) / (MILESTONES.FLOURISHING - MILESTONES.BLOOMING) * 0.15;
+    if (rev >= MILESTONES.LEAFING) return 0.4 + (rev - MILESTONES.LEAFING) / (MILESTONES.BLOOMING - MILESTONES.LEAFING) * 0.15;
+    if (rev >= MILESTONES.GROWING) return 0.25 + (rev - MILESTONES.GROWING) / (MILESTONES.LEAFING - MILESTONES.GROWING) * 0.15;
+    if (rev >= MILESTONES.BUDDING) return 0.15 + (rev - MILESTONES.BUDDING) / (MILESTONES.GROWING - MILESTONES.BUDDING) * 0.1;
+    if (rev >= MILESTONES.SPROUTING) return 0.05 + (rev - MILESTONES.SPROUTING) / (MILESTONES.BUDDING - MILESTONES.SPROUTING) * 0.1;
+    return rev / MILESTONES.SPROUTING * 0.05; // Tiny growth even at $0
+  };
+  
+  const growthFactor = getGrowthFactor(revenue);
   
   // Determine season from month
   const getSeason = (monthName: string): 'spring' | 'summer' | 'autumn' => {
@@ -74,17 +102,21 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
   
   const season = getSeason(monthlyStats.monthName);
   
-  // Growth stages with visual characteristics
-  const getGrowthStage = (pct: number) => {
-    if (pct < 15) return { name: 'dormant', label: '≡ƒî▒ Dormant', blossomCount: 0, intensity: 0.3 };
-    if (pct < 30) return { name: 'budding', label: '≡ƒî┐ Early Buds', blossomCount: 12, intensity: 0.4 };
-    if (pct < 50) return { name: 'emerging', label: '≡ƒî╕ Emerging', blossomCount: 28, intensity: 0.55 };
-    if (pct < 70) return { name: 'blooming', label: '≡ƒî║ Blooming', blossomCount: 52, intensity: 0.7 };
-    if (pct < 90) return { name: 'flourishing', label: '≡ƒî╕≡ƒî╕ Flourishing', blossomCount: 84, intensity: 0.85 };
-    return { name: 'fullBloom', label: '≡ƒî│ Peak Bloom', blossomCount: 120, intensity: 1.0 };
+  // Growth stages based on absolute revenue milestones
+  // Each stage is a visual treat to unlock as career progresses
+  const getGrowthStage = (rev: number) => {
+    if (rev >= MILESTONES.MAGNIFICENT) return { name: 'magnificent', label: '✨ Magnificent', blossomCount: 140, intensity: 1.0, nextMilestone: null };
+    if (rev >= MILESTONES.ABUNDANT) return { name: 'abundant', label: '🌸 Abundant', blossomCount: 110, intensity: 0.92, nextMilestone: MILESTONES.MAGNIFICENT };
+    if (rev >= MILESTONES.FLOURISHING) return { name: 'flourishing', label: '🌷 Flourishing', blossomCount: 85, intensity: 0.82, nextMilestone: MILESTONES.ABUNDANT };
+    if (rev >= MILESTONES.BLOOMING) return { name: 'blooming', label: '🌺 Blooming', blossomCount: 60, intensity: 0.7, nextMilestone: MILESTONES.FLOURISHING };
+    if (rev >= MILESTONES.LEAFING) return { name: 'leafing', label: '🌿 Leafing', blossomCount: 38, intensity: 0.58, nextMilestone: MILESTONES.BLOOMING };
+    if (rev >= MILESTONES.GROWING) return { name: 'growing', label: '🌱 Growing', blossomCount: 22, intensity: 0.45, nextMilestone: MILESTONES.LEAFING };
+    if (rev >= MILESTONES.BUDDING) return { name: 'budding', label: '🌱 Budding', blossomCount: 12, intensity: 0.35, nextMilestone: MILESTONES.GROWING };
+    if (rev >= MILESTONES.SPROUTING) return { name: 'sprouting', label: '🌱 Sprouting', blossomCount: 5, intensity: 0.25, nextMilestone: MILESTONES.BUDDING };
+    return { name: 'seedling', label: '🌰 Seedling', blossomCount: 0, intensity: 0.15, nextMilestone: MILESTONES.SPROUTING };
   };
   
-  const stage = getGrowthStage(growthPercentage);
+  const stage = getGrowthStage(revenue);
   
   // Sophisticated blossom placement - artistic clusters, not random scatter
   const blossomClusters = useMemo(() => {
@@ -509,7 +541,7 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
           right: '20px',
         }}
       >
-        {/* Stage indicator */}
+        {/* Stage indicator with next milestone hint */}
         <div
           style={{
             display: 'inline-flex',
@@ -526,9 +558,11 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
           }}
         >
           <span>{stage.label}</span>
-          <span style={{ fontSize: '12px', opacity: 0.7 }}>
-            {Math.round(growthPercentage)}%
-          </span>
+          {stage.nextMilestone && (
+            <span style={{ fontSize: '12px', opacity: 0.6, fontStyle: 'italic' }}>
+              · ${(stage.nextMilestone - revenue).toLocaleString()} to next stage
+            </span>
+          )}
         </div>
         
         {/* Revenue display */}
@@ -564,30 +598,33 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
                 letterSpacing: '-1px',
               }}
             >
-              ${monthlyStats.currentRevenue.toLocaleString()}
+              ${revenue.toLocaleString()}
             </div>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <div
-              style={{
-                fontSize: '12px',
-                color: colors.sageDark,
-                opacity: 0.7,
-                marginBottom: '4px',
-              }}
-            >
-              Target
+          {/* Show next milestone as the "goal" */}
+          {stage.nextMilestone && (
+            <div style={{ textAlign: 'right' }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: colors.sageDark,
+                  opacity: 0.7,
+                  marginBottom: '4px',
+                }}
+              >
+                Next milestone
+              </div>
+              <div
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 500,
+                  color: colors.sage,
+                }}
+              >
+                ${stage.nextMilestone.toLocaleString()}
+              </div>
             </div>
-            <div
-              style={{
-                fontSize: '18px',
-                fontWeight: 500,
-                color: colors.sage,
-              }}
-            >
-              ${(monthlyStats.targetRevenue ?? effectiveTarget).toLocaleString()}
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

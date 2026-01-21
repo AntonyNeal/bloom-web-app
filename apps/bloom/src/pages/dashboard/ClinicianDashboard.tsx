@@ -259,14 +259,101 @@ export function ClinicianDashboard() {
   }
 
   if (error) {
+    // Determine if this is a configuration issue vs a temporary error
+    const isConfigError = error.includes('not configured') || error.includes('not registered') || error.includes('Access denied');
+    
     return (
       <div style={styles.container}>
-        <div style={styles.errorCard}>
-          <h2 style={styles.errorTitle}>Unable to Load Feed</h2>
-          <p style={styles.errorMessage}>{error}</p>
-          <button onClick={loadDashboard} style={styles.retryButton}>
-            Try Again
-          </button>
+        <BloomHeader showHomeLink={true} />
+        <div style={styles.errorContainer}>
+          <div style={styles.errorCard}>
+            {/* Miyazaki-inspired illustration - a garden needs tending */}
+            <svg
+              width="160"
+              height="140"
+              viewBox="0 0 160 140"
+              fill="none"
+              style={{ marginBottom: '32px' }}
+            >
+              {/* Soft background glow */}
+              <ellipse cx="80" cy="120" rx="70" ry="15" fill="#F3F0F7" opacity="0.6" />
+              
+              {/* Watering can - the garden needs care */}
+              <path
+                d="M55 65 L55 95 Q55 105 65 105 L95 105 Q105 105 105 95 L105 65 Z"
+                fill="#E8C4BB"
+                stroke="#D4A59A"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M55 65 Q55 55 70 55 L90 55 Q105 55 105 65"
+                fill="#E8C4BB"
+                stroke="#D4A59A"
+                strokeWidth="1.5"
+              />
+              {/* Spout */}
+              <path
+                d="M105 75 Q120 70 130 55"
+                stroke="#D4A59A"
+                strokeWidth="3"
+                fill="none"
+                strokeLinecap="round"
+              />
+              {/* Handle */}
+              <path
+                d="M65 55 Q65 35 80 35 Q95 35 95 55"
+                stroke="#D4A59A"
+                strokeWidth="3"
+                fill="none"
+                strokeLinecap="round"
+              />
+              
+              {/* Small plant waiting to be watered */}
+              <ellipse cx="80" cy="120" rx="15" ry="4" fill="#9BAA9B" opacity="0.4" />
+              <path
+                d="M80 120 Q78 110 80 100"
+                stroke="#7B8D7B"
+                strokeWidth="2"
+                fill="none"
+              />
+              <ellipse cx="74" cy="105" rx="6" ry="3" fill="#9BAA9B" transform="rotate(-35 74 105)" />
+              <ellipse cx="86" cy="102" rx="5" ry="2.5" fill="#7B8D7B" transform="rotate(30 86 102)" />
+              
+              {/* Droplets - connection being made */}
+              <circle cx="125" cy="60" r="3" fill="#9BB0A8" opacity="0.7" />
+              <circle cx="122" cy="70" r="2" fill="#9BB0A8" opacity="0.5" />
+              <circle cx="128" cy="75" r="2.5" fill="#9BB0A8" opacity="0.6" />
+            </svg>
+            
+            <h2 style={styles.errorTitle}>
+              {isConfigError ? 'Almost there...' : 'Taking a moment...'}
+            </h2>
+            
+            <p style={styles.errorMessage}>
+              {isConfigError 
+                ? 'Your Bloom account needs a little more setup to connect with your appointments.'
+                : 'We couldn\'t reach your appointments right now. Like a garden after rain, things will clear up soon.'}
+            </p>
+            
+            <p style={styles.errorDetail}>
+              {error}
+            </p>
+            
+            {!isConfigError && (
+              <button onClick={loadDashboard} style={styles.retryButton}>
+                <span style={{ marginRight: '8px' }}>🌱</span>
+                Try again
+              </button>
+            )}
+            
+            {isConfigError && (
+              <div style={styles.configHint}>
+                <p style={styles.hintText}>
+                  Please contact your administrator to complete your Halaxy integration.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -898,35 +985,77 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
     opacity: 0.95,
   },
+  // Miyazaki-inspired error states - gentle and warm
+  errorContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 'calc(100vh - 80px)',
+    padding: '40px 24px',
+    background: 'linear-gradient(180deg, #FAF8F3 0%, #F3F0F7 50%, #E8F4F0 100%)',
+  },
   errorCard: {
-    background: 'white',
-    borderRadius: '16px',
-    padding: '40px',
-    maxWidth: '400px',
-    margin: '100px auto',
-    textAlign: 'center',
-    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
+    background: 'linear-gradient(180deg, #FFFFFF 0%, #FAF8F3 100%)',
+    borderRadius: '24px',
+    padding: '48px 56px',
+    maxWidth: '480px',
+    textAlign: 'center' as const,
+    boxShadow: '0 8px 40px rgba(123, 141, 123, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
+    border: '1px solid rgba(155, 170, 155, 0.15)',
   },
   errorTitle: {
-    fontSize: '20px',
+    fontFamily: '"Crimson Text", Georgia, serif',
+    fontSize: '28px',
     fontWeight: 600,
-    color: '#C53030',
-    marginBottom: '12px',
+    color: '#5A6B5A',
+    marginBottom: '16px',
+    letterSpacing: '-0.01em',
   },
   errorMessage: {
-    fontSize: '14px',
-    color: '#718096',
-    marginBottom: '24px',
+    fontFamily: '"Source Sans Pro", -apple-system, sans-serif',
+    fontSize: '16px',
+    color: '#6B7B6B',
+    marginBottom: '12px',
+    lineHeight: 1.7,
+  },
+  errorDetail: {
+    fontFamily: '"Source Sans Pro", -apple-system, sans-serif',
+    fontSize: '13px',
+    color: '#9BAA9B',
+    marginBottom: '28px',
+    padding: '12px 16px',
+    background: 'rgba(155, 170, 155, 0.08)',
+    borderRadius: '8px',
+    fontStyle: 'italic',
   },
   retryButton: {
-    padding: '12px 24px',
-    background: '#6B8E7F',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '14px 32px',
+    background: 'linear-gradient(135deg, #7B8D7B 0%, #6B8E7F 100%)',
     color: 'white',
     border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
+    borderRadius: '12px',
+    fontSize: '15px',
     fontWeight: 500,
     cursor: 'pointer',
+    boxShadow: '0 4px 12px rgba(107, 142, 127, 0.25)',
+    transition: 'all 0.2s ease',
+  },
+  configHint: {
+    marginTop: '20px',
+    padding: '16px 20px',
+    background: 'linear-gradient(135deg, #F3F0F7 0%, #E8E2F0 100%)',
+    borderRadius: '12px',
+    border: '1px solid rgba(180, 160, 200, 0.2)',
+  },
+  hintText: {
+    fontFamily: '"Source Sans Pro", -apple-system, sans-serif',
+    fontSize: '14px',
+    color: '#6B5B7B',
+    margin: 0,
+    lineHeight: 1.6,
   },
 };
 

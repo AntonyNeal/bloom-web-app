@@ -91,6 +91,10 @@ interface DashboardResponse {
 // ============================================================================
 
 function formatTime(date: Date): string {
+  // Handle Invalid Date
+  if (isNaN(date.getTime())) {
+    return '';
+  }
   return date.toLocaleTimeString('en-AU', {
     hour: 'numeric',
     minute: '2-digit',

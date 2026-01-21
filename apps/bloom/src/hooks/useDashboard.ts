@@ -318,9 +318,9 @@ export function useDashboard(
     } finally {
       setLoading(false);
     }
-  }, [date, skip, dashboard]);
+  }, [date, skip]); // Removed 'dashboard' - it caused infinite re-fetch loop
 
-  // Initial fetch (or background refresh if using cached data)
+  // Initial fetch - only run once on mount or when date changes
   useEffect(() => {
     const cachedData = getCachedDashboard(date);
     if (cachedData) {
@@ -330,7 +330,8 @@ export function useDashboard(
       // No cache - do a full fetch with loading state
       fetchDashboard(false);
     }
-  }, [fetchDashboard, date]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date]); // Only depend on date, not fetchDashboard (avoid re-fetch loop)
 
   // Auto-refresh (always background)
   useEffect(() => {

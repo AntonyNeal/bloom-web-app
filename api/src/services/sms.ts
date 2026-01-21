@@ -1,14 +1,16 @@
 /**
  * SMS Service
  * 
- * Handles SMS notifications using Infobip's direct API.
+ * Handles SMS notifications using Azure Communication Services with Infobip Messaging Connect.
+ * This routes SMS through ACS to Infobip for delivery, providing enterprise-grade
+ * reliability with Infobip's carrier network.
  * 
  * Configuration required:
- * - INFOBIP_API_KEY
- * - INFOBIP_BASE_URL (optional, defaults to api.infobip.com)
- * - SMS_SENDER_ID (optional, defaults to "LifePsych")
+ * - ACS_CONNECTION_STRING: Azure Communication Services connection string
+ * - INFOBIP_API_KEY: Infobip API key for Messaging Connect
+ * - SMS_FROM_NUMBER: Infobip phone number (E.164 format, e.g., +61480800867)
  */
-import https from 'https';
+import { SmsClient, SmsSendRequest } from '@azure/communication-sms';
 
 interface SmsResult {
   success: boolean;
@@ -25,8 +27,29 @@ interface ClinicianBookingSmsContext {
   appointmentType?: string;
 }
 
+// Singleton SMS client instance
+let smsClient: SmsClient | null = null;
+
 /**
- * Normalize phone number to E.164 format (without +)
+ * Get or create the SMS client instance
+ */
+function getSmsClient(): SmsClient | null {
+  if (smsClient) {
+    return smsClient;
+  }
+
+  const connectionString = process.env.ACS_CONNECTION_STRING;
+  if (!connectionString) {
+    console.error('[SMS] ACS_CONNECTION_STRING not configured');
+    return null;
+  }
+
+  smsClient = new SmsClient(connectionString);
+  return smsClient;
+}
+
+/**
+ * Normalize phone number to E.164 format (with +)
  * Handles Australian phone numbers
  */
 function normalizePhoneNumber(phone: string): string {
@@ -38,88 +61,69 @@ function normalizePhoneNumber(phone: string): string {
     normalized = '61' + normalized.substring(1);
   }
   
-  // Remove + prefix if present (Infobip doesn't need it)
-  if (normalized.startsWith('+')) {
-    normalized = normalized.substring(1);
-  }
-  
-  return normalized;
+  // Ensure + prefix for E.164 format
+  return '+' + normalized;
 }
 
 /**
- * Send an SMS message via Infobip direct API
+ * Send an SMS message via Azure Communication Services with Infobip Messaging Connect
  */
 async function sendSms(to: string, message: string): Promise<SmsResult> {
-  const apiKey = process.env.INFOBIP_API_KEY;
-  const baseUrl = process.env.INFOBIP_BASE_URL || 'api.infobip.com';
-  const senderId = process.env.SMS_SENDER_ID || 'LifePsych';
+  const client = getSmsClient();
+  const infobipApiKey = process.env.INFOBIP_API_KEY;
+  const fromNumber = process.env.SMS_FROM_NUMBER || '+61480800867';
 
-  if (!apiKey) {
-    console.error('[SMS] INFOBIP_API_KEY not configured');
+  if (!client) {
+    return { success: false, error: 'Azure Communication Services not configured' };
+  }
+
+  if (!infobipApiKey) {
+    console.error('[SMS] INFOBIP_API_KEY not configured for Messaging Connect');
     return { success: false, error: 'Infobip API key not configured' };
   }
 
   const normalizedTo = normalizePhoneNumber(to);
   
-  console.log(`[SMS] Sending to ${normalizedTo} from ${senderId} via Infobip`);
+  console.log(`[SMS] Sending via ACS Messaging Connect to ${normalizedTo} from ${fromNumber}`);
   console.log(`[SMS] Message: ${message}`);
 
-  const data = JSON.stringify({
-    messages: [{
-      destinations: [{ to: normalizedTo }],
-      from: senderId,
-      text: message,
-    }],
-  });
-
-  return new Promise((resolve) => {
-    const options = {
-      hostname: baseUrl,
-      path: '/sms/2/text/advanced',
-      method: 'POST',
-      headers: {
-        'Authorization': `App ${apiKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+  try {
+    const sendResults = await client.send(
+      {
+        from: fromNumber,
+        to: [normalizedTo],
+        message: message,
       },
-    };
+      {
+        enableDeliveryReport: true,
+        // Messaging Connect configuration - routes through Infobip
+        messagingConnect: {
+          apiKey: infobipApiKey,
+          partner: 'infobip',
+        },
+      }
+    );
 
-    const req = https.request(options, (res) => {
-      let body = '';
-      res.on('data', (chunk) => { body += chunk; });
-      res.on('end', () => {
-        try {
-          const response = JSON.parse(body);
-          
-          if (res.statusCode === 200 && response.messages?.[0]) {
-            const msg = response.messages[0];
-            console.log(`[SMS] Message sent successfully: ${msg.messageId}, status: ${msg.status?.name}`);
-            resolve({
-              success: true,
-              messageId: msg.messageId,
-            });
-          } else {
-            console.error('[SMS] Infobip error:', body);
-            resolve({
-              success: false,
-              error: response.requestError?.serviceException?.text || `HTTP ${res.statusCode}`,
-            });
-          }
-        } catch (parseError) {
-          console.error('[SMS] Failed to parse response:', body);
-          resolve({ success: false, error: 'Invalid response from Infobip' });
-        }
-      });
-    });
-
-    req.on('error', (error) => {
-      console.error('[SMS] Request error:', error.message);
-      resolve({ success: false, error: error.message });
-    });
-
-    req.write(data);
-    req.end();
-  });
+    const result = sendResults[0];
+    
+    if (result.successful) {
+      console.log(`[SMS] Message sent successfully: ${result.messageId}`);
+      return {
+        success: true,
+        messageId: result.messageId,
+      };
+    } else {
+      console.error('[SMS] Failed to send:', result.errorMessage);
+      return {
+        success: false,
+        error: result.errorMessage || 'Unknown error',
+      };
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[SMS] Error sending SMS:', errorMessage);
+    return { success: false, error: errorMessage };
+  }
 }
 
 /**
@@ -283,6 +287,31 @@ export function isPatientSmsNotificationEnabled(): boolean {
 }
 
 /**
+ * Send appointment reminder SMS to clinician (1 hour before)
+ */
+export async function sendClinicianAppointmentReminderSms(context: {
+  clinicianPhone: string;
+  clinicianFirstName: string;
+  patientName: string;
+  appointmentDateTime: Date;
+}): Promise<SmsResult> {
+  const { clinicianPhone, clinicianFirstName, patientName, appointmentDateTime } = context;
+
+  // Format time only (date is "today" at 1 hour notice)
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Sydney',
+  };
+  const formattedTime = appointmentDateTime.toLocaleString('en-AU', timeOptions);
+
+  const message = `Hi ${clinicianFirstName}! Reminder: Session with ${patientName} at ${formattedTime} (in ~1hr) - Life Psychology`;
+
+  return sendSms(clinicianPhone, message);
+}
+
+/**
  * Send admin/owner notification for new bookings
  * Julian Della Bosca receives SMS for every booking
  */
@@ -341,6 +370,7 @@ export const smsService = {
   sendClinicianBookingSms,
   sendPatientBookingConfirmationSms,
   sendPatientAppointmentReminderSms,
+  sendClinicianAppointmentReminderSms,
   sendAdminBookingNotificationSms,
   sendAdminAppointmentReminderSms,
   isSmsNotificationEnabled,

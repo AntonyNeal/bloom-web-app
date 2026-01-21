@@ -8,8 +8,8 @@
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.MODE === 'production'
-    ? 'https://bloom-platform-functions-v2.azurewebsites.net/api'
-    : '/api'); // Proxied to production via Vite
+    ? 'https://bloom-functions-dev.azurewebsites.net/api'
+    : '/api'); // Proxied to bloom-functions-dev via Vite
 
 export const API_ENDPOINTS = {
   applications: `${API_BASE_URL}/applications`,

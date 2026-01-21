@@ -176,6 +176,23 @@ function extractSessionType(appointment: FHIRAppointment): string {
          'Consultation';
 }
 
+/**
+ * Check if a specific PractitionerRole is actually a participant in the appointment
+ * This filters out appointments that belong to other practitioners in the same organization
+ */
+function isPractitionerParticipant(appointment: FHIRAppointment, practitionerRoleId: string): boolean {
+  if (!appointment.participant) return false;
+  
+  // Look for this practitioner's role in the participants
+  return appointment.participant.some(p => {
+    const ref = p.actor?.reference || '';
+    // Check for both full URL and relative reference formats
+    // e.g., "https://au-api.halaxy.com/main/PractitionerRole/PR-3356645" or "PractitionerRole/PR-3356645"
+    return ref.includes(`PractitionerRole/${practitionerRoleId}`) ||
+           ref.endsWith(`/${practitionerRoleId}`);
+  });
+}
+
 // ============================================================================
 // Main Handler
 // ============================================================================
@@ -415,8 +432,15 @@ async function clinicianDashboardHandler(
 
     // ========================================================================
     // Transform FHIR appointments to dashboard format
+    // Filter to only include appointments where this practitioner is a participant
     // ========================================================================
-    const sessions: SessionItem[] = todayAppointments
+    const filteredTodayAppointments = todayAppointments.filter(apt => 
+      isPractitionerParticipant(apt, practitionerConfig.halaxyPractitionerRoleId)
+    );
+    
+    context.log(`Filtered ${todayAppointments.length} appointments down to ${filteredTodayAppointments.length} for practitioner ${practitionerConfig.halaxyPractitionerRoleId}`);
+    
+    const sessions: SessionItem[] = filteredTodayAppointments
       .map((apt): SessionItem => {
         const startTime = new Date(apt.start || '');
         const endTime = new Date(apt.end || '');
@@ -469,19 +493,27 @@ async function clinicianDashboardHandler(
 
     // ========================================================================
     // Calculate week stats from weekAppointments
+    // Filter to only this practitioner's appointments
     // ========================================================================
+    const filteredWeekAppointments = weekAppointments.filter(apt => 
+      isPractitionerParticipant(apt, practitionerConfig.halaxyPractitionerRoleId)
+    );
+    const filteredMonthAppointments = monthAppointments.filter(apt => 
+      isPractitionerParticipant(apt, practitionerConfig.halaxyPractitionerRoleId)
+    );
+    
     const isCompleted = (apt: FHIRAppointment) => apt.status?.toLowerCase() === 'fulfilled';
     const isCancelled = (apt: FHIRAppointment) => ['cancelled', 'noshow'].includes(apt.status?.toLowerCase() || '');
     const isScheduled = (apt: FHIRAppointment) => ['booked', 'pending', 'proposed', 'arrived'].includes(apt.status?.toLowerCase() || '');
     
     // Count tomorrow's appointments
-    const tomorrowCount = weekAppointments.filter(apt => {
+    const tomorrowCount = filteredWeekAppointments.filter(apt => {
       const aptDate = new Date(apt.start || '');
       return aptDate >= tomorrowStart && aptDate <= tomorrowEnd && !isCancelled(apt);
     }).length;
 
     // Count remaining this week (after today, excluding cancelled)
-    const remainingThisWeek = weekAppointments.filter(apt => {
+    const remainingThisWeek = filteredWeekAppointments.filter(apt => {
       const aptDate = new Date(apt.start || '');
       return aptDate > todayEnd && !isCancelled(apt);
     }).length;
@@ -489,10 +521,10 @@ async function clinicianDashboardHandler(
     const weekStats = {
       weekStartDate: weekStart.toISOString().split('T')[0],
       weekEndDate: weekEnd.toISOString().split('T')[0],
-      totalSessions: weekAppointments.filter(apt => !isCancelled(apt)).length,
-      completedSessions: weekAppointments.filter(isCompleted).length,
-      scheduledSessions: weekAppointments.filter(isScheduled).length,
-      cancelledSessions: weekAppointments.filter(isCancelled).length,
+      totalSessions: filteredWeekAppointments.filter(apt => !isCancelled(apt)).length,
+      completedSessions: filteredWeekAppointments.filter(isCompleted).length,
+      scheduledSessions: filteredWeekAppointments.filter(isScheduled).length,
+      cancelledSessions: filteredWeekAppointments.filter(isCancelled).length,
       tomorrowSessions: tomorrowCount,
       remainingThisWeek,
     };
@@ -500,7 +532,7 @@ async function clinicianDashboardHandler(
     // ========================================================================
     // Calculate month stats from monthAppointments
     // ========================================================================
-    const monthCompleted = monthAppointments.filter(isCompleted).length;
+    const monthCompleted = filteredMonthAppointments.filter(isCompleted).length;
     const AVERAGE_SESSION_RATE = 220; // Average rebate/fee per session
     const TARGET_SESSIONS_PER_MONTH = 100; // ~25/week target
     

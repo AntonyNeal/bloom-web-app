@@ -6,8 +6,8 @@
  * Schedule: Runs every hour
  * 
  * Reminder Windows:
- * - 24 hours before: Patient + Clinician (skip if recently booked)
- * - 1 hour before: Clinician + Admin (every appointment)
+ * - 24 hours before: Patient only (email + SMS) - skip if recently booked
+ * - 1 hour before: Clinician only (email + SMS)
  * 
  * DEDUPLICATION:
  * - Uses reminder_sent table to track which reminders have been sent
@@ -18,8 +18,8 @@
 import { app, InvocationContext, Timer } from '@azure/functions';
 import * as sql from 'mssql';
 import { getHalaxyClient } from '../services/halaxy/client';
-import { sendPatientAppointmentReminderSms, sendAdminAppointmentReminderSms } from '../services/sms';
-import { sendPatientAppointmentReminder, sendClinicianAppointmentReminder, sendAdminAppointmentReminder } from '../services/email';
+import { sendPatientAppointmentReminderSms, sendClinicianAppointmentReminderSms } from '../services/sms';
+import { sendPatientAppointmentReminder, sendClinicianAppointmentReminder } from '../services/email';
 import { getDbConnection } from '../services/database';
 import type { FHIRAppointment } from '../services/halaxy/types';
 
@@ -371,7 +371,7 @@ async function sendPatientReminder(
 /**
  * Send reminder to clinician
  * Fetches contact info from Halaxy just-in-time
- * @param isShortNotice - If true, this is the 1-hour "heads up" reminder
+ * @param isShortNotice - If true, this is the 1-hour "heads up" reminder (sends both email + SMS)
  */
 async function sendClinicianReminder(
   appointment: FHIRAppointment,
@@ -395,10 +395,11 @@ async function sendClinicianReminder(
     }
 
     const practitionerEmail = practitioner.telecom?.find(t => t.system === 'email')?.value;
+    const practitionerPhone = practitioner.telecom?.find(t => t.system === 'phone')?.value;
     const practitionerFirstName = practitioner.name?.[0]?.given?.[0] || 'Practitioner';
     
-    if (!practitionerEmail) {
-      context.warn(`[Reminders] No email for practitioner ${participants.practitionerId}`);
+    if (!practitionerEmail && !practitionerPhone) {
+      context.warn(`[Reminders] No contact info for practitioner ${participants.practitionerId}`);
       return false;
     }
 
@@ -406,20 +407,46 @@ async function sendClinicianReminder(
     const patientName = participants.patientName || 'Patient';
     const reminderType = isShortNotice ? '1h' : '24h';
 
-    try {
-      await sendClinicianAppointmentReminder({
-        practitionerEmail,
-        practitionerFirstName,
-        patientName,
-        appointmentDateTime,
-        isShortNotice,
-      });
-      context.log(`[Reminders] ${reminderType} email sent to clinician for appointment ${appointment.id}`);
-      return true;
-    } catch (error) {
-      context.warn(`[Reminders] Failed to send ${reminderType} clinician email for ${appointment.id}:`, error);
-      return false;
+    let success = false;
+
+    // Send email
+    if (practitionerEmail) {
+      try {
+        await sendClinicianAppointmentReminder({
+          practitionerEmail,
+          practitionerFirstName,
+          patientName,
+          appointmentDateTime,
+          isShortNotice,
+        });
+        context.log(`[Reminders] ${reminderType} email sent to clinician for appointment ${appointment.id}`);
+        success = true;
+      } catch (error) {
+        context.warn(`[Reminders] Failed to send ${reminderType} clinician email for ${appointment.id}:`, error);
+      }
     }
+
+    // Send SMS for 1-hour reminders
+    if (isShortNotice && practitionerPhone) {
+      try {
+        const smsResult = await sendClinicianAppointmentReminderSms({
+          clinicianPhone: practitionerPhone,
+          clinicianFirstName: practitionerFirstName,
+          patientName,
+          appointmentDateTime,
+        });
+        if (smsResult.success) {
+          context.log(`[Reminders] ${reminderType} SMS sent to clinician for appointment ${appointment.id}: ${smsResult.messageId}`);
+          success = true;
+        } else {
+          context.warn(`[Reminders] Failed to send ${reminderType} clinician SMS for ${appointment.id}: ${smsResult.error}`);
+        }
+      } catch (error) {
+        context.warn(`[Reminders] Failed to send ${reminderType} clinician SMS for ${appointment.id}:`, error);
+      }
+    }
+
+    return success;
   } catch (error) {
     context.error(`[Reminders] Error sending clinician reminder for ${appointment.id}:`, error);
     return false;
@@ -431,8 +458,8 @@ async function sendClinicianReminder(
  * Runs every hour to send appointment reminders
  * 
  * Two reminder windows:
- * - 24h: Patient + Clinician (skip if recently booked)
- * - 1h: Clinician + Admin (every appointment - final heads-up)
+ * - 24h: Patient only (email + SMS) - skip if recently booked
+ * - 1h: Clinician only (email + SMS - final heads-up)
  * 
  * Uses reminder_sent table to prevent duplicate reminders.
  */
@@ -451,13 +478,11 @@ async function sendAppointmentReminders(
   const pool = await getDbConnection();
 
   let patientRemindersSent = 0;
-  let clinician24hRemindersSent = 0;
   let clinician1hRemindersSent = 0;
-  let admin1hRemindersSent = 0;
   let skippedDuplicates = 0;
 
   // ==========================================
-  // 24-HOUR REMINDERS (Patient + Clinician)
+  // 24-HOUR REMINDERS (Patient only)
   // ==========================================
   const appointments24h = await getAppointmentsInWindow(REMINDER_24H_HOURS_BEFORE, context);
 
@@ -494,22 +519,10 @@ async function sendAppointmentReminders(
       context.log(`[Reminders] Skipping duplicate 24h patient reminder for ${appointment.id}`);
       skippedDuplicates++;
     }
-
-    // Check if clinician reminder already sent
-    if (!await hasReminderBeenSent(pool, appointment.id, '24h', 'clinician')) {
-      const clinicianSent = await sendClinicianReminder(appointment, participants, context);
-      if (clinicianSent) {
-        await recordReminderSent(pool, appointment.id, '24h', 'clinician');
-        clinician24hRemindersSent++;
-      }
-    } else {
-      context.log(`[Reminders] Skipping duplicate 24h clinician reminder for ${appointment.id}`);
-      skippedDuplicates++;
-    }
   }
 
   // ==========================================
-  // 1-HOUR REMINDERS (Clinician + Admin - ALL appointments)
+  // 1-HOUR REMINDERS (Clinician only - ALL appointments)
   // ==========================================
   const appointments1h = await getAppointmentsInWindow(REMINDER_1H_HOURS_BEFORE, context);
   
@@ -517,10 +530,6 @@ async function sendAppointmentReminders(
 
   for (const appointment of appointments1h) {
     const participants = parseAppointmentParticipants(appointment);
-    const appointmentDateTime = new Date(appointment.start);
-    
-    // Resolve actual names from Halaxy if display names are missing
-    const { patientName, practitionerName } = await resolveParticipantNames(participants, context);
 
     // Check if clinician 1h reminder already sent
     if (!await hasReminderBeenSent(pool, appointment.id, '1h', 'clinician')) {
@@ -533,40 +542,6 @@ async function sendAppointmentReminders(
       context.log(`[Reminders] Skipping duplicate 1h clinician reminder for ${appointment.id}`);
       skippedDuplicates++;
     }
-
-    // Check if admin 1h reminder already sent
-    if (!await hasReminderBeenSent(pool, appointment.id, '1h', 'admin')) {
-      try {
-        // Send email
-        await sendAdminAppointmentReminder({
-          patientName,
-          practitionerName,
-          appointmentDateTime,
-        });
-        context.log(`[Reminders] Admin email sent for ${appointment.id}`);
-        
-        // Send SMS
-        const smsResult = await sendAdminAppointmentReminderSms({
-          patientName,
-          practitionerName,
-          appointmentDateTime,
-        });
-        if (smsResult.success) {
-          context.log(`[Reminders] Admin SMS sent for ${appointment.id}: ${smsResult.messageId}`);
-        } else {
-          context.warn(`[Reminders] Admin SMS failed for ${appointment.id}: ${smsResult.error}`);
-        }
-        
-        await recordReminderSent(pool, appointment.id, '1h', 'admin');
-        admin1hRemindersSent++;
-        context.log(`[Reminders] Admin 1h reminder completed for appointment ${appointment.id}: ${patientName} with ${practitionerName}`);
-      } catch (error) {
-        context.warn(`[Reminders] Failed to send admin 1h reminder for ${appointment.id}:`, error);
-      }
-    } else {
-      context.log(`[Reminders] Skipping duplicate 1h admin reminder for ${appointment.id}`);
-      skippedDuplicates++;
-    }
   }
 
   const duration = Date.now() - startTime;
@@ -574,9 +549,7 @@ async function sendAppointmentReminders(
     appointments24h: eligible24h.length,
     appointments1h: appointments1h.length,
     patientRemindersSent,
-    clinician24hRemindersSent,
     clinician1hRemindersSent,
-    admin1hRemindersSent,
     skippedDuplicates,
   });
 }

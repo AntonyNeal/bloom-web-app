@@ -71,12 +71,12 @@ export const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     );
   }
 
-  // Redirect to /join-us if not authenticated
-  // Users must click "Bloom" button and authenticate before accessing admin routes
+  // Redirect to landing page if not authenticated
+  // Users can sign in from the landing page
   if (!isAuthenticated) {
     return (
       <Navigate 
-        to="/join-us" 
+        to="/" 
         replace 
       />
     );

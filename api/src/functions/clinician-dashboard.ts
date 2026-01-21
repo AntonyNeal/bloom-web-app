@@ -280,17 +280,6 @@ async function clinicianDashboardHandler(
 
     context.log(`Found practitioner: ${practitionerConfig.displayName} (Halaxy Role: ${practitionerConfig.halaxyPractitionerRoleId})`);
 
-    if (false) { // Removed - fail fast, no fallbacks
-      return {
-        status: 403,
-        headers,
-        jsonBody: { 
-          success: false, 
-          error: 'UNREACHABLE',
-        },
-      };
-    }
-
     context.log(`Dashboard request for ${practitionerConfig.displayName} (${practitionerConfig.halaxyPractitionerId})`);
 
     // ========================================================================

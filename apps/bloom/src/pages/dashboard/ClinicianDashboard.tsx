@@ -328,9 +328,42 @@ export function ClinicianDashboard() {
 
           {feedItems.length === 0 ? (
             <div style={styles.emptyFeed}>
-              <div style={styles.emptyIcon}>🌿</div>
-              <p>Nothing on your feed today</p>
-              <p style={styles.emptySubtext}>Enjoy the peace and quiet!</p>
+              {/* Peaceful garden illustration */}
+              <svg
+                width="120"
+                height="100"
+                viewBox="0 0 120 100"
+                fill="none"
+                style={{ marginBottom: '24px', opacity: 0.8 }}
+              >
+                {/* Ground */}
+                <ellipse cx="60" cy="90" rx="50" ry="8" fill="#E8E0F0" />
+                {/* Pot */}
+                <path
+                  d="M45 70 L50 90 L70 90 L75 70 Z"
+                  fill="#E8D5C4"
+                  stroke="#C9A88C"
+                  strokeWidth="1"
+                />
+                {/* Plant stem */}
+                <path
+                  d="M60 70 Q58 55 60 45"
+                  stroke="#6B8E7F"
+                  strokeWidth="2"
+                  fill="none"
+                />
+                {/* Leaves */}
+                <ellipse cx="52" cy="52" rx="8" ry="4" fill="#A8C5B8" transform="rotate(-30 52 52)" />
+                <ellipse cx="68" cy="55" rx="8" ry="4" fill="#6B8E7F" transform="rotate(25 68 55)" />
+                <ellipse cx="55" cy="42" rx="6" ry="3" fill="#6B8E7F" transform="rotate(-15 55 42)" />
+                {/* Sun rays */}
+                <circle cx="95" cy="20" r="12" fill="#E8D5C4" opacity="0.5" />
+                <circle cx="95" cy="20" r="8" fill="#C9A88C" opacity="0.3" />
+              </svg>
+              <h3 style={styles.emptyTitle}>A clear day ahead</h3>
+              <p style={styles.emptySubtext}>
+                Time to catch up on notes, or simply enjoy a cup of tea. ☕
+              </p>
             </div>
           ) : (
             <div style={styles.feedList}>
@@ -625,19 +658,31 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '16px',
   },
   emptyFeed: {
-    background: 'white',
+    background: 'linear-gradient(180deg, #FAFBF9 0%, #F5F7F4 100%)',
     borderRadius: '16px',
     padding: '60px 24px',
     textAlign: 'center',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  emptyTitle: {
+    fontFamily: "'Crimson Text', Georgia, serif",
+    fontSize: '20px',
+    color: '#2D3748',
+    marginBottom: '8px',
+    fontWeight: 500,
   },
   emptyIcon: {
     fontSize: '48px',
     marginBottom: '16px',
   },
   emptySubtext: {
-    fontSize: '13px',
-    color: '#A0AEC0',
+    fontSize: '14px',
+    color: '#718096',
+    maxWidth: '280px',
+    lineHeight: 1.5,
   },
   feedCard: {
     background: 'white',

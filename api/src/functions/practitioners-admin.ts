@@ -276,9 +276,10 @@ async function updatePractitionerHandler(
       updates.push('halaxy_practitioner_id = @halaxy_practitioner_id');
       request2.input('halaxy_practitioner_id', sql.NVarChar, body.halaxy_practitioner_id);
     }
-    if (body.halaxy_practitioner_role_id) {
+    // Allow setting to null by checking property existence, not truthiness
+    if ('halaxy_practitioner_role_id' in body) {
       updates.push('halaxy_practitioner_role_id = @halaxy_practitioner_role_id');
-      request2.input('halaxy_practitioner_role_id', sql.NVarChar, body.halaxy_practitioner_role_id);
+      request2.input('halaxy_practitioner_role_id', sql.NVarChar, body.halaxy_practitioner_role_id || null);
     }
     if (body.display_name) {
       updates.push('display_name = @display_name');

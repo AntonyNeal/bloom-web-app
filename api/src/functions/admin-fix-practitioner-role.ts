@@ -27,13 +27,14 @@ async function adminFixPractitionerRole(
   }
 
   try {
-    const email = request.params.email;
+    // Accept email from query param (safer for special chars like @)
+    const email = request.query.get('email') || request.params.email;
     
     if (!email) {
       return {
         status: 400,
         headers,
-        jsonBody: { success: false, error: 'Email parameter is required' },
+        jsonBody: { success: false, error: 'Email parameter is required. Use ?email=user@example.com' },
       };
     }
 
@@ -178,9 +179,9 @@ async function adminFixPractitionerRole(
 }
 
 app.http('adminFixPractitionerRole', {
-  methods: ['POST', 'OPTIONS'],
+  methods: ['POST', 'GET', 'OPTIONS'],
   authLevel: 'anonymous', // TODO: Add admin auth
-  route: 'admin/fix-practitioner-role/{email}',
+  route: 'admin/fix-practitioner-role',
   handler: adminFixPractitionerRole,
 });
 

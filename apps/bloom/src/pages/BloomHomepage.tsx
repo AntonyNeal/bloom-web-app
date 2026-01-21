@@ -45,15 +45,19 @@ const shadows = {
 interface Session {
   id: string;
   time: string;
-  sessionNumber: number;
   clientInitials: string;
-  presentingIssues: string[];
-  mhcpRemaining: number;
-  mhcpTotal: number;
-  relationshipMonths: number;
-  isUpNext?: boolean;
+  clientName?: string; // Full name from Halaxy
+  sessionType?: string; // From Halaxy appointment type
+  duration?: number; // Minutes
   status?: string;
+  isUpNext?: boolean;
   locationType?: string;
+  // These fields are NOT available from Halaxy - only show if we have them
+  sessionNumber?: number;
+  presentingIssues?: string[];
+  mhcpRemaining?: number;
+  mhcpTotal?: number;
+  relationshipMonths?: number;
 }
 
 // WeeklyStats, UpcomingStats, MonthlyStats imported from @/types/bloom
@@ -64,7 +68,7 @@ interface User {
 }
 
 interface BloomHomepageProps {
-  /** Practitioner ID for fetching data (optional - uses sample data if not provided) */
+  /** Practitioner ID for fetching data */
   practitionerId?: string;
   /** Override user data */
   user?: User;
@@ -77,88 +81,6 @@ interface BloomHomepageProps {
   /** Override monthly stats */
   monthlyStats?: MonthlyStats;
 }
-
-// ============================================================================
-// SAMPLE DATA - Seeds for demonstration
-// ============================================================================
-const sampleSessions: Session[] = [
-  {
-    id: '1',
-    time: '9:00 AM',
-    sessionNumber: 8,
-    clientInitials: 'JM',
-    presentingIssues: ['Anxiety', 'Depression'],
-    mhcpRemaining: 2,
-    mhcpTotal: 10,
-    relationshipMonths: 14,
-  },
-  {
-    id: '2',
-    time: '10:30 AM',
-    sessionNumber: 3,
-    clientInitials: 'AK',
-    presentingIssues: ['Work Stress', 'Relationship Issues'],
-    mhcpRemaining: 7,
-    mhcpTotal: 10,
-    relationshipMonths: 2,
-  },
-  {
-    id: '3',
-    time: '1:00 PM',
-    sessionNumber: 12,
-    clientInitials: 'RL',
-    presentingIssues: ['PTSD'],
-    mhcpRemaining: 4,
-    mhcpTotal: 10,
-    relationshipMonths: 18,
-  },
-  {
-    id: '4',
-    time: '2:30 PM',
-    sessionNumber: 1,
-    clientInitials: 'BT',
-    presentingIssues: ['Grief', 'Adjustment'],
-    mhcpRemaining: 10,
-    mhcpTotal: 10,
-    relationshipMonths: 0,
-  },
-  {
-    id: '5',
-    time: '4:00 PM',
-    sessionNumber: 6,
-    clientInitials: 'MW',
-    presentingIssues: ['Social Anxiety', 'Self-esteem'],
-    mhcpRemaining: 1,
-    mhcpTotal: 10,
-    relationshipMonths: 8,
-  },
-];
-
-const sampleWeeklyStats: WeeklyStats = {
-  weekStartDate: new Date(Date.now() - new Date().getDay() * 86400000).toISOString(),
-  weekEndDate: new Date(Date.now() + (6 - new Date().getDay()) * 86400000).toISOString(),
-  currentSessions: 18,
-  scheduledSessions: 22,
-  maxSessions: 25,
-  currentRevenue: 3960,
-  completionRate: 0.82,
-  noShowCount: 1,
-  cancellationCount: 2,
-};
-
-const sampleUpcomingStats: UpcomingStats = {
-  tomorrowSessions: 4,
-  remainingThisWeek: 7,
-  nextWeekSessions: 20,
-  mhcpEndingSoon: 3,
-  clientsNeedingFollowUp: 2,
-  unbookedRegulars: 1,
-};
-
-const sampleMonthlyStats: MonthlyStats = {
-  currentRevenue: 12450,
-  monthName: new Date().toLocaleDateString('en-AU', { month: 'long' }),
-};
 
 // ============================================================================
 // ICONS - Small botanical touches
@@ -305,13 +227,18 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
   const [isLiked, setIsLiked] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
-  const mhcpPercentage = (session.mhcpRemaining / session.mhcpTotal) * 100;
+  // Handle optional fields - only calculate if we have the data
+  const hasMhcpData = session.mhcpRemaining !== undefined && session.mhcpTotal !== undefined && session.mhcpTotal > 0;
+  const mhcpPercentage = hasMhcpData ? (session.mhcpRemaining! / session.mhcpTotal!) * 100 : 0;
   const isNewClient = session.relationshipMonths === 0;
-  const isMhcpLow = session.mhcpRemaining <= 2;
+  const isMhcpLow = hasMhcpData && session.mhcpRemaining! <= 2;
   const isTelehealth = session.locationType === 'telehealth';
   const canStartSession = isTelehealth && !['completed', 'cancelled', 'no-show'].includes(session.status || '');
+  const hasRelationshipData = session.relationshipMonths !== undefined;
+  const hasPresentingIssues = session.presentingIssues && session.presentingIssues.length > 0;
 
-  const formatRelationship = (months: number) => {
+  const formatRelationship = (months?: number) => {
+    if (months === undefined) return null;
     if (months === 0) return 'New client';
     if (months === 1) return '1 month';
     if (months < 12) return `${months} months`;
@@ -321,25 +248,47 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
     return `${years}y ${remainingMonths}m`;
   };
 
-  // Calculate time until session
+  // Calculate time until session - handle various time formats
   const getTimeUntil = () => {
-    const now = new Date();
-    const [time, period] = session.time.split(' ');
-    const [hours, minutes] = time.split(':').map(Number);
-    let sessionHour = hours;
-    if (period === 'PM' && hours !== 12) sessionHour += 12;
-    if (period === 'AM' && hours === 12) sessionHour = 0;
-    
-    const sessionTime = new Date(now);
-    sessionTime.setHours(sessionHour, minutes || 0, 0, 0);
-    
-    const diff = sessionTime.getTime() - now.getTime();
-    if (diff < 0) return 'In session';
-    const diffMins = Math.floor(diff / 60000);
-    if (diffMins < 60) return `in ${diffMins}m`;
-    const diffHours = Math.floor(diffMins / 60);
-    return `in ${diffHours}h ${diffMins % 60}m`;
+    try {
+      const now = new Date();
+      const timeStr = session.time;
+      
+      // Handle "Invalid Date" or missing time
+      if (!timeStr || timeStr === 'Invalid Date') return '';
+      
+      const [time, period] = timeStr.split(' ');
+      if (!time) return '';
+      
+      const [hours, minutes] = time.split(':').map(Number);
+      if (isNaN(hours)) return '';
+      
+      let sessionHour = hours;
+      if (period === 'PM' && hours !== 12) sessionHour += 12;
+      if (period === 'AM' && hours === 12) sessionHour = 0;
+      
+      const sessionTime = new Date(now);
+      sessionTime.setHours(sessionHour, minutes || 0, 0, 0);
+      
+      const diff = sessionTime.getTime() - now.getTime();
+      if (diff < 0) return 'In session';
+      const diffMins = Math.floor(diff / 60000);
+      if (diffMins < 60) return `in ${diffMins}m`;
+      const diffHours = Math.floor(diffMins / 60);
+      return `in ${diffHours}h ${diffMins % 60}m`;
+    } catch {
+      return '';
+    }
   };
+
+  // Get display title - prefer session type from Halaxy
+  const getSessionTitle = () => {
+    if (session.sessionType) return session.sessionType;
+    if (session.sessionNumber) return `Session ${session.sessionNumber}`;
+    return 'Appointment';
+  };
+
+  const timeUntil = getTimeUntil();
 
   return (
     <motion.article
@@ -374,7 +323,7 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
           textTransform: 'uppercase',
         }}>
           <SparkleIcon />
-          UP NEXT · {getTimeUntil()}
+          UP NEXT {timeUntil && `· ${timeUntil}`}
         </div>
       )}
 
@@ -421,14 +370,16 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
                 fontWeight: 600,
                 color: colors.charcoal,
               }}>
-                Session {session.sessionNumber}
+                {getSessionTitle()}
               </span>
-              <span style={{
-                fontSize: '12px',
-                color: colors.charcoalLight,
-              }}>
-                · {formatRelationship(session.relationshipMonths)}
-              </span>
+              {hasRelationshipData && (
+                <span style={{
+                  fontSize: '12px',
+                  color: colors.charcoalLight,
+                }}>
+                  · {formatRelationship(session.relationshipMonths)}
+                </span>
+              )}
             </div>
             <div style={{
               display: 'flex',
@@ -439,12 +390,12 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
             }}>
               <ClockIcon />
               <span style={{ fontWeight: 500, color: colors.charcoal }}>{session.time}</span>
-              {!isUpNext && <span style={{ fontSize: '13px' }}> · {getTimeUntil()}</span>}
+              {!isUpNext && timeUntil && <span style={{ fontSize: '13px' }}> · {timeUntil}</span>}
             </div>
           </div>
 
           {/* New Client Badge */}
-          {isNewClient && (
+          {isNewClient && hasRelationshipData && (
             <motion.span
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -463,90 +414,94 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
           )}
         </div>
 
-        {/* Presenting Issues - Like tweet content */}
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '8px',
-          marginBottom: '16px',
-          paddingLeft: '66px',
-        }}>
-          {session.presentingIssues.map((issue, idx) => (
-            <span
-              key={idx}
-              style={{
-                fontSize: '14px',
-                color: colors.sage,
-                backgroundColor: `${colors.sage}12`,
-                padding: '6px 14px',
-                borderRadius: '20px',
-                fontWeight: 500,
-              }}
-            >
-              {issue}
-            </span>
-          ))}
-        </div>
-
-        {/* MHCP Progress - Like engagement metrics */}
-        <div style={{
-          paddingLeft: '66px',
-          marginBottom: '16px',
-        }}>
+        {/* Presenting Issues - Only show if we have data */}
+        {hasPresentingIssues && (
           <div style={{
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '8px',
+            flexWrap: 'wrap',
+            gap: '8px',
+            marginBottom: '16px',
+            paddingLeft: '66px',
           }}>
-            <span style={{ fontSize: '13px', color: colors.charcoalLight }}>
-              Medicare Mental Health Plan
-            </span>
-            <span style={{
-              fontSize: '13px',
-              fontWeight: 600,
-              color: isMhcpLow ? colors.terracotta : colors.sage,
-            }}>
-              {session.mhcpRemaining}/{session.mhcpTotal} sessions left
-            </span>
+            {session.presentingIssues!.map((issue, idx) => (
+              <span
+                key={idx}
+                style={{
+                  fontSize: '14px',
+                  color: colors.sage,
+                  backgroundColor: `${colors.sage}12`,
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontWeight: 500,
+                }}
+              >
+                {issue}
+              </span>
+            ))}
           </div>
+        )}
+
+        {/* MHCP Progress - Only show if we have real data */}
+        {hasMhcpData && (
           <div style={{
-            height: '6px',
-            backgroundColor: colors.lavenderLight,
-            borderRadius: '3px',
-            overflow: 'hidden',
+            paddingLeft: '66px',
+            marginBottom: '16px',
           }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${mhcpPercentage}%` }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              style={{
-                height: '100%',
-                background: isMhcpLow
-                  ? `linear-gradient(90deg, ${colors.terracotta}, ${colors.amber})`
-                  : `linear-gradient(90deg, ${colors.sage}, ${colors.sageLight})`,
-                borderRadius: '3px',
-              }}
-            />
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '8px',
+            }}>
+              <span style={{ fontSize: '13px', color: colors.charcoalLight }}>
+                Medicare Mental Health Plan
+              </span>
+              <span style={{
+                fontSize: '13px',
+                fontWeight: 600,
+                color: isMhcpLow ? colors.terracotta : colors.sage,
+              }}>
+                {session.mhcpRemaining}/{session.mhcpTotal} sessions left
+              </span>
+            </div>
+            <div style={{
+              height: '6px',
+              backgroundColor: colors.lavenderLight,
+              borderRadius: '3px',
+              overflow: 'hidden',
+            }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${mhcpPercentage}%` }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                style={{
+                  height: '100%',
+                  background: isMhcpLow
+                    ? `linear-gradient(90deg, ${colors.terracotta}, ${colors.amber})`
+                    : `linear-gradient(90deg, ${colors.sage}, ${colors.sageLight})`,
+                  borderRadius: '3px',
+                }}
+              />
+            </div>
+            {isMhcpLow && (
+              <motion.p
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                  fontSize: '12px',
+                  color: colors.terracotta,
+                  marginTop: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <BellIcon />
+                Consider discussing GP referral
+              </motion.p>
+            )}
           </div>
-          {isMhcpLow && (
-            <motion.p
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{
-                fontSize: '12px',
-                color: colors.terracotta,
-                marginTop: '6px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
-            >
-              <BellIcon />
-              Consider discussing GP referral
-            </motion.p>
-          )}
-        </div>
+        )}
 
         {/* Action Bar - Like social media engagement */}
         <div style={{

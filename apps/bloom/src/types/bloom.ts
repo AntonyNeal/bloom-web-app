@@ -23,14 +23,18 @@ export interface SessionFeedItem {
   time: string;
   clientInitials: string;
   clientId: string;
-  sessionNumber: number;
-  presentingIssues: string[];
-  mhcpRemaining: number;
-  mhcpTotal: number;
-  relationshipMonths: number;
+  clientName?: string;
+  sessionType?: string;
+  duration?: number;
   status: SessionStatus;
   isUpNext: boolean;
   locationType: 'in-person' | 'telehealth' | 'phone';
+  // These fields are NOT available from Halaxy - may be undefined
+  sessionNumber?: number;
+  presentingIssues?: string[];
+  mhcpRemaining?: number;
+  mhcpTotal?: number;
+  relationshipMonths?: number;
 }
 
 // =============================================================================

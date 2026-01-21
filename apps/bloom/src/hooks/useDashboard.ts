@@ -387,16 +387,20 @@ export function useDashboard(
           updatedAt: new Date().toISOString(),
           lastSyncedAt: clinicianData.fetchedAt,
         },
-        todaysSessions: clinicianData.today.sessions.map((s: { id: string; time: string; clientInitials: string; status: string; isUpNext: boolean; locationType: string }) => ({
+        todaysSessions: clinicianData.today.sessions.map((s: { id: string; time: string; clientInitials: string; clientName?: string; sessionType?: string; duration?: number; status: string; isUpNext: boolean; locationType: string }) => ({
           id: s.id,
           time: s.time,
           clientInitials: s.clientInitials,
-          clientId: s.id, // Use appointment ID as client ID for now
-          sessionNumber: 1, // Not available from Halaxy
-          presentingIssues: [], // Not available from Halaxy appointment data
-          mhcpRemaining: 10, // Not available
-          mhcpTotal: 10,
-          relationshipMonths: 0, // Not available
+          clientId: s.id,
+          clientName: s.clientName,
+          sessionType: s.sessionType,
+          duration: s.duration,
+          // Don't set fake values - leave undefined if not available from Halaxy
+          sessionNumber: undefined,
+          presentingIssues: undefined,
+          mhcpRemaining: undefined,
+          mhcpTotal: undefined,
+          relationshipMonths: undefined,
           status: s.status,
           isUpNext: s.isUpNext,
           locationType: s.locationType,

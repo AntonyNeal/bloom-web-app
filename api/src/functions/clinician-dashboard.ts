@@ -19,7 +19,6 @@
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy';
-import { getPractitionerConfig } from '../config/practitioner-mapping';
 import { getPractitionerByAzureId } from '../services/practitioner';
 import type { FHIRAppointment } from '../services/halaxy/types';
 
@@ -216,36 +215,12 @@ async function clinicianDashboardHandler(
     // ========================================================================
     // Look up practitioner from database first, then fall back to config file
     // ========================================================================
-    let practitionerConfig: {
-      halaxyPractitionerId: string;
-      halaxyPractitionerRoleId: string;
-      displayName: string;
-      email: string;
-    } | null = null;
-
-    // First, try to find in the database (for practitioners who completed onboarding)
-    try {
-      const dbPractitioner = await getPractitionerByAzureId(azureUserId);
-      if (dbPractitioner) {
-        practitionerConfig = {
-          halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
-          halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id || `PR-${dbPractitioner.halaxy_practitioner_id}`,
-          displayName: dbPractitioner.display_name || `${dbPractitioner.first_name} ${dbPractitioner.last_name}`,
-          email: dbPractitioner.company_email || dbPractitioner.email,
-        };
-        context.log(`Found practitioner in database: ${practitionerConfig.displayName}`);
-      }
-    } catch (dbError) {
-      context.warn('Database lookup failed, falling back to config file:', dbError);
-    }
-
-    // Fall back to hardcoded config file (for existing/test practitioners)
-    if (!practitionerConfig) {
-      practitionerConfig = getPractitionerConfig(azureUserId);
-    }
+    // Look up practitioner from database - NO FALLBACKS
+    // ========================================================================
+    const dbPractitioner = await getPractitionerByAzureId(azureUserId);
     
-    if (!practitionerConfig) {
-      context.warn(`Unknown Azure user attempted dashboard access: ${azureUserId}`);
+    if (!dbPractitioner) {
+      context.error(`Practitioner not found in database for Azure ID: ${azureUserId}`);
       return {
         status: 403,
         headers,
@@ -254,8 +229,64 @@ async function clinicianDashboardHandler(
           error: 'Access denied. Your account is not registered as a practitioner.',
           debug: {
             azureUserId,
-            message: 'Complete onboarding or contact admin to register your account'
+            message: 'Complete onboarding to register your account'
           }
+        },
+      };
+    }
+
+    // Require valid Halaxy IDs - no placeholders
+    if (!dbPractitioner.halaxy_practitioner_id || dbPractitioner.halaxy_practitioner_id.startsWith('app-')) {
+      context.error(`Invalid Halaxy practitioner ID for ${dbPractitioner.email}: ${dbPractitioner.halaxy_practitioner_id}`);
+      return {
+        status: 500,
+        headers,
+        jsonBody: { 
+          success: false, 
+          error: 'Halaxy integration not configured. Please contact admin.',
+          debug: {
+            practitionerId: dbPractitioner.id,
+            halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
+            message: 'Practitioner needs valid Halaxy credentials'
+          }
+        },
+      };
+    }
+
+    if (!dbPractitioner.halaxy_practitioner_role_id) {
+      context.error(`Missing Halaxy practitioner role ID for ${dbPractitioner.email}`);
+      return {
+        status: 500,
+        headers,
+        jsonBody: { 
+          success: false, 
+          error: 'Halaxy role not configured. Please contact admin.',
+          debug: {
+            practitionerId: dbPractitioner.id,
+            halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
+            halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id,
+            message: 'Practitioner needs valid Halaxy PractitionerRole ID'
+          }
+        },
+      };
+    }
+
+    const practitionerConfig = {
+      halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
+      halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id,
+      displayName: dbPractitioner.display_name || `${dbPractitioner.first_name} ${dbPractitioner.last_name}`,
+      email: dbPractitioner.company_email || dbPractitioner.email,
+    };
+
+    context.log(`Found practitioner: ${practitionerConfig.displayName} (Halaxy Role: ${practitionerConfig.halaxyPractitionerRoleId})`);
+
+    if (false) { // Removed - fail fast, no fallbacks
+      return {
+        status: 403,
+        headers,
+        jsonBody: { 
+          success: false, 
+          error: 'UNREACHABLE',
         },
       };
     }

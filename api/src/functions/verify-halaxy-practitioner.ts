@@ -71,23 +71,38 @@ export async function verifyHalaxyPractitioner(
 
     context.log(`✅ Found Halaxy practitioner: ${halaxyPractitioner.id}`);
 
-    // Get the PractitionerRole ID (needed for appointments API)
-    let practitionerRoleId: string | null = null;
-    try {
-      const roles = await halaxyClient.getPractitionerRolesByPractitioner(halaxyPractitioner.id);
-      if (roles && roles.length > 0) {
-        // Use the first active role, or fall back to PR- prefix format
-        practitionerRoleId = roles[0].id || `PR-${halaxyPractitioner.id}`;
-        context.log(`✅ Found PractitionerRole: ${practitionerRoleId}`);
-      } else {
-        // Fallback: construct PR-{practitionerId} format
-        practitionerRoleId = `PR-${halaxyPractitioner.id}`;
-        context.log(`⚠️ No PractitionerRole found, using fallback: ${practitionerRoleId}`);
-      }
-    } catch (roleError) {
-      context.warn('Could not fetch PractitionerRole, using fallback:', roleError);
-      practitionerRoleId = `PR-${halaxyPractitioner.id}`;
+    // Get the PractitionerRole ID (needed for appointments API) - NO FALLBACKS
+    const roles = await halaxyClient.getPractitionerRolesByPractitioner(halaxyPractitioner.id);
+    
+    if (!roles || roles.length === 0) {
+      context.error(`No PractitionerRole found in Halaxy for practitioner ${halaxyPractitioner.id}`);
+      await pool.close();
+      return {
+        status: 500,
+        jsonBody: {
+          verified: false,
+          error: `Practitioner "${firstName} ${lastName}" exists in Halaxy but has no PractitionerRole. Please configure their role in Halaxy first.`,
+          practitioner_id: halaxyPractitioner.id,
+        },
+      };
     }
+
+    const practitionerRoleId = roles[0].id;
+    
+    if (!practitionerRoleId) {
+      context.error(`PractitionerRole has no ID for practitioner ${halaxyPractitioner.id}`);
+      await pool.close();
+      return {
+        status: 500,
+        jsonBody: {
+          verified: false,
+          error: `PractitionerRole found but has no ID. Please check Halaxy configuration.`,
+          practitioner_id: halaxyPractitioner.id,
+        },
+      };
+    }
+
+    context.log(`✅ Found PractitionerRole: ${practitionerRoleId}`);
 
     // Update application record with both the Practitioner ID and PractitionerRole ID
     await pool

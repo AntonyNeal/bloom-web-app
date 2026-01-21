@@ -70,11 +70,27 @@ export async function createPractitionerFromApplication(
     const tokenExpiresAt = new Date();
     tokenExpiresAt.setDate(tokenExpiresAt.getDate() + ONBOARDING_TOKEN_EXPIRY_DAYS);
 
-    // Use verified Halaxy IDs from application, or generate placeholder if not verified
-    const halaxyPractitionerId = application.practitioner_id || `app-${application.id}`;
-    const halaxyPractitionerRoleId = application.practitioner_role_id || null;
+    // Require verified Halaxy IDs - NO FALLBACKS
+    if (!application.practitioner_id) {
+      console.error(`[PractitionerService] Cannot create practitioner - missing Halaxy practitioner ID for application ${application.id}`);
+      return {
+        success: false,
+        error: 'Halaxy verification required before creating practitioner. Please verify the practitioner in Halaxy first.',
+      };
+    }
+
+    if (!application.practitioner_role_id) {
+      console.error(`[PractitionerService] Cannot create practitioner - missing Halaxy practitioner role ID for application ${application.id}`);
+      return {
+        success: false,
+        error: 'Halaxy PractitionerRole required. Please verify the practitioner has a role configured in Halaxy.',
+      };
+    }
+
+    const halaxyPractitionerId = application.practitioner_id;
+    const halaxyPractitionerRoleId = application.practitioner_role_id;
     
-    console.log(`[PractitionerService] Using Halaxy IDs: practitioner=${halaxyPractitionerId}, role=${halaxyPractitionerRoleId}`);
+    console.log(`[PractitionerService] Using verified Halaxy IDs: practitioner=${halaxyPractitionerId}, role=${halaxyPractitionerRoleId}`);
 
     // Create practitioner record
     const result = await pool.request()

@@ -62,7 +62,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://bloom-platform-functions-v2.azurewebsites.net',
+        target: 'https://bloom-platform-functions-dev.azurewebsites.net',
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path.replace(/^\/api/, '/api'),

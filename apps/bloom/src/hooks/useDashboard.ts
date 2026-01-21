@@ -102,6 +102,17 @@ interface DashboardCache {
 
 let dashboardCache: DashboardCache | null = null;
 
+// Export cache clear function for debugging
+export function clearDashboardCache(): void {
+  console.log('[useDashboard] Clearing dashboard cache');
+  dashboardCache = null;
+}
+
+// Expose to window for easy debugging
+if (typeof window !== 'undefined') {
+  (window as Window & { clearDashboardCache?: () => void }).clearDashboardCache = clearDashboardCache;
+}
+
 function getCachedDashboard(date?: string): PractitionerDashboard | null {
   if (!dashboardCache) return null;
   

@@ -617,27 +617,51 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
 };
 
 // ============================================================================
-// EMPTY STATE - A peaceful garden at rest
+// EMPTY STATE - A peaceful garden at rest with gentle suggestions
 // ============================================================================
-const EmptyState: React.FC = () => (
-  <div
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '60px 20px',
-      textAlign: 'center',
-    }}
-  >
-    {/* Simple garden illustration */}
-    <svg
-      width="120"
-      height="100"
-      viewBox="0 0 120 100"
-      fill="none"
-      style={{ marginBottom: '24px', opacity: 0.7 }}
+const EmptyState: React.FC = () => {
+  // Bloom-specific suggestions for free time
+  // Uses date (not random) so it's stable within a session but varies day-to-day
+  const suggestions = [
+    { text: 'Review your upcoming week', icon: '📅', link: '/schedule' },
+    { text: 'Explore your growth insights', icon: '🌱', link: '/business-coach' },
+    { text: 'Update your profile', icon: '✨', link: '/profile' },
+    { text: 'Check referral opportunities', icon: '🤝', link: '/referrals' },
+    { text: 'Adjust your availability', icon: '⏰', link: '/availability' },
+    { text: 'Browse content ideas', icon: '💡', link: '/business-coach#content' },
+    { text: 'Review client feedback', icon: '💬', link: '/feedback' },
+  ];
+  
+  // Stable selection: based on today's date, not random
+  // Same suggestion shows all day, changes the next day
+  // Use useMemo to avoid the impure function call during render
+  const todaySuggestion = useMemo(() => {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 0);
+    const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / 86400000);
+    return suggestions[dayOfYear % suggestions.length];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - only compute once per mount
+  
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '48px 20px',
+        textAlign: 'center',
+      }}
     >
+      {/* Simple garden illustration */}
+      <svg
+        width="120"
+        height="100"
+        viewBox="0 0 120 100"
+        fill="none"
+        style={{ marginBottom: '20px', opacity: 0.7 }}
+      >
       {/* Ground */}
       <ellipse cx="60" cy="90" rx="50" ry="8" fill={colors.lavenderLight} />
       {/* Pot */}
@@ -671,20 +695,52 @@ const EmptyState: React.FC = () => (
         fontWeight: 500,
       }}
     >
-      No sessions scheduled today
+      A quiet day in the garden
     </h3>
     <p
       style={{
         fontSize: '14px',
         color: colors.charcoalLight,
-        maxWidth: '280px',
-        lineHeight: 1.5,
+        maxWidth: '300px',
+        lineHeight: 1.6,
+        marginBottom: '20px',
       }}
     >
-      A quiet day in the garden. Time to catch up on notes or enjoy a cup of tea.
+      No sessions today — time to nurture your practice in other ways.
     </p>
+    
+    {/* Gentle suggestion link */}
+    <Link
+      to={todaySuggestion.link}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '10px 20px',
+        backgroundColor: colors.white,
+        border: `1px solid ${colors.lavender}`,
+        borderRadius: '24px',
+        color: colors.sage,
+        fontSize: '14px',
+        fontWeight: 500,
+        textDecoration: 'none',
+        transition: 'all 0.2s ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = colors.lavenderLight;
+        e.currentTarget.style.borderColor = colors.sage;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = colors.white;
+        e.currentTarget.style.borderColor = colors.lavender;
+      }}
+    >
+      <span>{todaySuggestion.icon}</span>
+      <span>{todaySuggestion.text}</span>
+    </Link>
   </div>
-);
+  );
+};
 
 // ============================================================================
 // TODAY'S SESSIONS - Social Feed Style
@@ -1321,17 +1377,6 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
             whileTap={{ scale: 0.99 }}
           >
             <BlossomTreeSophisticated monthlyStats={monthlyStats} />
-            {/* Subtle hint to click */}
-            <div style={{
-              textAlign: 'center',
-              marginTop: '-8px',
-              paddingBottom: '8px',
-              fontSize: '12px',
-              color: colors.sageLight,
-              opacity: 0.8,
-            }}>
-              Tap to explore your Business Coach →
-            </div>
           </motion.div>
         </Link>
 

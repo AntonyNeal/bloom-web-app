@@ -1,14 +1,61 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { PublicPractitioner } from '@/types/practitioner';
 
-interface TeamSectionProps {
-  practitioners: PublicPractitioner[];
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL || '';
 
-export function TeamSection({ practitioners }: TeamSectionProps) {
+export function TeamSection() {
+  const [practitioners, setPractitioners] = useState<PublicPractitioner[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPractitioners() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/public/practitioners`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.practitioners) {
+            setPractitioners(data.practitioners);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching practitioners:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPractitioners();
+  }, []);
+
+  // Don't render anything while loading or if no practitioners
+  if (loading) {
+    return (
+      <section className="py-16 lg:py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="h-10 bg-gray-200 rounded w-64 mx-auto animate-pulse mb-4" />
+            <div className="h-6 bg-gray-200 rounded w-96 mx-auto animate-pulse" />
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="aspect-[4/3] bg-gray-200 animate-pulse" />
+                <div className="p-6">
+                  <div className="h-6 bg-gray-200 rounded w-3/4 animate-pulse mb-2" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (practitioners.length === 0) {
     return null;
   }

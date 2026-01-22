@@ -2,7 +2,6 @@ import dynamic from 'next/dynamic';
 import { HeroSection } from "@/components/HeroSection";
 import { HorizonBackground } from "@/components/HorizonBackground";
 import { TeamSection } from "@/components/TeamSection";
-import { getPractitioners } from "@/services/practitioner-service";
 import type { Metadata } from "next";
 
 // Lazy load below-fold components to reduce initial bundle
@@ -77,10 +76,7 @@ const jsonLd = {
   "currenciesAccepted": "AUD",
 };
 
-export default async function HomePage() {
-  // Fetch practitioners for team section
-  const practitioners = await getPractitioners();
-
+export default function HomePage() {
   return (
     <>
       {/* JSON-LD structured data */}
@@ -101,8 +97,8 @@ export default async function HomePage() {
           <ServicesSection {...servicesData} />
         </div>
 
-        {/* Meet Our Team Section */}
-        <TeamSection practitioners={practitioners} />
+        {/* Meet Our Team Section - Client-side fetching */}
+        <TeamSection />
       </div>
     </>
   );

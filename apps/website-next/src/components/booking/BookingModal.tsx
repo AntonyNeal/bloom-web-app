@@ -76,13 +76,15 @@ const _BookingFormSkeleton: React.FC = () => (
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
+  practitionerSlug?: string | null;
 }
 
 export const BookingModal: React.FC<BookingModalProps> = ({
   isOpen,
   onClose,
+  practitionerSlug,
 }) => {
-  console.log('[BookingModal] Rendered with isOpen:', isOpen);
+  console.log('[BookingModal] Rendered with isOpen:', isOpen, 'practitioner:', practitionerSlug);
   const modalContentRef = useRef<HTMLDivElement>(null);
   const [_isReady, setIsReady] = useState(false);
 
@@ -223,7 +225,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           {MAINTENANCE_MODE ? (
             <MaintenanceMessage onClose={onClose} />
           ) : (
-            <BookingForm onCancel={onClose} />
+            <BookingForm onCancel={onClose} practitionerSlug={practitionerSlug} />
           )}
         </div>
       </div>

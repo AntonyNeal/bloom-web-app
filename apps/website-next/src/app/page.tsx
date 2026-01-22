@@ -1,6 +1,8 @@
 import dynamic from 'next/dynamic';
 import { HeroSection } from "@/components/HeroSection";
 import { HorizonBackground } from "@/components/HorizonBackground";
+import { TeamSection } from "@/components/TeamSection";
+import { getPractitioners } from "@/services/practitioner-service";
 import type { Metadata } from "next";
 
 // Lazy load below-fold components to reduce initial bundle
@@ -22,7 +24,7 @@ export const metadata: Metadata = {
 
 // Service data for the homepage
 const servicesData = {
-  title: "How I can help",
+  title: "How we can help",
   services: [
     {
       title: "Anxiety & Depression",
@@ -75,7 +77,10 @@ const jsonLd = {
   "currenciesAccepted": "AUD",
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Fetch practitioners for team section
+  const practitioners = await getPractitioners();
+
   return (
     <>
       {/* JSON-LD structured data */}
@@ -95,6 +100,9 @@ export default function HomePage() {
         <div className="mt-16 lg:mt-24">
           <ServicesSection {...servicesData} />
         </div>
+
+        {/* Meet Our Team Section */}
+        <TeamSection practitioners={practitioners} />
       </div>
     </>
   );

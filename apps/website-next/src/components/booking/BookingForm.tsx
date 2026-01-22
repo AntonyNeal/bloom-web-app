@@ -21,6 +21,7 @@ const StripePayment = lazy(() => import('./StripePayment').then(m => ({ default:
 interface BookingFormProps {
   onSuccess?: (appointmentId: string) => void;
   onCancel?: () => void;
+  practitionerSlug?: string | null;
 }
 
 // Interface for cached user details
@@ -37,8 +38,9 @@ interface CachedUserDetails {
 export const BookingForm: React.FC<BookingFormProps> = ({
   onSuccess,
   onCancel,
+  practitionerSlug,
 }) => {
-  console.log('[BookingForm] Component rendered');
+  console.log('[BookingForm] Component rendered, practitioner:', practitionerSlug);
 
   const [step, setStep] = useState<
     'details' | 'verify' | 'datetime' | 'session' | 'payment' | 'confirm' | 'success' | 'error'

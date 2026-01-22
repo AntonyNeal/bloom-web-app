@@ -33,12 +33,27 @@ const colors = {
   sage: '#7B8D7B',
   sageDark: '#5A6B5A',
   lavenderLight: '#F3F0F7',
+  // Earth tones for ground
+  earth: {
+    deep: '#8B7355',
+    mid: '#A08B6E',
+    light: '#C4B49A',
+    highlight: '#D9CCBA',
+  },
+  // Sprout greens - vibrant to contrast with earth
+  sprout: {
+    stem: '#6B8E4E',
+    stemDark: '#4A6B35',
+    leaf: '#8BC34A',
+    leafLight: '#AED581',
+    leafDark: '#689F38',
+  },
   sky: {
-    dawn: 'rgba(255, 243, 230, 0.6)',
-    morning: 'rgba(245, 250, 255, 0.5)',
-    afternoon: 'rgba(250, 248, 245, 0.5)',
-    evening: 'rgba(255, 235, 220, 0.6)',
-    night: 'rgba(230, 235, 250, 0.7)',
+    dawn: 'rgba(255, 220, 200, 0.7)',
+    morning: 'rgba(200, 220, 245, 0.6)',
+    afternoon: 'rgba(220, 235, 250, 0.5)',
+    evening: 'rgba(255, 200, 170, 0.7)',
+    night: 'rgba(180, 195, 230, 0.8)',
   },
 };
 
@@ -347,27 +362,27 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
           top: 0,
           left: 0,
           right: 0,
-          height: '60%',
-          background: `linear-gradient(to bottom, ${colors.sky[timeOfDay]}, transparent)`,
+          height: '72%',
+          background: `linear-gradient(to bottom, ${colors.sky[timeOfDay]} 0%, rgba(200, 220, 240, 0.4) 50%, rgba(230, 235, 220, 0.2) 100%)`,
           pointerEvents: 'none',
           transition: 'background 2s ease',
         }}
       />
       
-      {/* Horizon line - soft transition between sky and ground */}
+      {/* Horizon glow - warm light where sky meets earth */}
       <div
         style={{
           position: 'absolute',
-          bottom: '28%',
+          bottom: '26%',
           left: 0,
           right: 0,
-          height: '2px',
-          background: 'linear-gradient(90deg, transparent 5%, rgba(180, 190, 180, 0.3) 30%, rgba(180, 190, 180, 0.4) 50%, rgba(180, 190, 180, 0.3) 70%, transparent 95%)',
+          height: '8%',
+          background: 'linear-gradient(to bottom, transparent, rgba(255, 248, 235, 0.5) 50%, rgba(220, 195, 160, 0.4))',
           pointerEvents: 'none',
         }}
       />
       
-      {/* Ground layer */}
+      {/* Ground layer - earthy browns and tans */}
       <div
         style={{
           position: 'absolute',
@@ -375,7 +390,7 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
           left: 0,
           right: 0,
           height: '28%',
-          background: `linear-gradient(to top, ${colors.lavenderLight}, rgba(243, 240, 247, 0.3))`,
+          background: `linear-gradient(to top, ${colors.earth.deep} 0%, ${colors.earth.mid} 40%, ${colors.earth.light} 80%, ${colors.earth.highlight} 100%)`,
           pointerEvents: 'none',
         }}
       />
@@ -395,23 +410,30 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
         <defs>
           {/* Soft shadow for ground elements */}
           <radialGradient id="ground-shadow">
-            <stop offset="0%" stopColor="rgba(90, 107, 90, 0.15)" />
+            <stop offset="0%" stopColor="rgba(60, 45, 30, 0.25)" />
             <stop offset="100%" stopColor="transparent" />
           </radialGradient>
           
-          {/* Gradient for sprout stem */}
+          {/* Sprout stem gradient - rich green */}
           <linearGradient id="sprout-stem" x1="0%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%" stopColor="#6B7D6B" />
-            <stop offset="100%" stopColor="#8FA88F" />
+            <stop offset="0%" stopColor={colors.sprout.stemDark} />
+            <stop offset="50%" stopColor={colors.sprout.stem} />
+            <stop offset="100%" stopColor={colors.sprout.leaf} />
           </linearGradient>
           
-          {/* Gradient for sprout leaves */}
-          <linearGradient id="sprout-leaf" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#9CB89C" />
-            <stop offset="50%" stopColor="#7BA07B" />
-            <stop offset="100%" stopColor="#6B8D6B" />
+          {/* Sprout leaf gradient - vibrant lime green */}
+          <linearGradient id="sprout-leaf-left" x1="100%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stopColor={colors.sprout.leafDark} />
+            <stop offset="40%" stopColor={colors.sprout.leaf} />
+            <stop offset="100%" stopColor={colors.sprout.leafLight} />
           </linearGradient>
           
+          <linearGradient id="sprout-leaf-right" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor={colors.sprout.leafDark} />
+            <stop offset="40%" stopColor={colors.sprout.leaf} />
+            <stop offset="100%" stopColor={colors.sprout.leafLight} />
+          </linearGradient>
+
           {/* Animations */}
           <style>
             {`
@@ -467,53 +489,74 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
           opacity="0.6"
         />
         
-        {/* Seedling sprout - shows at early stages */}
+        {/* Seedling sprout - shows at early stages with vibrant green against brown earth */}
         {growthFactor < 0.25 && (
           <g transform="translate(400, 370)">
-            {/* Small soil mound */}
-            <ellipse cx="0" cy="5" rx="25" ry="6" fill="rgba(139, 119, 101, 0.3)" />
+            {/* Small soil mound - darker earth tone */}
+            <ellipse cx="0" cy="8" rx="30" ry="8" fill="rgba(90, 70, 50, 0.5)" />
+            <ellipse cx="0" cy="6" rx="22" ry="5" fill="rgba(110, 85, 60, 0.4)" />
             
-            {/* Sprout stem - graceful curve */}
+            {/* Sprout stem - vibrant green */}
             <path
               d={`M 0 0 
-                 Q ${-3 - growthFactor * 20} ${-40 - growthFactor * 60}, 
-                   ${growthFactor * 5} ${-60 - growthFactor * 80}`}
+                 Q ${-4 - growthFactor * 20} ${-45 - growthFactor * 60}, 
+                   ${growthFactor * 6} ${-70 - growthFactor * 80}`}
               stroke="url(#sprout-stem)"
-              strokeWidth={3 + growthFactor * 4}
+              strokeWidth={4 + growthFactor * 5}
               strokeLinecap="round"
               fill="none"
             />
             
-            {/* Left leaf - unfurling */}
+            {/* Left leaf - bright lime green */}
             <path
-              d={`M ${-2 + growthFactor * 3} ${-45 - growthFactor * 50}
-                 Q ${-25 - growthFactor * 15} ${-55 - growthFactor * 40},
-                   ${-18 - growthFactor * 10} ${-70 - growthFactor * 30}
-                 Q ${-8 - growthFactor * 5} ${-58 - growthFactor * 45},
-                   ${-2 + growthFactor * 3} ${-45 - growthFactor * 50}`}
-              fill="url(#sprout-leaf)"
-              opacity={0.6 + growthFactor}
+              d={`M ${-3 + growthFactor * 3} ${-50 - growthFactor * 50}
+                 Q ${-30 - growthFactor * 18} ${-60 - growthFactor * 40},
+                   ${-22 - growthFactor * 12} ${-80 - growthFactor * 30}
+                 Q ${-10 - growthFactor * 6} ${-65 - growthFactor * 45},
+                   ${-3 + growthFactor * 3} ${-50 - growthFactor * 50}`}
+              fill="url(#sprout-leaf-left)"
+              opacity={0.85 + growthFactor * 0.15}
             />
             
-            {/* Right leaf - unfurling */}
+            {/* Left leaf vein */}
             <path
-              d={`M ${2 + growthFactor * 3} ${-50 - growthFactor * 55}
-                 Q ${22 + growthFactor * 12} ${-60 - growthFactor * 35},
-                   ${16 + growthFactor * 8} ${-75 - growthFactor * 25}
-                 Q ${8 + growthFactor * 4} ${-62 - growthFactor * 40},
-                   ${2 + growthFactor * 3} ${-50 - growthFactor * 55}`}
-              fill="url(#sprout-leaf)"
-              opacity={0.7 + growthFactor}
+              d={`M ${-5 + growthFactor * 2} ${-52 - growthFactor * 48}
+                 Q ${-18 - growthFactor * 8} ${-62 - growthFactor * 38},
+                   ${-16 - growthFactor * 8} ${-72 - growthFactor * 28}`}
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth="1"
+              fill="none"
             />
             
-            {/* Tiny center leaf bud */}
+            {/* Right leaf - bright lime green */}
+            <path
+              d={`M ${3 + growthFactor * 4} ${-55 - growthFactor * 55}
+                 Q ${28 + growthFactor * 15} ${-65 - growthFactor * 35},
+                   ${20 + growthFactor * 10} ${-85 - growthFactor * 25}
+                 Q ${10 + growthFactor * 5} ${-70 - growthFactor * 40},
+                   ${3 + growthFactor * 4} ${-55 - growthFactor * 55}`}
+              fill="url(#sprout-leaf-right)"
+              opacity={0.9 + growthFactor * 0.1}
+            />
+            
+            {/* Right leaf vein */}
+            <path
+              d={`M ${5 + growthFactor * 3} ${-57 - growthFactor * 53}
+                 Q ${16 + growthFactor * 8} ${-67 - growthFactor * 33},
+                   ${14 + growthFactor * 7} ${-77 - growthFactor * 23}`}
+              stroke="rgba(255,255,255,0.25)"
+              strokeWidth="1"
+              fill="none"
+            />
+            
+            {/* Tiny unfurling center bud */}
             <ellipse
-              cx={growthFactor * 5}
-              cy={-58 - growthFactor * 78}
-              rx={4 + growthFactor * 3}
-              ry={6 + growthFactor * 4}
-              fill="#9CB89C"
-              opacity={0.8}
+              cx={growthFactor * 6}
+              cy={-68 - growthFactor * 78}
+              rx={5 + growthFactor * 4}
+              ry={7 + growthFactor * 5}
+              fill={colors.sprout.leafLight}
+              opacity={0.9}
             />
           </g>
         )}
@@ -844,34 +887,6 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
                 }}
               >
                 ${weeklyRevenue.toLocaleString()}
-              </div>
-            </div>
-          )}
-          
-          {/* Next monthly milestone */}
-          {stage.nextMilestone && (
-            <div style={{ 
-              borderLeft: `1px solid rgba(122, 141, 122, 0.2)`,
-              paddingLeft: '20px',
-            }}>
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: colors.sageDark,
-                  opacity: 0.6,
-                  marginBottom: '2px',
-                }}
-              >
-                Next milestone
-              </div>
-              <div
-                style={{
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  color: colors.sage,
-                }}
-              >
-                ${stage.nextMilestone.toLocaleString()}
               </div>
             </div>
           )}

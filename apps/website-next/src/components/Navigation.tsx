@@ -12,7 +12,7 @@ export function Navigation() {
 
   const navItems = [
     { name: 'Home', path: '/' },
-    { name: 'About', path: '/about' },
+    { name: 'Our Team', path: '/team' },
     { name: 'Services', path: '/services' },
     { name: 'How to Book', path: '/appointments' },
     { name: 'Fees & Funding', path: '/pricing' },
@@ -24,6 +24,9 @@ export function Navigation() {
              pathname?.includes('/individual-therapy') ||
              pathname?.includes('/couples-therapy') ||
              pathname?.includes('/anxiety-depression');
+    }
+    if (path === '/team') {
+      return pathname?.startsWith('/team');
     }
     return pathname === path;
   };

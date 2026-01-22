@@ -7,7 +7,7 @@
 
 import type { PublicPractitioner, PractitionersResponse } from '@/types/practitioner';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL || '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 /**
  * Fetch all active practitioners for the team page

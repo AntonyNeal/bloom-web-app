@@ -30,7 +30,7 @@ export class ApiService {
   private defaultRetries = 3;
 
   private constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL || '';
+    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
   }
 
   static getInstance(): ApiService {

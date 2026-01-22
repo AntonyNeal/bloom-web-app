@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { PublicPractitioner } from '@/types/practitioner';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL || '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Practitioner card component
 function PractitionerCard({ practitioner }: { practitioner: PublicPractitioner }) {

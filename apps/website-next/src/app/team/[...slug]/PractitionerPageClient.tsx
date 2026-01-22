@@ -7,7 +7,7 @@ import type { PublicPractitioner } from '@/types/practitioner';
 import { useBooking } from '@/components/providers';
 
 // API base URL - empty string for same-origin requests in browser
-const API_BASE_URL = process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL || '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface PractitionerPageClientProps {
   slug: string;

@@ -4,6 +4,7 @@
 -- =============================================================================
 -- These fields support the multi-clinician public website that builds itself
 -- from the Bloom practitioner database.
+-- Last updated: 2026-01-22
 -- =============================================================================
 
 -- Add URL-friendly slug for practitioner pages (e.g., /team/zoe-semmler)

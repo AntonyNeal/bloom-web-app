@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { PublicPractitioner } from '@/types/practitioner';
+import { useBooking } from '@/components/providers';
 
 // API base URL - empty string for same-origin requests in browser
 const API_BASE_URL = process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL || '';
@@ -16,6 +17,7 @@ export function PractitionerPageClient({ slug }: PractitionerPageClientProps) {
   const [practitioner, setPractitioner] = useState<PublicPractitioner | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { openBookingModal } = useBooking('practitioner_profile');
 
   useEffect(() => {
     async function fetchPractitioner() {
@@ -232,12 +234,12 @@ export function PractitionerPageClient({ slug }: PractitionerPageClientProps) {
                     )}
 
                     {/* Book Button */}
-                    <Link
-                      href={`/appointments?practitioner=${practitioner.slug}`}
-                      className="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-full transition-colors"
+                    <button
+                      onClick={() => openBookingModal('practitioner_sidebar', undefined, practitioner.slug)}
+                      className="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-full transition-colors cursor-pointer"
                     >
                       Book with {practitioner.firstName}
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -355,15 +357,15 @@ export function PractitionerPageClient({ slug }: PractitionerPageClientProps) {
                     Book your first session with {practitioner.firstName} and take the first step 
                     towards positive change.
                   </p>
-                  <Link
-                    href={`/appointments?practitioner=${practitioner.slug}`}
-                    className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-8 rounded-full transition-colors shadow-lg hover:shadow-xl"
+                  <button
+                    onClick={() => openBookingModal('practitioner_cta', undefined, practitioner.slug)}
+                    className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-8 rounded-full transition-colors shadow-lg hover:shadow-xl cursor-pointer"
                   >
                     Book an Appointment
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>

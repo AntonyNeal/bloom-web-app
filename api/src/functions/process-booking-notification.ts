@@ -246,18 +246,21 @@ async function processBookingNotification(
     retryCount: message.retryCount || 0,
   });
 
-  // Handle patient booking confirmation
-  if (message.type === 'patient_booking_confirmation') {
-    context.log('[NotificationQueue] Sending patient booking confirmation...');
-    
-    const results: { email?: ChannelResult; sms?: ChannelResult } = {};
-    
-    // Send email confirmation
-    if (message.channels.includes('email')) {
-      results.email = await sendPatientConfirmationEmail(message, context);
-      if (results.email.success) {
-        context.log('[NotificationQueue] Patient email sent successfully');
-      } else {
+  // Wrap entire processing in try-catch to prevent Azure retrying on errors
+  // We log errors but don't re-throw - notifications are best-effort
+  try {
+    // Handle patient booking confirmation
+    if (message.type === 'patient_booking_confirmation') {
+      context.log('[NotificationQueue] Sending patient booking confirmation...');
+      
+      const results: { email?: ChannelResult; sms?: ChannelResult } = {};
+      
+      // Send email confirmation
+      if (message.channels.includes('email')) {
+        results.email = await sendPatientConfirmationEmail(message, context);
+        if (results.email.success) {
+          context.log('[NotificationQueue] Patient email sent successfully');
+        } else {
         context.warn('[NotificationQueue] Patient email failed:', results.email.error);
       }
     }
@@ -368,6 +371,21 @@ async function processBookingNotification(
     emailSuccess: result.email?.success ?? 'not-requested',
     duration: `${duration}ms`,
   });
+  } catch (error) {
+    // Log error but DO NOT re-throw - this prevents Azure from retrying
+    // Notifications are best-effort; we don't want to spam users on failures
+    const duration = Date.now() - startTime;
+    context.error('[NotificationQueue] Unhandled error during processing - NOT retrying', {
+      messageId: message.messageId,
+      type: message.type,
+      practitionerId: message.practitionerId,
+      appointmentId: message.booking?.appointmentId,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      duration: `${duration}ms`,
+    });
+    // Return normally to mark message as processed (prevents retry loop)
+  }
 }
 
 // Register the queue trigger function

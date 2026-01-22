@@ -13,6 +13,7 @@ import './functions/practitioner-dashboard';
 import './functions/clinician-dashboard';
 import './functions/clinician-schedule';
 import './functions/list-practitioners';
+import './functions/public-practitioners';
 import './functions/seed-database';
 import './functions/store-booking-session';
 import './functions/get-halaxy-availability';

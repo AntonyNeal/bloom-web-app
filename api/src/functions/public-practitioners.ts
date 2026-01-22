@@ -77,32 +77,27 @@ async function publicPractitionersHandler(
     const slug = req.params.slug;
     
     if (slug) {
-      // Single practitioner lookup
+      // Single practitioner lookup - use only base columns
       const result = await pool.request()
         .input('slug', sql.NVarChar, slug)
         .query(`
           SELECT 
-            id,
-            COALESCE(url_slug, LOWER(REPLACE(display_name, ' ', '-'))) as url_slug,
-            display_name,
-            first_name,
-            headline,
-            COALESCE(bio_website, bio) as bio,
-            profile_photo_url,
-            qualifications_display,
-            specializations,
-            areas_of_focus,
-            therapy_approaches,
-            languages,
-            session_types,
-            experience_years,
-            COALESCE(accepting_new_clients, 1) as accepting_new_clients,
-            COALESCE(medicare_provider, 1) as medicare_provider,
-            COALESCE(ndis_registered, 0) as ndis_registered
-          FROM practitioners
-          WHERE is_active = 1
-            AND onboarding_completed_at IS NOT NULL
-            AND (url_slug = @slug OR LOWER(REPLACE(display_name, ' ', '-')) = @slug)
+            p.id,
+            LOWER(REPLACE(p.display_name, ' ', '-')) as url_slug,
+            p.display_name,
+            p.first_name,
+            p.bio,
+            p.profile_photo_url,
+            p.specializations,
+            p.languages,
+            p.session_types,
+            p.experience_years,
+            COALESCE(p.medicare_provider, 1) as medicare_provider,
+            COALESCE(p.ndis_registered, 0) as ndis_registered
+          FROM practitioners p
+          WHERE p.is_active = 1
+            AND p.onboarding_completed_at IS NOT NULL
+            AND LOWER(REPLACE(p.display_name, ' ', '-')) = @slug
         `);
 
       if (result.recordset.length === 0) {
@@ -124,29 +119,25 @@ async function publicPractitionersHandler(
     }
 
     // List all active practitioners
+    // Query uses only base columns that always exist, with optional V030 columns
     const result = await pool.request().query(`
       SELECT 
-        id,
-        COALESCE(url_slug, LOWER(REPLACE(display_name, ' ', '-'))) as url_slug,
-        display_name,
-        first_name,
-        headline,
-        COALESCE(bio_website, bio) as bio,
-        profile_photo_url,
-        qualifications_display,
-        specializations,
-        areas_of_focus,
-        therapy_approaches,
-        languages,
-        session_types,
-        experience_years,
-        COALESCE(accepting_new_clients, 1) as accepting_new_clients,
-        COALESCE(medicare_provider, 1) as medicare_provider,
-        COALESCE(ndis_registered, 0) as ndis_registered
-      FROM practitioners
-      WHERE is_active = 1
-        AND onboarding_completed_at IS NOT NULL
-      ORDER BY COALESCE(display_order, 100), display_name
+        p.id,
+        LOWER(REPLACE(p.display_name, ' ', '-')) as url_slug,
+        p.display_name,
+        p.first_name,
+        p.bio,
+        p.profile_photo_url,
+        p.specializations,
+        p.languages,
+        p.session_types,
+        p.experience_years,
+        COALESCE(p.medicare_provider, 1) as medicare_provider,
+        COALESCE(p.ndis_registered, 0) as ndis_registered
+      FROM practitioners p
+      WHERE p.is_active = 1
+        AND p.onboarding_completed_at IS NOT NULL
+      ORDER BY p.display_name
     `);
 
     context.log(`Found ${result.recordset.length} active practitioners for public website`);
@@ -164,13 +155,15 @@ async function publicPractitionersHandler(
     };
 
   } catch (error) {
-    context.error('Error fetching public practitioners:', error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    context.error('Error fetching public practitioners:', errMsg);
     return {
       status: 500,
       headers,
       jsonBody: { 
         success: false, 
         error: 'Failed to fetch practitioners',
+        details: process.env.NODE_ENV === 'development' ? errMsg : undefined,
       },
     };
   } finally {
@@ -196,17 +189,17 @@ function mapRowToPractitioner(row: Record<string, unknown>): PublicPractitioner 
     slug: row.url_slug as string,
     displayName: row.display_name as string,
     firstName: row.first_name as string,
-    headline: row.headline as string | null,
-    bio: row.bio as string | null,
-    profilePhotoUrl: row.profile_photo_url as string | null,
-    qualifications: row.qualifications_display as string | null,
+    headline: (row.headline as string | null) || null,
+    bio: (row.bio as string | null) || null,
+    profilePhotoUrl: (row.profile_photo_url as string | null) || null,
+    qualifications: (row.qualifications_display as string | null) || null,
     specializations: parseJsonSafe(row.specializations as string),
     areasOfFocus: parseJsonSafe(row.areas_of_focus as string),
     therapyApproaches: parseJsonSafe(row.therapy_approaches as string),
     languages: parseJsonSafe(row.languages as string, ['English']),
     sessionTypes: parseJsonSafe(row.session_types as string, ['Telehealth']),
-    experienceYears: row.experience_years as number | null,
-    acceptingNewClients: Boolean(row.accepting_new_clients),
+    experienceYears: (row.experience_years as number | null) || null,
+    acceptingNewClients: row.accepting_new_clients !== undefined ? Boolean(row.accepting_new_clients) : true,
     medicareProvider: Boolean(row.medicare_provider),
     ndisRegistered: Boolean(row.ndis_registered),
   };

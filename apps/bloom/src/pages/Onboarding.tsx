@@ -41,7 +41,75 @@ interface PractitionerData {
   favoriteFlower?: string; // Zoe's surprise ≡ƒî╕
 }
 
-type OnboardingStep = 'loading' | 'welcome' | 'password' | 'complete' | 'error';
+type OnboardingStep = 'loading' | 'welcome' | 'password' | 'profile' | 'complete' | 'error';
+
+// Profile questionnaire options - used for structured data collection
+const HELPS_WITH_OPTIONS = [
+  'Anxiety & Worry', 'Depression & Low Mood', 'Stress Management', 'Trauma & PTSD',
+  'Grief & Loss', 'Relationship Issues', 'Self-Esteem', 'Life Transitions',
+  'Work & Career', 'Anger Management', 'Sleep Issues', 'Chronic Pain',
+  'Eating & Body Image', 'Addiction & Substance Use', 'OCD', 'Phobias',
+  'Parenting Support', 'ADHD', 'Autism Spectrum', 'Perinatal Mental Health',
+  'Burnout', 'Identity & Self-Discovery'
+];
+
+const THERAPY_APPROACHES_OPTIONS = [
+  'Cognitive Behavioural Therapy (CBT)', 'Acceptance & Commitment Therapy (ACT)',
+  'EMDR', 'Schema Therapy', 'Psychodynamic Therapy', 'Narrative Therapy',
+  'Mindfulness-Based Therapy', 'Solution-Focused Therapy', 'Dialectical Behaviour Therapy (DBT)',
+  'Compassion-Focused Therapy', 'Person-Centred Therapy', 'Integrative Therapy',
+  'Motivational Interviewing', 'Play Therapy', 'Art Therapy', 'Somatic Therapy'
+];
+
+const AGE_GROUPS_OPTIONS = [
+  'Children (under 12)', 'Adolescents (12-17)', 'Young Adults (18-25)',
+  'Adults (26-64)', 'Older Adults (65+)', 'Couples', 'Families'
+];
+
+const REGISTRATION_TYPES = [
+  'Clinical Psychologist', 'Registered Psychologist', 'Counselling Psychologist',
+  'Educational & Developmental Psychologist', 'Forensic Psychologist',
+  'Health Psychologist', 'Organisational Psychologist', 'Provisional Psychologist'
+];
+
+// Profile questionnaire state type
+interface ProfileQuestionnaire {
+  registrationType: string;
+  qualificationDetails: string;
+  helpsWithOptions: string[];
+  therapeuticApproaches: string[];
+  ageGroups: string[];
+  yearsExperience: string;
+  languages: string;
+  whyPsychology: string;
+  mostRewarding: string;
+  therapeuticStyle: string;
+  specialExpertise: string;
+  outsideInterests: string;
+  medicareProvider: boolean;
+  ndisRegistered: boolean;
+  telehealth: boolean;
+  inPerson: boolean;
+}
+
+const initialProfileState: ProfileQuestionnaire = {
+  registrationType: '',
+  qualificationDetails: '',
+  helpsWithOptions: [],
+  therapeuticApproaches: [],
+  ageGroups: [],
+  yearsExperience: '',
+  languages: 'English',
+  whyPsychology: '',
+  mostRewarding: '',
+  therapeuticStyle: '',
+  specialExpertise: '',
+  outsideInterests: '',
+  medicareProvider: false,
+  ndisRegistered: false,
+  telehealth: true,
+  inPerson: true,
+};
 
 export default function OnboardingPage() {
   const { token } = useParams<{ token: string }>();
@@ -58,6 +126,9 @@ export default function OnboardingPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Profile questionnaire state
+  const [profile, setProfile] = useState<ProfileQuestionnaire>(initialProfileState);
   
   // Submission state
   const [submitting, setSubmitting] = useState(false);
@@ -113,6 +184,26 @@ export default function OnboardingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           password,
+          profile: {
+            registrationType: profile.registrationType,
+            qualificationDetails: profile.qualificationDetails,
+            helpsWith: profile.helpsWithOptions,
+            therapeuticApproaches: profile.therapeuticApproaches,
+            ageGroups: profile.ageGroups,
+            yearsExperience: profile.yearsExperience ? parseInt(profile.yearsExperience) : null,
+            languages: profile.languages,
+            whyPsychology: profile.whyPsychology,
+            mostRewarding: profile.mostRewarding,
+            therapeuticStyle: profile.therapeuticStyle,
+            specialExpertise: profile.specialExpertise,
+            outsideInterests: profile.outsideInterests,
+            medicareProvider: profile.medicareProvider,
+            ndisRegistered: profile.ndisRegistered,
+            sessionTypes: [
+              ...(profile.telehealth ? ['Telehealth'] : []),
+              ...(profile.inPerson ? ['In-person'] : []),
+            ],
+          },
         }),
       });
 
@@ -1104,18 +1195,480 @@ export default function OnboardingPage() {
                     Back
                   </button>
                   <button
-                    onClick={handleSubmit}
-                    disabled={!isPasswordValid || submitting}
+                    onClick={() => setStep('profile')}
+                    disabled={!isPasswordValid}
                     style={{
                       flex: 2,
-                      background: (isPasswordValid && !submitting) ? colors.eucalyptusSage : '#ccc',
+                      background: isPasswordValid ? colors.eucalyptusSage : '#ccc',
                       color: 'white',
                       border: 'none',
                       padding: '6px 10px',
                       borderRadius: 4,
                       fontSize: 11,
                       fontWeight: 600,
-                      cursor: (isPasswordValid && !submitting) ? 'pointer' : 'not-allowed',
+                      cursor: isPasswordValid ? 'pointer' : 'not-allowed',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    Continue <ArrowRight size={11} />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Profile Step - Structured questions for bio generation */}
+            {step === 'profile' && (
+              <motion.div
+                key="profile"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                style={{
+                  background: 'white',
+                  borderRadius: 8,
+                  padding: 16,
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+                  width: '100%',
+                  maxWidth: 520,
+                  maxHeight: 'calc(100vh - 80px)',
+                  overflowY: 'auto',
+                }}
+              >
+                <div style={{ marginBottom: 12 }}>
+                  <p style={{ color: colors.softTerracotta, fontSize: 10, margin: '0 0 2px 0', fontWeight: 600, letterSpacing: 0.5 }}>
+                    Step 3 of 3
+                  </p>
+                  <h2 style={{ fontSize: 14, color: colors.charcoalText, marginBottom: 4 }}>
+                    Help Us Create Your Profile
+                  </h2>
+                  <p style={{ color: '#666', fontSize: 10, margin: 0, lineHeight: 1.4 }}>
+                    Answer these questions so we can build your website profile. Don't worry about writing marketing copy — we'll handle that!
+                  </p>
+                </div>
+
+                {/* Registration Type */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    Registration Type *
+                  </label>
+                  <select
+                    value={profile.registrationType}
+                    onChange={(e) => setProfile({ ...profile, registrationType: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      border: '1px solid #ddd',
+                      fontSize: 11,
+                      outline: 'none',
+                      background: 'white',
+                    }}
+                  >
+                    <option value="">Select your registration...</option>
+                    {REGISTRATION_TYPES.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Qualification Details */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    Qualifications & Memberships
+                  </label>
+                  <input
+                    type="text"
+                    value={profile.qualificationDetails}
+                    onChange={(e) => setProfile({ ...profile, qualificationDetails: e.target.value })}
+                    placeholder="e.g., MPsych (Clinical), MAPS, AAPi"
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      border: '1px solid #ddd',
+                      fontSize: 11,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                {/* Years Experience */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    Years of Experience
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    value={profile.yearsExperience}
+                    onChange={(e) => setProfile({ ...profile, yearsExperience: e.target.value })}
+                    placeholder="e.g., 5"
+                    style={{
+                      width: 80,
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      border: '1px solid #ddd',
+                      fontSize: 11,
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                {/* What do you help people with? */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    What do you help people with? *
+                  </label>
+                  <p style={{ color: '#888', fontSize: 9, margin: '0 0 6px 0' }}>Select all that apply</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {HELPS_WITH_OPTIONS.map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          const current = profile.helpsWithOptions;
+                          if (current.includes(option)) {
+                            setProfile({ ...profile, helpsWithOptions: current.filter(o => o !== option) });
+                          } else {
+                            setProfile({ ...profile, helpsWithOptions: [...current, option] });
+                          }
+                        }}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: 12,
+                          border: profile.helpsWithOptions.includes(option) ? `1px solid ${colors.eucalyptusSage}` : '1px solid #ddd',
+                          background: profile.helpsWithOptions.includes(option) ? '#ecfdf5' : 'white',
+                          color: profile.helpsWithOptions.includes(option) ? colors.eucalyptusSage : '#666',
+                          fontSize: 9,
+                          cursor: 'pointer',
+                          fontWeight: profile.helpsWithOptions.includes(option) ? 600 : 400,
+                        }}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Therapeutic Approaches */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    Therapeutic Approaches You Use *
+                  </label>
+                  <p style={{ color: '#888', fontSize: 9, margin: '0 0 6px 0' }}>Select all that apply</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {THERAPY_APPROACHES_OPTIONS.map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          const current = profile.therapeuticApproaches;
+                          if (current.includes(option)) {
+                            setProfile({ ...profile, therapeuticApproaches: current.filter(o => o !== option) });
+                          } else {
+                            setProfile({ ...profile, therapeuticApproaches: [...current, option] });
+                          }
+                        }}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: 12,
+                          border: profile.therapeuticApproaches.includes(option) ? `1px solid ${colors.eucalyptusSage}` : '1px solid #ddd',
+                          background: profile.therapeuticApproaches.includes(option) ? '#ecfdf5' : 'white',
+                          color: profile.therapeuticApproaches.includes(option) ? colors.eucalyptusSage : '#666',
+                          fontSize: 9,
+                          cursor: 'pointer',
+                          fontWeight: profile.therapeuticApproaches.includes(option) ? 600 : 400,
+                        }}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Age Groups */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    Who do you work with? *
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {AGE_GROUPS_OPTIONS.map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          const current = profile.ageGroups;
+                          if (current.includes(option)) {
+                            setProfile({ ...profile, ageGroups: current.filter(o => o !== option) });
+                          } else {
+                            setProfile({ ...profile, ageGroups: [...current, option] });
+                          }
+                        }}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: 12,
+                          border: profile.ageGroups.includes(option) ? `1px solid ${colors.eucalyptusSage}` : '1px solid #ddd',
+                          background: profile.ageGroups.includes(option) ? '#ecfdf5' : 'white',
+                          color: profile.ageGroups.includes(option) ? colors.eucalyptusSage : '#666',
+                          fontSize: 9,
+                          cursor: 'pointer',
+                          fontWeight: profile.ageGroups.includes(option) ? 600 : 400,
+                        }}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Languages */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    Languages Spoken
+                  </label>
+                  <input
+                    type="text"
+                    value={profile.languages}
+                    onChange={(e) => setProfile({ ...profile, languages: e.target.value })}
+                    placeholder="e.g., English, Mandarin, Spanish"
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      border: '1px solid #ddd',
+                      fontSize: 11,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                {/* Session Types & Medicare/NDIS */}
+                <div style={{ marginBottom: 10, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: 6, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                      Session Types
+                    </label>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={profile.telehealth}
+                          onChange={(e) => setProfile({ ...profile, telehealth: e.target.checked })}
+                        />
+                        Telehealth
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={profile.inPerson}
+                          onChange={(e) => setProfile({ ...profile, inPerson: e.target.checked })}
+                        />
+                        In-person
+                      </label>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: 6, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                      Funding Options
+                    </label>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={profile.medicareProvider}
+                          onChange={(e) => setProfile({ ...profile, medicareProvider: e.target.checked })}
+                        />
+                        Medicare Provider
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={profile.ndisRegistered}
+                          onChange={(e) => setProfile({ ...profile, ndisRegistered: e.target.checked })}
+                        />
+                        NDIS Registered
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '16px 0' }} />
+
+                {/* Free text questions - these help generate personalized bios */}
+                <p style={{ color: colors.charcoalText, fontSize: 10, fontWeight: 500, marginBottom: 8 }}>
+                  Tell us a bit about yourself (helps us write your bio)
+                </p>
+
+                {/* Why psychology */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    What drew you to psychology?
+                  </label>
+                  <textarea
+                    value={profile.whyPsychology}
+                    onChange={(e) => setProfile({ ...profile, whyPsychology: e.target.value })}
+                    placeholder="A sentence or two is fine..."
+                    rows={2}
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      border: '1px solid #ddd',
+                      fontSize: 11,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+                </div>
+
+                {/* Most rewarding */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    What do you find most rewarding about your work?
+                  </label>
+                  <textarea
+                    value={profile.mostRewarding}
+                    onChange={(e) => setProfile({ ...profile, mostRewarding: e.target.value })}
+                    placeholder="What keeps you passionate about this work?"
+                    rows={2}
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      border: '1px solid #ddd',
+                      fontSize: 11,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+                </div>
+
+                {/* Therapeutic style */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    How would you describe your therapeutic style?
+                  </label>
+                  <textarea
+                    value={profile.therapeuticStyle}
+                    onChange={(e) => setProfile({ ...profile, therapeuticStyle: e.target.value })}
+                    placeholder="e.g., warm, collaborative, evidence-based..."
+                    rows={2}
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      border: '1px solid #ddd',
+                      fontSize: 11,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+                </div>
+
+                {/* Special expertise */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    Any special populations or areas of particular expertise?
+                  </label>
+                  <textarea
+                    value={profile.specialExpertise}
+                    onChange={(e) => setProfile({ ...profile, specialExpertise: e.target.value })}
+                    placeholder="e.g., LGBTQ+, first responders, new parents..."
+                    rows={2}
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      border: '1px solid #ddd',
+                      fontSize: 11,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+                </div>
+
+                {/* Outside interests */}
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', marginBottom: 3, color: colors.charcoalText, fontWeight: 500, fontSize: 10 }}>
+                    Outside of work, what do you enjoy? (optional)
+                  </label>
+                  <textarea
+                    value={profile.outsideInterests}
+                    onChange={(e) => setProfile({ ...profile, outsideInterests: e.target.value })}
+                    placeholder="Helps clients get a sense of who you are..."
+                    rows={2}
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      border: '1px solid #ddd',
+                      fontSize: 11,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+                </div>
+
+                {error && (
+                  <div style={{
+                    background: '#fef2f2',
+                    color: colors.error,
+                    padding: 6,
+                    borderRadius: 4,
+                    marginBottom: 6,
+                    fontSize: 10,
+                  }}>
+                    {error}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: 5 }}>
+                  <button
+                    onClick={() => setStep('password')}
+                    style={{
+                      flex: 1,
+                      background: 'white',
+                      color: colors.charcoalText,
+                      border: '1px solid #ddd',
+                      padding: '6px 10px',
+                      borderRadius: 4,
+                      fontSize: 11,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={!profile.registrationType || profile.helpsWithOptions.length === 0 || profile.therapeuticApproaches.length === 0 || profile.ageGroups.length === 0 || submitting}
+                    style={{
+                      flex: 2,
+                      background: (profile.registrationType && profile.helpsWithOptions.length > 0 && profile.therapeuticApproaches.length > 0 && profile.ageGroups.length > 0 && !submitting) ? colors.eucalyptusSage : '#ccc',
+                      color: 'white',
+                      border: 'none',
+                      padding: '6px 10px',
+                      borderRadius: 4,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: (profile.registrationType && profile.helpsWithOptions.length > 0 && !submitting) ? 'pointer' : 'not-allowed',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',

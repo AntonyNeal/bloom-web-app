@@ -150,9 +150,26 @@ async function onboardingHandler(
         displayName?: string;
         bio?: string;
         phone?: string;
+        profile?: {
+          registrationType?: string;
+          qualificationDetails?: string;
+          helpsWith?: string[];
+          therapeuticApproaches?: string[];
+          ageGroups?: string[];
+          yearsExperience?: number;
+          languages?: string;
+          whyPsychology?: string;
+          mostRewarding?: string;
+          therapeuticStyle?: string;
+          specialExpertise?: string;
+          outsideInterests?: string;
+          medicareProvider?: boolean;
+          ndisRegistered?: boolean;
+          sessionTypes?: string[];
+        };
       };
 
-      const { password, displayName, bio, phone } = body;
+      const { password, displayName, bio, phone, profile } = body;
 
       // Validate password
       if (!password || password.length < 8) {
@@ -289,12 +306,29 @@ async function onboardingHandler(
 
       // Update practitioner to mark onboarding complete
       // Store Azure AD Object ID and company email for authentication mapping
+      // Also store profile questionnaire data for website bio generation
       const result = await pool.request()
         .input('token', sql.NVarChar, token)
         .input('halaxy_practitioner_id', sql.NVarChar, halaxyPractitionerId)
         .input('halaxy_practitioner_role_id', sql.NVarChar, halaxyPractitionerRoleId)
         .input('azure_ad_object_id', sql.NVarChar, azureObjectId)
         .input('company_email', sql.NVarChar, companyEmail)
+        // Profile questionnaire fields
+        .input('registration_type', sql.NVarChar, profile?.registrationType || null)
+        .input('qualification_details', sql.NVarChar, profile?.qualificationDetails || null)
+        .input('helps_with', sql.NVarChar, profile?.helpsWith ? JSON.stringify(profile.helpsWith) : null)
+        .input('therapeutic_approaches', sql.NVarChar, profile?.therapeuticApproaches ? JSON.stringify(profile.therapeuticApproaches) : null)
+        .input('age_groups', sql.NVarChar, profile?.ageGroups ? JSON.stringify(profile.ageGroups) : null)
+        .input('experience_years', sql.Int, profile?.yearsExperience || null)
+        .input('languages', sql.NVarChar, profile?.languages || null)
+        .input('why_psychology', sql.NVarChar, profile?.whyPsychology || null)
+        .input('most_rewarding', sql.NVarChar, profile?.mostRewarding || null)
+        .input('therapeutic_style', sql.NVarChar, profile?.therapeuticStyle || null)
+        .input('special_expertise', sql.NVarChar, profile?.specialExpertise || null)
+        .input('outside_interests', sql.NVarChar, profile?.outsideInterests || null)
+        .input('medicare_provider', sql.Bit, profile?.medicareProvider ? 1 : 0)
+        .input('ndis_registered', sql.Bit, profile?.ndisRegistered ? 1 : 0)
+        .input('session_types', sql.NVarChar, profile?.sessionTypes ? JSON.stringify(profile.sessionTypes) : null)
         .query(`
           UPDATE practitioners
           SET 
@@ -302,6 +336,23 @@ async function onboardingHandler(
             halaxy_practitioner_role_id = COALESCE(@halaxy_practitioner_role_id, halaxy_practitioner_role_id),
             azure_ad_object_id = COALESCE(@azure_ad_object_id, azure_ad_object_id),
             company_email = COALESCE(@company_email, company_email),
+            -- Profile questionnaire fields
+            registration_type = COALESCE(@registration_type, registration_type),
+            qualification_details = COALESCE(@qualification_details, qualification_details),
+            helps_with = COALESCE(@helps_with, helps_with),
+            therapeutic_approaches = COALESCE(@therapeutic_approaches, therapeutic_approaches),
+            age_groups = COALESCE(@age_groups, age_groups),
+            experience_years = COALESCE(@experience_years, experience_years),
+            languages = COALESCE(@languages, languages),
+            why_psychology = COALESCE(@why_psychology, why_psychology),
+            most_rewarding = COALESCE(@most_rewarding, most_rewarding),
+            therapeutic_style = COALESCE(@therapeutic_style, therapeutic_style),
+            special_expertise = COALESCE(@special_expertise, special_expertise),
+            outside_interests = COALESCE(@outside_interests, outside_interests),
+            medicare_provider = COALESCE(@medicare_provider, medicare_provider),
+            ndis_registered = COALESCE(@ndis_registered, ndis_registered),
+            session_types = COALESCE(@session_types, session_types),
+            profile_questionnaire_completed_at = CASE WHEN @registration_type IS NOT NULL THEN GETDATE() ELSE profile_questionnaire_completed_at END,
             onboarding_completed_at = GETDATE(),
             onboarding_token = NULL,
             onboarding_token_expires_at = NULL,

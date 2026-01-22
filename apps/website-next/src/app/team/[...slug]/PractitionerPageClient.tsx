@@ -1,55 +1,118 @@
-import type { Metadata } from 'next';
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { getPractitionerBySlug, getPractitionerSlugs } from '@/services/practitioner-service';
+import type { PublicPractitioner } from '@/types/practitioner';
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
+// API base URL - empty string for same-origin requests in browser
+const API_BASE_URL = process.env.NEXT_PUBLIC_AZURE_FUNCTION_URL || '';
+
+interface PractitionerPageClientProps {
+  slug: string;
 }
 
-// Generate static params for all practitioners
-export async function generateStaticParams() {
-  const slugs = await getPractitionerSlugs();
-  return slugs.map((slug) => ({ slug }));
-}
+export function PractitionerPageClient({ slug }: PractitionerPageClientProps) {
+  const [practitioner, setPractitioner] = useState<PublicPractitioner | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-// Generate metadata for SEO
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const practitioner = await getPractitionerBySlug(slug);
-  
-  if (!practitioner) {
-    return {
-      title: 'Practitioner Not Found | Life Psychology Australia',
-    };
+  useEffect(() => {
+    async function fetchPractitioner() {
+      if (!slug) {
+        setError('No practitioner specified');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/public/practitioners/${slug}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('Practitioner not found');
+          } else {
+            setError('Failed to load practitioner profile');
+          }
+          return;
+        }
+        const data = await response.json();
+        setPractitioner(data);
+      } catch (err) {
+        console.error('Error fetching practitioner:', err);
+        setError('Unable to load practitioner profile');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPractitioner();
+  }, [slug]);
+
+  // Loading skeleton
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-orange-50/10">
+        <div className="bg-white border-b border-gray-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="h-5 bg-gray-200 rounded w-48 animate-pulse" />
+          </div>
+        </div>
+        <section className="py-12 lg:py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-3 gap-12">
+              <div className="lg:col-span-1">
+                <div className="aspect-[3/4] rounded-2xl bg-gray-200 animate-pulse mb-6" />
+                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                  <div className="h-4 bg-gray-200 rounded w-32 animate-pulse mb-4" />
+                  <div className="space-y-3">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                </div>
+              </div>
+              <div className="lg:col-span-2">
+                <div className="h-12 bg-gray-200 rounded w-3/4 animate-pulse mb-4" />
+                <div className="h-6 bg-gray-200 rounded w-1/2 animate-pulse mb-8" />
+                <div className="space-y-4">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
   }
 
-  const specializations = practitioner.specializations.slice(0, 3).join(', ');
-  
-  return {
-    title: `${practitioner.displayName} | Psychologist | Life Psychology Australia`,
-    description: practitioner.headline || 
-      `${practitioner.displayName} is a registered psychologist specializing in ${specializations}. Book an appointment for professional mental health support.`,
-    alternates: {
-      canonical: `/team/${slug}`,
-    },
-    openGraph: {
-      title: `${practitioner.displayName} | Registered Psychologist`,
-      description: practitioner.headline || `Professional psychology services with ${practitioner.displayName}`,
-      url: `/team/${slug}`,
-      type: 'profile',
-      images: practitioner.profilePhotoUrl ? [practitioner.profilePhotoUrl] : undefined,
-    },
-  };
-}
-
-export default async function PractitionerPage({ params }: PageProps) {
-  const { slug } = await params;
-  const practitioner = await getPractitionerBySlug(slug);
-
-  if (!practitioner) {
-    notFound();
+  // Error state
+  if (error || !practitioner) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-orange-50/10 flex items-center justify-center">
+        <div className="text-center px-4">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            {error === 'Practitioner not found' ? 'Practitioner Not Found' : 'Something went wrong'}
+          </h1>
+          <p className="text-gray-600 mb-8">
+            {error === 'Practitioner not found'
+              ? "We couldn't find the practitioner you're looking for."
+              : 'Unable to load the practitioner profile. Please try again later.'}
+          </p>
+          <Link
+            href="/team"
+            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-full transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Our Team
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   // JSON-LD structured data

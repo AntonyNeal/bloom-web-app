@@ -1,9 +1,13 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/api/*"]
+    "exclude": ["/assets/*", "/api/*", "/_next/*"]
   },
   "routes": [
+    {
+      "route": "/team/*/",
+      "rewrite": "/team/_/index.html"
+    },
     {
       "route": "/index.html",
       "headers": {

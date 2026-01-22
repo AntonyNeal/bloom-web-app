@@ -162,29 +162,62 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
     nextMilestone: Object.values(MONTHLY_MILESTONES).find(m => m > monthlyRevenue) ?? null,
   };
   
+  // ============================================================================
+  // BLOSSOM VIBRANCY & LUMINOSITY - Driven by Weekly Revenue
+  // These transform the visual quality of each flower
+  // ============================================================================
+  
+  // Vibrancy: How saturated and rich the colors are (0 = pale, 1 = deep sakura)
+  // At low weekly revenue: flowers are pale, almost white, sleeping
+  // At high weekly revenue: flowers are rich, vibrant, singing pink
+  const blossomVibrancy = Math.min(1, blossomFactor * 1.2); // Slightly boosted
+  
+  // Luminosity: The inner glow, highlights, dewdrops (0 = flat, 1 = radiant)
+  // At low revenue: flowers are matte, no highlights
+  // At high revenue: flowers glow with inner light, dewdrops sparkle
+  const blossomLuminosity = Math.min(1, blossomFactor * 1.1);
+  
+  // Size multiplier based on weekly prosperity
+  // Flowers grow larger when the week is going well
+  const blossomSizeMultiplier = 0.7 + blossomFactor * 0.5; // 0.7x to 1.2x
+  
+  // Bloom openness - how unfurled the petals are
+  // Early week with low revenue: tight buds
+  // Strong week: full, open blooms
+  const blossomOpenness = 0.3 + blossomFactor * 0.7; // 0.3 to 1.0
+  
   // Sophisticated blossom placement - artistic clusters, not random scatter
   const blossomClusters = useMemo(() => {
-    const clusters: Array<{ x: number; y: number; size: number; stage: number; rotation: number; tilt: number }> = [];
+    const clusters: Array<{ 
+      x: number; 
+      y: number; 
+      size: number; 
+      stage: number; 
+      vibrancy: number;
+      luminosity: number;
+      rotation: number; 
+      tilt: number;
+    }> = [];
     
     // Define artistic cluster zones (mimicking natural branch tips)
     // Adjusted for wider landscape viewBox (800x400, center at x=400)
     const clusterZones = [
       // Upper left canopy
-      { cx: 280, cy: 135, radius: 45, density: 1.2, branchAngle: -35 },
+      { cx: 280, cy: 135, radius: 45, density: 1.2, branchAngle: -35, light: 0.9 },
       // Upper right canopy  
-      { cx: 520, cy: 140, radius: 50, density: 1.3, branchAngle: 25 },
+      { cx: 520, cy: 140, radius: 50, density: 1.3, branchAngle: 25, light: 1.0 },
       // Middle left
-      { cx: 320, cy: 195, radius: 38, density: 1.0, branchAngle: -20 },
+      { cx: 320, cy: 195, radius: 38, density: 1.0, branchAngle: -20, light: 0.85 },
       // Middle right
-      { cx: 480, cy: 190, radius: 42, density: 1.1, branchAngle: 15 },
+      { cx: 480, cy: 190, radius: 42, density: 1.1, branchAngle: 15, light: 0.95 },
       // Lower left accent
-      { cx: 260, cy: 245, radius: 25, density: 0.8, branchAngle: -45 },
+      { cx: 260, cy: 245, radius: 25, density: 0.8, branchAngle: -45, light: 0.7 },
       // Lower right accent
-      { cx: 540, cy: 240, radius: 28, density: 0.9, branchAngle: 40 },
-      // Center high (crown)
-      { cx: 400, cy: 115, radius: 35, density: 1.4, branchAngle: 0 },
-      // Center mid (heart)
-      { cx: 400, cy: 180, radius: 48, density: 1.5, branchAngle: 0 },
+      { cx: 540, cy: 240, radius: 28, density: 0.9, branchAngle: 40, light: 0.75 },
+      // Center high (crown) - most light
+      { cx: 400, cy: 115, radius: 35, density: 1.4, branchAngle: 0, light: 1.0 },
+      // Center mid (heart) - focal point
+      { cx: 400, cy: 180, radius: 48, density: 1.5, branchAngle: 0, light: 0.95 },
     ];
     
     // Generate blossoms within each cluster zone
@@ -204,14 +237,27 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
         const y = zone.cy + Math.sin(angle) * distance;
         
         // Size variation - larger blossoms toward cluster centers
+        // WEEKLY REVENUE affects the base size multiplier
         const distanceFromCenter = distance / zone.radius;
-        const baseSize = 0.7 + Math.random() * 0.5;
+        const baseSize = (0.7 + Math.random() * 0.5) * blossomSizeMultiplier;
         const centerBoost = (1 - distanceFromCenter) * 0.3;
         const size = baseSize + centerBoost;
         
-        // Bloom stage varies - inner blossoms more developed
-        const stageVariation = 0.7 + (1 - distanceFromCenter) * 0.3 + Math.random() * 0.1;
-        const blossomStage = Math.min(growthFactor * stageVariation, 1);
+        // Bloom openness - WEEKLY REVENUE makes flowers more open
+        // Inner blossoms bloom first, outer ones follow
+        const innerBloomBonus = (1 - distanceFromCenter) * 0.2;
+        const randomVariation = (Math.random() - 0.5) * 0.15;
+        const flowerStage = Math.min(1, blossomOpenness + innerBloomBonus + randomVariation);
+        
+        // Vibrancy - WEEKLY REVENUE enriches the colors
+        // Center flowers are slightly more vibrant
+        const vibrancyBonus = (1 - distanceFromCenter) * 0.15;
+        const flowerVibrancy = Math.min(1, blossomVibrancy + vibrancyBonus + Math.random() * 0.1);
+        
+        // Luminosity - WEEKLY REVENUE adds inner glow
+        // Zone light factor affects how much light this area catches
+        const lightBonus = zone.light * 0.2;
+        const flowerLuminosity = Math.min(1, blossomLuminosity * zone.light + lightBonus * blossomFactor);
         
         // Rotation follows branch angle with natural variation
         const rotation = zone.branchAngle + (Math.random() - 0.5) * 45;
@@ -219,40 +265,60 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
         // Tilt creates depth - outer blossoms tilt away
         const tilt = distanceFromCenter * (Math.random() - 0.5) * 30;
         
-        clusters.push({ x, y, size, stage: blossomStage, rotation, tilt });
+        clusters.push({ 
+          x, 
+          y, 
+          size, 
+          stage: flowerStage, 
+          vibrancy: flowerVibrancy,
+          luminosity: flowerLuminosity,
+          rotation, 
+          tilt 
+        });
         blossomId++;
       }
     });
     
     return clusters;
-  }, [stage.blossomCount, growthFactor]);
+  }, [stage.blossomCount, blossomOpenness, blossomSizeMultiplier, blossomVibrancy, blossomLuminosity, blossomFactor]);
   
-  // Falling petals (only at peak bloom)
+  // Falling petals - appear at high weekly revenue with vibrant flowers
   const fallingPetals = useMemo(() => {
-    if (stage.name !== 'fullBloom') return [];
+    // Petals fall when blossoms are abundant and vibrant
+    if (blossomFactor < 0.7 || stage.blossomCount < 50) return [];
     
-    return Array.from({ length: 12 }, (_, i) => ({
+    const petalCount = Math.floor(6 + blossomFactor * 10); // 6-16 petals
+    
+    return Array.from({ length: petalCount }, (_, i) => ({
       id: i,
-      x: 150 + Math.random() * 300,
+      x: 250 + Math.random() * 300,
       y: 100 + Math.random() * 150,
       delay: Math.random() * 5,
       duration: 4 + Math.random() * 3,
       drift: (Math.random() - 0.5) * 60,
+      // Petal color intensity matches vibrancy
+      opacity: 0.4 + blossomVibrancy * 0.4,
     }));
-  }, [stage.name]);
+  }, [blossomFactor, stage.blossomCount, blossomVibrancy]);
   
-  // Ambient particles (pollen, light motes)
+  // Ambient particles (pollen, light motes) - more with higher luminosity
   const ambientParticles = useMemo(() => {
-    if (growthFactor < 0.5) return [];
+    // Particles appear when there's enough tree and weekly prosperity
+    if (growthFactor < 0.3 || blossomLuminosity < 0.3) return [];
     
-    return Array.from({ length: 8 }, (_, i) => ({
+    // More particles with higher luminosity
+    const particleCount = Math.floor(4 + blossomLuminosity * 12); // 4-16 particles
+    
+    return Array.from({ length: particleCount }, (_, i) => ({
       id: i,
-      x: 200 + Math.random() * 200,
-      y: 120 + Math.random() * 180,
+      x: 200 + Math.random() * 400,
+      y: 100 + Math.random() * 200,
       delay: Math.random() * 6,
-      radius: 1 + Math.random() * 2,
+      radius: 0.8 + Math.random() * (1.5 + blossomLuminosity),
+      // Golden pollen vs white light motes
+      isGolden: Math.random() < 0.4,
     }));
-  }, [growthFactor]);
+  }, [growthFactor, blossomLuminosity]);
   
   return (
     <div
@@ -356,6 +422,11 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
                 75% { transform: translate(3px, -1px) rotate(3deg); }
               }
               
+              @keyframes blossomBreathe {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(calc(1 + var(--breathe-amplitude, 0.02))); }
+              }
+              
               @keyframes petalFall {
                 0% {
                   transform: translate(0, 0) rotate(0deg);
@@ -376,6 +447,11 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
                   transform: translate(10px, -20px);
                   opacity: 0.7;
                 }
+              }
+              
+              @keyframes shimmerPulse {
+                0%, 100% { opacity: 0.4; }
+                50% { opacity: 0.8; }
               }
             `}
           </style>
@@ -574,7 +650,8 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
                 y={blossom.y}
                 size={blossom.size * 0.9}
                 stage={blossom.stage}
-                intensity={stage.intensity * 0.85}
+                vibrancy={blossom.vibrancy * 0.85}
+                luminosity={blossom.luminosity * 0.7}
                 rotation={blossom.rotation}
                 tilt={blossom.tilt}
                 delay={i * 0.05}
@@ -595,7 +672,8 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
                 y={blossom.y}
                 size={blossom.size}
                 stage={blossom.stage}
-                intensity={stage.intensity}
+                vibrancy={blossom.vibrancy}
+                luminosity={blossom.luminosity}
                 rotation={blossom.rotation}
                 tilt={blossom.tilt}
                 delay={i * 0.05}
@@ -604,7 +682,7 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
             ))}
         </g>
         
-        {/* Foreground layer (closest to viewer) */}
+        {/* Foreground layer (closest to viewer) - most vibrant and luminous */}
         <g>
           {blossomClusters
             .filter(b => b.tilt > 5)
@@ -616,7 +694,8 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
                 y={blossom.y}
                 size={blossom.size * 1.1}
                 stage={blossom.stage}
-                intensity={stage.intensity}
+                vibrancy={Math.min(1, blossom.vibrancy * 1.1)}
+                luminosity={Math.min(1, blossom.luminosity * 1.15)}
                 rotation={blossom.rotation}
                 tilt={blossom.tilt}
                 delay={i * 0.05}
@@ -625,31 +704,41 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
             ))}
         </g>
         
-        {/* Falling petals */}
-        {fallingPetals.map((petal) => (
-          <circle
-            key={`petal-${petal.id}`}
-            cx={petal.x}
-            cy={petal.y}
-            r="3"
-            fill="rgba(255, 182, 193, 0.6)"
-            style={{
-              animation: `petalFall ${petal.duration}s ease-in infinite`,
-              animationDelay: `${petal.delay}s`,
-              // @ts-expect-error - CSS custom property
-              '--drift': `${petal.drift}px`,
-            }}
-          />
-        ))}
+        {/* Falling petals - color intensity matches weekly vibrancy */}
+        {fallingPetals.map((petal) => {
+          // Petal color deepens with vibrancy
+          const r = Math.round(255);
+          const g = Math.round(182 - blossomVibrancy * 40);
+          const b = Math.round(193 - blossomVibrancy * 30);
+          
+          return (
+            <circle
+              key={`petal-${petal.id}`}
+              cx={petal.x}
+              cy={petal.y}
+              r={2.5 + blossomVibrancy * 1.5}
+              fill={`rgba(${r}, ${g}, ${b}, ${petal.opacity})`}
+              style={{
+                animation: `petalFall ${petal.duration}s ease-in infinite`,
+                animationDelay: `${petal.delay}s`,
+                // @ts-expect-error - CSS custom property
+                '--drift': `${petal.drift}px`,
+              }}
+            />
+          );
+        })}
         
-        {/* Ambient particles */}
+        {/* Ambient particles - golden pollen and light motes */}
         {ambientParticles.map((particle) => (
           <circle
             key={`particle-${particle.id}`}
             cx={particle.x}
             cy={particle.y}
             r={particle.radius}
-            fill="rgba(255, 255, 240, 0.6)"
+            fill={particle.isGolden 
+              ? `rgba(255, 240, 180, ${0.4 + blossomLuminosity * 0.4})`
+              : `rgba(255, 255, 250, ${0.3 + blossomLuminosity * 0.5})`
+            }
             style={{
               animation: `particleFloat 5s ease-in-out infinite`,
               animationDelay: `${particle.delay}s`,

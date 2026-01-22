@@ -6,6 +6,7 @@ import Link from 'next/link';
 const navItems = [
   { name: 'Home', path: '/' },
   { name: 'About', path: '/about' },
+  { name: 'Our Team', path: '/team' },
   { name: 'Services', path: '/services' },
   { name: 'How to Book', path: '/appointments' },
   { name: 'Fees & Funding', path: '/pricing' },

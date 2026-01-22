@@ -35,6 +35,15 @@ interface CachedUserDetails {
   appointmentType: string;
 }
 
+// Simplified practitioner type for dropdown
+interface PractitionerOption {
+  id: string;
+  slug: string | null;
+  displayName: string | null;
+  firstName: string;
+  profilePhotoUrl: string | null;
+}
+
 export const BookingForm: React.FC<BookingFormProps> = ({
   onSuccess,
   onCancel,
@@ -48,6 +57,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const hasTrackedStart = useRef(false);
+
+  // Practitioner selection
+  const [practitioners, setPractitioners] = useState<PractitionerOption[]>([]);
+  const [selectedPractitionerId, setSelectedPractitionerId] = useState<string>('');
+  const [loadingPractitioners, setLoadingPractitioners] = useState(true);
 
   // Form data
   const [firstName, setFirstName] = useState('');
@@ -76,6 +90,36 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Fetch practitioners on mount
+  useEffect(() => {
+    async function fetchPractitioners() {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+        const response = await fetch(`${apiUrl}/public/practitioners`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.practitioners) {
+            setPractitioners(data.practitioners);
+            // If practitionerSlug was passed, pre-select that practitioner
+            if (practitionerSlug) {
+              const match = data.practitioners.find(
+                (p: PractitionerOption) => p.slug === practitionerSlug
+              );
+              if (match) {
+                setSelectedPractitionerId(match.id);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[BookingForm] Error fetching practitioners:', error);
+      } finally {
+        setLoadingPractitioners(false);
+      }
+    }
+    fetchPractitioners();
+  }, [practitionerSlug]);
 
   // Load cached user details on mount
   useEffect(() => {
@@ -882,6 +926,38 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           }
         }}>
           <div className="flex flex-col gap-[clamp(8px,1.5vh,20px)] flex-1">
+            {/* Practitioner Selection */}
+            <div>
+              <label
+                htmlFor="practitioner-select"
+                className="block text-[clamp(0.75rem,1.5vh,0.875rem)] font-semibold text-slate-700 mb-1"
+              >
+                Select Psychologist
+              </label>
+              {loadingPractitioners ? (
+                <div className="w-full px-2 py-[clamp(6px,1.2vh,10px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-slate-50 rounded-lg border border-slate-200 text-slate-400">
+                  Loading...
+                </div>
+              ) : (
+                <select
+                  id="practitioner-select"
+                  value={selectedPractitionerId}
+                  onChange={(e) => setSelectedPractitionerId(e.target.value)}
+                  className="w-full px-2 py-[clamp(6px,1.2vh,10px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">First available psychologist</option>
+                  {practitioners.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.displayName || p.firstName}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <p className="text-xs text-slate-500 mt-1">
+                {selectedPractitionerId ? 'Showing availability for selected psychologist' : 'Showing all available appointments'}
+              </p>
+            </div>
+
             {/* Name row - side by side */}
             <div className="grid grid-cols-2 gap-[clamp(6px,1.5vw,12px)]">
               <div>
@@ -1334,6 +1410,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               selectedDate={appointmentDate}
               selectedTime={appointmentTime}
               duration={60}
+              practitionerId={selectedPractitionerId || undefined}
             />
           </div>
           {(errors['appointmentDate'] || errors['appointmentTime']) && (

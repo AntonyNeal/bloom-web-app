@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useBooking } from '@/components/providers';
 import type { PublicPractitioner } from '@/types/practitioner';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
@@ -229,26 +230,37 @@ export function TeamPageClient() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-br from-orange-50 to-amber-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Ready to Begin Your Journey?
-          </h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Book your first session with one of our experienced psychologists. 
-            We offer flexible telehealth appointments to fit your schedule.
-          </p>
-          <Link 
-            href="/appointments"
-            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-4 rounded-full transition-colors shadow-lg hover:shadow-xl"
-          >
-            Book an Appointment
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </Link>
-        </div>
-      </section>
+      <TeamPageCTA />
     </main>
+  );
+}
+
+/**
+ * CTA component for the team page - opens booking modal with clinician selection
+ */
+function TeamPageCTA() {
+  const { openBookingModal } = useBooking('team_page_cta');
+
+  return (
+    <section className="py-16 bg-gradient-to-br from-orange-50 to-amber-50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          Ready to Begin Your Journey?
+        </h2>
+        <p className="text-lg text-gray-600 mb-8">
+          Book your first session with one of our experienced psychologists. 
+          We offer flexible telehealth appointments to fit your schedule.
+        </p>
+        <button 
+          onClick={() => openBookingModal()}
+          className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-4 rounded-full transition-colors shadow-lg hover:shadow-xl"
+        >
+          Book an Appointment
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </button>
+      </div>
+    </section>
   );
 }

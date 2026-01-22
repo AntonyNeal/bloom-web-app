@@ -142,13 +142,22 @@ async function sendEmail(
     console.log('[EmailService] Starting email send...');
     const poller = await client.beginSend(message);
     
-    // Don't wait for polling to complete - ACS delivers asynchronously
-    // This prevents potential duplicate delivery issues from polling retries
-    console.log(`[EmailService] Email submitted to ACS for delivery`);
+    // Poll with exponential backoff and max 10 retries
+    const result = await poller.pollUntilDone({
+      updateIntervalInMs: 1000, // Start with 1 second
+    });
+
+    console.log(`[EmailService] Send result: status=${result.status}, id=${result.id}`);
+    
+    if (result.status !== 'Succeeded') {
+      console.error('[EmailService] Email send failed:', JSON.stringify(result));
+    } else {
+      console.log(`[EmailService] Email sent successfully on first attempt`);
+    }
 
     return { 
-      success: true, 
-      messageId: 'queued' 
+      success: result.status === 'Succeeded', 
+      messageId: result.id 
     };
   } catch (error) {
     console.error('[EmailService] Failed to send email:', error);

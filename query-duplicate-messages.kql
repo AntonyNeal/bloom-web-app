@@ -1,0 +1,8 @@
+// Query to find duplicate message processing
+traces
+| where timestamp > ago(2h)
+| where message contains "NotificationQueue"
+| where message contains "messageId"
+| project timestamp, message, customDimensions
+| order by timestamp desc
+| take 100

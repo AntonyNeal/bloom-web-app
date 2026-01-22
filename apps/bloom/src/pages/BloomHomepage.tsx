@@ -1354,30 +1354,49 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
         margin: '0 auto',
         padding: '20px 16px',
       }}>
-        {/* Hero: Tree + Revenue - Clickable to Business Coach */}
-        <Link 
-          to="/business-coach"
-          style={{ textDecoration: 'none', display: 'block' }}
-          aria-label="View Business Coach dashboard"
+        {/* Hero: Tree + Revenue - Peaceful visual element */}
+        <motion.div
+          initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          style={{ 
+            marginBottom: '16px',
+            borderRadius: '20px',
+          }}
         >
-          <motion.div
-            initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{ 
-              marginBottom: '24px',
+          <BlossomTreeSophisticated monthlyStats={monthlyStats} />
+        </motion.div>
+
+        {/* Primary Action: Enter Therapy Room */}
+        <Link 
+          to="/session"
+          style={{ textDecoration: 'none', display: 'block', marginBottom: '24px' }}
+        >
+          <motion.button
+            whileHover={{ scale: 1.02, boxShadow: '0 8px 24px rgba(122, 141, 122, 0.2)' }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              padding: '18px 32px',
+              backgroundColor: colors.sage,
+              color: colors.white,
+              border: 'none',
+              borderRadius: '16px',
+              fontSize: '17px',
+              fontWeight: 600,
+              fontFamily: "'Crimson Text', Georgia, serif",
               cursor: 'pointer',
-              borderRadius: '20px',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              boxShadow: '0 4px 12px rgba(122, 141, 122, 0.15)',
+              transition: 'all 0.2s ease',
             }}
-            whileHover={{ 
-              scale: 1.01,
-              boxShadow: '0 8px 24px rgba(122, 141, 122, 0.15)',
-            }}
-            whileTap={{ scale: 0.99 }}
           >
-            <BlossomTreeSophisticated monthlyStats={monthlyStats} />
-          </motion.div>
+            <span style={{ fontSize: '20px' }}>🌿</span>
+            Enter Therapy Room
+          </motion.button>
         </Link>
 
         {/* Stories Bar - Quick glance at today's clients */}

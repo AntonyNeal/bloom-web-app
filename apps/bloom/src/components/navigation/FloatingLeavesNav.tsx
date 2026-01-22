@@ -466,6 +466,14 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
       section: 'main',
     },
     { 
+      to: '/session', 
+      icon: <VideoIcon />, 
+      label: 'Therapy Room', 
+      description: 'Start a session',
+      accentColor: colors.sage,
+      section: 'main',
+    },
+    { 
       to: '/business-coach', 
       icon: <ChartIcon />, 
       label: 'Business Coach', 

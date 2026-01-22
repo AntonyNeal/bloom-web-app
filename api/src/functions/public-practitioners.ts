@@ -32,6 +32,7 @@ const getConfig = (): string | sql.config => {
 // Public practitioner profile - only safe fields exposed
 interface PublicPractitioner {
   id: string;
+  halaxyPractitionerId: string | null; // For booking API
   slug: string;
   displayName: string;
   firstName: string;
@@ -83,6 +84,7 @@ async function publicPractitionersHandler(
         .query(`
           SELECT 
             p.id,
+            p.halaxy_practitioner_id,
             LOWER(REPLACE(p.display_name, ' ', '-')) as url_slug,
             p.display_name,
             p.first_name,
@@ -123,6 +125,7 @@ async function publicPractitionersHandler(
     const result = await pool.request().query(`
       SELECT 
         p.id,
+        p.halaxy_practitioner_id,
         LOWER(REPLACE(p.display_name, ' ', '-')) as url_slug,
         p.display_name,
         p.first_name,
@@ -186,6 +189,7 @@ function parseJsonSafe(value: string | null, fallback: string[] = []): string[] 
 function mapRowToPractitioner(row: Record<string, unknown>): PublicPractitioner {
   return {
     id: row.id as string,
+    halaxyPractitionerId: (row.halaxy_practitioner_id as string | null) || null,
     slug: row.url_slug as string,
     displayName: row.display_name as string,
     firstName: row.first_name as string,

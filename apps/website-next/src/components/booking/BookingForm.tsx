@@ -38,6 +38,7 @@ interface CachedUserDetails {
 // Simplified practitioner type for dropdown
 interface PractitionerOption {
   id: string;
+  halaxyPractitionerId: string | null; // The ID needed for Halaxy booking API
   slug: string | null;
   displayName: string | null;
   firstName: string;
@@ -58,9 +59,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
   const hasTrackedStart = useRef(false);
 
-  // Practitioner selection
+  // Practitioner selection - stores Halaxy practitioner ID for booking
   const [practitioners, setPractitioners] = useState<PractitionerOption[]>([]);
-  const [selectedPractitionerId, setSelectedPractitionerId] = useState<string>('');
+  const [selectedHalaxyPractitionerId, setSelectedHalaxyPractitionerId] = useState<string | null>(null);
   const [loadingPractitioners, setLoadingPractitioners] = useState(true);
 
   // Form data
@@ -107,7 +108,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 (p: PractitionerOption) => p.slug === practitionerSlug
               );
               if (match) {
-                setSelectedPractitionerId(match.id);
+                setSelectedHalaxyPractitionerId(match.halaxyPractitionerId || null);
               }
             }
           }
@@ -574,12 +575,18 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         startTime: string;
         endTime: string;
         minutesDuration: number;
+        practitionerId?: string;
         notes?: string;
       } = {
         startTime: HalaxyClient.formatDateTime(startDateTime),
         endTime: HalaxyClient.formatDateTime(endDateTime),
         minutesDuration: 60,
       };
+
+      // Include selected practitioner if one was chosen
+      if (selectedHalaxyPractitionerId) {
+        appointmentData.practitionerId = selectedHalaxyPractitionerId;
+      }
 
       // Include appointment type and notes
       const appointmentTypeLabel = appointmentType
@@ -761,12 +768,18 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         startTime: string;
         endTime: string;
         minutesDuration: number;
+        practitionerId?: string;
         notes?: string;
       } = {
         startTime: HalaxyClient.formatDateTime(startDateTime),
         endTime: HalaxyClient.formatDateTime(endDateTime),
         minutesDuration: 60,
       };
+
+      // Include selected practitioner if one was chosen
+      if (selectedHalaxyPractitionerId) {
+        appointmentData.practitionerId = selectedHalaxyPractitionerId;
+      }
 
       // Include appointment type and notes
       const appointmentTypeLabel = appointmentType
@@ -941,20 +954,20 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               ) : (
                 <select
                   id="practitioner-select"
-                  value={selectedPractitionerId}
-                  onChange={(e) => setSelectedPractitionerId(e.target.value)}
+                  value={selectedHalaxyPractitionerId || ''}
+                  onChange={(e) => setSelectedHalaxyPractitionerId(e.target.value || null)}
                   className="w-full px-2 py-[clamp(6px,1.2vh,10px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 >
                   <option value="">First available psychologist</option>
                   {practitioners.map((p) => (
-                    <option key={p.id} value={p.id}>
+                    <option key={p.id} value={p.halaxyPractitionerId || ''}>
                       {p.displayName || p.firstName}
                     </option>
                   ))}
                 </select>
               )}
               <p className="text-xs text-slate-500 mt-1">
-                {selectedPractitionerId ? 'Showing availability for selected psychologist' : 'Showing all available appointments'}
+                {selectedHalaxyPractitionerId ? 'Showing availability for selected psychologist' : 'Showing all available appointments'}
               </p>
             </div>
 
@@ -1410,7 +1423,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               selectedDate={appointmentDate}
               selectedTime={appointmentTime}
               duration={60}
-              practitionerId={selectedPractitionerId || undefined}
+              practitionerId={selectedHalaxyPractitionerId || undefined}
             />
           </div>
           {(errors['appointmentDate'] || errors['appointmentTime']) && (

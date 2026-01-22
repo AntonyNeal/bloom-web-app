@@ -20,6 +20,7 @@ interface AppointmentDetails {
   startTime: string; // ISO 8601 format with timezone
   endTime: string;
   minutesDuration: number;
+  practitionerId?: string; // Halaxy practitioner ID to book with
   notes?: string;
   appointmentType?: string; // e.g., 'ndis-psychology-session', 'standard-psychology-session'
 }

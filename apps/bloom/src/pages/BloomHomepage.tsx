@@ -1364,7 +1364,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
             borderRadius: '20px',
           }}
         >
-          <BlossomTreeSophisticated monthlyStats={monthlyStats} />
+          <BlossomTreeSophisticated monthlyStats={monthlyStats} weeklyStats={weeklyStats} />
         </motion.div>
 
         {/* Primary Action: Enter Therapy Room */}

@@ -123,24 +123,24 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
     const clusters: Array<{ x: number; y: number; size: number; stage: number; rotation: number; tilt: number }> = [];
     
     // Define artistic cluster zones (mimicking natural branch tips)
-    // Adjusted for wider landscape viewBox (800x350, center at x=400)
+    // Adjusted for wider landscape viewBox (800x400, center at x=400)
     const clusterZones = [
       // Upper left canopy
-      { cx: 280, cy: 85, radius: 45, density: 1.2, branchAngle: -35 },
+      { cx: 280, cy: 135, radius: 45, density: 1.2, branchAngle: -35 },
       // Upper right canopy  
-      { cx: 520, cy: 90, radius: 50, density: 1.3, branchAngle: 25 },
+      { cx: 520, cy: 140, radius: 50, density: 1.3, branchAngle: 25 },
       // Middle left
-      { cx: 320, cy: 145, radius: 38, density: 1.0, branchAngle: -20 },
+      { cx: 320, cy: 195, radius: 38, density: 1.0, branchAngle: -20 },
       // Middle right
-      { cx: 480, cy: 140, radius: 42, density: 1.1, branchAngle: 15 },
+      { cx: 480, cy: 190, radius: 42, density: 1.1, branchAngle: 15 },
       // Lower left accent
-      { cx: 260, cy: 195, radius: 25, density: 0.8, branchAngle: -45 },
+      { cx: 260, cy: 245, radius: 25, density: 0.8, branchAngle: -45 },
       // Lower right accent
-      { cx: 540, cy: 190, radius: 28, density: 0.9, branchAngle: 40 },
+      { cx: 540, cy: 240, radius: 28, density: 0.9, branchAngle: 40 },
       // Center high (crown)
-      { cx: 400, cy: 65, radius: 35, density: 1.4, branchAngle: 0 },
+      { cx: 400, cy: 115, radius: 35, density: 1.4, branchAngle: 0 },
       // Center mid (heart)
-      { cx: 400, cy: 130, radius: 48, density: 1.5, branchAngle: 0 },
+      { cx: 400, cy: 180, radius: 48, density: 1.5, branchAngle: 0 },
     ];
     
     // Generate blossoms within each cluster zone
@@ -218,8 +218,8 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
       style={{
         position: 'relative',
         width: '100%',
-        minHeight: '320px',
-        aspectRatio: '16 / 9',
+        minHeight: '380px',
+        aspectRatio: '2.2 / 1',
         backgroundColor: colors.cream,
         borderRadius: '16px',
         overflow: 'hidden',
@@ -237,10 +237,23 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
           top: 0,
           left: 0,
           right: 0,
-          height: '65%',
+          height: '60%',
           background: `linear-gradient(to bottom, ${colors.sky[timeOfDay]}, transparent)`,
           pointerEvents: 'none',
           transition: 'background 2s ease',
+        }}
+      />
+      
+      {/* Horizon line - soft transition between sky and ground */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '28%',
+          left: 0,
+          right: 0,
+          height: '2px',
+          background: 'linear-gradient(90deg, transparent 5%, rgba(180, 190, 180, 0.3) 30%, rgba(180, 190, 180, 0.4) 50%, rgba(180, 190, 180, 0.3) 70%, transparent 95%)',
+          pointerEvents: 'none',
         }}
       />
       
@@ -251,8 +264,8 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
           bottom: 0,
           left: 0,
           right: 0,
-          height: '25%',
-          background: `linear-gradient(to top, ${colors.lavenderLight}, transparent)`,
+          height: '28%',
+          background: `linear-gradient(to top, ${colors.lavenderLight}, rgba(243, 240, 247, 0.3))`,
           pointerEvents: 'none',
         }}
       />
@@ -261,7 +274,7 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
       <svg
         width="100%"
         height="100%"
-        viewBox="0 0 800 350"
+        viewBox="0 0 800 400"
         preserveAspectRatio="xMidYMax meet"
         style={{
           width: '100%',
@@ -275,6 +288,19 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
             <stop offset="0%" stopColor="rgba(90, 107, 90, 0.15)" />
             <stop offset="100%" stopColor="transparent" />
           </radialGradient>
+          
+          {/* Gradient for sprout stem */}
+          <linearGradient id="sprout-stem" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stopColor="#6B7D6B" />
+            <stop offset="100%" stopColor="#8FA88F" />
+          </linearGradient>
+          
+          {/* Gradient for sprout leaves */}
+          <linearGradient id="sprout-leaf" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#9CB89C" />
+            <stop offset="50%" stopColor="#7BA07B" />
+            <stop offset="100%" stopColor="#6B8D6B" />
+          </linearGradient>
           
           {/* Animations */}
           <style>
@@ -314,52 +340,105 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
         {/* Ground shadow/circle - centered in wider canvas */}
         <ellipse
           cx="400"
-          cy="330"
+          cy="380"
           rx="140"
           ry="18"
           fill="url(#ground-shadow)"
           opacity="0.6"
         />
         
-        {/* Tree trunk - grows taller with revenue, centered at x=400 */}
-        <TreeBranch
-          id="trunk"
-          start={[400, 330]}
-          control1={[395, 280 - growthFactor * 25]}
-          control2={[405, 235 - growthFactor * 35]}
-          end={[400, 190 - growthFactor * 45]}
-          startThickness={32 + growthFactor * 8}
-          endThickness={18 + growthFactor * 6}
-          growth={Math.min(growthFactor * 1.2, 1)}
-          variant="primary"
-        />
+        {/* Seedling sprout - shows at early stages */}
+        {growthFactor < 0.25 && (
+          <g transform="translate(400, 370)">
+            {/* Small soil mound */}
+            <ellipse cx="0" cy="5" rx="25" ry="6" fill="rgba(139, 119, 101, 0.3)" />
+            
+            {/* Sprout stem - graceful curve */}
+            <path
+              d={`M 0 0 
+                 Q ${-3 - growthFactor * 20} ${-40 - growthFactor * 60}, 
+                   ${growthFactor * 5} ${-60 - growthFactor * 80}`}
+              stroke="url(#sprout-stem)"
+              strokeWidth={3 + growthFactor * 4}
+              strokeLinecap="round"
+              fill="none"
+            />
+            
+            {/* Left leaf - unfurling */}
+            <path
+              d={`M ${-2 + growthFactor * 3} ${-45 - growthFactor * 50}
+                 Q ${-25 - growthFactor * 15} ${-55 - growthFactor * 40},
+                   ${-18 - growthFactor * 10} ${-70 - growthFactor * 30}
+                 Q ${-8 - growthFactor * 5} ${-58 - growthFactor * 45},
+                   ${-2 + growthFactor * 3} ${-45 - growthFactor * 50}`}
+              fill="url(#sprout-leaf)"
+              opacity={0.6 + growthFactor}
+            />
+            
+            {/* Right leaf - unfurling */}
+            <path
+              d={`M ${2 + growthFactor * 3} ${-50 - growthFactor * 55}
+                 Q ${22 + growthFactor * 12} ${-60 - growthFactor * 35},
+                   ${16 + growthFactor * 8} ${-75 - growthFactor * 25}
+                 Q ${8 + growthFactor * 4} ${-62 - growthFactor * 40},
+                   ${2 + growthFactor * 3} ${-50 - growthFactor * 55}`}
+              fill="url(#sprout-leaf)"
+              opacity={0.7 + growthFactor}
+            />
+            
+            {/* Tiny center leaf bud */}
+            <ellipse
+              cx={growthFactor * 5}
+              cy={-58 - growthFactor * 78}
+              rx={4 + growthFactor * 3}
+              ry={6 + growthFactor * 4}
+              fill="#9CB89C"
+              opacity={0.8}
+            />
+          </g>
+        )}
         
-        {/* Major branches - appear after 20% growth */}
-        {growthFactor > 0.2 && (
+        {/* Tree trunk - grows taller with revenue, centered at x=400 */}
+        {growthFactor >= 0.15 && (
+          <TreeBranch
+            id="trunk"
+            start={[400, 380]}
+            control1={[395, 330 - growthFactor * 25]}
+            control2={[405, 285 - growthFactor * 35]}
+            end={[400, 240 - growthFactor * 45]}
+            startThickness={32 + growthFactor * 8}
+            endThickness={18 + growthFactor * 6}
+            growth={Math.min((growthFactor - 0.15) * 1.4, 1)}
+            variant="primary"
+          />
+        )}
+        
+        {/* Major branches - appear after 25% growth */}
+        {growthFactor > 0.25 && (
           <>
             {/* Left primary branch */}
             <TreeBranch
               id="branch-left-1"
-              start={[400, 220 - growthFactor * 30]}
-              control1={[350, 195 - growthFactor * 25]}
-              control2={[310, 180 - growthFactor * 20]}
-              end={[280, 175 - growthFactor * 25]}
+              start={[400, 270 - growthFactor * 30]}
+              control1={[350, 245 - growthFactor * 25]}
+              control2={[310, 230 - growthFactor * 20]}
+              end={[280, 225 - growthFactor * 25]}
               startThickness={16 + growthFactor * 4}
               endThickness={6 + growthFactor * 2}
-              growth={Math.min((growthFactor - 0.2) * 1.5, 1)}
+              growth={Math.min((growthFactor - 0.25) * 1.5, 1)}
               variant="primary"
             />
             
             {/* Right primary branch */}
             <TreeBranch
               id="branch-right-1"
-              start={[400, 210 - growthFactor * 30]}
-              control1={[450, 190 - growthFactor * 25]}
-              control2={[490, 175 - growthFactor * 20]}
-              end={[520, 170 - growthFactor * 25]}
+              start={[400, 260 - growthFactor * 30]}
+              control1={[450, 240 - growthFactor * 25]}
+              control2={[490, 225 - growthFactor * 20]}
+              end={[520, 220 - growthFactor * 25]}
               startThickness={16 + growthFactor * 4}
               endThickness={6 + growthFactor * 2}
-              growth={Math.min((growthFactor - 0.2) * 1.5, 1)}
+              growth={Math.min((growthFactor - 0.25) * 1.5, 1)}
               variant="primary"
             />
           </>
@@ -371,10 +450,10 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
             {/* Left secondary */}
             <TreeBranch
               id="branch-left-2"
-              start={[340, 190 - growthFactor * 22]}
-              control1={[310, 165 - growthFactor * 16]}
-              control2={[295, 140 - growthFactor * 12]}
-              end={[285, 125 - growthFactor * 16]}
+              start={[340, 240 - growthFactor * 22]}
+              control1={[310, 215 - growthFactor * 16]}
+              control2={[295, 190 - growthFactor * 12]}
+              end={[285, 175 - growthFactor * 16]}
               startThickness={10 + growthFactor * 3}
               endThickness={3 + growthFactor}
               growth={Math.min((growthFactor - 0.4) * 2, 1)}
@@ -384,10 +463,10 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
             {/* Right secondary */}
             <TreeBranch
               id="branch-right-2"
-              start={[460, 185 - growthFactor * 22]}
-              control1={[490, 160 - growthFactor * 16]}
-              control2={[505, 135 - growthFactor * 12]}
-              end={[515, 120 - growthFactor * 16]}
+              start={[460, 235 - growthFactor * 22]}
+              control1={[490, 210 - growthFactor * 16]}
+              control2={[505, 185 - growthFactor * 12]}
+              end={[515, 170 - growthFactor * 16]}
               startThickness={10 + growthFactor * 3}
               endThickness={3 + growthFactor}
               growth={Math.min((growthFactor - 0.4) * 2, 1)}
@@ -397,10 +476,10 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
             {/* Center crown branch */}
             <TreeBranch
               id="branch-center"
-              start={[400, 195 - growthFactor * 45]}
-              control1={[400, 145 - growthFactor * 30]}
-              control2={[402, 105 - growthFactor * 20]}
-              end={[400, 75 - growthFactor * 15]}
+              start={[400, 245 - growthFactor * 45]}
+              control1={[400, 195 - growthFactor * 30]}
+              control2={[402, 155 - growthFactor * 20]}
+              end={[400, 125 - growthFactor * 15]}
               startThickness={12 + growthFactor * 3}
               endThickness={4 + growthFactor}
               growth={Math.min((growthFactor - 0.4) * 2, 1)}
@@ -414,10 +493,10 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
           <>
             <TreeBranch
               id="branch-left-3"
-              start={[300, 165 - growthFactor * 18]}
-              control1={[280, 150 - growthFactor * 12]}
-              control2={[270, 135 - growthFactor * 8]}
-              end={[265, 122 - growthFactor * 10]}
+              start={[300, 215 - growthFactor * 18]}
+              control1={[280, 200 - growthFactor * 12]}
+              control2={[270, 185 - growthFactor * 8]}
+              end={[265, 172 - growthFactor * 10]}
               startThickness={6 + growthFactor * 2}
               endThickness={2}
               growth={Math.min((growthFactor - 0.6) * 2.5, 1)}
@@ -426,10 +505,10 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
             
             <TreeBranch
               id="branch-right-3"
-              start={[500, 160 - growthFactor * 18]}
-              control1={[520, 145 - growthFactor * 12]}
-              control2={[530, 130 - growthFactor * 8]}
-              end={[535, 117 - growthFactor * 10]}
+              start={[500, 210 - growthFactor * 18]}
+              control1={[520, 195 - growthFactor * 12]}
+              control2={[530, 180 - growthFactor * 8]}
+              end={[535, 167 - growthFactor * 10]}
               startThickness={6 + growthFactor * 2}
               endThickness={2}
               growth={Math.min((growthFactor - 0.6) * 2.5, 1)}

@@ -345,7 +345,7 @@ export interface BookingFlowState {
 // WINDOW EXTENSIONS
 // ============================================================================
 
-// DataLayer can contain events or ecommerce clear objects
-export type DataLayerItem = DataLayerEvent | { ecommerce: null } | Record<string, unknown>;
+// DataLayer can contain events, ecommerce clear objects, or gtag argument arrays
+export type DataLayerItem = DataLayerEvent | { ecommerce: null } | Record<string, unknown> | unknown[];
 
 export {};

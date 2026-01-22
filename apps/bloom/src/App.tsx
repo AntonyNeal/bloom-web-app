@@ -41,6 +41,9 @@ const AcceptOffer = lazy(() => import('./pages/AcceptOffer'));
 const SessionPage = lazy(() =>
   import('./pages/session/SessionPage').then((m) => ({ default: m.SessionPage }))
 );
+const SessionLobby = lazy(() =>
+  import('./pages/session/SessionLobby').then((m) => ({ default: m.SessionLobby }))
+);
 
 // Clinician dashboard (feed-style home page)
 const ClinicianDashboard = lazy(() =>
@@ -838,6 +841,22 @@ function AnimatedRoutes() {
                   <PractitionerManagement />
                 </Suspense>
                 <Toaster />
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Session Lobby - Therapy Room entry point */}
+        <Route
+          path="/session"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Preparing therapy room...</div>}
+                >
+                  <SessionLobby />
+                </Suspense>
               </ErrorBoundary>
             </ProtectedRoute>
           }

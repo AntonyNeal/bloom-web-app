@@ -69,13 +69,17 @@ async function fetchHalaxyAvailability(
   startDate: Date,
   endDate: Date,
   duration: number,
+  practitionerId: string | undefined,
   context: InvocationContext
 ): Promise<FHIRSlot[]> {
   const dateFrom = startDate.toISOString().split('T')[0];
   const dateTo = endDate.toISOString().split('T')[0];
 
+  // Use provided practitioner ID or fall back to default
+  const actualPractitionerId = practitionerId || DEFAULT_PRACTITIONER_ID;
+
   const queryParams = new URLSearchParams({
-    practitioner: DEFAULT_PRACTITIONER_ID,
+    practitioner: actualPractitionerId,
     clinic: DEFAULT_CLINIC_ID,
     dateFrom,
     dateTo,
@@ -85,7 +89,7 @@ async function fetchHalaxyAvailability(
 
   const url = `https://www.halaxy.com/api/v2/open/booking/timeslot/availability?${queryParams.toString()}`;
 
-  context.log('Fetching from Halaxy public API:', url);
+  context.log('Fetching from Halaxy public API:', { url, practitionerId: actualPractitionerId });
 
   const response = await fetch(url, {
     method: 'GET',
@@ -183,6 +187,7 @@ async function getHalaxyAvailability(
     const from = req.query.get('from');
     const to = req.query.get('to');
     const duration = parseInt(req.query.get('duration') || '60', 10);
+    const practitionerId = req.query.get('practitioner') || undefined;
 
     // Validate required parameters
     if (!from || !to) {
@@ -202,10 +207,11 @@ async function getHalaxyAvailability(
       from: startDate.toISOString(),
       to: endDate.toISOString(),
       duration,
+      practitionerId: practitionerId || 'default',
     });
 
     // Fetch from Halaxy's public API
-    const slots = await fetchHalaxyAvailability(startDate, endDate, duration, context);
+    const slots = await fetchHalaxyAvailability(startDate, endDate, duration, practitionerId, context);
 
     const availability: FHIRBundle = {
       resourceType: 'Bundle',

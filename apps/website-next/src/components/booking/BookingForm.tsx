@@ -540,6 +540,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
    * 4. If booking fails → cancel payment authorization
    */
   const handlePaymentAuthorized = async (authorizedPaymentIntentId: string) => {
+    // Prevent duplicate submissions
+    if (loading) {
+      console.log('[BookingForm] Already processing booking, ignoring duplicate payment callback');
+      return;
+    }
+    
     setLoading(true);
     setErrorMessage('');
 
@@ -733,6 +739,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSubmit = async () => {
+    // Prevent duplicate submissions
+    if (loading) {
+      console.log('[BookingForm] Already processing booking, ignoring duplicate submit');
+      return;
+    }
+    
     setLoading(true);
     setErrorMessage('');
 

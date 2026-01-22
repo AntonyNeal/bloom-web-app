@@ -152,7 +152,7 @@ export function TeamPageClient() {
   useEffect(() => {
     async function fetchPractitioners() {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/public/practitioners`);
+        const response = await fetch(`${API_BASE_URL}/public/practitioners`);
         if (!response.ok) {
           throw new Error('Failed to fetch practitioners');
         }

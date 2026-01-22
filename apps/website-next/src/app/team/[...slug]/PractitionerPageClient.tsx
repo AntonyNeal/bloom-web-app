@@ -28,7 +28,7 @@ export function PractitionerPageClient({ slug }: PractitionerPageClientProps) {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/public/practitioners/${slug}`);
+        const response = await fetch(`${API_BASE_URL}/public/practitioners/${slug}`);
         if (!response.ok) {
           if (response.status === 404) {
             setError('Practitioner not found');

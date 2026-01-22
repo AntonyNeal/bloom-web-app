@@ -14,7 +14,7 @@ export function TeamSection() {
   useEffect(() => {
     async function fetchPractitioners() {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/public/practitioners`);
+        const response = await fetch(`${API_BASE_URL}/public/practitioners`);
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.practitioners) {

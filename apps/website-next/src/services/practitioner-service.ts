@@ -14,7 +14,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
  */
 export async function getPractitioners(): Promise<PublicPractitioner[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/public/practitioners`, {
+    const response = await fetch(`${API_BASE_URL}/public/practitioners`, {
       next: { revalidate: 300 }, // Revalidate every 5 minutes
     });
 
@@ -42,7 +42,7 @@ export async function getPractitioners(): Promise<PublicPractitioner[]> {
  */
 export async function getPractitionerBySlug(slug: string): Promise<PublicPractitioner | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/public/practitioners/${slug}`, {
+    const response = await fetch(`${API_BASE_URL}/public/practitioners/${slug}`, {
       next: { revalidate: 300 },
     });
 

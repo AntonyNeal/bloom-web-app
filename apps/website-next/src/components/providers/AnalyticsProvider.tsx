@@ -8,65 +8,86 @@ import Script from 'next/script';
 const GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || 'G-XGGBRLPBKK';
 const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || 'AW-11563740075';
 
-// AnalyticsProvider uses interaction-based loading for mobile-first performance
-// Analytics only loads after user interaction (scroll, click, touch) to prevent TBT impact
+// AnalyticsProvider manages analytics loading:
+// - Google Ads loads IMMEDIATELY (critical for conversion tracking)
+// - GA4 loads after user interaction (performance optimization)
 export function AnalyticsProvider() {
-  const [shouldLoad, setShouldLoad] = useState(false);
+  const [shouldLoadGA4, setShouldLoadGA4] = useState(false);
 
+  // Initialize gtag immediately so conversions can be queued
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Initialize dataLayer and gtag function immediately
+    // This allows conversions to be queued before scripts fully load
+    window.dataLayer = window.dataLayer || [];
+    if (!window.gtag) {
+      window.gtag = function gtag(...args: unknown[]) {
+        window.dataLayer?.push(args);
+      };
+      window.gtag('js', new Date());
+      // Configure Google Ads immediately - critical for conversion tracking
+      window.gtag('config', GOOGLE_ADS_ID, { send_page_view: false });
+    }
+  }, []);
+
+  // Lazy load GA4 after user interaction for performance
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     let loaded = false;
-    const loadAnalytics = () => {
+    const loadGA4 = () => {
       if (loaded) return;
       loaded = true;
-      setShouldLoad(true);
+      setShouldLoadGA4(true);
       // Clean up listeners
-      window.removeEventListener('scroll', loadAnalytics);
-      window.removeEventListener('click', loadAnalytics);
-      window.removeEventListener('touchstart', loadAnalytics);
-      window.removeEventListener('keydown', loadAnalytics);
+      window.removeEventListener('scroll', loadGA4);
+      window.removeEventListener('click', loadGA4);
+      window.removeEventListener('touchstart', loadGA4);
+      window.removeEventListener('keydown', loadGA4);
     };
 
-    // Load on first user interaction - mobile-first approach
-    window.addEventListener('scroll', loadAnalytics, { once: true, passive: true });
-    window.addEventListener('click', loadAnalytics, { once: true });
-    window.addEventListener('touchstart', loadAnalytics, { once: true, passive: true });
-    window.addEventListener('keydown', loadAnalytics, { once: true });
+    // Load GA4 on first user interaction - mobile-first approach
+    window.addEventListener('scroll', loadGA4, { once: true, passive: true });
+    window.addEventListener('click', loadGA4, { once: true });
+    window.addEventListener('touchstart', loadGA4, { once: true, passive: true });
+    window.addEventListener('keydown', loadGA4, { once: true });
 
-    // Fallback: load after 8 seconds if no interaction (for bounced users)
-    // Extended delay ensures Lighthouse tests complete before analytics loads
-    const fallbackTimer = setTimeout(loadAnalytics, 8000);
+    // Fallback: load after 5 seconds if no interaction
+    const fallbackTimer = setTimeout(loadGA4, 5000);
 
     return () => {
       clearTimeout(fallbackTimer);
-      window.removeEventListener('scroll', loadAnalytics);
-      window.removeEventListener('click', loadAnalytics);
-      window.removeEventListener('touchstart', loadAnalytics);
-      window.removeEventListener('keydown', loadAnalytics);
+      window.removeEventListener('scroll', loadGA4);
+      window.removeEventListener('click', loadGA4);
+      window.removeEventListener('touchstart', loadGA4);
+      window.removeEventListener('keydown', loadGA4);
     };
   }, []);
 
-  if (!shouldLoad) {
-    return null;
-  }
-
   return (
     <>
-      {/* Google Analytics 4 - load after user interaction */}
+      {/* Google Ads - load IMMEDIATELY for conversion tracking */}
+      {/* This is critical - conversions won't track without it */}
       <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
-        strategy="lazyOnload"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+        strategy="afterInteractive"
       />
-      <Script id="google-analytics" strategy="lazyOnload">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${GA4_MEASUREMENT_ID}');
-          gtag('config', '${GOOGLE_ADS_ID}');
-        `}
-      </Script>
+      
+      {/* GA4 - load after user interaction for performance */}
+      {shouldLoadGA4 && (
+        <>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
+            strategy="lazyOnload"
+          />
+          <Script id="google-analytics-ga4" strategy="lazyOnload">
+            {`
+              window.gtag('config', '${GA4_MEASUREMENT_ID}');
+            `}
+          </Script>
+        </>
+      )}
     </>
   );
 }

@@ -278,6 +278,39 @@ export function Admin() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "reviewing":
+        return "Reviewing";
+      case "interview_scheduled":
+        return "Interview Sent";
+      case "interview_set":
+        return "Interview Set";
+      case "interview_complete":
+        return "Interview Done";
+      case "submitted":
+        return "Submitted";
+      case "offer_sent":
+        return "Offer Sent";
+      case "waitlisted":
+        return "Waitlisted";
+      case "accepted":
+        return "Accepted";
+      case "onboarded":
+        return "Onboarded";
+      case "active":
+        return "Active";
+      case "denied":
+        return "Denied";
+      case "approved":
+        return "Approved";
+      case "rejected":
+        return "Rejected";
+      default:
+        return status;
+    }
+  };
+
   const getStatusCounts = () => {
     return {
       total: applications.length,
@@ -519,7 +552,7 @@ export function Admin() {
                       <CardDescription>{app.email}</CardDescription>
                     </div>
                     <Badge className={getStatusColor(app.status)}>
-                      {app.status}
+                      {getStatusLabel(app.status)}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -550,7 +583,7 @@ export function Admin() {
                     <CardDescription>{selectedApp.email}</CardDescription>
                   </div>
                   <Badge className={getStatusColor(selectedApp.status)}>
-                    {selectedApp.status}
+                    {getStatusLabel(selectedApp.status)}
                   </Badge>
                 </div>
               </CardHeader>

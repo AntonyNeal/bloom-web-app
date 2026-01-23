@@ -16,6 +16,7 @@ import LoadingState from "@/components/common/LoadingState";
 import EmptyState from "@/components/common/EmptyState";
 import NetworkErrorState from "@/components/common/NetworkErrorState";
 import ServerErrorState from "@/components/common/ServerErrorState";
+import { BloomHeader } from "@/components/layout/BloomHeader";
 
 interface InterviewAnalysis {
   summary: string;
@@ -296,79 +297,93 @@ export function Admin() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <a
-          href="#/admin"
-          className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Dashboard
-        </a>
-        <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
-        <LoadingState />
-      </div>
+      <>
+        <BloomHeader showHomeLink={true} />
+        <div className="max-w-7xl mx-auto py-8 px-4">
+          <a
+            href="#/admin"
+            className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Dashboard
+          </a>
+          <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
+          <LoadingState />
+        </div>
+      </>
     );
   }
 
   // Network error state
   if (error === 'network') {
     return (
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <a
-          href="#/admin"
-          className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Dashboard
-        </a>
-        <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
-        <NetworkErrorState onRetry={fetchApplications} lastAttempt={lastAttempt} />
-      </div>
+      <>
+        <BloomHeader showHomeLink={true} />
+        <div className="max-w-7xl mx-auto py-8 px-4">
+          <a
+            href="#/admin"
+            className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Dashboard
+          </a>
+          <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
+          <NetworkErrorState onRetry={fetchApplications} lastAttempt={lastAttempt} />
+        </div>
+      </>
     );
   }
 
   // Server error state
   if (error === 'server') {
     return (
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <a
-          href="#/admin"
-          className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Dashboard
-        </a>
-        <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
-        <ServerErrorState onRetry={fetchApplications} errorCode={errorCode} />
-      </div>
+      <>
+        <BloomHeader showHomeLink={true} />
+        <div className="max-w-7xl mx-auto py-8 px-4">
+          <a
+            href="#/admin"
+            className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Dashboard
+          </a>
+          <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
+          <ServerErrorState onRetry={fetchApplications} errorCode={errorCode} />
+        </div>
+      </>
     );
   }
 
   // Empty state
   if (applications.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <a
-          href="#/admin"
-          className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Dashboard
-        </a>
-        <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
-        <EmptyState />
-      </div>
+      <>
+        <BloomHeader showHomeLink={true} />
+        <div className="max-w-7xl mx-auto py-8 px-4">
+          <a
+            href="#/admin"
+            className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Dashboard
+          </a>
+          <h1 className="text-3xl font-semibold mb-6">Application Management</h1>
+          <EmptyState />
+        </div>
+      </>
     );
   }
 
   const counts = getStatusCounts();
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4">
-      <a
-        href="#/admin"
-        className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
-      >
+    <>
+      <BloomHeader showHomeLink={true} />
+      <div className="max-w-7xl mx-auto py-8 px-4">
+        <a
+          href="#/admin"
+          className="inline-flex items-center gap-2 text-sage-700 hover:text-sage-900 font-display text-body font-medium transition-colors duration-normal mb-6"
+        >
         <ArrowLeft className="w-5 h-5" />
         Back to Dashboard
       </a>
@@ -1176,5 +1191,6 @@ export function Admin() {
         )}
       </div>
     </div>
+    </>
   );
 }

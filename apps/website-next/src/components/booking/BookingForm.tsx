@@ -113,7 +113,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 (p: PractitionerOption) => p.slug === practitionerSlug
               );
               if (match) {
-                console.log('[BookingForm] Pre-selecting practitioner:', match);
+                console.log('[BookingForm] Pre-selecting practitioner:', {
+                  practitioner: match,
+                  hasClinicId: !!match.halaxyClinicId,
+                  hasFeeId: !!match.halaxyFeeId,
+                });
                 setSelectedHalaxyPractitionerId(match.halaxyPractitionerId || null);
                 setSelectedHalaxyClinicId(match.halaxyClinicId || null);
                 setSelectedHalaxyFeeId(match.halaxyFeeId || null);
@@ -1454,6 +1458,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {/* Calendar Section - takes all available space */}
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {console.log('[BookingForm] Rendering TimeSlotCalendar with:', {
+            practitionerId: selectedHalaxyPractitionerId,
+            clinicId: selectedHalaxyClinicId,
+            feeId: selectedHalaxyFeeId,
+          })}
           <TimeSlotCalendar
               onSelectSlot={(date, time) => {
                 setAppointmentDate(date);

@@ -130,18 +130,48 @@ jobs:
             echo "db_changed=true" >> $GITHUB_OUTPUT
             echo "📋 Migrations requested via manual trigger"
           else
-            # Use github.event.before to compare ALL commits in this push, not just HEAD~1
-            # This catches migrations when multiple commits are pushed together
+            # ROBUST DETECTION: Check both recent changes AND merge-base to catch all scenarios
+            # This prevents missing migrations that were in earlier commits but pushed together
+            
             BEFORE="${{ github.event.before }}"
-            if [ "$BEFORE" == "0000000000000000000000000000000000000000" ]; then
-              # New branch - compare against default branch
-              BEFORE="origin/${{ github.event.repository.default_branch }}"
+            FOUND_CHANGES=false
+            
+            # Scenario 1: Check commits in this specific push (HEAD vs before)
+            if [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+              echo "📋 Checking push range $BEFORE..HEAD for database changes"
+              if git diff --name-only "$BEFORE" HEAD 2>/dev/null | grep -qE "^db/(migrations/|schema\.sql)"; then
+                FOUND_CHANGES=true
+                echo "✅ Database changes found in push range"
+              fi
             fi
-            echo "📋 Comparing $BEFORE..HEAD for database changes"
-            # Check for changes in db/migrations/ OR db/schema.sql (the source of truth)
-            if git diff --name-only "$BEFORE" HEAD 2>/dev/null | grep -qE "^db/(migrations/|schema\.sql)"; then
+            
+            # Scenario 2: Check merge-base against origin (catches multi-commit pushes)
+            if [ "$FOUND_CHANGES" = false ]; then
+              ORIGIN_BRANCH="origin/${{ github.ref_name }}"
+              # Get the merge-base between local HEAD and what was last on origin
+              if MERGE_BASE=$(git merge-base HEAD "$ORIGIN_BRANCH" 2>/dev/null); then
+                echo "📋 Checking merge-base $MERGE_BASE..HEAD for database changes"
+                if git diff --name-only "$MERGE_BASE" HEAD 2>/dev/null | grep -qE "^db/(migrations/|schema\.sql)"; then
+                  FOUND_CHANGES=true
+                  echo "✅ Database changes found since merge-base"
+                fi
+              fi
+            fi
+            
+            # Scenario 3: New branch - compare against default branch
+            if [ "$FOUND_CHANGES" = false ] && [ "$BEFORE" == "0000000000000000000000000000000000000000" ]; then
+              DEFAULT_BRANCH="origin/${{ github.event.repository.default_branch }}"
+              echo "📋 New branch - comparing against $DEFAULT_BRANCH"
+              if git diff --name-only "$DEFAULT_BRANCH" HEAD 2>/dev/null | grep -qE "^db/(migrations/|schema\.sql)"; then
+                FOUND_CHANGES=true
+                echo "✅ Database changes found in new branch"
+              fi
+            fi
+            
+            # Set output
+            if [ "$FOUND_CHANGES" = true ]; then
               echo "db_changed=true" >> $GITHUB_OUTPUT
-              echo "📋 Database changes detected in push"
+              echo "📋 ✅ Database migration required"
             else
               echo "db_changed=false" >> $GITHUB_OUTPUT
               echo "📋 No database changes detected"

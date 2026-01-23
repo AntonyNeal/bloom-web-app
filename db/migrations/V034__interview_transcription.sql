@@ -14,6 +14,7 @@ ALTER TABLE applications ADD
     interview_notes NVARCHAR(MAX) NULL,                -- Interviewer's manual notes
     interview_recommendation NVARCHAR(50) NULL,        -- strong_yes, yes, maybe, no, strong_no
     interview_analyzed_at DATETIME2 NULL;              -- When analysis was generated
+GO
 
 -- Index for finding applications with completed interviews awaiting review
 CREATE INDEX IX_applications_interview_analysis 

@@ -142,10 +142,8 @@ async function sendEmail(
     console.log('[EmailService] Starting email send...');
     const poller = await client.beginSend(message);
     
-    // Poll with exponential backoff and max 10 retries
-    const result = await poller.pollUntilDone({
-      updateIntervalInMs: 1000, // Start with 1 second
-    });
+    // Poll until done to ensure delivery
+    const result = await poller.pollUntilDone();
 
     console.log(`[EmailService] Send result: status=${result.status}, id=${result.id}`);
     

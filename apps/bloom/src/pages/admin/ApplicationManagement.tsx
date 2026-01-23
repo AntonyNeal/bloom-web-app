@@ -777,14 +777,6 @@ export function Admin() {
                           </p>
                         </div>
                       )}
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "interview_set")}
-                        variant="secondary"
-                        size="sm"
-                        className="w-full"
-                      >
-                        ✓ Mark Time Selected
-                      </Button>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           onClick={() => updateStatus(selectedApp.id, "reviewing")}

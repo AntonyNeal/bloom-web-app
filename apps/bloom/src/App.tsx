@@ -718,7 +718,7 @@ function AnimatedRoutes() {
 
         {/* Accept Offer */}
         <Route
-          path="/accept-offer"
+          path="/accept-offer/:token"
           element={
             <ErrorBoundary>
               <Suspense

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import { API_ENDPOINTS } from "@/config/api";
+import { toast } from "@/hooks/use-toast";
 import LoadingState from "@/components/common/LoadingState";
 import EmptyState from "@/components/common/EmptyState";
 import NetworkErrorState from "@/components/common/NetworkErrorState";
@@ -141,7 +142,10 @@ export function Admin() {
         throw new Error('Failed to save contract URL to application');
       }
 
-      alert('Contract uploaded successfully!');
+      toast({
+        title: "✅ Contract Uploaded",
+        description: "You can now send the offer to the candidate.",
+      });
 
       // Refresh applications list
       await fetchApplications();
@@ -154,7 +158,11 @@ export function Admin() {
       }
     } catch (err) {
       console.error('Error uploading contract:', err);
-      alert(err instanceof Error ? err.message : 'Failed to upload contract');
+      toast({
+        title: "Upload Error",
+        description: err instanceof Error ? err.message : 'Failed to upload contract',
+        variant: "destructive",
+      });
     } finally {
       setIsUploadingContract(false);
     }
@@ -177,7 +185,10 @@ export function Admin() {
       if (!response.ok) {
         // If offer was already accepted, auto-refresh to show correct status
         if (data.code === 'OFFER_ALREADY_ACCEPTED') {
-          alert("This applicant has already accepted the offer. Refreshing...");
+          toast({
+            title: "Already Accepted",
+            description: "This applicant has already accepted the offer. Refreshing...",
+          });
           await fetchApplications();
           if (selectedApp?.id === id) {
             const appResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`);
@@ -189,7 +200,10 @@ export function Admin() {
         throw new Error(data.error || "Failed to send offer");
       }
 
-      alert(`Offer email sent to ${selectedApp?.email || 'applicant'}. Waiting for them to accept.`);
+      toast({
+        title: "📨 Offer Sent!",
+        description: `Offer email sent to ${selectedApp?.email || 'applicant'}. Waiting for them to accept.`,
+      });
 
       // Refresh
       await fetchApplications();
@@ -200,7 +214,11 @@ export function Admin() {
       }
     } catch (error) {
       console.error("Failed to send offer:", error);
-      alert(error instanceof Error ? error.message : "Failed to send offer");
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to send offer",
+        variant: "destructive",
+      });
     }
   };
 

@@ -769,10 +769,21 @@ export function Admin() {
                       <p className="text-sm text-blue-600 mb-2">
                         📨 Offer sent - waiting for response
                       </p>
+                      <Button
+                        onClick={() => sendOffer(selectedApp.id)}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        disabled={!selectedApp.contract_url}
+                      >
+                        🔄 Resend Offer Email
+                      </Button>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           onClick={() => updateStatus(selectedApp.id, "accepted")}
                           size="sm"
+                          disabled={!selectedApp.signed_contract_url}
+                          title={!selectedApp.signed_contract_url ? "Signed contract required to mark as accepted" : ""}
                         >
                           ✅ Mark Accepted
                         </Button>
@@ -784,6 +795,11 @@ export function Admin() {
                           ↩️ Back to Review
                         </Button>
                       </div>
+                      {!selectedApp.signed_contract_url && (
+                        <p className="text-xs text-orange-600">
+                          ⚠️ Waiting for applicant to upload signed contract
+                        </p>
+                      )}
                     </div>
                   )}
 

@@ -854,20 +854,17 @@ export function Admin() {
                     </div>
                   )}
 
-                  {/* Accepted: Onboarding actions */}
+                  {/* Accepted: Awaiting onboarding completion */}
                   {selectedApp.status === "accepted" && (
                     <div className="space-y-2">
                       <p className="text-sm text-green-600 mb-2">
-                        ✅ Accepted - ready for onboarding
+                        ✅ Accepted - awaiting onboarding
                       </p>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "onboarded")}
-                        variant="default"
-                        size="sm"
-                        className="w-full bg-teal-600 hover:bg-teal-700"
-                      >
-                        🚀 Mark as Onboarded
-                      </Button>
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-2">
+                        <p className="text-xs text-emerald-700">
+                          ℹ️ Status will automatically change to "Onboarded" when the applicant completes the onboarding process in the Bloom app.
+                        </p>
+                      </div>
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "reviewing")}
                         variant="outline"

@@ -102,7 +102,19 @@ async function fetchHalaxyAvailability(
   if (!response.ok) {
     const errorText = await response.text();
     context.error(`Halaxy API error: ${response.status} - ${errorText}`);
-    throw new Error(`Halaxy API returned ${response.status}`);
+    
+    // Parse error for better client-side handling
+    let errorDetails = errorText;
+    try {
+      const parsed = JSON.parse(errorText);
+      if (parsed.message === 'Practitioner Clinic not found') {
+        errorDetails = 'This practitioner is not configured for online booking yet';
+      }
+    } catch {
+      // Use raw error text
+    }
+    
+    throw new Error(errorDetails);
   }
 
   const data: HalaxyAvailabilityResponse = await response.json();

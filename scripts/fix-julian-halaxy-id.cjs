@@ -5,7 +5,7 @@
  * but should be "1473161" (actual Halaxy practitioner ID)
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7071/api';
+const API_URL = 'https://bloom-functions-dev.azurewebsites.net/api';
 
 async function fixJulianHalaxyId() {
   console.log('Fetching current practitioners...');
@@ -16,9 +16,9 @@ async function fixJulianHalaxyId() {
   
   console.log('Practitioners:', JSON.stringify(data.practitioners, null, 2));
   
-  const julian = data.practitioners.find((p: any) => 
+  const julian = data.practitioners.find((p) => 
     p.firstName.toLowerCase().includes('julian') || 
-    p.displayName?.toLowerCase().includes('julian')
+    (p.displayName && p.displayName.toLowerCase().includes('julian'))
   );
   
   if (!julian) {
@@ -51,7 +51,7 @@ async function fixJulianHalaxyId() {
   console.log('\nVerifying update...');
   const verifyResponse = await fetch(`${API_URL}/public/practitioners`);
   const verifyData = await verifyResponse.json();
-  const updatedJulian = verifyData.practitioners.find((p: any) => p.id === julian.id);
+  const updatedJulian = verifyData.practitioners.find((p) => p.id === julian.id);
   
   console.log('Updated Julian:');
   console.log('  halaxyPractitionerId:', updatedJulian.halaxyPractitionerId);

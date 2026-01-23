@@ -26,8 +26,8 @@ const INTERVIEWER_PRACTITIONER_IDS = {
 
 // Use Zoe's practitioner role for booking (she owns the interview slot)
 const INTERVIEW_PRACTITIONER_ID = INTERVIEWER_PRACTITIONER_IDS.ZOE;
-const INTERVIEW_PRACTITIONER_ROLE_ID = process.env.INTERVIEW_PRACTITIONER_ROLE_ID || 'PR-2442591';
-const INTERVIEW_HEALTHCARE_SERVICE_ID = process.env.INTERVIEW_HEALTHCARE_SERVICE_ID || '567387';
+const _INTERVIEW_PRACTITIONER_ROLE_ID = process.env.INTERVIEW_PRACTITIONER_ROLE_ID || 'PR-2442591';
+const _INTERVIEW_HEALTHCARE_SERVICE_ID = process.env.INTERVIEW_HEALTHCARE_SERVICE_ID || '567387';
 const INTERVIEW_DURATION_MINS = 30;
 
 // CORS headers
@@ -276,7 +276,7 @@ async function bookInterviewSlot(
 
     // Create Halaxy appointment for the interview
     // First, we need to create/find the applicant as a patient in Halaxy
-    const { HalaxyClient, getHalaxyClient } = await import('../services/halaxy/client');
+    const { HalaxyClient: _HalaxyClient, getHalaxyClient } = await import('../services/halaxy/client');
     const halaxyClient = getHalaxyClient();
 
     // Create patient record for the applicant

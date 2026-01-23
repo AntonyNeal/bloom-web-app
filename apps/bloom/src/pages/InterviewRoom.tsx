@@ -41,17 +41,7 @@ export default function InterviewRoom() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  useEffect(() => {
-    if (!token) {
-      setError('Invalid interview link');
-      setPageState('error');
-      return;
-    }
-
-    fetchInterviewDetails();
-  }, [token]);
-
-  const fetchInterviewDetails = async () => {
+  const fetchInterviewDetails = useCallback(async () => {
     try {
       const response = await fetch(`${API_ENDPOINTS.interview}/${token}`);
       const data = await response.json();
@@ -80,11 +70,26 @@ export default function InterviewRoom() {
 
       setInterview(data.interview);
       setPageState('waiting');
-    } catch (err) {
+    } catch (_err) {
       setError('Unable to load interview. Please try again.');
       setPageState('error');
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    // Async data fetch is a valid pattern - setState happens after await
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchInterviewDetails();
+  }, [token, fetchInterviewDetails]);
+
+  // Handle missing token by computing error state from token
+  const tokenError = !token ? 'Invalid interview link' : null;
+  const effectivePageState = tokenError && pageState === 'loading' ? 'error' : pageState;
+  const effectiveError = tokenError || error;
 
   const joinCall = useCallback(async () => {
     if (!interview?.acsRoomId) return;
@@ -179,7 +184,7 @@ export default function InterviewRoom() {
   };
 
   // Loading state
-  if (pageState === 'loading') {
+  if (effectivePageState === 'loading') {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -191,7 +196,7 @@ export default function InterviewRoom() {
   }
 
   // Error state
-  if (pageState === 'error') {
+  if (effectivePageState === 'error') {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-gray-800 rounded-2xl p-8 text-center">
@@ -199,7 +204,7 @@ export default function InterviewRoom() {
             <span className="text-3xl">❌</span>
           </div>
           <h1 className="text-2xl font-semibold text-white mb-3">Unable to Join</h1>
-          <p className="text-gray-400 mb-6">{error}</p>
+          <p className="text-gray-400 mb-6">{effectiveError}</p>
           <p className="text-sm text-gray-500">
             Need help?{' '}
             <a href="mailto:support@life-psychology.com.au" className="text-emerald-400 hover:underline">

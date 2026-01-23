@@ -32,7 +32,7 @@ interface ScheduleResponse {
 
 export default function ScheduleInterview() {
   const { token } = useParams<{ token: string }>();
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
@@ -74,7 +74,7 @@ export default function ScheduleInterview() {
 
       setApplicant(data.applicant || null);
       setSlots(data.slots || []);
-    } catch (err) {
+    } catch (_err) {
       setError('Unable to load scheduling options. Please try again later.');
     } finally {
       setLoading(false);
@@ -108,7 +108,7 @@ export default function ScheduleInterview() {
       setSuccess(true);
       setScheduledAt(data.scheduledAt);
       setInterviewLink(data.interviewLink);
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to book interview. Please try again.');
     } finally {
       setBooking(false);

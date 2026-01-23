@@ -1,9 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
-// Performance debugging for Lighthouse FCP issues
-const perfStart = performance.now();
-
 // Import ONLY landing page critical CSS
 import './index.css'
 import './styles/landing-animations.css'

@@ -61,6 +61,10 @@ export async function fetchAvailableSlots(
 
     const endpoint = `${functionUrl}?${queryParams.toString()}`;
 
+    console.log('[HalaxyAvailability] Fetching with params:', { 
+      practitionerId: params.practitionerId,
+      endpoint 
+    });
     log.debug('Fetching availability from Azure Function', 'HalaxyAvailability', { endpoint });
 
     const response = await fetch(endpoint, {

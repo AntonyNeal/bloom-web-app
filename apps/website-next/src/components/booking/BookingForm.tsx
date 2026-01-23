@@ -100,6 +100,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         const response = await fetch(`${apiUrl}/public/practitioners`);
         if (response.ok) {
           const data = await response.json();
+          console.log('[BookingForm] Practitioners data:', data.practitioners);
           if (data.success && data.practitioners) {
             setPractitioners(data.practitioners);
             // If practitionerSlug was passed, pre-select that practitioner
@@ -108,6 +109,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 (p: PractitionerOption) => p.slug === practitionerSlug
               );
               if (match) {
+                console.log('[BookingForm] Pre-selecting practitioner:', match);
                 setSelectedHalaxyPractitionerId(match.halaxyPractitionerId || null);
               }
             }
@@ -967,7 +969,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 <select
                   id="practitioner-select"
                   value={selectedHalaxyPractitionerId || ''}
-                  onChange={(e) => setSelectedHalaxyPractitionerId(e.target.value || null)}
+                  onChange={(e) => {
+                    const newValue = e.target.value || null;
+                    console.log('[BookingForm] Practitioner changed to:', newValue);
+                    setSelectedHalaxyPractitionerId(newValue);
+                  }}
                   className="w-full px-2 py-[clamp(6px,1.2vh,10px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 >
                   <option value="">First available psychologist</option>

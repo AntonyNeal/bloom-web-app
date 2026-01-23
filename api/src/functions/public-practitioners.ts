@@ -81,14 +81,30 @@ async function publicPractitionersHandler(
     
     if (slug) {
       // Single practitioner lookup - use only base columns
+      // Use conditional columns for backward compatibility
+      const columnCheckResult = await pool.request().query(`
+        SELECT COUNT(*) as has_clinic_col
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_NAME = 'practitioners' 
+        AND COLUMN_NAME = 'halaxy_clinic_id'
+      `);
+      const hasClinicColumns = columnCheckResult.recordset[0]?.has_clinic_col > 0;
+      
+      const selectClause = hasClinicColumns 
+        ? `p.id,
+            p.halaxy_practitioner_id,
+            p.halaxy_clinic_id,
+            p.halaxy_fee_id,`
+        : `p.id,
+            p.halaxy_practitioner_id,
+            NULL as halaxy_clinic_id,
+            NULL as halaxy_fee_id,`;
+      
       const result = await pool.request()
         .input('slug', sql.NVarChar, slug)
         .query(`
           SELECT 
-            p.id,
-            p.halaxy_practitioner_id,
-            p.halaxy_clinic_id,
-            p.halaxy_fee_id,
+            ${selectClause}
             LOWER(REPLACE(p.display_name, ' ', '-')) as url_slug,
             p.display_name,
             p.first_name,
@@ -126,12 +142,28 @@ async function publicPractitionersHandler(
 
     // List all active practitioners
     // Query uses only base columns that always exist, with optional V030 columns
-    const result = await pool.request().query(`
-      SELECT 
-        p.id,
+    // Check if clinic/fee columns exist for backward compatibility
+    const columnCheckResult = await pool.request().query(`
+      SELECT COUNT(*) as has_clinic_col
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_NAME = 'practitioners' 
+      AND COLUMN_NAME = 'halaxy_clinic_id'
+    `);
+    const hasClinicColumns = columnCheckResult.recordset[0]?.has_clinic_col > 0;
+    
+    const selectClause = hasClinicColumns 
+      ? `p.id,
         p.halaxy_practitioner_id,
         p.halaxy_clinic_id,
-        p.halaxy_fee_id,
+        p.halaxy_fee_id,`
+      : `p.id,
+        p.halaxy_practitioner_id,
+        NULL as halaxy_clinic_id,
+        NULL as halaxy_fee_id,`;
+    
+    const result = await pool.request().query(`
+      SELECT 
+        ${selectClause}
         LOWER(REPLACE(p.display_name, ' ', '-')) as url_slug,
         p.display_name,
         p.first_name,

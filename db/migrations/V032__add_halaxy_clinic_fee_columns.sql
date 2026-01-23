@@ -5,6 +5,7 @@
 ALTER TABLE practitioners
 ADD halaxy_clinic_id NVARCHAR(50) NULL,
     halaxy_fee_id NVARCHAR(50) NULL;
+GO
 
 -- Update Zoe's values (verified working values)
 UPDATE practitioners

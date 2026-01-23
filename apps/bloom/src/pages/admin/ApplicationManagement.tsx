@@ -218,6 +218,10 @@ export function Admin() {
         return "bg-orange-100 text-orange-800 hover:bg-orange-200";
       case "accepted":
         return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "onboarded":
+        return "bg-teal-100 text-teal-800 hover:bg-teal-200";
+      case "active":
+        return "bg-emerald-100 text-emerald-800 hover:bg-emerald-200";
       case "denied":
         return "bg-red-100 text-red-800 hover:bg-red-200";
       case "approved":
@@ -238,6 +242,8 @@ export function Admin() {
       offer: applications.filter((a) => a.status === "offer_sent").length,
       waitlisted: applications.filter((a) => a.status === "waitlisted").length,
       accepted: applications.filter((a) => a.status === "accepted" || a.status === "approved").length,
+      onboarded: applications.filter((a) => a.status === "onboarded").length,
+      active: applications.filter((a) => a.status === "active").length,
       denied: applications.filter((a) => a.status === "denied" || a.status === "rejected").length,
     };
   };
@@ -378,6 +384,22 @@ export function Admin() {
                 {counts.accepted}
               </div>
               <p className="text-xs text-neutral-600">Accepted</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-teal-600">
+                {counts.onboarded}
+              </div>
+              <p className="text-xs text-neutral-600">Onboarded</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-emerald-600">
+                {counts.active}
+              </div>
+              <p className="text-xs text-neutral-600">Active</p>
             </CardContent>
           </Card>
           <Card>
@@ -805,11 +827,12 @@ export function Admin() {
                         ✅ Accepted - ready for onboarding
                       </p>
                       <Button
+                        onClick={() => updateStatus(selectedApp.id, "onboarded")}
                         variant="default"
                         size="sm"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700"
+                        className="w-full bg-teal-600 hover:bg-teal-700"
                       >
-                        🚀 Send Onboarding Email
+                        🚀 Mark as Onboarded
                       </Button>
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "reviewing")}
@@ -818,6 +841,51 @@ export function Admin() {
                         className="w-full"
                       >
                         ↩️ Move Back to Reviewing
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Onboarded: Activation actions */}
+                  {selectedApp.status === "onboarded" && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-teal-600 mb-2">
+                        🎓 Onboarded - ready to activate
+                      </p>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "active")}
+                        variant="default"
+                        size="sm"
+                        className="w-full bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        ✅ Mark as Active
+                      </Button>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "accepted")}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        ↩️ Back to Accepted
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Active: Practitioner is working */}
+                  {selectedApp.status === "active" && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-emerald-600 mb-2">
+                        🌟 Active Practitioner
+                      </p>
+                      <p className="text-xs text-neutral-600 mb-2">
+                        This practitioner is currently active and taking clients.
+                      </p>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "onboarded")}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        ↩️ Back to Onboarded
                       </Button>
                     </div>
                   )}

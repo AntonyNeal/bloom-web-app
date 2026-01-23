@@ -333,8 +333,25 @@ async function applicationsHandler(
           const emailResult = await sendWaitlistEmail(emailContext);
           context.log(`Waitlist email result: ${JSON.stringify(emailResult)}`);
         } else if (status === 'interview_scheduled') {
-          context.log(`Sending interview email to ${updatedApp.email}`);
-          const emailResult = await sendInterviewEmail(emailContext);
+          // Create interview scheduling token
+          const applicationId = parseInt(id!, 10);
+          context.log(`Creating interview token for application ${applicationId}`);
+          const { schedulingLink } = await createInterviewToken(
+            applicationId,
+            {
+              firstName: updatedApp.first_name,
+              lastName: updatedApp.last_name,
+              email: updatedApp.email,
+            },
+            context
+          );
+          
+          context.log(`Sending interview email to ${updatedApp.email} with link: ${schedulingLink}`);
+          const emailResult = await sendInterviewEmail({
+            ...emailContext,
+            bookingUrl: schedulingLink,
+            contractUrl: updatedApp.contract_url || undefined,
+          });
           context.log(`Interview email result: ${JSON.stringify(emailResult)}`);
         }
       } catch (emailError) {

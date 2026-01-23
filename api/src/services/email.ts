@@ -1279,7 +1279,8 @@ Zoe & The ${COMPANY_NAME} Team
     personalEmail,
     `🌸 Welcome to Life Psychology! Your account is ready`,
     htmlContent,
-    plainTextContent
+    plainTextContent,
+    ADMIN_NOTIFICATION_EMAIL // CC admin on welcome emails
   );
 }
 

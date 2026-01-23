@@ -134,7 +134,7 @@ export function Admin() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: selectedApp?.status || 'submitted',
+          status: selectedApp?.status || 'reviewing',
           contract_url: uploadData.url,
         }),
       });
@@ -225,12 +225,16 @@ export function Admin() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "submitted":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
       case "reviewing":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
+        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
       case "interview_scheduled":
         return "bg-cyan-100 text-cyan-800 hover:bg-cyan-200";
+      case "interview_set":
+        return "bg-sky-100 text-sky-800 hover:bg-sky-200";
+      case "interview_complete":
+        return "bg-indigo-100 text-indigo-800 hover:bg-indigo-200";
+      case "submitted":  // Legacy
+        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
       case "offer_sent":
         return "bg-purple-100 text-purple-800 hover:bg-purple-200";
       case "waitlisted":
@@ -255,9 +259,10 @@ export function Admin() {
   const getStatusCounts = () => {
     return {
       total: applications.length,
-      submitted: applications.filter((a) => a.status === "submitted").length,
-      reviewing: applications.filter((a) => a.status === "reviewing").length,
-      interview: applications.filter((a) => a.status === "interview_scheduled").length,
+      reviewing: applications.filter((a) => a.status === "reviewing" || a.status === "submitted").length,
+      interviewScheduled: applications.filter((a) => a.status === "interview_scheduled").length,
+      interviewSet: applications.filter((a) => a.status === "interview_set").length,
+      interviewComplete: applications.filter((a) => a.status === "interview_complete").length,
       offer: applications.filter((a) => a.status === "offer_sent").length,
       waitlisted: applications.filter((a) => a.status === "waitlisted").length,
       accepted: applications.filter((a) => a.status === "accepted" || a.status === "approved").length,
@@ -360,14 +365,6 @@ export function Admin() {
           <Card>
             <CardContent className="pt-6">
               <div className="text-2xl font-bold text-blue-600">
-                {counts.submitted}
-              </div>
-              <p className="text-xs text-neutral-600">Submitted</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-yellow-600">
                 {counts.reviewing}
               </div>
               <p className="text-xs text-neutral-600">Reviewing</p>
@@ -376,9 +373,25 @@ export function Admin() {
           <Card>
             <CardContent className="pt-6">
               <div className="text-2xl font-bold text-cyan-600">
-                {counts.interview}
+                {counts.interviewScheduled}
               </div>
-              <p className="text-xs text-neutral-600">Interview</p>
+              <p className="text-xs text-neutral-600">Interview Sent</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-sky-600">
+                {counts.interviewSet}
+              </div>
+              <p className="text-xs text-neutral-600">Interview Set</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-indigo-600">
+                {counts.interviewComplete}
+              </div>
+              <p className="text-xs text-neutral-600">Interview Done</p>
             </CardContent>
           </Card>
           <Card>
@@ -683,38 +696,8 @@ export function Admin() {
                 <div className="pt-4 space-y-2 border-t">
                   <Label className="font-medium">Workflow Actions</Label>
                   
-                  {/* Submitted: Move to reviewing or quick actions */}
-                  {selectedApp.status === "submitted" && (
-                    <div className="space-y-2">
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "reviewing")}
-                        variant="secondary"
-                        size="sm"
-                        className="w-full"
-                      >
-                        📋 Move to Reviewing
-                      </Button>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          onClick={() => sendOffer(selectedApp.id)}
-                          size="sm"
-                          disabled={!selectedApp.contract_url}
-                        >
-                          ✉️ Send Offer
-                        </Button>
-                        <Button
-                          onClick={() => updateStatus(selectedApp.id, "denied")}
-                          variant="destructive"
-                          size="sm"
-                        >
-                          ❌ Deny
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Reviewing: Full workflow options */}
-                  {selectedApp.status === "reviewing" && (
+                  {/* Reviewing: Full workflow options (also handles legacy 'submitted' status) */}
+                  {(selectedApp.status === "reviewing" || selectedApp.status === "submitted") && (
                     <div className="space-y-2">
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
@@ -751,9 +734,78 @@ export function Admin() {
                     </div>
                   )}
 
-                  {/* Interview Scheduled: Post-interview actions */}
+                  {/* Interview Scheduled: Waiting for applicant to pick a time */}
                   {selectedApp.status === "interview_scheduled" && (
                     <div className="space-y-2">
+                      <p className="text-sm text-cyan-600 mb-2">
+                        📧 Interview link sent - waiting for applicant to book
+                      </p>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "interview_set")}
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                      >
+                        ✓ Mark Time Selected
+                      </Button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "reviewing")}
+                          variant="outline"
+                          size="sm"
+                        >
+                          ↩️ Back to Review
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "denied")}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          ❌ Deny
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Interview Set: Applicant has booked a time */}
+                  {selectedApp.status === "interview_set" && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-sky-600 mb-2">
+                        📅 Interview time confirmed
+                      </p>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "interview_complete")}
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                      >
+                        ✓ Mark Interview Complete
+                      </Button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
+                          variant="outline"
+                          size="sm"
+                        >
+                          ↩️ Reschedule
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "denied")}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          ❌ Deny
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Interview Complete: Post-interview decisions */}
+                  {selectedApp.status === "interview_complete" && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-indigo-600 mb-2">
+                        ✅ Interview completed - ready for decision
+                      </p>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           onClick={() => sendOffer(selectedApp.id)}

@@ -337,14 +337,14 @@ async function bookInterviewSlot(
         WHERE token = @token
       `);
 
-    // Update application status to interview_scheduled
+    // Update application status to interview_set (applicant has booked a time)
     await pool.request()
       .input('applicationId', sql.Int, tokenData.application_id)
       .input('scheduledAt', sql.DateTime2, interviewTime)
       .query(`
         UPDATE applications
         SET 
-          status = 'interview_scheduled',
+          status = 'interview_set',
           interview_scheduled_at = @scheduledAt,
           updated_at = GETUTCDATE()
         WHERE id = @applicationId

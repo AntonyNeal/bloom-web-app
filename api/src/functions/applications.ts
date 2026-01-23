@@ -248,13 +248,15 @@ async function applicationsHandler(
 
       // Valid statuses for the application workflow
       const validStatuses = [
-        'submitted',
         'reviewing',
         'denied',
         'waitlisted',
         'interview_scheduled',
+        'interview_set',
+        'interview_complete',
         'offer_sent',
         'accepted',
+        'submitted',  // Legacy
         'approved',  // Legacy
         'rejected',  // Legacy
       ];

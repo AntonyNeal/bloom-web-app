@@ -18,4 +18,8 @@ export const API_ENDPOINTS = {
   acceptOffer: (token: string) => `${API_BASE_URL}/accept-offer/${token}`,
   scheduleInterview: `${API_BASE_URL}/schedule-interview`,
   interview: `${API_BASE_URL}/interview`,
+  interviewTranscribe: (token: string) => `${API_BASE_URL}/interview/${token}/transcribe`,
+  interviewTranscribeAudio: (token: string) => `${API_BASE_URL}/interview/${token}/transcribe-audio`,
+  interviewAnalyze: (token: string) => `${API_BASE_URL}/interview/${token}/analyze`,
+  interviewAnalysis: (token: string) => `${API_BASE_URL}/interview/${token}/analysis`,
 } as const;

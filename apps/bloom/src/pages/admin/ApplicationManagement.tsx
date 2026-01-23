@@ -17,6 +17,18 @@ import EmptyState from "@/components/common/EmptyState";
 import NetworkErrorState from "@/components/common/NetworkErrorState";
 import ServerErrorState from "@/components/common/ServerErrorState";
 
+interface InterviewAnalysis {
+  summary: string;
+  strengths: string[];
+  concerns: string[];
+  clinicalKnowledge: { rating: number; notes: string };
+  communicationSkills: { rating: number; notes: string };
+  telehealthReadiness: { rating: number; notes: string };
+  culturalFit: { rating: number; notes: string };
+  recommendation: 'strong_yes' | 'yes' | 'maybe' | 'no' | 'strong_no';
+  additionalNotes: string;
+}
+
 interface Application {
   id: number;
   first_name: string;
@@ -37,6 +49,11 @@ interface Application {
   offer_sent_at?: string | null;
   offer_accepted_at?: string | null;
   halaxy_practitioner_verified?: boolean;
+  // Interview analysis fields
+  interview_analysis?: InterviewAnalysis | null;
+  interview_notes?: string | null;
+  interview_recommendation?: string | null;
+  interview_analyzed_at?: string | null;
 }
 
 type ErrorType = 'network' | 'server' | null;
@@ -802,10 +819,86 @@ export function Admin() {
 
                   {/* Interview Complete: Post-interview decisions */}
                   {selectedApp.status === "interview_complete" && (
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <p className="text-sm text-indigo-600 mb-2">
                         ✅ Interview completed - ready for decision
                       </p>
+                      
+                      {/* AI Analysis Summary */}
+                      {selectedApp.interview_analysis && (
+                        <div className="bg-gray-50 rounded-lg p-3 space-y-3 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-gray-700">AI Analysis</span>
+                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                              selectedApp.interview_recommendation === 'strong_yes' ? 'bg-green-100 text-green-700' :
+                              selectedApp.interview_recommendation === 'yes' ? 'bg-emerald-100 text-emerald-700' :
+                              selectedApp.interview_recommendation === 'maybe' ? 'bg-yellow-100 text-yellow-700' :
+                              selectedApp.interview_recommendation === 'no' ? 'bg-orange-100 text-orange-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {selectedApp.interview_recommendation?.replace('_', ' ').toUpperCase()}
+                            </span>
+                          </div>
+                          <p className="text-gray-600">{selectedApp.interview_analysis.summary}</p>
+                          
+                          {/* Ratings */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Clinical:</span>
+                              <span className="font-medium">{selectedApp.interview_analysis.clinicalKnowledge?.rating}/5</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Communication:</span>
+                              <span className="font-medium">{selectedApp.interview_analysis.communicationSkills?.rating}/5</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Telehealth:</span>
+                              <span className="font-medium">{selectedApp.interview_analysis.telehealthReadiness?.rating}/5</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Culture Fit:</span>
+                              <span className="font-medium">{selectedApp.interview_analysis.culturalFit?.rating}/5</span>
+                            </div>
+                          </div>
+                          
+                          {/* Strengths & Concerns */}
+                          {selectedApp.interview_analysis.strengths?.length > 0 && (
+                            <div>
+                              <span className="text-green-600 font-medium">✓ Strengths:</span>
+                              <ul className="ml-4 text-gray-600 list-disc">
+                                {selectedApp.interview_analysis.strengths.slice(0, 3).map((s, i) => (
+                                  <li key={i}>{s}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {selectedApp.interview_analysis.concerns?.length > 0 && (
+                            <div>
+                              <span className="text-orange-600 font-medium">⚠ Concerns:</span>
+                              <ul className="ml-4 text-gray-600 list-disc">
+                                {selectedApp.interview_analysis.concerns.slice(0, 3).map((c, i) => (
+                                  <li key={i}>{c}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {selectedApp.interview_analyzed_at && (
+                            <p className="text-xs text-gray-400">
+                              Analyzed {new Date(selectedApp.interview_analyzed_at).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Manual Notes */}
+                      {selectedApp.interview_notes && (
+                        <div className="bg-blue-50 rounded-lg p-3">
+                          <span className="text-sm font-medium text-blue-700">📝 Notes:</span>
+                          <p className="text-sm text-blue-600 mt-1">{selectedApp.interview_notes}</p>
+                        </div>
+                      )}
+                      
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           onClick={() => sendOffer(selectedApp.id)}

@@ -979,6 +979,25 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                     const newValue = e.target.value || null;
                     console.log('[BookingForm] Practitioner changed to:', newValue);
                     setSelectedHalaxyPractitionerId(newValue);
+                    
+                    // Also update clinic and fee IDs for the selected practitioner
+                    if (newValue) {
+                      const selectedPractitioner = practitioners.find(
+                        (p) => p.halaxyPractitionerId === newValue
+                      );
+                      if (selectedPractitioner) {
+                        console.log('[BookingForm] Setting clinic/fee IDs:', {
+                          clinicId: selectedPractitioner.halaxyClinicId,
+                          feeId: selectedPractitioner.halaxyFeeId,
+                        });
+                        setSelectedHalaxyClinicId(selectedPractitioner.halaxyClinicId || null);
+                        setSelectedHalaxyFeeId(selectedPractitioner.halaxyFeeId || null);
+                      }
+                    } else {
+                      // Clear clinic/fee when "First available" is selected
+                      setSelectedHalaxyClinicId(null);
+                      setSelectedHalaxyFeeId(null);
+                    }
                   }}
                   className="w-full px-2 py-[clamp(6px,1.2vh,10px)] text-[clamp(0.8rem,1.6vh,1rem)] bg-white rounded-lg focus:outline-none transition-all border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 >

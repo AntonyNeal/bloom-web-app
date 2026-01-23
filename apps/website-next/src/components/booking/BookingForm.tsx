@@ -134,6 +134,17 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     fetchPractitioners();
   }, [practitionerSlug]);
 
+  // Log practitioner IDs when datetime step is shown
+  useEffect(() => {
+    if (step === 'datetime') {
+      console.log('[BookingForm] Datetime step - practitioner IDs:', {
+        practitionerId: selectedHalaxyPractitionerId,
+        clinicId: selectedHalaxyClinicId,
+        feeId: selectedHalaxyFeeId,
+      });
+    }
+  }, [step, selectedHalaxyPractitionerId, selectedHalaxyClinicId, selectedHalaxyFeeId]);
+
   // Load cached user details on mount
   useEffect(() => {
     try {
@@ -1458,11 +1469,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {/* Calendar Section - takes all available space */}
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          {console.log('[BookingForm] Rendering TimeSlotCalendar with:', {
-            practitionerId: selectedHalaxyPractitionerId,
-            clinicId: selectedHalaxyClinicId,
-            feeId: selectedHalaxyFeeId,
-          })}
           <TimeSlotCalendar
               onSelectSlot={(date, time) => {
                 setAppointmentDate(date);

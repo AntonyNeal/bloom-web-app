@@ -49,7 +49,21 @@ async function applicationsHandler(
       context.log('Fetching all applications');
       const result = await pool
         .request()
-        .query('SELECT * FROM applications ORDER BY created_at DESC');
+        .query(`
+          SELECT 
+            a.*,
+            it.interview_scheduled_at as scheduled_interview_time,
+            it.halaxy_appointment_id,
+            it.token as interview_token
+          FROM applications a
+          LEFT JOIN interview_tokens it ON it.application_id = a.id
+            AND it.id = (
+              SELECT TOP 1 id FROM interview_tokens 
+              WHERE application_id = a.id 
+              ORDER BY created_at DESC
+            )
+          ORDER BY a.created_at DESC
+        `);
 
       return {
         status: 200,
@@ -63,7 +77,21 @@ async function applicationsHandler(
       const result = await pool
         .request()
         .input('id', sql.Int, id)
-        .query('SELECT * FROM applications WHERE id = @id');
+        .query(`
+          SELECT 
+            a.*,
+            it.interview_scheduled_at as scheduled_interview_time,
+            it.halaxy_appointment_id,
+            it.token as interview_token
+          FROM applications a
+          LEFT JOIN interview_tokens it ON it.application_id = a.id
+            AND it.id = (
+              SELECT TOP 1 id FROM interview_tokens 
+              WHERE application_id = a.id 
+              ORDER BY created_at DESC
+            )
+          WHERE a.id = @id
+        `);
 
       if (result.recordset.length === 0) {
         return {

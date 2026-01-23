@@ -54,6 +54,10 @@ interface Application {
   interview_notes?: string | null;
   interview_recommendation?: string | null;
   interview_analyzed_at?: string | null;
+  // Interview scheduling fields
+  scheduled_interview_time?: string | null;
+  halaxy_appointment_id?: number | null;
+  interview_token?: string | null;
 }
 
 type ErrorType = 'network' | 'server' | null;
@@ -757,6 +761,22 @@ export function Admin() {
                       <p className="text-sm text-cyan-600 mb-2">
                         📧 Interview link sent - waiting for applicant to book
                       </p>
+                      {selectedApp.scheduled_interview_time && (
+                        <div className="bg-cyan-50 rounded-lg p-3 mb-2">
+                          <p className="text-sm font-medium text-cyan-700">📅 Scheduled for:</p>
+                          <p className="text-sm text-cyan-600">
+                            {new Date(selectedApp.scheduled_interview_time).toLocaleString('en-AU', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                          </p>
+                        </div>
+                      )}
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "interview_set")}
                         variant="secondary"
@@ -790,6 +810,32 @@ export function Admin() {
                       <p className="text-sm text-sky-600 mb-2">
                         📅 Interview time confirmed
                       </p>
+                      {selectedApp.scheduled_interview_time && (
+                        <div className="bg-sky-50 rounded-lg p-3 mb-2">
+                          <p className="text-sm font-medium text-sky-700">🗓️ Interview scheduled:</p>
+                          <p className="text-sky-800 font-medium">
+                            {new Date(selectedApp.scheduled_interview_time).toLocaleString('en-AU', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                          </p>
+                          {selectedApp.interview_token && (
+                            <a
+                              href={`#/interview/${selectedApp.interview_token}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-sky-600 hover:underline mt-1 inline-block"
+                            >
+                              Open interview room →
+                            </a>
+                          )}
+                        </div>
+                      )}
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "interview_complete")}
                         variant="secondary"

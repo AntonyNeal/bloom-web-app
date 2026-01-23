@@ -32,15 +32,15 @@ export default function AcceptOffer() {
       }
 
       try {
-        console.log('≡ƒöì Fetching offer with token:', token);
+        console.log('🔍 Fetching offer with token:', token);
         const url = API_ENDPOINTS.acceptOffer(token);
-        console.log('≡ƒöì Fetching URL:', url);
+        console.log('🔍 Fetching URL:', url);
         
         const response = await fetch(url);
-        console.log('≡ƒöì Response status:', response.status);
+        console.log('🔍 Response status:', response.status);
         
         const data = await response.json();
-        console.log('≡ƒöì Response data:', data);
+        console.log('🔍 Response data:', data);
 
         if (!response.ok) {
           throw new Error(data.error || 'Failed to load offer');
@@ -54,7 +54,7 @@ export default function AcceptOffer() {
           setSignedContractUploaded(true);
         }
       } catch (err) {
-        console.error('≡ƒö┤ Error loading offer:', err);
+        console.error('❌ Error loading offer:', err);
         setError(err instanceof Error ? err.message : 'Failed to load offer');
       } finally {
         setLoading(false);
@@ -71,14 +71,14 @@ export default function AcceptOffer() {
     setError(null);
     
     try {
-      console.log('≡ƒôñ Starting contract upload:', file.name);
+      console.log('📤 Starting contract upload:', file.name);
       
       // Create FormData to upload the file
       const formData = new FormData();
       formData.append('file', file);
 
       const uploadUrl = API_ENDPOINTS.acceptOffer(token) + '/signed-contract';
-      console.log('≡ƒôñ Upload URL:', uploadUrl);
+      console.log('📤 Upload URL:', uploadUrl);
 
       // Upload directly to the signed contract endpoint
       const uploadResponse = await fetch(uploadUrl, {
@@ -86,19 +86,19 @@ export default function AcceptOffer() {
         body: formData,
       });
 
-      console.log('≡ƒôñ Upload response status:', uploadResponse.status);
+      console.log('📤 Upload response status:', uploadResponse.status);
       const data = await uploadResponse.json();
-      console.log('≡ƒôñ Upload response data:', data);
+      console.log('📤 Upload response data:', data);
 
       if (!uploadResponse.ok) {
         throw new Error(data.error || 'Failed to upload contract');
       }
 
-      console.log('Γ£à Contract uploaded successfully');
+      console.log('✅ Contract uploaded successfully');
       setSignedContractUploaded(true);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to upload contract';
-      console.error('≡ƒö┤ Upload error:', errorMsg);
+      console.error('❌ Upload error:', errorMsg);
       setError(errorMsg);
     } finally {
       setUploading(false);
@@ -110,15 +110,15 @@ export default function AcceptOffer() {
 
     setAccepting(true);
     try {
-      console.log('Γ£à Accepting offer for token:', token);
+      console.log('✅ Accepting offer for token:', token);
       const response = await fetch(API_ENDPOINTS.acceptOffer(token), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
       const data = await response.json();
 
-      console.log('Γ£à Accept response status:', response.status);
-      console.log('Γ£à Accept response data:', data);
+      console.log('✅ Accept response status:', response.status);
+      console.log('✅ Accept response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to accept offer');
@@ -127,7 +127,7 @@ export default function AcceptOffer() {
       setAccepted(true);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to accept offer';
-      console.error('≡ƒö┤ Accept error:', errorMsg);
+      console.error('❌ Accept error:', errorMsg);
       setError(errorMsg);
     } finally {
       setAccepting(false);
@@ -176,7 +176,7 @@ export default function AcceptOffer() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">≡ƒÄë Welcome to Bloom!</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">🎉 Welcome to Bloom!</h1>
           <p className="text-lg text-gray-600 mb-6">
             Congratulations {offer?.firstName}! You've accepted the offer to join our team.
           </p>
@@ -184,15 +184,15 @@ export default function AcceptOffer() {
             <h2 className="font-semibold text-emerald-800 mb-2">What happens next?</h2>
             <ul className="text-sm text-emerald-700 space-y-2 text-left">
               <li className="flex items-start gap-2">
-                <span className="text-emerald-500">Γ£ô</span>
+                <span className="text-emerald-500">✓</span>
                 Our team will review your acceptance
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-emerald-500">Γ£ô</span>
+                <span className="text-emerald-500">✓</span>
                 You'll receive an onboarding email with next steps
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-emerald-500">Γ£ô</span>
+                <span className="text-emerald-500">✓</span>
                 Complete onboarding to set up your practitioner profile
               </li>
             </ul>
@@ -213,7 +213,7 @@ export default function AcceptOffer() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-emerald-600 mb-2">≡ƒî╕ Bloom</h1>
+          <h1 className="text-4xl font-bold text-emerald-600 mb-2">🌸 Bloom</h1>
           <p className="text-gray-600">Life Psychology Australia</p>
         </div>
 
@@ -306,7 +306,7 @@ export default function AcceptOffer() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
-                    {uploading ? 'ΓÅ│ Uploading...' : '≡ƒôä Upload Signed Contract (PDF)'}
+                    {uploading ? '⏳ Uploading...' : '📤 Upload Signed Contract (PDF)'}
                   </label>
                 </div>
               )}
@@ -317,15 +317,15 @@ export default function AcceptOffer() {
               <h3 className="font-semibold text-gray-900 mb-3">By accepting this offer, you agree to:</h3>
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-start gap-2">
-                  <span className="text-emerald-500 mt-1">Γ£ô</span>
+                  <span className="text-emerald-500 mt-1">✓</span>
                   The terms outlined in the Practitioner Agreement
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-emerald-500 mt-1">Γ£ô</span>
+                  <span className="text-emerald-500 mt-1">✓</span>
                   Completing the onboarding process
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-emerald-500 mt-1">Γ£ô</span>
+                  <span className="text-emerald-500 mt-1">✓</span>
                   Upholding the values and standards of Bloom
                 </li>
               </ul>
@@ -335,7 +335,7 @@ export default function AcceptOffer() {
             <div className="pt-4">
               {!signedContractUploaded && (
                 <p className="text-center text-amber-600 text-sm mb-3">
-                  ΓÜá∩╕Å Please upload your signed contract above before accepting
+                  ⚠️ Please upload your signed contract above before accepting
                 </p>
               )}
               <button
@@ -350,7 +350,7 @@ export default function AcceptOffer() {
                   </>
                 ) : (
                   <>
-                    Γ£à Accept Offer & Join Bloom
+                    ✅ Accept Offer & Join Bloom
                   </>
                 )}
               </button>

@@ -477,11 +477,13 @@ Warm regards,
 Zoe & The ${COMPANY_NAME} Team
   `.trim();
 
+  // CC admin on interview invitation emails
   return sendEmail(
     email,
     `${COMPANY_NAME} - Schedule Your Interview 📅`,
     htmlContent,
-    plainTextContent
+    plainTextContent,
+    ADMIN_NOTIFICATION_EMAIL
   );
 }
 

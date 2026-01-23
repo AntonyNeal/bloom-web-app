@@ -1,6 +1,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
-import { sendDenialEmail, sendWaitlistEmail, sendInterviewEmail } from '../services/email';
+import { sendDenialEmail, sendWaitlistEmail, sendInterviewEmail, sendApplicationReceivedWithScheduling } from '../services/email';
+import { createInterviewToken } from './interview-scheduling';
 
 // Support both connection string and individual credentials
 const getConfig = (): string | sql.config => {
@@ -188,10 +189,39 @@ async function applicationsHandler(
           )
         `);
 
+      const newApplication = result.recordset[0];
+
+      // Create interview token and send scheduling email
+      try {
+        const { token, schedulingLink } = await createInterviewToken(
+          newApplication.id,
+          {
+            firstName: first_name,
+            lastName: last_name,
+            email,
+          },
+          context
+        );
+
+        context.log(`Created interview token for application ${newApplication.id}: ${token}`);
+
+        // Send email with scheduling link
+        const emailResult = await sendApplicationReceivedWithScheduling({
+          firstName: first_name,
+          email,
+          schedulingLink,
+        });
+
+        context.log(`Sent application received email: ${JSON.stringify(emailResult)}`);
+      } catch (tokenError) {
+        // Log but don't fail the application submission
+        context.warn('Failed to create interview token or send email:', tokenError);
+      }
+
       return {
         status: 201,
         headers,
-        jsonBody: result.recordset[0],
+        jsonBody: newApplication,
       };
     }
 

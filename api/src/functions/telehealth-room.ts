@@ -54,8 +54,9 @@ interface AcsToken {
 
 /**
  * Create an ACS room for the video call
+ * Exported for use by interview-scheduling.ts
  */
-async function createAcsRoom(
+export async function createAcsRoom(
   validFrom: Date,
   validUntil: Date
 ): Promise<AcsRoom> {

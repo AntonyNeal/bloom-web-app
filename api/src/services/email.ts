@@ -486,6 +486,231 @@ Zoe & The ${COMPANY_NAME} Team
 }
 
 /**
+ * Interview Scheduled Confirmation Email
+ * Sent to applicant after they schedule their interview
+ */
+interface InterviewScheduledContext {
+  firstName: string;
+  email: string;
+  interviewDate: Date;
+  interviewLink: string;
+  interviewers: string[];
+}
+
+export async function sendInterviewScheduledConfirmation(context: InterviewScheduledContext) {
+  const { firstName, email, interviewDate, interviewLink, interviewers } = context;
+
+  // Format the date nicely
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  };
+  const formattedDate = interviewDate.toLocaleDateString('en-AU', dateOptions);
+
+  const interviewerNames = interviewers.join(' and ');
+
+  const htmlContent = wrapInTemplate(`
+    <h2 style="color: #333; margin-top: 0;">🎉 Your Interview is Scheduled!</h2>
+    
+    <p>Dear ${firstName},</p>
+    
+    <p>Great news! Your interview with ${COMPANY_NAME} has been confirmed.</p>
+    
+    <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #10b981;">
+      <h3 style="margin: 0 0 15px; color: #059669;">📅 Interview Details</h3>
+      <table style="width: 100%; color: #374151;">
+        <tr>
+          <td style="padding: 8px 0; font-weight: bold; width: 120px;">Date & Time:</td>
+          <td style="padding: 8px 0;">${formattedDate}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-weight: bold;">Duration:</td>
+          <td style="padding: 8px 0;">30 minutes</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-weight: bold;">With:</td>
+          <td style="padding: 8px 0;">${interviewerNames}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-weight: bold;">Format:</td>
+          <td style="padding: 8px 0;">Video call (online)</td>
+        </tr>
+      </table>
+    </div>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${interviewLink}" 
+         style="display: inline-block; background: #10b981; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+        📹 Join Interview
+      </a>
+      <p style="margin: 10px 0 0; color: #6b7280; font-size: 14px;">
+        The room will open 30 minutes before the scheduled time
+      </p>
+    </div>
+    
+    <p><strong>Before the interview:</strong></p>
+    <ul style="color: #555; line-height: 1.8;">
+      <li>✅ Test your camera and microphone</li>
+      <li>✅ Find a quiet space with good lighting</li>
+      <li>✅ Have your AHPRA registration details handy</li>
+      <li>✅ Prepare any questions you have about joining our team</li>
+    </ul>
+    
+    <p style="background: #f3f4f6; padding: 15px 20px; border-radius: 8px; color: #6b7280; font-size: 14px;">
+      <strong>Can't make it?</strong> Please reply to this email as soon as possible so we can reschedule.
+    </p>
+    
+    <p>We're looking forward to meeting you!</p>
+    
+    <p style="margin-top: 30px;">
+      Warm regards,<br>
+      <strong>${interviewerNames}</strong><br>
+      <span style="color: #6b7280;">${COMPANY_NAME}</span>
+    </p>
+  `);
+
+  const plainTextContent = `
+🎉 Your Interview is Scheduled!
+
+Dear ${firstName},
+
+Great news! Your interview with ${COMPANY_NAME} has been confirmed.
+
+INTERVIEW DETAILS
+-----------------
+📅 Date & Time: ${formattedDate}
+⏱️ Duration: 30 minutes
+👥 With: ${interviewerNames}
+💻 Format: Video call (online)
+
+JOIN YOUR INTERVIEW
+-------------------
+${interviewLink}
+
+The room will open 30 minutes before the scheduled time.
+
+BEFORE THE INTERVIEW:
+- ✅ Test your camera and microphone
+- ✅ Find a quiet space with good lighting
+- ✅ Have your AHPRA registration details handy
+- ✅ Prepare any questions about joining our team
+
+Can't make it? Please reply to this email as soon as possible so we can reschedule.
+
+We're looking forward to meeting you!
+
+Warm regards,
+${interviewerNames}
+${COMPANY_NAME}
+  `.trim();
+
+  // CC the admin on interview confirmations
+  return sendEmail(
+    email,
+    `Interview Confirmed - ${formattedDate} 📅`,
+    htmlContent,
+    plainTextContent,
+    ADMIN_NOTIFICATION_EMAIL
+  );
+}
+
+/**
+ * Application Received - Schedule Interview Email
+ * Sent to applicant when their application is submitted
+ * Contains link to self-schedule their interview
+ */
+interface ApplicationReceivedContext {
+  firstName: string;
+  email: string;
+  schedulingLink: string;
+}
+
+export async function sendApplicationReceivedWithScheduling(context: ApplicationReceivedContext) {
+  const { firstName, email, schedulingLink } = context;
+
+  const htmlContent = wrapInTemplate(`
+    <h2 style="color: #333; margin-top: 0;">Thank You for Your Application! 🌸</h2>
+    
+    <p>Dear ${firstName},</p>
+    
+    <p>Thank you for applying to join the ${COMPANY_NAME} team. We've received your application and we're excited to learn more about you!</p>
+    
+    <div style="background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 100%); padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #8b5cf6;">
+      <h3 style="margin: 0 0 12px; color: #7c3aed;">🗓️ Next Step: Schedule Your Interview</h3>
+      <p style="margin: 0 0 20px; color: #6b21a8; line-height: 1.6;">
+        We'd love to meet you! Please choose a time that works best for your 30-minute interview with our team.
+      </p>
+      <div style="text-align: center;">
+        <a href="${schedulingLink}" 
+           style="display: inline-block; background: #8b5cf6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          📅 Schedule Interview
+        </a>
+      </div>
+    </div>
+    
+    <p><strong>What to expect:</strong></p>
+    <ul style="color: #555; line-height: 1.8;">
+      <li>💬 A friendly 30-minute video conversation</li>
+      <li>👥 You'll meet with Zoe and Julian from our team</li>
+      <li>🏥 We'll discuss your experience and how you might fit with our telehealth practice</li>
+      <li>❓ Plenty of time for your questions about joining us</li>
+    </ul>
+    
+    <p style="background: #fef3c7; padding: 15px 20px; border-radius: 8px; color: #92400e; font-size: 14px;">
+      <strong>⏰ Please schedule within the next 14 days</strong> — this link will expire after that. If you need more time, just reply to this email.
+    </p>
+    
+    <p>We're looking forward to meeting you!</p>
+    
+    <p style="margin-top: 30px;">
+      Warm regards,<br>
+      <strong>The ${COMPANY_NAME} Team</strong>
+    </p>
+  `);
+
+  const plainTextContent = `
+Thank You for Your Application! 🌸
+
+Dear ${firstName},
+
+Thank you for applying to join the ${COMPANY_NAME} team. We've received your application and we're excited to learn more about you!
+
+NEXT STEP: SCHEDULE YOUR INTERVIEW
+-----------------------------------
+We'd love to meet you! Please choose a time that works best for your 30-minute interview:
+
+${schedulingLink}
+
+WHAT TO EXPECT:
+- 💬 A friendly 30-minute video conversation
+- 👥 You'll meet with Zoe and Julian from our team
+- 🏥 We'll discuss your experience and how you might fit with our telehealth practice
+- ❓ Plenty of time for your questions about joining us
+
+⏰ Please schedule within the next 14 days — this link will expire after that. If you need more time, just reply to this email.
+
+We're looking forward to meeting you!
+
+Warm regards,
+The ${COMPANY_NAME} Team
+  `.trim();
+
+  // CC admin on application received emails
+  return sendEmail(
+    email,
+    `Application Received - Schedule Your Interview 📅`,
+    htmlContent,
+    plainTextContent,
+    ADMIN_NOTIFICATION_EMAIL
+  );
+}
+
+/**
  * Acceptance/Onboarding Email Template (Practitioner Application)
  */
 export async function sendAcceptanceEmail(context: EmailContext) {
@@ -1629,6 +1854,8 @@ export const emailService = {
   sendDenialEmail,
   sendWaitlistEmail,
   sendInterviewEmail,
+  sendInterviewScheduledConfirmation,
+  sendApplicationReceivedWithScheduling,
   sendAcceptanceEmail,
   sendOfferEmail,
   sendWelcomeEmail,

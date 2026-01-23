@@ -36,6 +36,8 @@ const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
 const BusinessCoach = lazy(() => import('./pages/BusinessCoach'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const AcceptOffer = lazy(() => import('./pages/AcceptOffer'));
+const ScheduleInterview = lazy(() => import('./pages/ScheduleInterview'));
+const InterviewRoom = lazy(() => import('./pages/InterviewRoom'));
 
 // Session page for telehealth video calls
 const SessionPage = lazy(() =>
@@ -725,6 +727,34 @@ function AnimatedRoutes() {
                 fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
               >
                 <AcceptOffer />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
+
+        {/* Schedule Interview */}
+        <Route
+          path="/schedule-interview/:token"
+          element={
+            <ErrorBoundary>
+              <Suspense
+                fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+              >
+                <ScheduleInterview />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
+
+        {/* Interview Video Room */}
+        <Route
+          path="/interview/:token"
+          element={
+            <ErrorBoundary>
+              <Suspense
+                fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+              >
+                <InterviewRoom />
               </Suspense>
             </ErrorBoundary>
           }

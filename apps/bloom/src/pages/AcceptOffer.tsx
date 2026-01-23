@@ -285,7 +285,7 @@ export default function AcceptOffer() {
                   </p>
                   <input
                     type="file"
-                    accept=".pdf"
+                    accept="application/pdf,.pdf"
                     id="signed-contract-upload"
                     className="hidden"
                     onChange={(e) => {
@@ -295,19 +295,21 @@ export default function AcceptOffer() {
                     }}
                     disabled={uploading}
                   />
-                  <label
-                    htmlFor="signed-contract-upload"
-                    className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg cursor-pointer transition-colors font-semibold text-lg ${
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('signed-contract-upload')?.click()}
+                    disabled={uploading}
+                    className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg transition-colors font-semibold text-lg ${
                       uploading 
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
                     }`}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
                     {uploading ? '⏳ Uploading...' : '📤 Upload Signed Contract (PDF)'}
-                  </label>
+                  </button>
                 </div>
               )}
             </div>

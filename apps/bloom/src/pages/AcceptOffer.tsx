@@ -32,19 +32,16 @@ export default function AcceptOffer() {
       }
 
       try {
-        console.log('🔍 Fetching offer with token:', token);
         const url = API_ENDPOINTS.acceptOffer(token);
-        console.log('🔍 Fetching URL:', url);
         
         const response = await fetch(url);
-        console.log('🔍 Response status:', response.status);
         
-        const data = await response.json();
-        console.log('🔍 Response data:', data);
-
         if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: 'Failed to load offer' }));
           throw new Error(data.error || 'Failed to load offer');
         }
+
+        const data = await response.json();
 
         setOffer(data);
         if (data.isAccepted) {
@@ -54,8 +51,8 @@ export default function AcceptOffer() {
           setSignedContractUploaded(true);
         }
       } catch (err) {
-        console.error('❌ Error loading offer:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load offer');
+        const message = err instanceof Error ? err.message : 'Failed to load offer';
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -71,34 +68,24 @@ export default function AcceptOffer() {
     setError(null);
     
     try {
-      console.log('📤 Starting contract upload:', file.name);
-      
-      // Create FormData to upload the file
       const formData = new FormData();
       formData.append('file', file);
 
       const uploadUrl = API_ENDPOINTS.acceptOffer(token) + '/signed-contract';
-      console.log('📤 Upload URL:', uploadUrl);
 
-      // Upload directly to the signed contract endpoint
       const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
       });
 
-      console.log('📤 Upload response status:', uploadResponse.status);
-      const data = await uploadResponse.json();
-      console.log('📤 Upload response data:', data);
-
       if (!uploadResponse.ok) {
+        const data = await uploadResponse.json().catch(() => ({ error: 'Failed to upload contract' }));
         throw new Error(data.error || 'Failed to upload contract');
       }
 
-      console.log('✅ Contract uploaded successfully');
       setSignedContractUploaded(true);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to upload contract';
-      console.error('❌ Upload error:', errorMsg);
       setError(errorMsg);
     } finally {
       setUploading(false);
@@ -109,25 +96,22 @@ export default function AcceptOffer() {
     if (!token || !signedContractUploaded) return;
 
     setAccepting(true);
+    setError(null);
+    
     try {
-      console.log('✅ Accepting offer for token:', token);
       const response = await fetch(API_ENDPOINTS.acceptOffer(token), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-      const data = await response.json();
-
-      console.log('✅ Accept response status:', response.status);
-      console.log('✅ Accept response data:', data);
 
       if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: 'Failed to accept offer' }));
         throw new Error(data.error || 'Failed to accept offer');
       }
 
       setAccepted(true);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to accept offer';
-      console.error('❌ Accept error:', errorMsg);
       setError(errorMsg);
     } finally {
       setAccepting(false);

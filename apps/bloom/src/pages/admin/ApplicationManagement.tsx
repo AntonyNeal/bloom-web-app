@@ -30,6 +30,11 @@ interface Application {
   certificate_url: string;
   photo_url: string;
   cover_letter: string;
+  contract_url?: string | null;
+  signed_contract_url?: string | null;
+  offer_sent_at?: string | null;
+  offer_accepted_at?: string | null;
+  halaxy_practitioner_verified?: boolean;
 }
 
 type ErrorType = 'network' | 'server' | null;
@@ -41,6 +46,7 @@ export function Admin() {
   const [error, setError] = useState<ErrorType>(null);
   const [errorCode, setErrorCode] = useState<number | undefined>(undefined);
   const [lastAttempt, setLastAttempt] = useState<Date | undefined>(undefined);
+  const [isUploadingContract, setIsUploadingContract] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -99,6 +105,104 @@ export function Admin() {
     } catch (error) {
       console.error("Failed to update status:", error);
       alert("Failed to update application status. Please try again.");
+    }
+  };
+
+  const uploadContract = async (applicationId: number, file: File) => {
+    setIsUploadingContract(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload file to storage
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      const uploadResponse = await fetch(`${API_BASE_URL}/upload?type=contracts`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const error = await uploadResponse.json();
+        throw new Error(error.error || 'Failed to upload contract');
+      }
+
+      const uploadData = await uploadResponse.json();
+
+      // Update the application with the contract URL
+      const updateResponse = await fetch(`${API_ENDPOINTS.applications}/${applicationId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: selectedApp?.status || 'submitted',
+          contract_url: uploadData.url,
+        }),
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('Failed to save contract URL to application');
+      }
+
+      alert('Contract uploaded successfully!');
+
+      // Refresh applications list
+      await fetchApplications();
+      
+      // Refresh selected app
+      if (selectedApp?.id === applicationId) {
+        const appResponse = await fetch(`${API_ENDPOINTS.applications}/${applicationId}`);
+        const updatedApp = await appResponse.json();
+        setSelectedApp(updatedApp);
+      }
+    } catch (err) {
+      console.error('Error uploading contract:', err);
+      alert(err instanceof Error ? err.message : 'Failed to upload contract');
+    } finally {
+      setIsUploadingContract(false);
+    }
+  };
+
+  const openDocument = (url: string, _title: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  // Send offer to candidate (requires contract to be uploaded)
+  const sendOffer = async (id: number) => {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+    try {
+      const response = await fetch(`${API_BASE_URL}/send-offer/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // If offer was already accepted, auto-refresh to show correct status
+        if (data.code === 'OFFER_ALREADY_ACCEPTED') {
+          alert("This applicant has already accepted the offer. Refreshing...");
+          await fetchApplications();
+          if (selectedApp?.id === id) {
+            const appResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`);
+            const updatedApp = await appResponse.json();
+            setSelectedApp(updatedApp);
+          }
+          return;
+        }
+        throw new Error(data.error || "Failed to send offer");
+      }
+
+      alert(`Offer email sent to ${selectedApp?.email || 'applicant'}. Waiting for them to accept.`);
+
+      // Refresh
+      await fetchApplications();
+      if (selectedApp?.id === id) {
+        const appResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`);
+        const updatedApp = await appResponse.json();
+        setSelectedApp(updatedApp);
+      }
+    } catch (error) {
+      console.error("Failed to send offer:", error);
+      alert(error instanceof Error ? error.message : "Failed to send offer");
     }
   };
 
@@ -428,6 +532,107 @@ export function Admin() {
                   </div>
                 </div>
 
+                {/* Contract Section */}
+                <div className="space-y-2 pt-2 border-t">
+                  <Label className="font-medium">Contracts</Label>
+                  
+                  {/* Admin Contract Upload */}
+                  <div className={`p-3 rounded-lg border ${
+                    selectedApp.contract_url 
+                      ? 'bg-green-50 border-green-200' 
+                      : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <p className="text-sm font-medium mb-2">
+                      📄 Practitioner Agreement {!selectedApp.contract_url && <span className="text-gray-400 font-normal">(Optional)</span>}
+                    </p>
+                    {selectedApp.contract_url ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-green-700">✓ Contract attached</span>
+                          <button
+                            onClick={() => openDocument(selectedApp.contract_url!, 'Contract')}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            View PDF
+                          </button>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (!confirm('Remove this contract?')) return;
+                            try {
+                              const response = await fetch(`${API_ENDPOINTS.applications}/${selectedApp.id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  status: selectedApp.status,
+                                  contract_url: null,
+                                }),
+                              });
+                              if (!response.ok) throw new Error('Failed to remove contract');
+                              await fetchApplications();
+                              if (selectedApp?.id === selectedApp.id) {
+                                const appResponse = await fetch(`${API_ENDPOINTS.applications}/${selectedApp.id}`);
+                                const updatedApp = await appResponse.json();
+                                setSelectedApp(updatedApp);
+                              }
+                            } catch (error) {
+                              console.error('Error removing contract:', error);
+                              alert('Failed to remove contract');
+                            }
+                          }}
+                          className="text-sm text-red-600 hover:text-red-800 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-2">Upload a contract to send with offer</p>
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          id="contract-upload"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) uploadContract(selectedApp.id, file);
+                            e.target.value = '';
+                          }}
+                          disabled={isUploadingContract}
+                        />
+                        <label
+                          htmlFor="contract-upload"
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded cursor-pointer ${
+                            isUploadingContract 
+                              ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                              : 'bg-white border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {isUploadingContract ? '⏳ Uploading...' : '📎 Attach Contract PDF'}
+                        </label>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Signed Contract (from applicant) */}
+                  {selectedApp.signed_contract_url && (
+                    <div className="p-3 rounded-lg border bg-blue-50 border-blue-200">
+                      <p className="text-sm font-medium mb-2">
+                        ✍️ Signed Contract (from Applicant)
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-blue-700">✓ Received</span>
+                        <button
+                          onClick={() => openDocument(selectedApp.signed_contract_url!, 'Signed Contract')}
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          View PDF
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Action Buttons */}
                 <div className="pt-4 space-y-2 border-t">
                   <Label className="font-medium">Workflow Actions</Label>
@@ -445,8 +650,9 @@ export function Admin() {
                       </Button>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
-                          onClick={() => updateStatus(selectedApp.id, "offer_sent")}
+                          onClick={() => sendOffer(selectedApp.id)}
                           size="sm"
+                          disabled={!selectedApp.contract_url}
                         >
                           ✉️ Send Offer
                         </Button>
@@ -474,8 +680,9 @@ export function Admin() {
                       </Button>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
-                          onClick={() => updateStatus(selectedApp.id, "offer_sent")}
+                          onClick={() => sendOffer(selectedApp.id)}
                           size="sm"
+                          disabled={!selectedApp.contract_url}
                         >
                           ✉️ Send Offer
                         </Button>
@@ -503,8 +710,9 @@ export function Admin() {
                     <div className="space-y-2">
                       <div className="grid grid-cols-2 gap-2">
                         <Button
-                          onClick={() => updateStatus(selectedApp.id, "offer_sent")}
+                          onClick={() => sendOffer(selectedApp.id)}
                           size="sm"
+                          disabled={!selectedApp.contract_url}
                         >
                           ✉️ Send Offer
                         </Button>
@@ -567,8 +775,9 @@ export function Admin() {
                       </p>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
-                          onClick={() => updateStatus(selectedApp.id, "offer_sent")}
+                          onClick={() => sendOffer(selectedApp.id)}
                           size="sm"
+                          disabled={!selectedApp.contract_url}
                         >
                           ✉️ Send Offer
                         </Button>

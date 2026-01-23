@@ -108,6 +108,16 @@ export function Admin() {
         return "bg-blue-100 text-blue-800 hover:bg-blue-200";
       case "reviewing":
         return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
+      case "interview_scheduled":
+        return "bg-cyan-100 text-cyan-800 hover:bg-cyan-200";
+      case "offer_sent":
+        return "bg-purple-100 text-purple-800 hover:bg-purple-200";
+      case "waitlisted":
+        return "bg-orange-100 text-orange-800 hover:bg-orange-200";
+      case "accepted":
+        return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "denied":
+        return "bg-red-100 text-red-800 hover:bg-red-200";
       case "approved":
         return "bg-green-100 text-green-800 hover:bg-green-200";
       case "rejected":
@@ -122,8 +132,11 @@ export function Admin() {
       total: applications.length,
       submitted: applications.filter((a) => a.status === "submitted").length,
       reviewing: applications.filter((a) => a.status === "reviewing").length,
-      approved: applications.filter((a) => a.status === "approved").length,
-      rejected: applications.filter((a) => a.status === "rejected").length,
+      interview: applications.filter((a) => a.status === "interview_scheduled").length,
+      offer: applications.filter((a) => a.status === "offer_sent").length,
+      waitlisted: applications.filter((a) => a.status === "waitlisted").length,
+      accepted: applications.filter((a) => a.status === "accepted" || a.status === "approved").length,
+      denied: applications.filter((a) => a.status === "denied" || a.status === "rejected").length,
     };
   };
 
@@ -210,7 +223,7 @@ export function Admin() {
         <h1 className="text-3xl font-semibold mb-4">Application Management</h1>
         
         {/* Status Summary */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
           <Card>
             <CardContent className="pt-6">
               <div className="text-2xl font-bold">{counts.total}</div>
@@ -235,18 +248,42 @@ export function Admin() {
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-green-600">
-                {counts.approved}
+              <div className="text-2xl font-bold text-cyan-600">
+                {counts.interview}
               </div>
-              <p className="text-xs text-neutral-600">Approved</p>
+              <p className="text-xs text-neutral-600">Interview</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-purple-600">
+                {counts.offer}
+              </div>
+              <p className="text-xs text-neutral-600">Offer Sent</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-orange-600">
+                {counts.waitlisted}
+              </div>
+              <p className="text-xs text-neutral-600">Waitlisted</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-green-600">
+                {counts.accepted}
+              </div>
+              <p className="text-xs text-neutral-600">Accepted</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="text-2xl font-bold text-red-600">
-                {counts.rejected}
+                {counts.denied}
               </div>
-              <p className="text-xs text-neutral-600">Rejected</p>
+              <p className="text-xs text-neutral-600">Denied</p>
             </CardContent>
           </Card>
         </div>
@@ -392,62 +429,238 @@ export function Admin() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="pt-4 space-y-2">
+                <div className="pt-4 space-y-2 border-t">
+                  <Label className="font-medium">Workflow Actions</Label>
+                  
+                  {/* Submitted: Move to reviewing or quick actions */}
                   {selectedApp.status === "submitted" && (
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-2">
                       <Button
-                        onClick={() =>
-                          updateStatus(selectedApp.id, "reviewing")
-                        }
+                        onClick={() => updateStatus(selectedApp.id, "reviewing")}
                         variant="secondary"
                         size="sm"
+                        className="w-full"
                       >
-                        Review
+                        📋 Move to Reviewing
                       </Button>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "approved")}
-                        size="sm"
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        onClick={() => updateStatus(selectedApp.id, "rejected")}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        Reject
-                      </Button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "offer_sent")}
+                          size="sm"
+                        >
+                          ✉️ Send Offer
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "denied")}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          ❌ Deny
+                        </Button>
+                      </div>
                     </div>
                   )}
 
+                  {/* Reviewing: Full workflow options */}
                   {selectedApp.status === "reviewing" && (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
                       <Button
-                        onClick={() => updateStatus(selectedApp.id, "approved")}
+                        onClick={() => updateStatus(selectedApp.id, "interview_scheduled")}
+                        variant="secondary"
                         size="sm"
+                        className="w-full"
                       >
-                        Approve
+                        📅 Schedule Interview
                       </Button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "offer_sent")}
+                          size="sm"
+                        >
+                          ✉️ Send Offer
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "waitlisted")}
+                          variant="outline"
+                          size="sm"
+                        >
+                          ⏳ Waitlist
+                        </Button>
+                      </div>
                       <Button
-                        onClick={() => updateStatus(selectedApp.id, "rejected")}
+                        onClick={() => updateStatus(selectedApp.id, "denied")}
                         variant="destructive"
                         size="sm"
+                        className="w-full"
                       >
-                        Reject
+                        ❌ Deny Application
                       </Button>
                     </div>
                   )}
 
-                  {(selectedApp.status === "approved" ||
-                    selectedApp.status === "rejected") && (
-                    <Button
-                      onClick={() => updateStatus(selectedApp.id, "reviewing")}
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                    >
-                      Move to Reviewing
-                    </Button>
+                  {/* Interview Scheduled: Post-interview actions */}
+                  {selectedApp.status === "interview_scheduled" && (
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "offer_sent")}
+                          size="sm"
+                        >
+                          ✉️ Send Offer
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "waitlisted")}
+                          variant="outline"
+                          size="sm"
+                        >
+                          ⏳ Waitlist
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "reviewing")}
+                          variant="outline"
+                          size="sm"
+                        >
+                          ↩️ Back to Review
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "denied")}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          ❌ Deny
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Offer Sent: Waiting for applicant response */}
+                  {selectedApp.status === "offer_sent" && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-blue-600 mb-2">
+                        📨 Offer sent - waiting for response
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "accepted")}
+                          size="sm"
+                        >
+                          ✅ Mark Accepted
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "reviewing")}
+                          variant="outline"
+                          size="sm"
+                        >
+                          ↩️ Back to Review
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Waitlisted: Can move forward or deny */}
+                  {selectedApp.status === "waitlisted" && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-yellow-600 mb-2">
+                        ⏳ On waitlist
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "offer_sent")}
+                          size="sm"
+                        >
+                          ✉️ Send Offer
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(selectedApp.id, "reviewing")}
+                          variant="outline"
+                          size="sm"
+                        >
+                          ↩️ Back to Review
+                        </Button>
+                      </div>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "denied")}
+                        variant="destructive"
+                        size="sm"
+                        className="w-full"
+                      >
+                        ❌ Deny
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Accepted: Onboarding actions */}
+                  {selectedApp.status === "accepted" && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-green-600 mb-2">
+                        ✅ Accepted - ready for onboarding
+                      </p>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="w-full bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        🚀 Send Onboarding Email
+                      </Button>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "reviewing")}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        ↩️ Move Back to Reviewing
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Denied: Can reopen */}
+                  {selectedApp.status === "denied" && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-red-600 mb-2">
+                        ❌ Application denied
+                      </p>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "reviewing")}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        ↩️ Reopen Application
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Legacy statuses: approved/rejected - convert them */}
+                  {selectedApp.status === "approved" && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-yellow-600 mb-2">
+                        ⚠️ Legacy "approved" status
+                      </p>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "accepted")}
+                        size="sm"
+                        className="w-full"
+                      >
+                        ✨ Convert to Accepted
+                      </Button>
+                    </div>
+                  )}
+
+                  {selectedApp.status === "rejected" && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-yellow-600 mb-2">
+                        ⚠️ Legacy "rejected" status
+                      </p>
+                      <Button
+                        onClick={() => updateStatus(selectedApp.id, "denied")}
+                        size="sm"
+                        className="w-full"
+                      >
+                        ✨ Convert to Denied
+                      </Button>
+                    </div>
                   )}
                 </div>
               </CardContent>

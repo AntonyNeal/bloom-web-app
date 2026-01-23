@@ -51,6 +51,7 @@ import './functions/clinical-notes';
 import './functions/clinical-notes-key';
 import './functions/clinical-notes-llm';
 import './functions/session-workflow';
+import './functions/interview-scheduling';
 
 export * from './functions/health';
 export * from './functions/applications';

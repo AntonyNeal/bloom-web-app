@@ -25,6 +25,7 @@ interface Application {
   phone: string;
   ahpra_registration: string;
   experience_years: number;
+  favorite_flower?: string | null;
   status: string;
   created_at: string;
   cv_url: string;
@@ -519,6 +520,13 @@ export function Admin() {
                   <Label className="font-medium">Experience</Label>
                   <p className="text-sm">{selectedApp.experience_years} years</p>
                 </div>
+
+                {selectedApp.favorite_flower && (
+                  <div>
+                    <Label className="font-medium">Favourite Flower</Label>
+                    <p className="text-sm">🌸 {selectedApp.favorite_flower}</p>
+                  </div>
+                )}
 
                 <div>
                   <Label className="font-medium">Application Date</Label>

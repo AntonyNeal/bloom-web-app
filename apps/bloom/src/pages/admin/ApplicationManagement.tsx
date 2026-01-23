@@ -115,8 +115,7 @@ export function Admin() {
       formData.append('file', file);
 
       // Upload file to storage
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
-      const uploadResponse = await fetch(`${API_BASE_URL}/upload?type=contracts`, {
+      const uploadResponse = await fetch(`${API_ENDPOINTS.upload}?type=contracts`, {
         method: 'POST',
         body: formData,
       });
@@ -167,9 +166,8 @@ export function Admin() {
 
   // Send offer to candidate (requires contract to be uploaded)
   const sendOffer = async (id: number) => {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
     try {
-      const response = await fetch(`${API_BASE_URL}/send-offer/${id}`, {
+      const response = await fetch(API_ENDPOINTS.sendOffer(id), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });

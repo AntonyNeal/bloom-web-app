@@ -14,4 +14,5 @@ export const API_BASE_URL =
 export const API_ENDPOINTS = {
   applications: `${API_BASE_URL}/applications`,
   upload: `${API_BASE_URL}/upload`,
+  sendOffer: (id: number) => `${API_BASE_URL}/send-offer/${id}`,
 } as const;

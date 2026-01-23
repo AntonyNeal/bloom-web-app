@@ -118,13 +118,14 @@ async function getInterviewSlots(
     endDate.setDate(endDate.getDate() + 14);
 
     // Build query for Halaxy public booking API
+    // Note: Halaxy uses 'clinic', 'dateFrom', 'dateTo', 'practitioner', 'fee' parameter names
     const queryParams = new URLSearchParams({
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
+      dateFrom: startDate.toISOString().split('T')[0],
+      dateTo: endDate.toISOString().split('T')[0],
       duration: String(INTERVIEW_DURATION_MINS),
-      clinicId: '1023041', // Life Psychology clinic
-      feeId: '9381231',    // Standard fee
-      practitionerId: INTERVIEW_PRACTITIONER_ID,
+      clinic: '1023041', // Life Psychology clinic
+      fee: '9381231',    // Standard fee
+      practitioner: INTERVIEW_PRACTITIONER_ID,
     });
 
     const halaxyUrl = `https://www.halaxy.com/api/v2/open/booking/timeslot/availability?${queryParams.toString()}`;

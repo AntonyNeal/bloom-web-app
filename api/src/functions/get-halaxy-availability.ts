@@ -70,21 +70,25 @@ async function fetchHalaxyAvailability(
   endDate: Date,
   duration: number,
   practitionerId: string | undefined,
+  clinicId: string | undefined,
+  feeId: string | undefined,
   context: InvocationContext
 ): Promise<FHIRSlot[]> {
   const dateFrom = startDate.toISOString().split('T')[0];
   const dateTo = endDate.toISOString().split('T')[0];
 
-  // Use provided practitioner ID or fall back to default
+  // Use provided IDs or fall back to defaults
   const actualPractitionerId = practitionerId || DEFAULT_PRACTITIONER_ID;
+  const actualClinicId = clinicId || DEFAULT_CLINIC_ID;
+  const actualFeeId = feeId || DEFAULT_FEE_ID;
 
   const queryParams = new URLSearchParams({
     practitioner: actualPractitionerId,
-    clinic: DEFAULT_CLINIC_ID,
+    clinic: actualClinicId,
     dateFrom,
     dateTo,
     duration: duration.toString(),
-    fee: DEFAULT_FEE_ID,
+    fee: actualFeeId,
   });
 
   const url = `https://www.halaxy.com/api/v2/open/booking/timeslot/availability?${queryParams.toString()}`;
@@ -101,17 +105,27 @@ async function fetchHalaxyAvailability(
 
   if (!response.ok) {
     const errorText = await response.text();
-    context.error(`Halaxy API error: ${response.status} - ${errorText}`);
+    context.error(`Halaxy API error: ${response.status} - ${errorText}`, {
+      url,
+      practitionerId: actualPractitionerId,
+      clinicId: DEFAULT_CLINIC_ID,
+      feeId: DEFAULT_FEE_ID,
+    });
     
     // Parse error for better client-side handling
-    let errorDetails = errorText;
+    let errorDetails = `Halaxy API returned ${response.status}`;
     try {
       const parsed = JSON.parse(errorText);
       if (parsed.message === 'Practitioner Clinic not found') {
         errorDetails = 'This practitioner is not configured for online booking yet';
+      } else if (parsed.message) {
+        errorDetails = parsed.message;
+      } else {
+        errorDetails = `${errorDetails}: ${errorText.substring(0, 200)}`;
       }
     } catch {
-      // Use raw error text
+      // Use raw error text (truncated)
+      errorDetails = `${errorDetails}: ${errorText.substring(0, 200)}`;
     }
     
     throw new Error(errorDetails);
@@ -200,6 +214,8 @@ async function getHalaxyAvailability(
     const to = req.query.get('to');
     const duration = parseInt(req.query.get('duration') || '60', 10);
     const practitionerId = req.query.get('practitioner') || undefined;
+    const clinicId = req.query.get('clinic') || undefined;
+    const feeId = req.query.get('fee') || undefined;
 
     // Validate required parameters
     if (!from || !to) {
@@ -220,10 +236,12 @@ async function getHalaxyAvailability(
       to: endDate.toISOString(),
       duration,
       practitionerId: practitionerId || 'default',
+      clinicId: clinicId || 'default',
+      feeId: feeId || 'default',
     });
 
     // Fetch from Halaxy's public API
-    const slots = await fetchHalaxyAvailability(startDate, endDate, duration, practitionerId, context);
+    const slots = await fetchHalaxyAvailability(startDate, endDate, duration, practitionerId, clinicId, feeId, context);
 
     const availability: FHIRBundle = {
       resourceType: 'Bundle',

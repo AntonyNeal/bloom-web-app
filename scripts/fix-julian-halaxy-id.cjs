@@ -16,10 +16,10 @@ async function fixJulianHalaxyId() {
   
   console.log('Practitioners:', JSON.stringify(data.practitioners, null, 2));
   
-  const julian = data.practitioners.find((p) => 
-    p.firstName.toLowerCase().includes('julian') || 
-    (p.displayName && p.displayName.toLowerCase().includes('julian'))
-  );
+  const julian = data.practitioners.find((p) => {
+    return p.firstName.toLowerCase().includes('julian') || 
+      (p.displayName && p.displayName.toLowerCase().includes('julian'));
+  });
   
   if (!julian) {
     console.error('Julian not found!');

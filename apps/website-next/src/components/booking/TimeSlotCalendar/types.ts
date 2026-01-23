@@ -22,4 +22,6 @@ export interface TimeSlotCalendarProps {
   selectedTime?: string;
   duration?: number;
   practitionerId?: string;
+  clinicId?: string;
+  feeId?: string;
 }

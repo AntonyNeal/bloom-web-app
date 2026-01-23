@@ -39,6 +39,8 @@ interface CachedUserDetails {
 interface PractitionerOption {
   id: string;
   halaxyPractitionerId: string | null; // The ID needed for Halaxy booking API
+  halaxyClinicId: string | null; // The clinic ID needed for booking API
+  halaxyFeeId: string | null; // The fee ID needed for booking API
   slug: string | null;
   displayName: string | null;
   firstName: string;
@@ -62,6 +64,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   // Practitioner selection - stores Halaxy practitioner ID for booking
   const [practitioners, setPractitioners] = useState<PractitionerOption[]>([]);
   const [selectedHalaxyPractitionerId, setSelectedHalaxyPractitionerId] = useState<string | null>(null);
+  const [selectedHalaxyClinicId, setSelectedHalaxyClinicId] = useState<string | null>(null);
+  const [selectedHalaxyFeeId, setSelectedHalaxyFeeId] = useState<string | null>(null);
   const [loadingPractitioners, setLoadingPractitioners] = useState(true);
 
   // Form data
@@ -111,6 +115,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               if (match) {
                 console.log('[BookingForm] Pre-selecting practitioner:', match);
                 setSelectedHalaxyPractitionerId(match.halaxyPractitionerId || null);
+                setSelectedHalaxyClinicId(match.halaxyClinicId || null);
+                setSelectedHalaxyFeeId(match.halaxyFeeId || null);
               }
             }
           }
@@ -1442,6 +1448,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               selectedTime={appointmentTime}
               duration={60}
               practitionerId={selectedHalaxyPractitionerId || undefined}
+              clinicId={selectedHalaxyClinicId || undefined}
+              feeId={selectedHalaxyFeeId || undefined}
             />
           </div>
           {(errors['appointmentDate'] || errors['appointmentTime']) && (

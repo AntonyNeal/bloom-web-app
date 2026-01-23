@@ -42,6 +42,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
   selectedTime,
   duration = DEFAULT_DURATION_MINUTES,
   practitionerId,
+  clinicId,
+  feeId,
 }) => {
   // ─────────────────────────────────────────────────────────────────────────────
   // State
@@ -84,6 +86,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
             endDate: weekEnd,
             duration,
             ...(practitionerId ? { practitionerId } : {}),
+            ...(clinicId ? { clinicId } : {}),
+            ...(feeId ? { feeId } : {}),
           };
           slots = await fetchAvailableSlots(params);
         }
@@ -117,7 +121,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     };
 
     fetchSlots();
-  }, [currentWeekStart, duration, practitionerId, isSearchingForAvailability, searchedWeeksWithNoSlots]);
+  }, [currentWeekStart, duration, practitionerId, clinicId, feeId, isSearchingForAvailability, searchedWeeksWithNoSlots]);
 
   // Auto-refresh every 60 seconds
   useEffect(() => {
@@ -131,6 +135,8 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
           endDate: weekEnd,
           duration,
           ...(practitionerId ? { practitionerId } : {}),
+          ...(clinicId ? { clinicId } : {}),
+          ...(feeId ? { feeId } : {}),
         };
 
         const slots = await fetchAvailableSlots(params);
@@ -141,7 +147,7 @@ export const TimeSlotCalendar: React.FC<TimeSlotCalendarProps> = ({
     }, AUTO_REFRESH_INTERVAL_MS);
 
     return () => clearInterval(refreshInterval);
-  }, [currentWeekStart, duration, practitionerId]);
+  }, [currentWeekStart, duration, practitionerId, clinicId, feeId]);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Week Schedule Generation

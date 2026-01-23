@@ -16,6 +16,8 @@ export interface AvailabilityParams {
   endDate: Date;
   duration: number; // minutes (60 for standard session)
   practitionerId?: string;
+  clinicId?: string;
+  feeId?: string;
   organizationId?: string;
 }
 
@@ -57,6 +59,12 @@ export async function fetchAvailableSlots(
 
     if (params.practitionerId) {
       queryParams.append('practitioner', params.practitionerId);
+    }
+    if (params.clinicId) {
+      queryParams.append('clinic', params.clinicId);
+    }
+    if (params.feeId) {
+      queryParams.append('fee', params.feeId);
     }
 
     const endpoint = `${functionUrl}?${queryParams.toString()}`;

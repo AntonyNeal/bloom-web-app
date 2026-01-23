@@ -33,6 +33,8 @@ const getConfig = (): string | sql.config => {
 interface PublicPractitioner {
   id: string;
   halaxyPractitionerId: string | null; // For booking API
+  halaxyClinicId: string | null; // For booking API
+  halaxyFeeId: string | null; // For booking API
   slug: string;
   displayName: string;
   firstName: string;
@@ -85,6 +87,8 @@ async function publicPractitionersHandler(
           SELECT 
             p.id,
             p.halaxy_practitioner_id,
+            p.halaxy_clinic_id,
+            p.halaxy_fee_id,
             LOWER(REPLACE(p.display_name, ' ', '-')) as url_slug,
             p.display_name,
             p.first_name,
@@ -126,6 +130,8 @@ async function publicPractitionersHandler(
       SELECT 
         p.id,
         p.halaxy_practitioner_id,
+        p.halaxy_clinic_id,
+        p.halaxy_fee_id,
         LOWER(REPLACE(p.display_name, ' ', '-')) as url_slug,
         p.display_name,
         p.first_name,
@@ -190,6 +196,8 @@ function mapRowToPractitioner(row: Record<string, unknown>): PublicPractitioner 
   return {
     id: row.id as string,
     halaxyPractitionerId: (row.halaxy_practitioner_id as string | null) || null,
+    halaxyClinicId: (row.halaxy_clinic_id as string | null) || null,
+    halaxyFeeId: (row.halaxy_fee_id as string | null) || null,
     slug: row.url_slug as string,
     displayName: row.display_name as string,
     firstName: row.first_name as string,

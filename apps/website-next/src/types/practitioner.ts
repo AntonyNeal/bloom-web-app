@@ -7,6 +7,9 @@
 
 export interface PublicPractitioner {
   id: string;
+  halaxyPractitionerId: string | null;
+  halaxyClinicId: string | null;
+  halaxyFeeId: string | null;
   slug: string;
   displayName: string;
   firstName: string;

@@ -24,8 +24,9 @@ const INTERVIEWER_PRACTITIONER_IDS = {
   ZOE: '1304541',
 };
 
-// Use Julian's practitioner for interview bookings
-const INTERVIEW_PRACTITIONER_ID = INTERVIEWER_PRACTITIONER_IDS.JULIAN;
+// Use Zoe's practitioner for interview availability (Julian not enabled for public booking)
+// The booking will still show both Julian and Zoe as interviewers
+const INTERVIEW_PRACTITIONER_ID = INTERVIEWER_PRACTITIONER_IDS.ZOE;
 const _INTERVIEW_PRACTITIONER_ROLE_ID = process.env.INTERVIEW_PRACTITIONER_ROLE_ID || 'PR-2442591';
 const _INTERVIEW_HEALTHCARE_SERVICE_ID = process.env.INTERVIEW_HEALTHCARE_SERVICE_ID || '567387';
 const INTERVIEW_DURATION_MINS = 30;

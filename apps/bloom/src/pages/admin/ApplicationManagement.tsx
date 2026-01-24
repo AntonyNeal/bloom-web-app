@@ -195,6 +195,42 @@ export function Admin() {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  // Send onboarding email to accepted applicant
+  const sendOnboarding = async (id: number) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.sendOnboarding(id), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send onboarding email");
+      }
+
+      toast({
+        title: "📧 Onboarding Email Sent!",
+        description: `Onboarding instructions sent to ${selectedApp?.email || 'applicant'}.`,
+      });
+
+      // Refresh
+      await fetchApplications();
+      if (selectedApp?.id === id) {
+        const appResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`);
+        const updatedApp = await appResponse.json();
+        setSelectedApp(updatedApp);
+      }
+    } catch (error) {
+      console.error("Failed to send onboarding:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to send onboarding email",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Send offer to candidate (requires contract to be uploaded)
   const sendOffer = async (id: number) => {
     try {
@@ -1118,11 +1154,38 @@ export function Admin() {
                       <p className="text-sm text-green-600 mb-2">
                         ✅ Accepted - awaiting onboarding
                       </p>
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-2">
-                        <p className="text-xs text-emerald-700">
-                          ℹ️ Status will automatically change to "Onboarded" when the applicant completes the onboarding process in the Bloom app.
+                      
+                      {/* Show signed contract for accepted status */}
+                      {selectedApp.signed_contract_url && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+                          <p className="text-sm font-medium text-blue-800 mb-1">
+                            ✍️ Signed Contract
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-blue-700">✓ Received from applicant</span>
+                            <button
+                              onClick={() => openDocument(selectedApp.signed_contract_url!, 'Signed Contract')}
+                              className="text-sm text-blue-600 hover:underline font-medium"
+                            >
+                              View PDF →
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
+                        <p className="text-xs text-amber-700">
+                          📧 Click "Send Onboarding" to send the applicant their onboarding instructions with login credentials.
                         </p>
                       </div>
+                      <Button
+                        onClick={() => sendOnboarding(selectedApp.id)}
+                        variant="default"
+                        size="sm"
+                        className="w-full bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        📧 Send Onboarding Email
+                      </Button>
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "reviewing")}
                         variant="outline"
@@ -1140,6 +1203,22 @@ export function Admin() {
                       <p className="text-sm text-teal-600 mb-2">
                         🎓 Onboarded - ready to activate
                       </p>
+                      
+                      {/* Show signed contract for onboarded status */}
+                      {selectedApp.signed_contract_url && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-blue-700">✍️ Signed Contract:</span>
+                            <button
+                              onClick={() => openDocument(selectedApp.signed_contract_url!, 'Signed Contract')}
+                              className="text-sm text-blue-600 hover:underline font-medium"
+                            >
+                              View PDF →
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
                       <Button
                         onClick={() => updateStatus(selectedApp.id, "active")}
                         variant="default"
@@ -1165,6 +1244,22 @@ export function Admin() {
                       <p className="text-sm text-emerald-600 mb-2">
                         🌟 Active Practitioner
                       </p>
+                      
+                      {/* Show signed contract for active status */}
+                      {selectedApp.signed_contract_url && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-blue-700">✍️ Signed Contract:</span>
+                            <button
+                              onClick={() => openDocument(selectedApp.signed_contract_url!, 'Signed Contract')}
+                              className="text-sm text-blue-600 hover:underline font-medium"
+                            >
+                              View PDF →
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
                       <p className="text-xs text-neutral-600 mb-2">
                         This practitioner is currently active and taking clients.
                       </p>

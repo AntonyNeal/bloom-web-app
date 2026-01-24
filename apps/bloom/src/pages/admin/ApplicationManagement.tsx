@@ -421,7 +421,14 @@ export function Admin() {
         Back to Dashboard
       </a>
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold mb-4">Application Management</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-semibold">Application Management</h1>
+          <a href="#/admin/interviews">
+            <Button variant="outline" size="sm">
+              📅 View Interviews
+            </Button>
+          </a>
+        </div>
         
         {/* Status Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
@@ -561,6 +568,18 @@ export function Admin() {
                     AHPRA: {app.ahpra_registration} | {app.experience_years}{" "}
                     years experience
                   </p>
+                  {app.scheduled_interview_time && (
+                    <p className="text-xs text-sky-600 mt-2 font-medium">
+                      📅 Interview: {new Date(app.scheduled_interview_time).toLocaleString('en-AU', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                      })}
+                    </p>
+                  )}
                   <p className="text-xs text-neutral-500 mt-2">
                     Applied: {new Date(app.created_at).toLocaleDateString()}
                   </p>

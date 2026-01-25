@@ -14,11 +14,13 @@
  * - Particle effects (falling petals, floating pollen)
  * - Dynamic lighting based on time and season
  * - Smooth growth animations keyed to revenue milestones
+ * - Weather integration - responds to local weather conditions
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { BlossomFlower } from './BlossomFlower';
 import { TreeBranch } from './TreeBranch';
+import { useWeather, getWeatherEffects } from '@/hooks/useWeather';
 import type { MonthlyStats, WeeklyStats } from '@/types/bloom';
 
 interface BlossomTreeProps {
@@ -73,7 +75,16 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const [timeOfDay, setTimeOfDay] = useState<'dawn' | 'morning' | 'afternoon' | 'evening' | 'night'>('morning');
   
+  // ============================================================================
+  // WEATHER INTEGRATION - Real-time local weather affects the scene
+  // ============================================================================
+  const { weather, locationName } = useWeather({
+    refreshInterval: 10 * 60 * 1000, // Refresh every 10 minutes
+  });
+  const weatherEffects = useMemo(() => getWeatherEffects(weather), [weather]);
+  
   // Determine time of day for lighting
+
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 7) setTimeOfDay('dawn');
@@ -372,6 +383,47 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
     }));
   }, [growthFactor, blossomLuminosity]);
   
+  // ============================================================================
+  // WEATHER PARTICLES - Rain, snow based on real local weather
+  // ============================================================================
+  const weatherParticles = useMemo(() => {
+    if (!weather) return [];
+    
+    const { condition, intensity } = weather;
+    const count = weatherEffects.particleCount;
+    
+    if (condition === 'rainy' || condition === 'stormy') {
+      // Generate deterministic rain positions using index-based calculation
+      return Array.from({ length: count }, (_, i) => ({
+        id: i,
+        x: 50 + ((i * 17) % 700),
+        y: -20 - ((i * 23) % 50),
+        length: intensity === 'heavy' ? 12 : intensity === 'moderate' ? 8 : 5,
+        speed: intensity === 'heavy' ? 0.4 : intensity === 'moderate' ? 0.6 : 0.8,
+        delay: (i * 0.15) % 2,
+        opacity: intensity === 'heavy' ? 0.5 : intensity === 'moderate' ? 0.4 : 0.3,
+        type: 'rain' as const,
+      }));
+    }
+    
+    if (condition === 'snowy') {
+      // Snowflakes drift more gently
+      return Array.from({ length: count }, (_, i) => ({
+        id: i,
+        x: 50 + ((i * 31) % 700),
+        y: -10 - ((i * 19) % 30),
+        radius: 2 + ((i * 7) % 3),
+        speed: intensity === 'heavy' ? 3 : intensity === 'moderate' ? 4 : 5,
+        delay: (i * 0.25) % 4,
+        drift: ((i * 13) % 60) - 30,
+        opacity: 0.7,
+        type: 'snow' as const,
+      }));
+    }
+    
+    return [];
+  }, [weather, weatherEffects.particleCount]);
+
   return (
     <div
       className={className}
@@ -692,6 +744,28 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
                 0%, 100% { opacity: 0.4; }
                 50% { opacity: 0.8; }
               }
+              
+              @keyframes rainFall {
+                0% {
+                  transform: translateY(0);
+                  opacity: 0.6;
+                }
+                100% {
+                  transform: translateY(450px);
+                  opacity: 0;
+                }
+              }
+              
+              @keyframes snowFall {
+                0% {
+                  transform: translate(0, 0) rotate(0deg);
+                  opacity: 0.8;
+                }
+                100% {
+                  transform: translate(var(--drift, 0px), 450px) rotate(360deg);
+                  opacity: 0;
+                }
+              }
             `}
           </style>
         </defs>
@@ -1005,7 +1079,93 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
             }}
           />
         ))}
+        
+        {/* Weather particles - rain or snow based on local weather */}
+        {weatherParticles.map((particle) => (
+          particle.type === 'rain' ? (
+            <line
+              key={`weather-${particle.id}`}
+              x1={particle.x}
+              y1={particle.y}
+              x2={particle.x + 2}
+              y2={particle.y + particle.length}
+              stroke={`rgba(180, 200, 220, ${particle.opacity})`}
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              style={{
+                animation: `rainFall ${particle.speed}s linear infinite`,
+                animationDelay: `${particle.delay}s`,
+              }}
+            />
+          ) : (
+            <circle
+              key={`weather-${particle.id}`}
+              cx={particle.x}
+              cy={particle.y}
+              r={particle.radius}
+              fill={`rgba(255, 255, 255, ${particle.opacity})`}
+              style={{
+                animation: `snowFall ${particle.speed}s ease-in-out infinite`,
+                animationDelay: `${particle.delay}s`,
+                // @ts-expect-error - CSS custom property
+                '--drift': `${particle.drift}px`,
+              }}
+            />
+          )
+        ))}
       </svg>
+      
+      {/* Weather overlay tint - subtle color shift based on conditions */}
+      {weatherEffects.skyTint && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: weatherEffects.skyTint,
+            pointerEvents: 'none',
+            transition: 'background 3s ease',
+            borderRadius: '16px',
+          }}
+        />
+      )}
+      
+      {/* Weather indicator - shows current conditions */}
+      {weather && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 10px',
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            borderRadius: '20px',
+            fontSize: '13px',
+            color: colors.sageDark,
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+          }}
+        >
+          <span style={{ fontSize: '16px' }}>
+            {weather.condition === 'clear' && weather.isDay && '☀️'}
+            {weather.condition === 'clear' && !weather.isDay && '🌙'}
+            {weather.condition === 'cloudy' && '☁️'}
+            {weather.condition === 'rainy' && '🌧️'}
+            {weather.condition === 'stormy' && '⛈️'}
+            {weather.condition === 'snowy' && '❄️'}
+            {weather.condition === 'windy' && '💨'}
+            {weather.condition === 'foggy' && '🌫️'}
+          </span>
+          <span style={{ fontWeight: 500 }}>{weather.temperature}°</span>
+          {locationName && (
+            <span style={{ opacity: 0.7, fontSize: '11px' }}>{locationName}</span>
+          )}
+        </div>
+      )}
       
       {/* Stats overlay - landscape layout with tree visible */}
       <div

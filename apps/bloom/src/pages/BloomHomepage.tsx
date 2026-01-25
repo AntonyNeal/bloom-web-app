@@ -1311,7 +1311,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
             </div>
           ) : (
             <span>🔧 Dev</span>
-          )}}
+          )}
         </div>
       )}
       

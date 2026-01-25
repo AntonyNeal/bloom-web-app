@@ -55,6 +55,14 @@ const colors = {
     evening: 'rgba(255, 200, 170, 0.7)',
     night: 'rgba(180, 195, 230, 0.8)',
   },
+  // Wooden frame - warm aged wood tones
+  wood: {
+    dark: '#5C4033',
+    mid: '#7A5C42',
+    light: '#9E7B5E',
+    highlight: '#C4A77D',
+    grain: '#4A3728',
+  },
 };
 
 export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
@@ -1101,6 +1109,300 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
           )}
         </div>
       </div>
+      
+      {/* ============================================================================
+          ORGANIC WOODEN FRAME - Like looking out a cottage window
+          Not a perfect rectangle, but organic curves suggesting aged wood or
+          branches that have grown into a frame shape over time.
+          ============================================================================ */}
+      <svg
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          borderRadius: '16px',
+        }}
+        preserveAspectRatio="none"
+        viewBox="0 0 100 100"
+      >
+        <defs>
+          {/* Wood grain gradient - gives depth and warmth */}
+          <linearGradient id="woodGrainH" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor={colors.wood.dark} />
+            <stop offset="15%" stopColor={colors.wood.mid} />
+            <stop offset="30%" stopColor={colors.wood.dark} />
+            <stop offset="50%" stopColor={colors.wood.light} />
+            <stop offset="70%" stopColor={colors.wood.mid} />
+            <stop offset="85%" stopColor={colors.wood.dark} />
+            <stop offset="100%" stopColor={colors.wood.mid} />
+          </linearGradient>
+          
+          <linearGradient id="woodGrainV" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor={colors.wood.dark} />
+            <stop offset="20%" stopColor={colors.wood.mid} />
+            <stop offset="40%" stopColor={colors.wood.light} />
+            <stop offset="60%" stopColor={colors.wood.mid} />
+            <stop offset="80%" stopColor={colors.wood.dark} />
+            <stop offset="100%" stopColor={colors.wood.mid} />
+          </linearGradient>
+          
+          {/* Inner shadow to create depth */}
+          <linearGradient id="frameShadowTop" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(0,0,0,0.3)" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
+          
+          <linearGradient id="frameShadowBottom" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stopColor="rgba(0,0,0,0.2)" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
+          
+          <linearGradient id="frameShadowLeft" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(0,0,0,0.25)" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
+          
+          <linearGradient id="frameShadowRight" x1="100%" y1="0%" x2="0%" y2="0%">
+            <stop offset="0%" stopColor="rgba(0,0,0,0.25)" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
+          
+          {/* Highlight for beveled edge effect */}
+          <linearGradient id="frameHighlightTop" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="70%" stopColor={colors.wood.highlight} />
+            <stop offset="100%" stopColor={colors.wood.light} />
+          </linearGradient>
+        </defs>
+        
+        {/* TOP FRAME - organic gentle wave, thicker */}
+        <path
+          d="M 0 0 
+             L 100 0 
+             L 100 5.5 
+             Q 85 5.2, 70 5.8 
+             Q 50 6.2, 30 5.5 
+             Q 15 5.0, 0 5.3 
+             Z"
+          fill="url(#woodGrainH)"
+        />
+        {/* Top inner bevel highlight */}
+        <path
+          d="M 0 5.3 
+             Q 15 5.0, 30 5.5 
+             Q 50 6.2, 70 5.8 
+             Q 85 5.2, 100 5.5 
+             L 100 6.5 
+             Q 85 6.2, 70 6.8 
+             Q 50 7.2, 30 6.5 
+             Q 15 6.0, 0 6.3 
+             Z"
+          fill="url(#frameShadowTop)"
+          opacity="0.5"
+        />
+        
+        {/* BOTTOM FRAME - slightly wavy, thicker */}
+        <path
+          d="M 0 100 
+             L 100 100 
+             L 100 93.5 
+             Q 80 94.2, 60 93.8 
+             Q 40 93.2, 20 94.0 
+             Q 10 94.5, 0 94.0 
+             Z"
+          fill="url(#woodGrainH)"
+        />
+        {/* Bottom inner shadow */}
+        <path
+          d="M 0 94.0 
+             Q 10 94.5, 20 94.0 
+             Q 40 93.2, 60 93.8 
+             Q 80 94.2, 100 93.5 
+             L 100 92.5 
+             Q 80 93.2, 60 92.8 
+             Q 40 92.2, 20 93.0 
+             Q 10 93.5, 0 93.0 
+             Z"
+          fill="url(#frameShadowBottom)"
+          opacity="0.4"
+        />
+        
+        {/* LEFT FRAME - organic vertical with slight curve inward */}
+        <path
+          d="M 0 0 
+             L 0 100 
+             L 4.5 100 
+             Q 4.2 80, 4.8 60 
+             Q 5.2 40, 4.5 20 
+             Q 4.0 10, 4.3 0 
+             Z"
+          fill="url(#woodGrainV)"
+        />
+        {/* Left inner shadow */}
+        <path
+          d="M 4.3 0 
+             Q 4.0 10, 4.5 20 
+             Q 5.2 40, 4.8 60 
+             Q 4.2 80, 4.5 100 
+             L 5.5 100 
+             Q 5.2 80, 5.8 60 
+             Q 6.2 40, 5.5 20 
+             Q 5.0 10, 5.3 0 
+             Z"
+          fill="url(#frameShadowLeft)"
+          opacity="0.4"
+        />
+        
+        {/* RIGHT FRAME - matching organic curve */}
+        <path
+          d="M 100 0 
+             L 100 100 
+             L 95.5 100 
+             Q 95.8 75, 95.2 50 
+             Q 94.8 25, 95.5 10 
+             Q 96.0 5, 95.7 0 
+             Z"
+          fill="url(#woodGrainV)"
+        />
+        {/* Right inner shadow */}
+        <path
+          d="M 95.7 0 
+             Q 96.0 5, 95.5 10 
+             Q 94.8 25, 95.2 50 
+             Q 95.8 75, 95.5 100 
+             L 94.5 100 
+             Q 94.8 75, 94.2 50 
+             Q 93.8 25, 94.5 10 
+             Q 95.0 5, 94.7 0 
+             Z"
+          fill="url(#frameShadowRight)"
+          opacity="0.4"
+        />
+        
+        {/* Corner overlaps - organic knots/joints */}
+        {/* Top-left corner */}
+        <ellipse
+          cx="3"
+          cy="3.5"
+          rx="2.8"
+          ry="3"
+          fill={colors.wood.dark}
+        />
+        <ellipse
+          cx="3"
+          cy="3.5"
+          rx="1.8"
+          ry="2"
+          fill={colors.wood.mid}
+          opacity="0.7"
+        />
+        
+        {/* Top-right corner */}
+        <ellipse
+          cx="97"
+          cy="3.5"
+          rx="2.8"
+          ry="3"
+          fill={colors.wood.dark}
+        />
+        <ellipse
+          cx="97"
+          cy="3.5"
+          rx="1.8"
+          ry="2"
+          fill={colors.wood.mid}
+          opacity="0.7"
+        />
+        
+        {/* Bottom-left corner */}
+        <ellipse
+          cx="3"
+          cy="96.5"
+          rx="2.8"
+          ry="3"
+          fill={colors.wood.dark}
+        />
+        <ellipse
+          cx="3"
+          cy="96.5"
+          rx="1.8"
+          ry="2"
+          fill={colors.wood.mid}
+          opacity="0.7"
+        />
+        
+        {/* Bottom-right corner */}
+        <ellipse
+          cx="97"
+          cy="96.5"
+          rx="2.8"
+          ry="3"
+          fill={colors.wood.dark}
+        />
+        <ellipse
+          cx="97"
+          cy="96.5"
+          rx="1.8"
+          ry="2"
+          fill={colors.wood.mid}
+          opacity="0.7"
+        />
+        
+        {/* Subtle wood grain texture lines */}
+        {/* Top frame grain */}
+        <path
+          d="M 10 2.5 Q 30 2.2, 50 2.8 Q 70 2.3, 90 2.6"
+          stroke={colors.wood.grain}
+          strokeWidth="0.15"
+          fill="none"
+          opacity="0.4"
+        />
+        <path
+          d="M 8 3.8 Q 25 4.2, 45 3.5 Q 65 4.0, 85 3.7"
+          stroke={colors.wood.grain}
+          strokeWidth="0.12"
+          fill="none"
+          opacity="0.3"
+        />
+        
+        {/* Bottom frame grain */}
+        <path
+          d="M 15 97.2 Q 35 96.8, 55 97.5 Q 75 97.0, 92 97.3"
+          stroke={colors.wood.grain}
+          strokeWidth="0.15"
+          fill="none"
+          opacity="0.4"
+        />
+        
+        {/* Left frame grain */}
+        <path
+          d="M 2.2 15 Q 2.5 35, 2.0 55 Q 2.4 75, 2.2 90"
+          stroke={colors.wood.grain}
+          strokeWidth="0.15"
+          fill="none"
+          opacity="0.35"
+        />
+        
+        {/* Right frame grain */}
+        <path
+          d="M 97.8 12 Q 97.5 32, 98.0 52 Q 97.6 72, 97.8 88"
+          stroke={colors.wood.grain}
+          strokeWidth="0.15"
+          fill="none"
+          opacity="0.35"
+        />
+        
+        {/* Small knots/imperfections for organic feel */}
+        <circle cx="25" cy="3" r="0.6" fill={colors.wood.grain} opacity="0.5" />
+        <circle cx="72" cy="4" r="0.5" fill={colors.wood.grain} opacity="0.4" />
+        <circle cx="2.5" cy="45" r="0.5" fill={colors.wood.grain} opacity="0.5" />
+        <circle cx="97.5" cy="65" r="0.5" fill={colors.wood.grain} opacity="0.4" />
+        <circle cx="40" cy="96" r="0.6" fill={colors.wood.grain} opacity="0.5" />
+        <circle cx="78" cy="97" r="0.5" fill={colors.wood.grain} opacity="0.4" />
+      </svg>
     </div>
   );
 };

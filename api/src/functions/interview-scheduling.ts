@@ -153,12 +153,43 @@ async function getInterviewSlots(
 
     const slotsData = await halaxyResponse.json();
     
-    // Transform slots for frontend
-    const slots = (slotsData.entry || []).map((entry: { resource: { start: string; end: string; id: string } }) => ({
-      id: entry.resource.id,
-      start: entry.resource.start,
-      end: entry.resource.end,
-    }));
+    // Transform Halaxy v2 slots for frontend
+    // Halaxy returns { dates: { "2026-01-26": [{dateTimeKey, day, startDateUserTime, timeLabel, ...}, ...], ... } }
+    interface HalaxySlot {
+      dateTimeKey: string;
+      day: string;
+      startDateUserTime: string;
+      timeLabel: string;
+      timeSection: string;
+      userTimezone: string;
+      status?: string;
+    }
+    
+    const slots: Array<{ id: string; start: string; end: string; day: string; timeLabel: string }> = [];
+    const timeslotsData = slotsData?.data?.timeslots || {};
+    
+    for (const [_dateKey, daySlots] of Object.entries(timeslotsData)) {
+      const slotsArray = daySlots as HalaxySlot[];
+      for (const slot of slotsArray) {
+        // Skip "not-available" slots or slots without required fields
+        if (slot.status === 'not-available' || !slot.dateTimeKey || !slot.startDateUserTime) continue;
+        
+        // Calculate end time by adding interview duration to start time
+        const startTime = new Date(slot.startDateUserTime);
+        const endTime = new Date(startTime.getTime() + INTERVIEW_DURATION_MINS * 60 * 1000);
+        
+        slots.push({
+          id: slot.dateTimeKey,
+          start: slot.startDateUserTime,
+          end: endTime.toISOString(),
+          day: slot.day,
+          timeLabel: slot.timeLabel || '',
+        });
+      }
+    }
+    
+    // Sort by start time
+    slots.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
     return {
       status: 200,

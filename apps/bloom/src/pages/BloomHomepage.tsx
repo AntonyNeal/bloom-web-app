@@ -1,6 +1,7 @@
 ﻿import React, { useState, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BlossomTreeSophisticated } from '@/components/bloom-tree/BlossomTreeSophisticated';
+import { GhibliAnimationDebugger } from '@/components/bloom-tree/GhibliAnimationDebugger';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useDashboard } from '@/hooks/useDashboard';
 import { BloomHeader } from '@/components/layout/BloomHeader';
@@ -1076,6 +1077,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const [showDebug, setShowDebug] = useState(false);
+  const [showAnimationDebugger, setShowAnimationDebugger] = useState(false);
   const [azureUserId, setAzureUserId] = useState<string | null>(null);
   
   // Handler for starting a telehealth session
@@ -1252,7 +1254,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
         >
           {showDebug ? (
             <div>
-              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>≡ƒöº Developer Info</div>
+              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>🔧 Developer Info</div>
               <div style={{ marginBottom: '4px' }}>Azure ID:</div>
               <div style={{ 
                 background: 'rgba(255,255,255,0.2)', 
@@ -1263,14 +1265,41 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
                 {azureUserId}
               </div>
               <div style={{ marginTop: '8px', fontSize: '10px', opacity: 0.8 }}>
-                {dashboard?.syncStatus?.isConnected ? 'Γ£à Live data' : '≡ƒôè Sample data'}
+                {dashboard?.syncStatus?.isConnected ? '✅ Live data' : '📊 Sample data'}
               </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowAnimationDebugger(true); }}
+                style={{
+                  marginTop: '12px',
+                  width: '100%',
+                  padding: '8px 12px',
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '6px',
+                  color: 'white',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                🎬 Animation Review Mode
+              </button>
             </div>
           ) : (
-            <span>≡ƒöº Dev</span>
+            <span>🔧 Dev</span>
           )}
         </div>
       )}
+      
+      {/* Ghibli Animation Debugger - For Artistic Review */}
+      <GhibliAnimationDebugger 
+        isOpen={showAnimationDebugger} 
+        onClose={() => setShowAnimationDebugger(false)} 
+      />
+      
       {/* Global styles for animations */}
       <style>
         {`

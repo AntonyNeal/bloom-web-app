@@ -41,48 +41,59 @@ export default function InterviewRoom() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const fetchInterviewDetails = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_ENDPOINTS.interview}/${token}`);
-      const data = await response.json();
-
-      if (!data.success) {
-        if (response.status === 425) {
-          // Too early
-          setMinutesUntilOpen(data.minutesUntilOpen);
-          setInterview({
-            applicantFirstName: '',
-            applicantLastName: '',
-            scheduledAt: data.interviewTime,
-            durationMinutes: 30,
-            acsRoomId: '',
-            roomStatus: 'not-open',
-            interviewers: ['Zoe', 'Julian'],
-          });
-          setPageState('early');
-          return;
-        }
-        
-        setError(data.error || 'Failed to load interview details');
-        setPageState('error');
-        return;
-      }
-
-      setInterview(data.interview);
-      setPageState('waiting');
-    } catch (_err) {
-      setError('Unable to load interview. Please try again.');
-      setPageState('error');
-    }
-  }, [token]);
-
   useEffect(() => {
     if (!token) {
       return;
     }
 
-    void fetchInterviewDetails();
-  }, [token, fetchInterviewDetails]);
+    let cancelled = false;
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        const response = await fetch(`${API_ENDPOINTS.interview}/${token}`, {
+          signal: controller.signal,
+        });
+        const data = await response.json();
+
+        if (cancelled) return;
+
+        if (!data.success) {
+          if (response.status === 425) {
+            // Too early
+            setMinutesUntilOpen(data.minutesUntilOpen);
+            setInterview({
+              applicantFirstName: '',
+              applicantLastName: '',
+              scheduledAt: data.interviewTime,
+              durationMinutes: 30,
+              acsRoomId: '',
+              roomStatus: 'not-open',
+              interviewers: ['Zoe', 'Julian'],
+            });
+            setPageState('early');
+            return;
+          }
+          
+          setError(data.error || 'Failed to load interview details');
+          setPageState('error');
+          return;
+        }
+
+        setInterview(data.interview);
+        setPageState('waiting');
+      } catch (err) {
+        if (cancelled || (err instanceof Error && err.name === 'AbortError')) return;
+        setError('Unable to load interview. Please try again.');
+        setPageState('error');
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [token]);
 
   // Handle missing token by computing error state from token
   const tokenError = !token ? 'Invalid interview link' : null;

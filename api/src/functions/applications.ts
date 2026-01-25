@@ -440,6 +440,12 @@ async function resendInterviewHandler(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+
   // Handle CORS preflight
   if (request.method === 'OPTIONS') {
     return { status: 204, headers };
@@ -463,14 +469,8 @@ async function resendInterviewHandler(
   }
 
   try {
-    let pool: sql.ConnectionPool;
     const config = getConfig();
-
-    if (typeof config === 'string') {
-      pool = await sql.connect(config);
-    } else {
-      pool = await sql.connect(config);
-    }
+    const pool = await sql.connect(config);
 
     // Get application details
     const appResult = await pool.request()
@@ -521,10 +521,15 @@ async function resendInterviewHandler(
       context
     );
 
-    // Send the interview email
+    // Send the interview email (using same structure as status update)
+    const emailContext = {
+      firstName: application.first_name,
+      lastName: application.last_name,
+      email: application.email,
+    };
+
     const emailResult = await sendInterviewEmail({
-      applicantName: `${application.first_name} ${application.last_name}`,
-      applicantEmail: application.email,
+      ...emailContext,
       bookingUrl: schedulingLink,
       contractUrl: application.contract_url || undefined,
     });

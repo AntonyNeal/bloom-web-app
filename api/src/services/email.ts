@@ -801,11 +801,15 @@ Warm regards,
 Zoe & The ${COMPANY_NAME} Team
   `.trim();
 
+  // CC Julian on all onboarding emails
+  const ONBOARDING_CC_EMAIL = 'julian.dellabosca@gmail.com';
+
   return sendEmail(
     email,
     `Welcome to ${COMPANY_NAME}! 🎉`,
     htmlContent,
-    plainTextContent
+    plainTextContent,
+    ONBOARDING_CC_EMAIL
   );
 }
 

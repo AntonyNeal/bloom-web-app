@@ -1078,6 +1078,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
   const prefersReducedMotion = useReducedMotion();
   const [showDebug, setShowDebug] = useState(false);
   const [showAnimationDebugger, setShowAnimationDebugger] = useState(false);
+  const [showTreeControls, setShowTreeControls] = useState(false);
   const [azureUserId, setAzureUserId] = useState<string | null>(null);
   
   // Handler for starting a telehealth session
@@ -1287,10 +1288,30 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
               >
                 🎬 Animation Review Mode
               </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowTreeControls(!showTreeControls); }}
+                style={{
+                  marginTop: '8px',
+                  width: '100%',
+                  padding: '8px 12px',
+                  backgroundColor: showTreeControls ? 'rgba(76, 175, 80, 0.4)' : 'rgba(255,255,255,0.2)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '6px',
+                  color: 'white',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                🌳 {showTreeControls ? 'Hide' : 'Show'} Tree Controls
+              </button>
             </div>
           ) : (
             <span>🔧 Dev</span>
-          )}
+          )}}
         </div>
       )}
       
@@ -1393,7 +1414,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
             borderRadius: '20px',
           }}
         >
-          <BlossomTreeSophisticated monthlyStats={monthlyStats} weeklyStats={weeklyStats} />
+          <BlossomTreeSophisticated monthlyStats={monthlyStats} weeklyStats={weeklyStats} showControls={showTreeControls} />
         </motion.div>
 
         {/* Primary Action: Enter Therapy Room */}

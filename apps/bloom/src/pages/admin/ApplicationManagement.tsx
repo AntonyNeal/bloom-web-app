@@ -50,6 +50,9 @@ interface Application {
   offer_sent_at?: string | null;
   offer_accepted_at?: string | null;
   halaxy_practitioner_verified?: boolean;
+  practitioner_id?: string | null;
+  practitioner_role_id?: string | null;
+  halaxy_verified_at?: string | null;
   // Interview analysis fields
   interview_analysis?: InterviewAnalysis | null;
   interview_notes?: string | null;
@@ -71,6 +74,8 @@ export function Admin() {
   const [errorCode, setErrorCode] = useState<number | undefined>(undefined);
   const [lastAttempt, setLastAttempt] = useState<Date | undefined>(undefined);
   const [isUploadingContract, setIsUploadingContract] = useState(false);
+  const [isVerifyingHalaxy, setIsVerifyingHalaxy] = useState(false);
+  const [isResendingInterview, setIsResendingInterview] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -228,6 +233,76 @@ export function Admin() {
         description: error instanceof Error ? error.message : "Failed to send onboarding email",
         variant: "destructive",
       });
+    }
+  };
+
+  // Resend interview invitation email
+  const resendInterview = async (id: number) => {
+    setIsResendingInterview(true);
+    try {
+      const response = await fetch(API_ENDPOINTS.resendInterview(id), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to resend interview invitation");
+      }
+
+      toast({
+        title: "📧 Interview Invitation Resent!",
+        description: `A new interview scheduling link has been sent to ${selectedApp?.email || 'applicant'}.`,
+      });
+    } catch (error) {
+      console.error("Failed to resend interview:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to resend interview invitation",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResendingInterview(false);
+    }
+  };
+
+  // Verify practitioner exists in Halaxy by name
+  const verifyHalaxy = async (id: number) => {
+    setIsVerifyingHalaxy(true);
+    try {
+      const response = await fetch(API_ENDPOINTS.verifyHalaxy(id), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to verify in Halaxy");
+      }
+
+      toast({
+        title: "✅ Verified in Halaxy!",
+        description: `Found ${selectedApp?.first_name} ${selectedApp?.last_name} in Halaxy (ID: ${data.practitioner_id})`,
+      });
+
+      // Refresh to show updated verification status
+      await fetchApplications();
+      if (selectedApp?.id === id) {
+        const appResponse = await fetch(`${API_ENDPOINTS.applications}/${id}`);
+        const updatedApp = await appResponse.json();
+        setSelectedApp(updatedApp);
+      }
+    } catch (error) {
+      console.error("Failed to verify Halaxy:", error);
+      toast({
+        title: "Not Found in Halaxy",
+        description: error instanceof Error ? error.message : "Practitioner not found in Halaxy. Please add them first.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsVerifyingHalaxy(false);
     }
   };
 
@@ -880,6 +955,15 @@ export function Admin() {
                           </p>
                         </div>
                       )}
+                      <Button
+                        onClick={() => resendInterview(selectedApp.id)}
+                        variant="secondary"
+                        size="sm"
+                        className="w-full mb-2"
+                        disabled={isResendingInterview}
+                      >
+                        {isResendingInterview ? "📧 Sending..." : "📧 Resend Interview Invitation"}
+                      </Button>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           onClick={() => updateStatus(selectedApp.id, "reviewing")}
@@ -1172,6 +1256,46 @@ export function Admin() {
                           </div>
                         </div>
                       )}
+                      
+                      {/* Halaxy Verification Status */}
+                      <div className={`rounded-lg p-3 mb-2 ${
+                        selectedApp.halaxy_practitioner_verified 
+                          ? 'bg-green-50 border border-green-200' 
+                          : 'bg-orange-50 border border-orange-200'
+                      }`}>
+                        <p className={`text-sm font-medium mb-1 ${
+                          selectedApp.halaxy_practitioner_verified ? 'text-green-800' : 'text-orange-800'
+                        }`}>
+                          {selectedApp.halaxy_practitioner_verified ? '✅ Halaxy Verified' : '⚠️ Halaxy Verification Required'}
+                        </p>
+                        {selectedApp.halaxy_practitioner_verified ? (
+                          <div className="text-xs text-green-700 space-y-1">
+                            <p>✓ Found in Halaxy: {selectedApp.practitioner_id}</p>
+                            {selectedApp.practitioner_role_id && (
+                              <p>✓ Role ID: {selectedApp.practitioner_role_id}</p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <p className="text-xs text-orange-700">
+                              Before sending onboarding, verify this person exists in Halaxy by clicking below.
+                            </p>
+                            <Button
+                              onClick={() => verifyHalaxy(selectedApp.id)}
+                              disabled={isVerifyingHalaxy}
+                              variant="outline"
+                              size="sm"
+                              className="w-full border-orange-300 text-orange-700 hover:bg-orange-100"
+                            >
+                              {isVerifyingHalaxy ? (
+                                <>🔄 Checking Halaxy...</>
+                              ) : (
+                                <>🔍 Check "{selectedApp.first_name} {selectedApp.last_name}" in Halaxy</>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                       
                       <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
                         <p className="text-xs text-amber-700">

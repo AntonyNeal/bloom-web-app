@@ -705,19 +705,17 @@ function AnimatedRoutes() {
           }
         />
 
-        {/* Onboarding */}
+        {/* Onboarding - Public route (no auth required, uses token from URL) */}
         <Route
-          path="/onboarding"
+          path="/onboarding/:token"
           element={
-            <ProtectedRoute>
-              <ErrorBoundary>
-                <Suspense
-                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
-                >
-                  <Onboarding />
-                </Suspense>
-              </ErrorBoundary>
-            </ProtectedRoute>
+            <ErrorBoundary>
+              <Suspense
+                fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+              >
+                <Onboarding />
+              </Suspense>
+            </ErrorBoundary>
           }
         />
 

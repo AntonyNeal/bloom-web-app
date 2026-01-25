@@ -17,6 +17,8 @@ export const API_ENDPOINTS = {
   sendOffer: (id: number) => `${API_BASE_URL}/send-offer/${id}`,
   acceptOffer: (token: string) => `${API_BASE_URL}/accept-offer/${token}`,
   sendOnboarding: (id: number) => `${API_BASE_URL}/resend-onboarding/${id}`,
+  verifyHalaxy: (id: number) => `${API_BASE_URL}/verify-halaxy-practitioner/${id}`,
+  resendInterview: (id: number) => `${API_BASE_URL}/resend-interview/${id}`,
   scheduleInterview: `${API_BASE_URL}/schedule-interview`,
   interview: `${API_BASE_URL}/interview`,
   interviewTranscribe: (token: string) => `${API_BASE_URL}/interview/${token}/transcribe`,

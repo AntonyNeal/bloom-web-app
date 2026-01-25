@@ -23,10 +23,19 @@ import { TreeBranch } from './TreeBranch';
 import { useWeather, getWeatherEffects } from '@/hooks/useWeather';
 import type { MonthlyStats, WeeklyStats } from '@/types/bloom';
 
+// Day of week type
+type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+
 interface BlossomTreeProps {
   monthlyStats: MonthlyStats;
   weeklyStats?: WeeklyStats;
   className?: string;
+  // Override controls for preview/debugging
+  overrideDayOfWeek?: DayOfWeek;
+  overrideWeeklyRevenue?: number;
+  overrideMonthlyRevenue?: number;
+  // Show the control panel
+  showControls?: boolean;
 }
 
 // Color palette constants
@@ -74,9 +83,40 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
   monthlyStats,
   weeklyStats,
   className,
+  overrideDayOfWeek,
+  overrideWeeklyRevenue,
+  overrideMonthlyRevenue,
+  showControls = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [timeOfDay, setTimeOfDay] = useState<'dawn' | 'morning' | 'afternoon' | 'evening' | 'night'>('morning');
+  
+  // Internal state for controls (when showControls is true)
+  const [controlDayOfWeek, setControlDayOfWeek] = useState<DayOfWeek>(() => {
+    const days: DayOfWeek[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return days[new Date().getDay()];
+  });
+  const [controlWeeklyRevenue, setControlWeeklyRevenue] = useState(weeklyStats?.currentRevenue ?? 0);
+  const [controlMonthlyRevenue, setControlMonthlyRevenue] = useState(monthlyStats.currentRevenue);
+  
+  // Use overrides > controls > real data
+  const effectiveDayOfWeek = overrideDayOfWeek ?? (showControls ? controlDayOfWeek : (() => {
+    const days: DayOfWeek[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return days[new Date().getDay()];
+  })());
+  const effectiveWeeklyRevenue = overrideWeeklyRevenue ?? (showControls ? controlWeeklyRevenue : (weeklyStats?.currentRevenue ?? 0));
+  const effectiveMonthlyRevenue = overrideMonthlyRevenue ?? (showControls ? controlMonthlyRevenue : monthlyStats.currentRevenue);
+  
+  // ============================================================================
+  // DAY-BASED DISPLAY MODE
+  // - Monday: Rest day (bare branches)
+  // - Tuesday-Friday: Fruiting (show fruits based on weekly revenue)
+  // - Friday-Sunday: Flowering (show blossoms based on weekly revenue)
+  // Note: Friday shows BOTH fruits and flowers (transition day)
+  // ============================================================================
+  const isFloweringDay = ['friday', 'saturday', 'sunday'].includes(effectiveDayOfWeek);
+  const isFruitingDay = ['tuesday', 'wednesday', 'thursday', 'friday'].includes(effectiveDayOfWeek);
+  const isRestDay = effectiveDayOfWeek === 'monday';
   
   // ============================================================================
   // WEATHER INTEGRATION - Real-time local weather affects the scene
@@ -134,8 +174,9 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
   //    Fresh flowers each week, size based on weekly revenue
   // ============================================================================
   
-  const monthlyRevenue = monthlyStats.currentRevenue;
-  const weeklyRevenue = weeklyStats?.currentRevenue ?? 0;
+  // Use effective values (from overrides/controls or real data)
+  const monthlyRevenue = effectiveMonthlyRevenue;
+  const weeklyRevenue = effectiveWeeklyRevenue;
   
   // Monthly tree growth milestones - the tree structure
   // At $0 on day 1: tiny sprout
@@ -219,13 +260,36 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
   const treeStage = getTreeStage(monthlyRevenue);
   const blossomStage = getBlossomStage(weeklyRevenue);
   
+  // ============================================================================
+  // FRUIT STAGE - Based on weekly revenue (shown Tue-Fri)
+  // ============================================================================
+  const getFruitStage = (rev: number) => {
+    if (rev >= WEEKLY_MILESTONES.MAGNIFICENT) return { fruitCount: 45, intensity: 1.0, label: '🍎 Abundant harvest' };
+    if (rev >= WEEKLY_MILESTONES.ABUNDANT) return { fruitCount: 35, intensity: 0.9, label: '🍊 Plentiful' };
+    if (rev >= WEEKLY_MILESTONES.FLOURISHING) return { fruitCount: 25, intensity: 0.75, label: '🍑 Fruitful' };
+    if (rev >= WEEKLY_MILESTONES.BLOOMING) return { fruitCount: 15, intensity: 0.55, label: '🫐 Growing' };
+    if (rev >= WEEKLY_MILESTONES.BUDDING) return { fruitCount: 6, intensity: 0.35, label: '🍒 First fruits' };
+    return { fruitCount: 0, intensity: 0.15, label: '🌰 Dormant' };
+  };
+  
+  const fruitStage = getFruitStage(weeklyRevenue);
+  
+  // Adjust blossom/fruit counts based on day of week
+  const effectiveBlossomCount = isFloweringDay ? blossomStage.blossomCount : 0;
+  const effectiveFruitCount = isFruitingDay ? fruitStage.fruitCount : 0;
+  
   // Combined stage for backward compatibility
   const stage = {
     name: treeStage.name,
     label: treeStage.label,
-    blossomCount: blossomStage.blossomCount,
-    intensity: blossomStage.intensity,
+    blossomCount: effectiveBlossomCount,
+    fruitCount: effectiveFruitCount,
+    intensity: isRestDay ? 0.1 : blossomStage.intensity,
     nextMilestone: Object.values(MONTHLY_MILESTONES).find(m => m > monthlyRevenue) ?? null,
+    isFlowering: isFloweringDay,
+    isFruiting: isFruitingDay,
+    isResting: isRestDay,
+    dayOfWeek: effectiveDayOfWeek,
   };
   
   // ============================================================================
@@ -348,6 +412,65 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
     return clusters;
   }, [stage.blossomCount, blossomOpenness, blossomSizeMultiplier, blossomVibrancy, blossomLuminosity, blossomFactor]);
   
+  // ============================================================================
+  // FRUIT CLUSTERS - Similar to blossoms but for fruits (Tue-Fri)
+  // ============================================================================
+  const fruitClusters = useMemo(() => {
+    const fruits: Array<{
+      x: number;
+      y: number;
+      size: number;
+      ripeness: number;
+      rotation: number;
+      fruitType: 'apple' | 'orange' | 'peach' | 'cherry';
+    }> = [];
+    
+    if (stage.fruitCount === 0) return fruits;
+    
+    // Use same cluster zones as blossoms but place fewer, larger fruits
+    const fruitZones = [
+      { cx: 280, cy: 155, radius: 35, density: 1.0 },
+      { cx: 520, cy: 160, radius: 40, density: 1.1 },
+      { cx: 320, cy: 210, radius: 30, density: 0.9 },
+      { cx: 480, cy: 205, radius: 35, density: 1.0 },
+      { cx: 260, cy: 255, radius: 20, density: 0.7 },
+      { cx: 540, cy: 250, radius: 22, density: 0.8 },
+      { cx: 400, cy: 135, radius: 30, density: 1.2 },
+      { cx: 400, cy: 195, radius: 40, density: 1.3 },
+    ];
+    
+    const fruitTypes: Array<'apple' | 'orange' | 'peach' | 'cherry'> = ['apple', 'orange', 'peach', 'cherry'];
+    let fruitId = 0;
+    const targetCount = stage.fruitCount;
+    const fruitsPerZone = Math.ceil(targetCount / fruitZones.length);
+    
+    fruitZones.forEach((zone) => {
+      const zoneCount = Math.floor(fruitsPerZone * zone.density);
+      
+      for (let i = 0; i < zoneCount && fruitId < targetCount; i++) {
+        const distance = zone.radius * Math.sqrt(Math.random());
+        const angle = Math.random() * Math.PI * 2;
+        
+        const x = zone.cx + Math.cos(angle) * distance;
+        const y = zone.cy + Math.sin(angle) * distance;
+        
+        // Fruit size based on weekly revenue factor
+        const size = 4 + Math.random() * 3 + blossomFactor * 3; // 4-10px radius
+        
+        // Ripeness based on weekly revenue (affects color saturation)
+        const ripeness = 0.5 + blossomFactor * 0.5;
+        
+        const rotation = Math.random() * 360;
+        const fruitType = fruitTypes[fruitId % fruitTypes.length];
+        
+        fruits.push({ x, y, size, ripeness, rotation, fruitType });
+        fruitId++;
+      }
+    });
+    
+    return fruits;
+  }, [stage.fruitCount, blossomFactor]);
+  
   // Falling petals - appear at high weekly revenue with vibrant flowers
   const fallingPetals = useMemo(() => {
     // Petals fall when blossoms are abundant and vibrant
@@ -447,6 +570,126 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
         transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
       }}
     >
+      {/* Control Panel - shown when showControls is true */}
+      {showControls && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '10px',
+            left: '10px',
+            zIndex: 100,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '12px',
+            padding: '12px 16px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            fontSize: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            maxWidth: '220px',
+          }}
+        >
+          <div style={{ fontWeight: 600, fontSize: '13px', color: '#5d4037', marginBottom: '4px' }}>
+            🌳 Tree Controls
+          </div>
+          
+          {/* Day of Week */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontWeight: 500, color: '#666' }}>Day of Week</label>
+            <select
+              value={controlDayOfWeek}
+              onChange={(e) => setControlDayOfWeek(e.target.value as DayOfWeek)}
+              style={{
+                padding: '6px 10px',
+                borderRadius: '6px',
+                border: '1px solid #ddd',
+                fontSize: '12px',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="monday">Monday (Rest)</option>
+              <option value="tuesday">Tuesday (Fruits)</option>
+              <option value="wednesday">Wednesday (Fruits)</option>
+              <option value="thursday">Thursday (Fruits)</option>
+              <option value="friday">Friday (Fruits + Flowers)</option>
+              <option value="saturday">Saturday (Flowers)</option>
+              <option value="sunday">Sunday (Flowers)</option>
+            </select>
+          </div>
+          
+          {/* Weekly Revenue */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontWeight: 500, color: '#666' }}>
+              Weekly Revenue: ${controlWeeklyRevenue.toLocaleString()}
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="10000"
+              step="100"
+              value={controlWeeklyRevenue}
+              onChange={(e) => setControlWeeklyRevenue(Number(e.target.value))}
+              style={{ width: '100%', cursor: 'pointer' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#999' }}>
+              <span>$0</span>
+              <span>$10,000</span>
+            </div>
+          </div>
+          
+          {/* Monthly Revenue */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontWeight: 500, color: '#666' }}>
+              Monthly Revenue: ${controlMonthlyRevenue.toLocaleString()}
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="50000"
+              step="500"
+              value={controlMonthlyRevenue}
+              onChange={(e) => setControlMonthlyRevenue(Number(e.target.value))}
+              style={{ width: '100%', cursor: 'pointer' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#999' }}>
+              <span>$0</span>
+              <span>$50,000</span>
+            </div>
+          </div>
+          
+          {/* Status Display */}
+          <div style={{ 
+            borderTop: '1px solid #eee', 
+            paddingTop: '8px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            fontSize: '11px',
+          }}>
+            <div style={{ color: '#666' }}>
+              <strong>Tree Size:</strong> {stage.label}
+            </div>
+            <div style={{ color: '#666' }}>
+              <strong>Mode:</strong>{' '}
+              {isRestDay ? '💤 Resting' : ''}
+              {isFloweringDay && !isFruitingDay ? '🌸 Flowering' : ''}
+              {isFruitingDay && !isFloweringDay ? '🍎 Fruiting' : ''}
+              {isFloweringDay && isFruitingDay ? '🌸🍎 Both' : ''}
+            </div>
+            {stage.isFlowering && (
+              <div style={{ color: '#e91e63' }}>
+                Blossoms: {stage.blossomCount}
+              </div>
+            )}
+            {stage.isFruiting && (
+              <div style={{ color: '#ff5722' }}>
+                Fruits: {stage.fruitCount}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       {/* Ambient sky layer - changes with time of day */}
       <div
         style={{
@@ -1042,6 +1285,67 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
               />
             ))}
         </g>
+        
+        {/* Fruits - rendered when it's a fruiting day (Tue-Fri) */}
+        {stage.isFruiting && fruitClusters.length > 0 && (
+          <g className="fruits-layer">
+            {fruitClusters.map((fruit, i) => {
+              const fruitColors = {
+                apple: { main: `hsl(0, ${60 + fruit.ripeness * 30}%, ${45 + fruit.ripeness * 10}%)`, highlight: '#ff9999', stem: '#5d4037' },
+                orange: { main: `hsl(30, ${70 + fruit.ripeness * 25}%, ${50 + fruit.ripeness * 8}%)`, highlight: '#ffd699', stem: '#6d4c41' },
+                peach: { main: `hsl(20, ${50 + fruit.ripeness * 35}%, ${65 + fruit.ripeness * 10}%)`, highlight: '#ffe4cc', stem: '#5d4037' },
+                cherry: { main: `hsl(350, ${70 + fruit.ripeness * 25}%, ${35 + fruit.ripeness * 10}%)`, highlight: '#ff6b6b', stem: '#4e342e' },
+              };
+              const colors = fruitColors[fruit.fruitType];
+              
+              return (
+                <g key={`fruit-${i}`} transform={`translate(${fruit.x}, ${fruit.y})`}>
+                  {/* Fruit stem */}
+                  <line
+                    x1={0}
+                    y1={-fruit.size}
+                    x2={0}
+                    y2={-fruit.size - 4}
+                    stroke={colors.stem}
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                  />
+                  {/* Fruit body */}
+                  <ellipse
+                    cx={0}
+                    cy={0}
+                    rx={fruit.size * (fruit.fruitType === 'cherry' ? 0.85 : 1)}
+                    ry={fruit.size * (fruit.fruitType === 'peach' ? 1.1 : 1)}
+                    fill={colors.main}
+                    style={{
+                      filter: `drop-shadow(1px 2px 2px rgba(0,0,0,0.2))`,
+                    }}
+                  />
+                  {/* Highlight */}
+                  <ellipse
+                    cx={-fruit.size * 0.3}
+                    cy={-fruit.size * 0.3}
+                    rx={fruit.size * 0.3}
+                    ry={fruit.size * 0.25}
+                    fill={colors.highlight}
+                    opacity={0.5}
+                  />
+                  {/* Small leaf for apple/peach */}
+                  {(fruit.fruitType === 'apple' || fruit.fruitType === 'peach') && (
+                    <ellipse
+                      cx={3}
+                      cy={-fruit.size - 3}
+                      rx={3}
+                      ry={1.5}
+                      fill="#7cb342"
+                      transform={`rotate(30, 3, ${-fruit.size - 3})`}
+                    />
+                  )}
+                </g>
+              );
+            })}
+          </g>
+        )}
         
         {/* Falling petals - color intensity matches weekly vibrancy */}
         {fallingPetals.map((petal) => {

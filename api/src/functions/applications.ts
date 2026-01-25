@@ -431,3 +431,129 @@ app.http('applications', {
   route: 'applications/{id?}',
   handler: applicationsHandler,
 });
+
+// ============================================================================
+// Resend Interview Email
+// ============================================================================
+
+async function resendInterviewHandler(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  // Handle CORS preflight
+  if (request.method === 'OPTIONS') {
+    return { status: 204, headers };
+  }
+
+  if (request.method !== 'POST') {
+    return {
+      status: 405,
+      headers,
+      jsonBody: { error: 'Method not allowed' },
+    };
+  }
+
+  const id = request.params.id;
+  if (!id) {
+    return {
+      status: 400,
+      headers,
+      jsonBody: { error: 'Application ID is required' },
+    };
+  }
+
+  try {
+    let pool: sql.ConnectionPool;
+    const config = getConfig();
+
+    if (typeof config === 'string') {
+      pool = await sql.connect(config);
+    } else {
+      pool = await sql.connect(config);
+    }
+
+    // Get application details
+    const appResult = await pool.request()
+      .input('id', sql.Int, parseInt(id, 10))
+      .query(`
+        SELECT id, first_name, last_name, email, status, contract_url
+        FROM applications
+        WHERE id = @id
+      `);
+
+    if (appResult.recordset.length === 0) {
+      return {
+        status: 404,
+        headers,
+        jsonBody: { error: 'Application not found' },
+      };
+    }
+
+    const application = appResult.recordset[0];
+
+    // Verify the application is in interview_scheduled status
+    if (application.status !== 'interview_scheduled') {
+      return {
+        status: 400,
+        headers,
+        jsonBody: { error: 'Application is not in interview_scheduled status' },
+      };
+    }
+
+    // Delete any existing interview tokens for this application
+    await pool.request()
+      .input('applicationId', sql.Int, parseInt(id, 10))
+      .query(`
+        DELETE FROM interview_tokens
+        WHERE application_id = @applicationId
+      `);
+
+    context.log(`Deleted old interview tokens for application ${id}`);
+
+    // Create new interview token
+    const { schedulingLink } = await createInterviewToken(
+      parseInt(id, 10),
+      {
+        firstName: application.first_name,
+        lastName: application.last_name,
+        email: application.email,
+      },
+      context
+    );
+
+    // Send the interview email
+    const emailResult = await sendInterviewEmail({
+      applicantName: `${application.first_name} ${application.last_name}`,
+      applicantEmail: application.email,
+      bookingUrl: schedulingLink,
+      contractUrl: application.contract_url || undefined,
+    });
+
+    context.log(`Resent interview email to ${application.email}, result: ${JSON.stringify(emailResult)}`);
+
+    return {
+      status: 200,
+      headers,
+      jsonBody: { 
+        success: true, 
+        message: 'Interview invitation resent successfully',
+        schedulingLink,
+      },
+    };
+  } catch (error) {
+    context.error('Error resending interview:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    return {
+      status: 500,
+      headers,
+      jsonBody: { error: errorMessage },
+    };
+  }
+}
+
+app.http('resend-interview', {
+  methods: ['POST', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'resend-interview/{id}',
+  handler: resendInterviewHandler,
+});

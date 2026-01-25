@@ -81,8 +81,6 @@ export default function InterviewRoom() {
       return;
     }
 
-    // Async data fetch is a valid pattern - setState happens after await
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchInterviewDetails();
   }, [token, fetchInterviewDetails]);
 

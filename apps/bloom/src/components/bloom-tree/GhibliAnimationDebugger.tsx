@@ -11,7 +11,7 @@
  * For artistic director review only - not for production.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Design tokens matching Bloom
@@ -445,6 +445,13 @@ const SkyGradientPreview: React.FC<{ step: number; speed: number; isPlaying: boo
 
 // === PARTICLES PREVIEW ===
 const ParticlesPreview: React.FC<{ step: number; speed: number; isPlaying: boolean }> = ({ step, speed, isPlaying }) => {
+  // Pre-generate random positions to avoid calling Math.random during render
+  const particlePositions = useMemo(() => 
+    Array.from({ length: 20 }, (_, i) => ({
+      x: 100 + (((i * 17) % 100) / 100) * 400,
+      y: 50 + (((i * 31) % 100) / 100) * 200,
+    })), []);
+  
   const particleTypes = [
     { name: 'None (empty state)', count: 0 },
     { name: 'Light dust motes', count: 5 },
@@ -468,12 +475,13 @@ const ParticlesPreview: React.FC<{ step: number; speed: number; isPlaying: boole
         {isPlaying && Array.from({ length: current.count }).map((_, i) => {
           const isGolden = i % 3 === 0;
           const delay = (i * 0.5) % 4;
+          const pos = particlePositions[i % particlePositions.length];
           return (
             <motion.div
               key={i}
               initial={{ 
-                x: 100 + Math.random() * 400,
-                y: 50 + Math.random() * 200,
+                x: pos.x,
+                y: pos.y,
                 opacity: 0,
               }}
               animate={{ 
@@ -522,6 +530,15 @@ const ParticlesPreview: React.FC<{ step: number; speed: number; isPlaying: boole
 
 // === PETALS PREVIEW ===
 const PetalsPreview: React.FC<{ step: number; speed: number; isPlaying: boolean }> = ({ step, speed, isPlaying }) => {
+  // Pre-generate petal animation values to avoid calling Math.random during render
+  const petalAnimations = useMemo(() =>
+    Array.from({ length: 16 }, (_, i) => ({
+      startX: 50 + (((i * 37) % 100) / 100) * 500,
+      drift: (((i * 53) % 100) / 100 - 0.5) * 100,
+      delay: ((i * 19) % 100) / 100 * 3,
+      duration: 4 + (((i * 41) % 100) / 100) * 2,
+    })), []);
+  
   const petalStates = [
     { name: 'No petals (calm)', count: 0, intensity: 0 },
     { name: 'Gentle drift', count: 4, intensity: 0.3 },
@@ -543,10 +560,8 @@ const PetalsPreview: React.FC<{ step: number; speed: number; isPlaying: boolean 
       >
         {/* Falling Petals */}
         {isPlaying && Array.from({ length: current.count }).map((_, i) => {
-          const startX = 50 + Math.random() * 500;
-          const drift = (Math.random() - 0.5) * 100;
-          const delay = Math.random() * 3;
-          const duration = 4 + Math.random() * 2;
+          const anim = petalAnimations[i % petalAnimations.length];
+          const { startX, drift, delay, duration } = anim;
           
           return (
             <motion.div
@@ -826,7 +841,11 @@ const HoverEffectsPreview: React.FC<{ step: number; speed: number; isPlaying: bo
           {/* Sparkles on hover */}
           {isHovering && current.sparkles && isPlaying && (
             <>
-              {[...Array(6)].map((_, i) => (
+              {[...Array(6)].map((_, i) => {
+                // Use deterministic positions based on index
+                const sparkleX = (((i * 47) % 100) / 100 - 0.5) * 100;
+                const sparkleY = (((i * 29) % 100) / 100 - 0.5) * 60 - 30;
+                return (
                 <motion.div
                   key={i}
                   initial={{ 
@@ -835,8 +854,8 @@ const HoverEffectsPreview: React.FC<{ step: number; speed: number; isPlaying: bo
                     opacity: 1 
                   }}
                   animate={{ 
-                    x: (Math.random() - 0.5) * 100,
-                    y: (Math.random() - 0.5) * 60 - 30,
+                    x: sparkleX,
+                    y: sparkleY,
                     scale: [0, 1.5, 0],
                     opacity: [1, 0.8, 0],
                   }}
@@ -858,7 +877,7 @@ const HoverEffectsPreview: React.FC<{ step: number; speed: number; isPlaying: bo
                     pointerEvents: 'none',
                   }}
                 />
-              ))}
+              )})}
             </>
           )}
         </motion.button>

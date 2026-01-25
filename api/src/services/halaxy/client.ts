@@ -129,27 +129,42 @@ export class HalaxyClient {
 
   /**
    * Find a practitioner by name (first name and last name)
+   * Fetches all practitioners and does a case-insensitive exact match
    * @returns The practitioner if found, null otherwise
    */
   async findPractitionerByName(firstName: string, lastName: string): Promise<FHIRPractitioner | null> {
-    // FHIR uses 'given' for first name and 'family' for last name
-    const results = await this.getFirstPage<FHIRPractitioner>('/Practitioner', {
-      given: firstName,
-      family: lastName,
-      _count: '10', // Get a few in case of duplicates
+    // Normalize search names (lowercase, trimmed)
+    const searchFirstName = firstName.toLowerCase().trim();
+    const searchLastName = lastName.toLowerCase().trim();
+    
+    if (!searchFirstName || !searchLastName) {
+      return null;
+    }
+
+    // Get all practitioners to do a proper comparison
+    // The FHIR API's search may do partial/fuzzy matching which gives false positives
+    const allPractitioners = await this.getAllPractitioners();
+    
+    // Find exact match (case-insensitive) on both first and last name
+    const match = allPractitioners.find(practitioner => {
+      if (!practitioner.name || practitioner.name.length === 0) return false;
+      
+      // Check each name entry (practitioners can have multiple name records)
+      return practitioner.name.some(nameEntry => {
+        const familyName = (nameEntry.family || '').toLowerCase().trim();
+        const givenNames = (nameEntry.given || []).map(g => g.toLowerCase().trim());
+        
+        // Check if family name matches
+        const familyMatches = familyName === searchLastName;
+        
+        // Check if any given name matches
+        const givenMatches = givenNames.some(given => given === searchFirstName);
+        
+        return familyMatches && givenMatches;
+      });
     });
     
-    // Filter out any invalid IDs
-    const validPractitioners = results.filter(p => 
-      p.id && 
-      typeof p.id === 'string' && 
-      p.id !== 'warning' && 
-      p.id !== 'error' &&
-      !p.id.startsWith('outcome') &&
-      p.id.length > 3
-    );
-    
-    return validPractitioners.length > 0 ? validPractitioners[0] : null;
+    return match || null;
   }
 
   /**

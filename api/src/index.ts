@@ -53,6 +53,7 @@ import './functions/clinical-notes-llm';
 import './functions/session-workflow';
 import './functions/interview-scheduling';
 import './functions/interview-analysis';
+import './functions/video-recordings';
 import './functions/weather';
 
 export * from './functions/health';

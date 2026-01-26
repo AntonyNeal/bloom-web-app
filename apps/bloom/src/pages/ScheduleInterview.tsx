@@ -7,7 +7,7 @@
  * "I want to spend as much time there as possible" - Miyazaki
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_ENDPOINTS } from '../config/api';
@@ -67,16 +67,28 @@ interface ScheduleResponse {
 
 // Floating petals in the background
 const FloatingPetals = () => {
-  const petals = useMemo(() => 
-    Array.from({ length: 8 }, (_, i) => ({
+  // Generate random values once on mount using a ref to avoid impure render
+  const petalsRef = useRef<Array<{
+    id: number;
+    left: string;
+    delay: number;
+    duration: number;
+    size: number;
+    rotation: number;
+  }> | null>(null);
+  
+  if (petalsRef.current === null) {
+    petalsRef.current = Array.from({ length: 8 }, (_, i) => ({
       id: i,
-      left: `${10 + Math.random() * 80}%`,
-      delay: Math.random() * 8,
-      duration: 12 + Math.random() * 8,
-      size: 8 + Math.random() * 12,
-      rotation: Math.random() * 360,
-    })), []
-  );
+      left: `${10 + (((i * 17 + 3) % 80))}%`, // Deterministic spread
+      delay: (i * 1.2) % 8,
+      duration: 12 + (i % 4) * 2,
+      size: 8 + (i % 3) * 4,
+      rotation: (i * 45) % 360,
+    }));
+  }
+  
+  const petals = petalsRef.current;
 
   return (
     <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
@@ -188,7 +200,7 @@ export default function ScheduleInterview() {
 
       setApplicant(data.applicant || null);
       setSlots(data.slots || []);
-    } catch (_err) {
+    } catch {
       setError('Unable to load scheduling options. Please try again later.');
     } finally {
       setLoading(false);
@@ -222,7 +234,7 @@ export default function ScheduleInterview() {
       setSuccess(true);
       setScheduledAt(data.scheduledAt);
       setInterviewLink(data.interviewLink);
-    } catch (_err) {
+    } catch {
       setError('Failed to book interview. Please try again.');
     } finally {
       setBooking(false);

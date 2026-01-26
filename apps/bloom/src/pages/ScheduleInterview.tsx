@@ -1,14 +1,45 @@
 /**
  * Interview Scheduling Page
  * 
- * Allows applicants to schedule their interview by selecting an available time slot.
- * Uses the same Halaxy booking system as client appointments.
+ * A Miyazaki-inspired scheduling experience that treats each moment as precious.
+ * Uses the Bloom design system's natural, warm aesthetic.
+ * 
+ * "I want to spend as much time there as possible" - Miyazaki
  */
 
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { API_ENDPOINTS } from '../config/api';
 
+// ============================================================================
+// DESIGN TOKENS - The palette of a welcoming garden
+// ============================================================================
+const colors = {
+  cream: '#FAF8F3',
+  creamDark: '#F5F0E8',
+  sage: '#7B8D7B',
+  sageLight: '#9BAA9B',
+  sageLighter: '#C8D4C8',
+  sagePale: '#E8EDE8',
+  sageDark: '#5A6B5A',
+  sageDeep: '#4A5D4C',
+  lavender: '#E8E2F0',
+  lavenderLight: '#F3F0F7',
+  lavenderMid: '#D4C8E3',
+  terracotta: '#D4A59A',
+  terracottaLight: '#E8C4BB',
+  charcoal: '#3A3A3A',
+  charcoalLight: '#5A5A5A',
+  white: '#FFFFFF',
+  warmWhite: '#FFFEF9',
+  error: '#E88B7D',
+  errorLight: '#FFF5F4',
+};
+
+// ============================================================================
+// TYPES
+// ============================================================================
 interface TimeSlot {
   id: string;
   start: string;
@@ -30,9 +61,91 @@ interface ScheduleResponse {
   error?: string;
 }
 
+// ============================================================================
+// DECORATIVE COMPONENTS - Natural touches
+// ============================================================================
+
+// Floating petals in the background
+const FloatingPetals = () => {
+  const petals = useMemo(() => 
+    Array.from({ length: 8 }, (_, i) => ({
+      id: i,
+      left: `${10 + Math.random() * 80}%`,
+      delay: Math.random() * 8,
+      duration: 12 + Math.random() * 8,
+      size: 8 + Math.random() * 12,
+      rotation: Math.random() * 360,
+    })), []
+  );
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
+      {petals.map(petal => (
+        <motion.div
+          key={petal.id}
+          initial={{ y: -20, x: 0, rotate: petal.rotation, opacity: 0 }}
+          animate={{ 
+            y: '100vh',
+            x: [0, 30, -20, 40, 0],
+            rotate: petal.rotation + 360,
+            opacity: [0, 0.6, 0.6, 0.6, 0],
+          }}
+          transition={{
+            duration: petal.duration,
+            delay: petal.delay,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+          style={{
+            position: 'absolute',
+            left: petal.left,
+            top: 0,
+            width: petal.size,
+            height: petal.size,
+            borderRadius: '50% 0 50% 50%',
+            background: `linear-gradient(135deg, ${colors.lavenderMid} 0%, ${colors.terracottaLight} 100%)`,
+            opacity: 0.5,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Bloom logo header
+const BloomLogo = () => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', justifyContent: 'center' }}>
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="20" fill={colors.sagePale} />
+      <path
+        d="M24 14C24 14 20 18 20 24C20 30 24 34 24 34C24 34 28 30 28 24C28 18 24 14 24 14Z"
+        fill={colors.sage}
+        opacity="0.8"
+      />
+      <path
+        d="M14 24C14 24 18 20 24 20C30 20 34 24 34 24C34 24 30 28 24 28C18 28 14 24 14 24Z"
+        fill={colors.sage}
+        opacity="0.6"
+      />
+      <circle cx="24" cy="24" r="4" fill={colors.terracotta} />
+    </svg>
+    <span style={{ 
+      fontFamily: "'Crimson Text', Georgia, serif",
+      fontSize: '24px',
+      fontWeight: 600,
+      color: colors.sageDeep,
+      letterSpacing: '-0.5px',
+    }}>
+      Bloom
+    </span>
+  </div>
+);
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 export default function ScheduleInterview() {
   const { token } = useParams<{ token: string }>();
-  const _navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
@@ -44,6 +157,7 @@ export default function ScheduleInterview() {
   const [scheduledAt, setScheduledAt] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [interviewLink, setInterviewLink] = useState<string | null>(null);
+  const [hoveredDate, setHoveredDate] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -51,8 +165,8 @@ export default function ScheduleInterview() {
       setLoading(false);
       return;
     }
-
     fetchSlots();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const fetchSlots = async () => {
@@ -115,18 +229,24 @@ export default function ScheduleInterview() {
     }
   };
 
-  // Group slots by date for better display
-  const slotsByDate = slots.reduce((acc, slot) => {
-    const date = new Date(slot.start).toLocaleDateString('en-AU', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(slot);
-    return acc;
-  }, {} as Record<string, TimeSlot[]>);
+  // Group slots by date
+  const slotsByDate = useMemo(() => {
+    return slots.reduce((acc, slot) => {
+      const dateKey = new Date(slot.start).toISOString().split('T')[0];
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(slot);
+      return acc;
+    }, {} as Record<string, TimeSlot[]>);
+  }, [slots]);
+
+  const formatDate = (dateKey: string) => {
+    const date = new Date(dateKey + 'T12:00:00');
+    return {
+      weekday: date.toLocaleDateString('en-AU', { weekday: 'long' }),
+      day: date.getDate(),
+      month: date.toLocaleDateString('en-AU', { month: 'short' }),
+    };
+  };
 
   const formatTime = (dateStr: string) => {
     return new Date(dateStr).toLocaleTimeString('en-AU', {
@@ -139,23 +259,73 @@ export default function ScheduleInterview() {
   const formatDateTime = (dateStr: string) => {
     return new Date(dateStr).toLocaleString('en-AU', {
       weekday: 'long',
-      year: 'numeric',
-      month: 'long',
       day: 'numeric',
+      month: 'long',
+      year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
     });
   };
 
-  // Loading state
+  // Get time-of-day category for visual styling
+  const getTimeCategory = (dateStr: string): 'morning' | 'afternoon' | 'evening' => {
+    const hour = new Date(dateStr).getHours();
+    if (hour < 12) return 'morning';
+    if (hour < 17) return 'afternoon';
+    return 'evening';
+  };
+
+  const timeColors = {
+    morning: { bg: colors.lavenderLight, border: colors.lavenderMid, text: colors.charcoal },
+    afternoon: { bg: colors.sagePale, border: colors.sageLighter, text: colors.sageDeep },
+    evening: { bg: colors.creamDark, border: colors.terracottaLight, text: colors.charcoal },
+  };
+
+  // ============================================================================
+  // RENDER STATES
+  // ============================================================================
+
+  // Loading state - gentle breathing animation
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-green-50 to-cyan-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading available times...</p>
-        </div>
+      <div style={{
+        minHeight: '100vh',
+        background: `linear-gradient(135deg, ${colors.cream} 0%, ${colors.lavenderLight} 50%, ${colors.sagePale} 100%)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <FloatingPetals />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          style={{ textAlign: 'center', zIndex: 1 }}
+        >
+          <motion.div
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            style={{
+              width: 80,
+              height: 80,
+              margin: '0 auto 24px',
+              borderRadius: '50%',
+              background: `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span style={{ fontSize: '32px' }}>🌸</span>
+          </motion.div>
+          <p style={{ 
+            color: colors.charcoalLight, 
+            fontSize: '16px',
+            fontFamily: "'Inter', -apple-system, sans-serif",
+          }}>
+            Finding available times...
+          </p>
+        </motion.div>
       </div>
     );
   }
@@ -163,20 +333,63 @@ export default function ScheduleInterview() {
   // Error state
   if (error && !slots.length && !alreadyScheduled) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-green-50 to-cyan-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-          <div className="w-16 h-16 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
-            <span className="text-3xl">❌</span>
+      <div style={{
+        minHeight: '100vh',
+        background: `linear-gradient(135deg, ${colors.cream} 0%, ${colors.lavenderLight} 100%)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+      }}>
+        <FloatingPetals />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            maxWidth: 420,
+            width: '100%',
+            background: colors.white,
+            borderRadius: 24,
+            padding: '48px 32px',
+            textAlign: 'center',
+            boxShadow: '0 8px 32px rgba(122, 141, 122, 0.12)',
+            zIndex: 1,
+          }}
+        >
+          <div style={{
+            width: 72,
+            height: 72,
+            margin: '0 auto 24px',
+            borderRadius: '50%',
+            background: colors.errorLight,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <span style={{ fontSize: '32px' }}>🍂</span>
           </div>
-          <h1 className="text-2xl font-semibold text-gray-900 mb-3">Unable to Load</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <p className="text-sm text-gray-500">
-            If you continue to have issues, please contact us at{' '}
-            <a href="mailto:support@life-psychology.com.au" className="text-emerald-600 hover:underline">
-              support@life-psychology.com.au
+          <h1 style={{ 
+            fontSize: '24px', 
+            fontWeight: 600, 
+            color: colors.charcoal, 
+            marginBottom: 12,
+            fontFamily: "'Crimson Text', Georgia, serif",
+          }}>
+            Unable to Load
+          </h1>
+          <p style={{ color: colors.charcoalLight, marginBottom: 24, lineHeight: 1.6 }}>
+            {error}
+          </p>
+          <p style={{ fontSize: '14px', color: colors.charcoalLight }}>
+            Need help?{' '}
+            <a 
+              href="mailto:support@life-psychology.com.au" 
+              style={{ color: colors.sage, textDecoration: 'underline' }}
+            >
+              Contact support
             </a>
           </p>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -184,169 +397,586 @@ export default function ScheduleInterview() {
   // Already scheduled state
   if (alreadyScheduled && !success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-green-50 to-cyan-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-          <div className="w-16 h-16 mx-auto mb-6 bg-emerald-100 rounded-full flex items-center justify-center">
-            <span className="text-3xl">✅</span>
+      <div style={{
+        minHeight: '100vh',
+        background: `linear-gradient(135deg, ${colors.cream} 0%, ${colors.sagePale} 100%)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+      }}>
+        <FloatingPetals />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            maxWidth: 420,
+            width: '100%',
+            background: colors.white,
+            borderRadius: 24,
+            padding: '48px 32px',
+            textAlign: 'center',
+            boxShadow: '0 8px 32px rgba(122, 141, 122, 0.12)',
+            zIndex: 1,
+          }}
+        >
+          <BloomLogo />
+          <div style={{
+            width: 80,
+            height: 80,
+            margin: '24px auto',
+            borderRadius: '50%',
+            background: `linear-gradient(135deg, ${colors.sagePale} 0%, ${colors.lavenderLight} 100%)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <span style={{ fontSize: '36px' }}>✨</span>
           </div>
-          <h1 className="text-2xl font-semibold text-gray-900 mb-3">Interview Already Scheduled</h1>
+          <h1 style={{ 
+            fontSize: '24px', 
+            fontWeight: 600, 
+            color: colors.charcoal, 
+            marginBottom: 12,
+            fontFamily: "'Crimson Text', Georgia, serif",
+          }}>
+            Already Scheduled
+          </h1>
           {applicant && (
-            <p className="text-gray-600 mb-4">
-              Hi {applicant.firstName}! Your interview has already been scheduled.
+            <p style={{ color: colors.charcoalLight, marginBottom: 20 }}>
+              Hi {applicant.firstName}! Your interview is already on the calendar.
             </p>
           )}
           {scheduledAt && (
-            <div className="bg-emerald-50 rounded-lg p-4 mb-6">
-              <p className="text-emerald-800 font-medium">{formatDateTime(scheduledAt)}</p>
+            <div style={{
+              background: colors.sagePale,
+              borderRadius: 16,
+              padding: '20px 24px',
+              marginBottom: 24,
+            }}>
+              <p style={{ 
+                color: colors.sageDeep, 
+                fontWeight: 600,
+                fontSize: '16px',
+              }}>
+                {formatDateTime(scheduledAt)}
+              </p>
             </div>
           )}
-          <p className="text-sm text-gray-500">
-            Check your email for the interview link, or contact us if you need to reschedule.
+          <p style={{ fontSize: '14px', color: colors.charcoalLight, lineHeight: 1.6 }}>
+            Check your email for the interview link. Need to reschedule?{' '}
+            <a 
+              href="mailto:support@life-psychology.com.au" 
+              style={{ color: colors.sage, textDecoration: 'underline' }}
+            >
+              Contact us
+            </a>
           </p>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
-  // Success state
+  // Success state - celebrate the booking!
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-green-50 to-cyan-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-          <div className="w-20 h-20 mx-auto mb-6 bg-emerald-100 rounded-full flex items-center justify-center">
-            <span className="text-4xl">🎉</span>
-          </div>
-          <h1 className="text-2xl font-semibold text-gray-900 mb-3">Interview Scheduled!</h1>
-          <p className="text-gray-600 mb-6">
-            Your interview has been confirmed. We're looking forward to meeting you!
-          </p>
+      <div style={{
+        minHeight: '100vh',
+        background: `linear-gradient(135deg, ${colors.sagePale} 0%, ${colors.lavenderLight} 50%, ${colors.cream} 100%)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+      }}>
+        <FloatingPetals />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          style={{
+            maxWidth: 480,
+            width: '100%',
+            background: colors.white,
+            borderRadius: 24,
+            padding: '48px 32px',
+            textAlign: 'center',
+            boxShadow: '0 12px 48px rgba(122, 141, 122, 0.15)',
+            zIndex: 1,
+          }}
+        >
+          <BloomLogo />
+          
+          {/* Celebration animation */}
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            style={{
+              width: 100,
+              height: 100,
+              margin: '24px auto',
+              borderRadius: '50%',
+              background: `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: `0 8px 24px ${colors.sage}40`,
+            }}
+          >
+            <motion.span 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.4, type: 'spring' }}
+              style={{ fontSize: '48px' }}
+            >
+              🌸
+            </motion.span>
+          </motion.div>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            style={{ 
+              fontSize: '28px', 
+              fontWeight: 600, 
+              color: colors.charcoal, 
+              marginBottom: 8,
+              fontFamily: "'Crimson Text', Georgia, serif",
+            }}
+          >
+            You're All Set!
+          </motion.h1>
+          
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            style={{ color: colors.charcoalLight, marginBottom: 24, fontSize: '16px' }}
+          >
+            We're looking forward to meeting you.
+          </motion.p>
+          
           {scheduledAt && (
-            <div className="bg-emerald-50 rounded-lg p-4 mb-6">
-              <p className="text-sm text-emerald-700 mb-1">Your interview is scheduled for:</p>
-              <p className="text-emerald-900 font-semibold">{formatDateTime(scheduledAt)}</p>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              style={{
+                background: `linear-gradient(135deg, ${colors.sagePale} 0%, ${colors.lavenderLight} 100%)`,
+                borderRadius: 16,
+                padding: '24px',
+                marginBottom: 28,
+              }}
+            >
+              <p style={{ 
+                fontSize: '13px', 
+                color: colors.charcoalLight, 
+                marginBottom: 8,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}>
+                Your Interview
+              </p>
+              <p style={{ 
+                color: colors.sageDeep, 
+                fontWeight: 600,
+                fontSize: '18px',
+                lineHeight: 1.4,
+              }}>
+                {formatDateTime(scheduledAt)}
+              </p>
+            </motion.div>
           )}
-          <div className="space-y-4">
+          
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+          >
             {interviewLink && (
               <a
                 href={interviewLink}
-                className="block w-full py-3 px-6 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+                style={{
+                  display: 'block',
+                  padding: '16px 24px',
+                  background: colors.sage,
+                  color: colors.white,
+                  borderRadius: 12,
+                  fontWeight: 600,
+                  fontSize: '15px',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = colors.sageDark;
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = colors.sage;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
               >
                 📹 Save Interview Link
               </a>
             )}
-            <p className="text-sm text-gray-500">
-              A confirmation email with all the details has been sent to your inbox.
+            <p style={{ fontSize: '14px', color: colors.charcoalLight }}>
+              A confirmation email is on its way to your inbox.
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     );
   }
 
-  // Main scheduling UI
+  // ============================================================================
+  // MAIN SCHEDULING UI
+  // ============================================================================
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-green-50 to-cyan-50 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold text-gray-900 mb-2">
-            🌸 Schedule Your Interview
+    <div style={{
+      minHeight: '100vh',
+      background: `linear-gradient(180deg, ${colors.cream} 0%, ${colors.lavenderLight} 50%, ${colors.sagePale} 100%)`,
+      paddingBottom: selectedSlot ? 140 : 48,
+    }}>
+      <FloatingPetals />
+      
+      {/* Header */}
+      <header style={{
+        padding: '32px 24px 24px',
+        textAlign: 'center',
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <BloomLogo />
+          
+          <h1 style={{ 
+            fontSize: '32px', 
+            fontWeight: 600, 
+            color: colors.charcoal, 
+            marginTop: 16,
+            marginBottom: 8,
+            fontFamily: "'Crimson Text', Georgia, serif",
+          }}>
+            Schedule Your Interview
           </h1>
+          
           {applicant && (
-            <p className="text-gray-600">
-              Hi {applicant.firstName}! Please select a time for your interview.
+            <p style={{ color: colors.charcoalLight, fontSize: '16px', marginBottom: 8 }}>
+              Hi {applicant.firstName}! Choose a time that works for you.
             </p>
           )}
-          <p className="text-sm text-gray-500 mt-2">
-            30-minute video call with Zoe and Julian
-          </p>
-        </div>
-
-        {/* Error message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
+          
+          <div style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: 8,
+            padding: '8px 16px',
+            background: `${colors.white}90`,
+            borderRadius: 20,
+            fontSize: '14px',
+            color: colors.charcoalLight,
+          }}>
+            <span>🎥</span>
+            <span>30-minute video call</span>
           </div>
+        </motion.div>
+      </header>
+      
+      {/* Error banner */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            style={{
+              maxWidth: 600,
+              margin: '0 auto 16px',
+              padding: '12px 20px',
+              background: colors.errorLight,
+              borderRadius: 12,
+              color: colors.error,
+              fontSize: '14px',
+              marginLeft: 24,
+              marginRight: 24,
+            }}
+          >
+            {error}
+          </motion.div>
         )}
-
-        {/* No slots available */}
+      </AnimatePresence>
+      
+      {/* Main content */}
+      <main style={{ 
+        maxWidth: 640, 
+        margin: '0 auto', 
+        padding: '0 24px',
+        position: 'relative',
+        zIndex: 1,
+      }}>
         {Object.keys(slotsByDate).length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-6 bg-yellow-100 rounded-full flex items-center justify-center">
-              <span className="text-3xl">📅</span>
+          // No slots available
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              background: colors.white,
+              borderRadius: 20,
+              padding: '48px 32px',
+              textAlign: 'center',
+              boxShadow: '0 4px 20px rgba(122, 141, 122, 0.08)',
+            }}
+          >
+            <div style={{
+              width: 72,
+              height: 72,
+              margin: '0 auto 24px',
+              borderRadius: '50%',
+              background: colors.creamDark,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <span style={{ fontSize: '32px' }}>🍃</span>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">No Available Times</h2>
-            <p className="text-gray-600 mb-6">
-              There are currently no available interview slots. Please check back later or contact us.
+            <h2 style={{ 
+              fontSize: '20px', 
+              fontWeight: 600, 
+              color: colors.charcoal, 
+              marginBottom: 12,
+              fontFamily: "'Crimson Text', Georgia, serif",
+            }}>
+              No Times Available
+            </h2>
+            <p style={{ color: colors.charcoalLight, marginBottom: 20, lineHeight: 1.6 }}>
+              There are currently no available slots. Please check back soon or reach out to us.
             </p>
             <a
               href="mailto:support@life-psychology.com.au"
-              className="text-emerald-600 hover:underline"
+              style={{ color: colors.sage, textDecoration: 'underline', fontSize: '14px' }}
             >
               Contact Support
             </a>
-          </div>
+          </motion.div>
         ) : (
-          <>
-            {/* Time slots by date */}
-            <div className="space-y-6 mb-8">
-              {Object.entries(slotsByDate).map(([date, dateSlots]) => (
-                <div key={date} className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                  <div className="bg-emerald-50 px-6 py-3 border-b border-emerald-100">
-                    <h3 className="font-medium text-emerald-900">{date}</h3>
+          // Date cards with time slots
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {Object.entries(slotsByDate).map(([dateKey, dateSlots], index) => {
+              const { weekday, day, month } = formatDate(dateKey);
+              const isExpanded = hoveredDate === dateKey || !hoveredDate;
+              
+              return (
+                <motion.div
+                  key={dateKey}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  onMouseEnter={() => setHoveredDate(dateKey)}
+                  onMouseLeave={() => setHoveredDate(null)}
+                  style={{
+                    background: colors.white,
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    boxShadow: isExpanded 
+                      ? '0 8px 32px rgba(122, 141, 122, 0.12)'
+                      : '0 2px 12px rgba(122, 141, 122, 0.06)',
+                    transition: 'all 0.3s ease',
+                    transform: isExpanded ? 'scale(1)' : 'scale(0.98)',
+                  }}
+                >
+                  {/* Date header */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 16,
+                    padding: '20px 24px',
+                    borderBottom: `1px solid ${colors.sagePale}`,
+                    background: `linear-gradient(90deg, ${colors.warmWhite} 0%, ${colors.cream} 100%)`,
+                  }}>
+                    {/* Calendar icon */}
+                    <div style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: 12,
+                      background: `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: colors.white,
+                      flexShrink: 0,
+                    }}>
+                      <span style={{ fontSize: '11px', fontWeight: 500, opacity: 0.9, textTransform: 'uppercase' }}>
+                        {month}
+                      </span>
+                      <span style={{ fontSize: '22px', fontWeight: 700, lineHeight: 1 }}>
+                        {day}
+                      </span>
+                    </div>
+                    
+                    <div>
+                      <p style={{ 
+                        fontSize: '18px', 
+                        fontWeight: 600, 
+                        color: colors.charcoal,
+                        fontFamily: "'Crimson Text', Georgia, serif",
+                      }}>
+                        {weekday}
+                      </p>
+                      <p style={{ fontSize: '13px', color: colors.charcoalLight }}>
+                        {dateSlots.length} time{dateSlots.length !== 1 ? 's' : ''} available
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-4 grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {dateSlots.map((slot) => (
-                      <button
-                        key={slot.id}
-                        onClick={() => setSelectedSlot(slot)}
-                        className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                          selectedSlot?.id === slot.id
-                            ? 'bg-emerald-600 text-white shadow-md scale-105'
-                            : 'bg-gray-100 text-gray-700 hover:bg-emerald-100 hover:text-emerald-700'
-                        }`}
-                      >
-                        {formatTime(slot.start)}
-                      </button>
-                    ))}
+                  
+                  {/* Time slots */}
+                  <div style={{ padding: '16px 20px 20px' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: 10,
+                    }}>
+                      {dateSlots.map((slot) => {
+                        const isSelected = selectedSlot?.id === slot.id;
+                        const timeCategory = getTimeCategory(slot.start);
+                        const tColors = timeColors[timeCategory];
+                        
+                        return (
+                          <motion.button
+                            key={slot.id}
+                            onClick={() => setSelectedSlot(slot)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.98 }}
+                            style={{
+                              padding: '12px 18px',
+                              borderRadius: 10,
+                              border: `2px solid ${isSelected ? colors.sage : tColors.border}`,
+                              background: isSelected 
+                                ? `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`
+                                : tColors.bg,
+                              color: isSelected ? colors.white : tColors.text,
+                              fontSize: '15px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              boxShadow: isSelected 
+                                ? `0 4px 12px ${colors.sage}40`
+                                : 'none',
+                            }}
+                          >
+                            {formatTime(slot.start)}
+                          </motion.button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Selected slot summary and confirm button */}
-            {selectedSlot && (
-              <div className="bg-white rounded-2xl shadow-xl p-6 sticky bottom-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Selected time:</p>
-                    <p className="font-medium text-gray-900">
-                      {formatDateTime(selectedSlot.start)}
-                    </p>
-                  </div>
-                  <button
-                    onClick={bookSlot}
-                    disabled={booking}
-                    className="py-3 px-8 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {booking ? (
-                      <>
-                        <span className="animate-spin">⏳</span>
-                        Booking...
-                      </>
-                    ) : (
-                      <>
-                        ✓ Confirm Interview
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
+                </motion.div>
+              );
+            })}
+          </div>
         )}
-      </div>
+      </main>
+      
+      {/* Fixed bottom bar when slot is selected */}
+      <AnimatePresence>
+        {selectedSlot && (
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: colors.white,
+              borderTop: `1px solid ${colors.sagePale}`,
+              padding: '16px 24px',
+              paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+              boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
+              zIndex: 100,
+            }}
+          >
+            <div style={{ 
+              maxWidth: 600, 
+              margin: '0 auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 16,
+            }}>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ 
+                  fontSize: '12px', 
+                  color: colors.charcoalLight, 
+                  marginBottom: 4,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}>
+                  Selected
+                </p>
+                <p style={{ 
+                  fontSize: '15px', 
+                  fontWeight: 600, 
+                  color: colors.charcoal,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}>
+                  {formatDateTime(selectedSlot.start)}
+                </p>
+              </div>
+              
+              <motion.button
+                onClick={bookSlot}
+                disabled={booking}
+                whileHover={{ scale: booking ? 1 : 1.02 }}
+                whileTap={{ scale: booking ? 1 : 0.98 }}
+                style={{
+                  padding: '14px 28px',
+                  background: booking 
+                    ? colors.sageLighter 
+                    : `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageDark} 100%)`,
+                  color: colors.white,
+                  borderRadius: 12,
+                  fontWeight: 600,
+                  fontSize: '15px',
+                  border: 'none',
+                  cursor: booking ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  boxShadow: booking ? 'none' : `0 4px 12px ${colors.sage}40`,
+                  transition: 'all 0.2s',
+                  flexShrink: 0,
+                }}
+              >
+                {booking ? (
+                  <>
+                    <motion.span
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    >
+                      ⏳
+                    </motion.span>
+                    Booking...
+                  </>
+                ) : (
+                  <>
+                    <span>✓</span>
+                    Confirm
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

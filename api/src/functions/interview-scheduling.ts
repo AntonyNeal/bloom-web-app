@@ -31,6 +31,9 @@ const _INTERVIEW_PRACTITIONER_ROLE_ID = process.env.INTERVIEW_PRACTITIONER_ROLE_
 const _INTERVIEW_HEALTHCARE_SERVICE_ID = process.env.INTERVIEW_HEALTHCARE_SERVICE_ID || '567387';
 const INTERVIEW_DURATION_MINS = 60;
 
+// Business hours for interview scheduling (8am to 6pm AEST)
+const INTERVIEW_BUSINESS_HOURS = { start: 8, end: 18 };
+
 // CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -177,6 +180,12 @@ async function getInterviewSlots(
         // Calculate end time by adding interview duration to start time
         const startTime = new Date(slot.startDateUserTime);
         const endTime = new Date(startTime.getTime() + INTERVIEW_DURATION_MINS * 60 * 1000);
+        
+        // Filter to business hours only (8am-6pm AEST)
+        const slotHour = startTime.getHours();
+        if (slotHour < INTERVIEW_BUSINESS_HOURS.start || slotHour >= INTERVIEW_BUSINESS_HOURS.end) {
+          continue; // Skip slots outside business hours
+        }
         
         slots.push({
           id: slot.dateTimeKey,

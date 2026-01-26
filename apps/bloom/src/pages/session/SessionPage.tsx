@@ -66,7 +66,16 @@ export function SessionPage() {
       const token = await getAccessToken();
       
       // Get appointment details from dashboard endpoint
-      const dashboardRes = await fetch(`${API_BASE_URL}/clinician/dashboard`, {
+      // Support devMode for testing
+      const url = new URL(`${API_BASE_URL}/clinician/dashboard`);
+      const urlParams = new URLSearchParams(window.location.search);
+      const devMode = urlParams.get('devMode');
+      if (devMode === 'zoe') {
+        url.searchParams.set('devHalaxyId', '1304541');
+        url.searchParams.set('devHalaxyRoleId', 'PR-2442591');
+      }
+      
+      const dashboardRes = await fetch(url.toString(), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

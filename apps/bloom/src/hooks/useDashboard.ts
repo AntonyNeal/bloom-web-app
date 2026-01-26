@@ -53,6 +53,18 @@ async function getAzureUserId(): Promise<string | null> {
 }
 
 // ============================================================================
+// Date Utilities
+// ============================================================================
+
+/**
+ * Get today's date in YYYY-MM-DD format using Australian timezone.
+ * This is important because the server and Halaxy use Australian time.
+ */
+function getAustralianDate(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Sydney' });
+}
+
+// ============================================================================
 // Configuration
 // ============================================================================
 
@@ -116,7 +128,7 @@ if (typeof window !== 'undefined') {
 function getCachedDashboard(date?: string): PractitionerDashboard | null {
   if (!dashboardCache) return null;
   
-  const cacheDate = date || new Date().toISOString().split('T')[0];
+  const cacheDate = date || getAustralianDate();
   
   // Return cached data if it's for the same date - never expires during session
   if (dashboardCache.date === cacheDate) {
@@ -131,7 +143,7 @@ function setCachedDashboard(data: PractitionerDashboard, date?: string): void {
   dashboardCache = {
     data,
     timestamp: Date.now(),
-    date: date || new Date().toISOString().split('T')[0],
+    date: date || getAustralianDate(),
   };
 }
 

@@ -235,11 +235,18 @@ export default function ScheduleInterview() {
   // Week navigation state
   const [weekOffset, setWeekOffset] = useState(0);
 
+  // Helper to parse hour from ISO string (avoids timezone conversion)
+  // Format: "2026-01-27T08:00:00+11:00" -> 8
+  const parseHourFromISO = (isoString: string): number => {
+    const match = isoString.match(/T(\d{2}):/);
+    return match ? parseInt(match[1], 10) : new Date(isoString).getHours();
+  };
+
   // Get hours that have slots (dynamically from actual availability)
   const timeRows = useMemo(() => {
     const hoursWithSlots = new Set<number>();
     slots.forEach(slot => {
-      const hour = new Date(slot.start).getHours();
+      const hour = parseHourFromISO(slot.start);
       hoursWithSlots.add(hour);
     });
     
@@ -309,6 +316,17 @@ export default function ScheduleInterview() {
   };
 
   const formatTime = (dateStr: string) => {
+    // Parse time directly from ISO string to avoid timezone conversion
+    // Format: "2026-01-27T08:00:00+11:00" -> "8:00 am"
+    const match = dateStr.match(/T(\d{2}):(\d{2})/);
+    if (match) {
+      const hour = parseInt(match[1], 10);
+      const minute = match[2];
+      const period = hour >= 12 ? 'pm' : 'am';
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${displayHour}:${minute} ${period}`;
+    }
+    // Fallback
     return new Date(dateStr).toLocaleTimeString('en-AU', {
       hour: 'numeric',
       minute: '2-digit',
@@ -507,7 +525,7 @@ export default function ScheduleInterview() {
   // Helper to get slot for a specific date and hour
   const getSlotsForDateHour = (dateKey: string, hour: number): TimeSlot[] => {
     const dateSlots = slotsByDate[dateKey] || [];
-    return dateSlots.filter(slot => new Date(slot.start).getHours() === hour);
+    return dateSlots.filter(slot => parseHourFromISO(slot.start) === hour);
   };
 
   // Check if date is today

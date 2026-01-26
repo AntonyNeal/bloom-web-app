@@ -146,7 +146,7 @@ function extractPatientName(appointment: FHIRAppointment): string {
   return 'Unknown';
 }
 
-function _extractPatientId(appointment: FHIRAppointment): string | null {
+function extractPatientId(appointment: FHIRAppointment): string | null {
   const patientParticipant = appointment.participant?.find(
     p => p.actor?.reference?.includes('Patient/')
   );
@@ -481,12 +481,46 @@ async function clinicianDashboardHandler(
     
     context.log(`Filtered ${todayAppointments.length} appointments down to ${filteredTodayAppointments.length} for practitioner ${practitionerConfig.halaxyPractitionerRoleId}`);
     
+    // Fetch patient names for appointments where display name is not available
+    // We need to look up patients individually when Halaxy doesn't include the name
+    const patientNameCache: Record<string, string> = {};
+    
+    for (const apt of filteredTodayAppointments) {
+      const displayName = extractPatientName(apt);
+      if (displayName === 'Unknown') {
+        const patientId = extractPatientId(apt);
+        if (patientId && !patientNameCache[patientId]) {
+          try {
+            const patient = await client.getPatient(patientId);
+            if (patient.name && patient.name.length > 0) {
+              const name = patient.name[0];
+              const fullName = [name.given?.join(' '), name.family].filter(Boolean).join(' ');
+              patientNameCache[patientId] = fullName || 'Unknown';
+              context.log(`Fetched patient ${patientId}: ${fullName}`);
+            }
+          } catch (err) {
+            context.warn(`Failed to fetch patient ${patientId}:`, err);
+            patientNameCache[patientId] = 'Unknown';
+          }
+        }
+      }
+    }
+    
     const sessions: SessionItem[] = filteredTodayAppointments
       .map((apt): SessionItem => {
         const startTime = new Date(apt.start || '');
         const endTime = new Date(apt.end || '');
         const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
-        const patientName = extractPatientName(apt);
+        
+        // Get patient name - first try display, then cache
+        let patientName = extractPatientName(apt);
+        if (patientName === 'Unknown') {
+          const patientId = extractPatientId(apt);
+          if (patientId && patientNameCache[patientId]) {
+            patientName = patientNameCache[patientId];
+          }
+        }
+        
         const status = mapAppointmentStatus(apt.status || 'booked');
 
         return {

@@ -49,6 +49,10 @@ const SessionPage = lazy(() =>
 const SessionLobby = lazy(() =>
   import('./pages/session/SessionLobby').then((m) => ({ default: m.SessionLobby }))
 );
+// Patient join session - public route for patients to join via token link
+const PatientJoinSession = lazy(() =>
+  import('./pages/session/PatientJoinSession').then((m) => ({ default: m.PatientJoinSession }))
+);
 
 // Clinician dashboard (feed-style home page)
 const ClinicianDashboard = lazy(() =>
@@ -890,6 +894,33 @@ function AnimatedRoutes() {
                 <Toaster />
               </ErrorBoundary>
             </ProtectedRoute>
+          }
+        />
+
+        {/* Patient Join Session - Public route for patients via token link */}
+        <Route
+          path="/join/:token"
+          element={
+            <ErrorBoundary>
+              <Suspense
+                fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Connecting to your session...</div>}
+              >
+                <PatientJoinSession />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
+        {/* Also support query param for backwards compatibility */}
+        <Route
+          path="/join"
+          element={
+            <ErrorBoundary>
+              <Suspense
+                fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Connecting to your session...</div>}
+              >
+                <PatientJoinSession />
+              </Suspense>
+            </ErrorBoundary>
           }
         />
 

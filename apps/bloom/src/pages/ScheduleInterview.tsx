@@ -11,6 +11,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { API_ENDPOINTS } from '../config/api';
 
 // ============================================================================
+// CONSTANTS
+// ============================================================================
+/** Business hours to display (8am to 6pm) - matches client booking calendar */
+const BUSINESS_HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+
+// ============================================================================
 // DESIGN TOKENS - The palette of a welcoming garden
 // ============================================================================
 const colors = {
@@ -229,28 +235,8 @@ export default function ScheduleInterview() {
   // Week navigation state
   const [weekOffset, setWeekOffset] = useState(0);
 
-  // Standard business hours for display (7am to 8pm)
-  const timeRows = useMemo(() => {
-    // Show business hours range, but only include hours that have slots somewhere
-    const hoursWithSlots = new Set<number>();
-    slots.forEach(slot => {
-      const hour = new Date(slot.start).getHours();
-      hoursWithSlots.add(hour);
-    });
-    
-    if (hoursWithSlots.size === 0) return [];
-    
-    // Get min and max hours from actual slots
-    const minHour = Math.min(...hoursWithSlots);
-    const maxHour = Math.max(...hoursWithSlots);
-    
-    // Create array of all hours in range
-    const hours: number[] = [];
-    for (let h = minHour; h <= maxHour; h++) {
-      hours.push(h);
-    }
-    return hours;
-  }, [slots]);
+  // Use fixed business hours for display (8am to 6pm) - no scrolling needed
+  const timeRows = BUSINESS_HOURS;
 
   // Helper to format date as local YYYY-MM-DD
   const toLocalDateKey = (date: Date): string => {
@@ -656,14 +642,14 @@ export default function ScheduleInterview() {
 
             {/* Week Grid */}
             <div style={{ overflowX: 'auto' }}>
-              <div style={{ minWidth: 600 }}>
+              <div style={{ minWidth: 580 }}>
                 {/* Day Headers */}
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: '60px repeat(7, 1fr)',
+                  gridTemplateColumns: '48px repeat(7, 1fr)',
                   borderBottom: `1px solid ${colors.sagePale}`,
                 }}>
-                  <div style={{ padding: '12px 8px' }} /> {/* Empty corner cell */}
+                  <div style={{ padding: '10px 4px' }} /> {/* Empty corner cell */}
                   {weekDates.map((dateKey) => {
                     const { weekday, day } = formatDate(dateKey);
                     const hasSlots = slotsByDate[dateKey]?.length > 0;
@@ -673,27 +659,26 @@ export default function ScheduleInterview() {
                       <div
                         key={dateKey}
                         style={{
-                          padding: '12px 4px',
+                          padding: '10px 2px',
                           textAlign: 'center',
                           background: today ? colors.sagePale : 'transparent',
-                          borderRadius: today ? '0' : '0',
                         }}
                       >
                         <div style={{ 
-                          fontSize: '11px', 
+                          fontSize: '10px', 
                           fontWeight: 600, 
                           color: hasSlots ? colors.charcoal : colors.charcoalLight,
                           letterSpacing: '0.5px',
-                          opacity: hasSlots ? 1 : 0.5,
+                          opacity: hasSlots ? 1 : 0.4,
                         }}>
                           {weekday}
                         </div>
                         <div style={{ 
-                          fontSize: '22px', 
+                          fontSize: '20px', 
                           fontWeight: 700, 
                           color: today ? colors.sage : (hasSlots ? colors.charcoal : colors.charcoalLight),
-                          lineHeight: 1.3,
-                          opacity: hasSlots ? 1 : 0.5,
+                          lineHeight: 1.2,
+                          opacity: hasSlots ? 1 : 0.4,
                         }}>
                           {day}
                         </div>
@@ -702,28 +687,28 @@ export default function ScheduleInterview() {
                   })}
                 </div>
 
-                {/* Time Rows */}
-                <div style={{ maxHeight: 400, overflowY: 'auto' }}>
-                  {timeRows.map((hour) => (
+                {/* Time Grid - Fixed height rows, no scroll */}
+                <div>
+                  {timeRows.map((hour, rowIndex) => (
                     <div
                       key={hour}
                       style={{
                         display: 'grid',
-                        gridTemplateColumns: '60px repeat(7, 1fr)',
+                        gridTemplateColumns: '48px repeat(7, 1fr)',
                         borderBottom: `1px solid ${colors.creamDark}`,
-                        minHeight: 48,
+                        height: 36,
+                        background: rowIndex % 2 === 0 ? 'transparent' : `${colors.cream}50`,
                       }}
                     >
                       {/* Hour label */}
                       <div style={{
-                        padding: '8px',
-                        fontSize: '12px',
+                        fontSize: '11px',
                         color: colors.charcoalLight,
                         fontWeight: 500,
                         display: 'flex',
-                        alignItems: 'flex-start',
+                        alignItems: 'center',
                         justifyContent: 'flex-end',
-                        paddingRight: 12,
+                        paddingRight: 8,
                       }}>
                         {formatHour(hour)}
                       </div>
@@ -737,13 +722,12 @@ export default function ScheduleInterview() {
                           <div
                             key={`${dateKey}-${hour}`}
                             style={{
-                              padding: '4px 2px',
+                              padding: '2px',
                               borderLeft: `1px solid ${colors.creamDark}`,
                               display: 'flex',
-                              flexDirection: 'column',
-                              gap: 2,
                               alignItems: 'center',
-                              background: !hasAnySlots ? colors.creamDark + '40' : 'transparent',
+                              justifyContent: 'center',
+                              background: !hasAnySlots ? `${colors.creamDark}60` : 'transparent',
                             }}
                           >
                             {slotsInCell.length > 0 ? (
@@ -756,15 +740,15 @@ export default function ScheduleInterview() {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     style={{
-                                      width: '90%',
-                                      padding: '6px 4px',
-                                      borderRadius: 6,
+                                      width: '92%',
+                                      height: '85%',
+                                      borderRadius: 5,
                                       border: 'none',
                                       background: isSelected 
                                         ? `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`
                                         : colors.sagePale,
                                       color: isSelected ? colors.white : colors.sageDeep,
-                                      fontSize: '12px',
+                                      fontSize: '11px',
                                       fontWeight: 600,
                                       cursor: 'pointer',
                                       transition: 'all 0.15s',
@@ -777,7 +761,7 @@ export default function ScheduleInterview() {
                               })
                             ) : (
                               hasAnySlots && (
-                                <span style={{ color: colors.sageLighter, fontSize: '12px' }}>—</span>
+                                <span style={{ color: colors.sageLighter, fontSize: '10px' }}>—</span>
                               )
                             )}
                           </div>

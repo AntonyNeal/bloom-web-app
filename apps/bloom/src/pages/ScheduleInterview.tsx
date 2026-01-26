@@ -1,10 +1,8 @@
 /**
  * Interview Scheduling Page
  * 
- * A Miyazaki-inspired scheduling experience that treats each moment as precious.
+ * A Miyazaki-inspired scheduling experience with efficient space usage.
  * Uses the Bloom design system's natural, warm aesthetic.
- * 
- * "I want to spend as much time there as possible" - Miyazaki
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -62,77 +60,58 @@ interface ScheduleResponse {
 }
 
 // ============================================================================
-// DECORATIVE COMPONENTS - Natural touches
+// DECORATIVE COMPONENTS
 // ============================================================================
-
-// Floating petals in the background - using deterministic values
-const PETALS = Array.from({ length: 8 }, (_, i) => ({
+const PETALS = Array.from({ length: 6 }, (_, i) => ({
   id: i,
-  left: `${10 + (((i * 17 + 3) % 80))}%`, // Deterministic spread
-  delay: (i * 1.2) % 8,
-  duration: 12 + (i % 4) * 2,
-  size: 8 + (i % 3) * 4,
-  rotation: (i * 45) % 360,
+  left: `${10 + (((i * 17 + 3) % 80))}%`,
+  delay: (i * 1.5) % 8,
+  duration: 15 + (i % 4) * 3,
+  size: 6 + (i % 3) * 3,
+  rotation: (i * 60) % 360,
 }));
 
-const FloatingPetals = () => {
-  return (
-    <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
-      {PETALS.map(petal => (
-        <motion.div
-          key={petal.id}
-          initial={{ y: -20, x: 0, rotate: petal.rotation, opacity: 0 }}
-          animate={{ 
-            y: '100vh',
-            x: [0, 30, -20, 40, 0],
-            rotate: petal.rotation + 360,
-            opacity: [0, 0.6, 0.6, 0.6, 0],
-          }}
-          transition={{
-            duration: petal.duration,
-            delay: petal.delay,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
-          style={{
-            position: 'absolute',
-            left: petal.left,
-            top: 0,
-            width: petal.size,
-            height: petal.size,
-            borderRadius: '50% 0 50% 50%',
-            background: `linear-gradient(135deg, ${colors.lavenderMid} 0%, ${colors.terracottaLight} 100%)`,
-            opacity: 0.5,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
+const FloatingPetals = () => (
+  <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
+    {PETALS.map(petal => (
+      <motion.div
+        key={petal.id}
+        initial={{ y: -20, x: 0, rotate: petal.rotation, opacity: 0 }}
+        animate={{ 
+          y: '100vh',
+          x: [0, 20, -15, 25, 0],
+          rotate: petal.rotation + 360,
+          opacity: [0, 0.4, 0.4, 0.4, 0],
+        }}
+        transition={{ duration: petal.duration, delay: petal.delay, repeat: Infinity, ease: 'linear' }}
+        style={{
+          position: 'absolute',
+          left: petal.left,
+          top: 0,
+          width: petal.size,
+          height: petal.size,
+          borderRadius: '50% 0 50% 50%',
+          background: `linear-gradient(135deg, ${colors.lavenderMid} 0%, ${colors.terracottaLight} 100%)`,
+        }}
+      />
+    ))}
+  </div>
+);
 
-// Bloom logo header
 const BloomLogo = () => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', justifyContent: 'center' }}>
-    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
+    <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
       <circle cx="24" cy="24" r="20" fill={colors.sagePale} />
-      <path
-        d="M24 14C24 14 20 18 20 24C20 30 24 34 24 34C24 34 28 30 28 24C28 18 24 14 24 14Z"
-        fill={colors.sage}
-        opacity="0.8"
-      />
-      <path
-        d="M14 24C14 24 18 20 24 20C30 20 34 24 34 24C34 24 30 28 24 28C18 28 14 24 14 24Z"
-        fill={colors.sage}
-        opacity="0.6"
-      />
+      <path d="M24 14C24 14 20 18 20 24C20 30 24 34 24 34C24 34 28 30 28 24C28 18 24 14 24 14Z" fill={colors.sage} opacity="0.8" />
+      <path d="M14 24C14 24 18 20 24 20C30 20 34 24 34 24C34 24 30 28 24 28C18 28 14 24 14 24Z" fill={colors.sage} opacity="0.6" />
       <circle cx="24" cy="24" r="4" fill={colors.terracotta} />
     </svg>
     <span style={{ 
       fontFamily: "'Crimson Text', Georgia, serif",
-      fontSize: '24px',
+      fontSize: '20px',
       fontWeight: 600,
       color: colors.sageDeep,
-      letterSpacing: '-0.5px',
+      letterSpacing: '-0.3px',
     }}>
       Bloom
     </span>
@@ -155,7 +134,7 @@ export default function ScheduleInterview() {
   const [scheduledAt, setScheduledAt] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [interviewLink, setInterviewLink] = useState<string | null>(null);
-  const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+  const [activeDateKey, setActiveDateKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -229,18 +208,34 @@ export default function ScheduleInterview() {
 
   // Group slots by date
   const slotsByDate = useMemo(() => {
-    return slots.reduce((acc, slot) => {
+    const grouped = slots.reduce((acc, slot) => {
       const dateKey = new Date(slot.start).toISOString().split('T')[0];
       if (!acc[dateKey]) acc[dateKey] = [];
       acc[dateKey].push(slot);
       return acc;
     }, {} as Record<string, TimeSlot[]>);
+    
+    // Sort slots within each date by time
+    Object.values(grouped).forEach(dateSlots => {
+      dateSlots.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+    });
+    
+    return grouped;
   }, [slots]);
+
+  const dateKeys = Object.keys(slotsByDate).sort();
+
+  // Set initial active date
+  useEffect(() => {
+    if (dateKeys.length > 0 && !activeDateKey) {
+      setActiveDateKey(dateKeys[0]);
+    }
+  }, [dateKeys, activeDateKey]);
 
   const formatDate = (dateKey: string) => {
     const date = new Date(dateKey + 'T12:00:00');
     return {
-      weekday: date.toLocaleDateString('en-AU', { weekday: 'long' }),
+      weekday: date.toLocaleDateString('en-AU', { weekday: 'short' }),
       day: date.getDate(),
       month: date.toLocaleDateString('en-AU', { month: 'short' }),
     };
@@ -259,433 +254,221 @@ export default function ScheduleInterview() {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
-      year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
     });
   };
 
-  // Get time-of-day category for visual styling
-  const getTimeCategory = (dateStr: string): 'morning' | 'afternoon' | 'evening' => {
-    const hour = new Date(dateStr).getHours();
-    if (hour < 12) return 'morning';
-    if (hour < 17) return 'afternoon';
-    return 'evening';
-  };
-
-  const timeColors = {
-    morning: { bg: colors.lavenderLight, border: colors.lavenderMid, text: colors.charcoal },
-    afternoon: { bg: colors.sagePale, border: colors.sageLighter, text: colors.sageDeep },
-    evening: { bg: colors.creamDark, border: colors.terracottaLight, text: colors.charcoal },
+  const formatShortDateTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleString('en-AU', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
   };
 
   // ============================================================================
   // RENDER STATES
   // ============================================================================
 
-  // Loading state - gentle breathing animation
+  const containerStyle = {
+    minHeight: '100vh',
+    background: `linear-gradient(180deg, ${colors.cream} 0%, ${colors.lavenderLight} 100%)`,
+  };
+
+  // Loading
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${colors.cream} 0%, ${colors.lavenderLight} 50%, ${colors.sagePale} 100%)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
+      <div style={{ ...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <FloatingPetals />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          style={{ textAlign: 'center', zIndex: 1 }}
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', zIndex: 1 }}>
           <motion.div
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             style={{
-              width: 80,
-              height: 80,
-              margin: '0 auto 24px',
-              borderRadius: '50%',
+              width: 64, height: 64, margin: '0 auto 20px', borderRadius: '50%',
               background: `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <span style={{ fontSize: '32px' }}>🌸</span>
+            <span style={{ fontSize: '28px' }}>🌸</span>
           </motion.div>
-          <p style={{ 
-            color: colors.charcoalLight, 
-            fontSize: '16px',
-            fontFamily: "'Inter', -apple-system, sans-serif",
-          }}>
-            Finding available times...
-          </p>
+          <p style={{ color: colors.charcoalLight, fontSize: '15px' }}>Finding available times...</p>
         </motion.div>
       </div>
     );
   }
 
-  // Error state
+  // Error
   if (error && !slots.length && !alreadyScheduled) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${colors.cream} 0%, ${colors.lavenderLight} 100%)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-      }}>
+      <div style={{ ...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
         <FloatingPetals />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           style={{
-            maxWidth: 420,
-            width: '100%',
-            background: colors.white,
-            borderRadius: 24,
-            padding: '48px 32px',
-            textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(122, 141, 122, 0.12)',
-            zIndex: 1,
+            maxWidth: 380, width: '100%', background: colors.white, borderRadius: 20,
+            padding: '40px 28px', textAlign: 'center',
+            boxShadow: '0 8px 32px rgba(122, 141, 122, 0.12)', zIndex: 1,
           }}
         >
           <div style={{
-            width: 72,
-            height: 72,
-            margin: '0 auto 24px',
-            borderRadius: '50%',
-            background: colors.errorLight,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            width: 60, height: 60, margin: '0 auto 20px', borderRadius: '50%',
+            background: colors.errorLight, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <span style={{ fontSize: '32px' }}>🍂</span>
+            <span style={{ fontSize: '28px' }}>🍂</span>
           </div>
-          <h1 style={{ 
-            fontSize: '24px', 
-            fontWeight: 600, 
-            color: colors.charcoal, 
-            marginBottom: 12,
-            fontFamily: "'Crimson Text', Georgia, serif",
-          }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 600, color: colors.charcoal, marginBottom: 10, fontFamily: "'Crimson Text', Georgia, serif" }}>
             Unable to Load
           </h1>
-          <p style={{ color: colors.charcoalLight, marginBottom: 24, lineHeight: 1.6 }}>
-            {error}
-          </p>
-          <p style={{ fontSize: '14px', color: colors.charcoalLight }}>
-            Need help?{' '}
-            <a 
-              href="mailto:support@life-psychology.com.au" 
-              style={{ color: colors.sage, textDecoration: 'underline' }}
-            >
-              Contact support
-            </a>
+          <p style={{ color: colors.charcoalLight, marginBottom: 20, lineHeight: 1.5 }}>{error}</p>
+          <p style={{ fontSize: '13px', color: colors.charcoalLight }}>
+            Need help? <a href="mailto:support@life-psychology.com.au" style={{ color: colors.sage, textDecoration: 'underline' }}>Contact support</a>
           </p>
         </motion.div>
       </div>
     );
   }
 
-  // Already scheduled state
+  // Already scheduled
   if (alreadyScheduled && !success) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${colors.cream} 0%, ${colors.sagePale} 100%)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-      }}>
+      <div style={{ ...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
         <FloatingPetals />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           style={{
-            maxWidth: 420,
-            width: '100%',
-            background: colors.white,
-            borderRadius: 24,
-            padding: '48px 32px',
-            textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(122, 141, 122, 0.12)',
-            zIndex: 1,
+            maxWidth: 380, width: '100%', background: colors.white, borderRadius: 20,
+            padding: '40px 28px', textAlign: 'center',
+            boxShadow: '0 8px 32px rgba(122, 141, 122, 0.12)', zIndex: 1,
           }}
         >
           <BloomLogo />
           <div style={{
-            width: 80,
-            height: 80,
-            margin: '24px auto',
-            borderRadius: '50%',
+            width: 64, height: 64, margin: '20px auto', borderRadius: '50%',
             background: `linear-gradient(135deg, ${colors.sagePale} 0%, ${colors.lavenderLight} 100%)`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <span style={{ fontSize: '36px' }}>✨</span>
+            <span style={{ fontSize: '32px' }}>✨</span>
           </div>
-          <h1 style={{ 
-            fontSize: '24px', 
-            fontWeight: 600, 
-            color: colors.charcoal, 
-            marginBottom: 12,
-            fontFamily: "'Crimson Text', Georgia, serif",
-          }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 600, color: colors.charcoal, marginBottom: 10, fontFamily: "'Crimson Text', Georgia, serif" }}>
             Already Scheduled
           </h1>
-          {applicant && (
-            <p style={{ color: colors.charcoalLight, marginBottom: 20 }}>
-              Hi {applicant.firstName}! Your interview is already on the calendar.
-            </p>
-          )}
+          {applicant && <p style={{ color: colors.charcoalLight, marginBottom: 16 }}>Hi {applicant.firstName}! Your interview is on the calendar.</p>}
           {scheduledAt && (
-            <div style={{
-              background: colors.sagePale,
-              borderRadius: 16,
-              padding: '20px 24px',
-              marginBottom: 24,
-            }}>
-              <p style={{ 
-                color: colors.sageDeep, 
-                fontWeight: 600,
-                fontSize: '16px',
-              }}>
-                {formatDateTime(scheduledAt)}
-              </p>
+            <div style={{ background: colors.sagePale, borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
+              <p style={{ color: colors.sageDeep, fontWeight: 600, fontSize: '15px' }}>{formatDateTime(scheduledAt)}</p>
             </div>
           )}
-          <p style={{ fontSize: '14px', color: colors.charcoalLight, lineHeight: 1.6 }}>
-            Check your email for the interview link. Need to reschedule?{' '}
-            <a 
-              href="mailto:support@life-psychology.com.au" 
-              style={{ color: colors.sage, textDecoration: 'underline' }}
-            >
-              Contact us
-            </a>
+          <p style={{ fontSize: '13px', color: colors.charcoalLight, lineHeight: 1.5 }}>
+            Check your email for the interview link. Need to reschedule? <a href="mailto:support@life-psychology.com.au" style={{ color: colors.sage, textDecoration: 'underline' }}>Contact us</a>
           </p>
         </motion.div>
       </div>
     );
   }
 
-  // Success state - celebrate the booking!
+  // Success
   if (success) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${colors.sagePale} 0%, ${colors.lavenderLight} 50%, ${colors.cream} 100%)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-      }}>
+      <div style={{ ...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
         <FloatingPetals />
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
           style={{
-            maxWidth: 480,
-            width: '100%',
-            background: colors.white,
-            borderRadius: 24,
-            padding: '48px 32px',
-            textAlign: 'center',
-            boxShadow: '0 12px 48px rgba(122, 141, 122, 0.15)',
-            zIndex: 1,
+            maxWidth: 400, width: '100%', background: colors.white, borderRadius: 20,
+            padding: '40px 28px', textAlign: 'center',
+            boxShadow: '0 12px 48px rgba(122, 141, 122, 0.15)', zIndex: 1,
           }}
         >
           <BloomLogo />
-          
-          {/* Celebration animation */}
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
             style={{
-              width: 100,
-              height: 100,
-              margin: '24px auto',
-              borderRadius: '50%',
+              width: 80, height: 80, margin: '20px auto', borderRadius: '50%',
               background: `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: `0 8px 24px ${colors.sage}40`,
             }}
           >
-            <motion.span 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.4, type: 'spring' }}
-              style={{ fontSize: '48px' }}
-            >
-              🌸
-            </motion.span>
+            <span style={{ fontSize: '40px' }}>🌸</span>
           </motion.div>
-          
-          <motion.h1 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            style={{ 
-              fontSize: '28px', 
-              fontWeight: 600, 
-              color: colors.charcoal, 
-              marginBottom: 8,
-              fontFamily: "'Crimson Text', Georgia, serif",
-            }}
-          >
+          <h1 style={{ fontSize: '24px', fontWeight: 600, color: colors.charcoal, marginBottom: 8, fontFamily: "'Crimson Text', Georgia, serif" }}>
             You're All Set!
-          </motion.h1>
-          
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            style={{ color: colors.charcoalLight, marginBottom: 24, fontSize: '16px' }}
-          >
-            We're looking forward to meeting you.
-          </motion.p>
-          
+          </h1>
+          <p style={{ color: colors.charcoalLight, marginBottom: 20, fontSize: '15px' }}>We're looking forward to meeting you.</p>
           {scheduledAt && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
+            <div style={{
+              background: `linear-gradient(135deg, ${colors.sagePale} 0%, ${colors.lavenderLight} 100%)`,
+              borderRadius: 12, padding: '20px', marginBottom: 24,
+            }}>
+              <p style={{ fontSize: '12px', color: colors.charcoalLight, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Your Interview</p>
+              <p style={{ color: colors.sageDeep, fontWeight: 600, fontSize: '16px', lineHeight: 1.4 }}>{formatDateTime(scheduledAt)}</p>
+            </div>
+          )}
+          {interviewLink && (
+            <a
+              href={interviewLink}
               style={{
-                background: `linear-gradient(135deg, ${colors.sagePale} 0%, ${colors.lavenderLight} 100%)`,
-                borderRadius: 16,
-                padding: '24px',
-                marginBottom: 28,
+                display: 'block', padding: '14px 20px', background: colors.sage, color: colors.white,
+                borderRadius: 10, fontWeight: 600, fontSize: '14px', textDecoration: 'none', marginBottom: 12,
               }}
             >
-              <p style={{ 
-                fontSize: '13px', 
-                color: colors.charcoalLight, 
-                marginBottom: 8,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-              }}>
-                Your Interview
-              </p>
-              <p style={{ 
-                color: colors.sageDeep, 
-                fontWeight: 600,
-                fontSize: '18px',
-                lineHeight: 1.4,
-              }}>
-                {formatDateTime(scheduledAt)}
-              </p>
-            </motion.div>
+              📹 Save Interview Link
+            </a>
           )}
-          
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
-          >
-            {interviewLink && (
-              <a
-                href={interviewLink}
-                style={{
-                  display: 'block',
-                  padding: '16px 24px',
-                  background: colors.sage,
-                  color: colors.white,
-                  borderRadius: 12,
-                  fontWeight: 600,
-                  fontSize: '15px',
-                  textDecoration: 'none',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = colors.sageDark;
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = colors.sage;
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                📹 Save Interview Link
-              </a>
-            )}
-            <p style={{ fontSize: '14px', color: colors.charcoalLight }}>
-              A confirmation email is on its way to your inbox.
-            </p>
-          </motion.div>
+          <p style={{ fontSize: '13px', color: colors.charcoalLight }}>A confirmation email is on its way.</p>
         </motion.div>
       </div>
     );
   }
 
   // ============================================================================
-  // MAIN SCHEDULING UI
+  // MAIN SCHEDULING UI - Compact Grid Layout
   // ============================================================================
+  const activeSlots = activeDateKey ? slotsByDate[activeDateKey] || [] : [];
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(180deg, ${colors.cream} 0%, ${colors.lavenderLight} 50%, ${colors.sagePale} 100%)`,
-      paddingBottom: selectedSlot ? 140 : 48,
-    }}>
+    <div style={{ ...containerStyle, display: 'flex', flexDirection: 'column', paddingBottom: selectedSlot ? 100 : 20 }}>
       <FloatingPetals />
       
-      {/* Header */}
-      <header style={{
-        padding: '32px 24px 24px',
-        textAlign: 'center',
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+      {/* Compact Header */}
+      <header style={{ padding: '20px 16px 12px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <BloomLogo />
-          
           <h1 style={{ 
-            fontSize: '32px', 
-            fontWeight: 600, 
-            color: colors.charcoal, 
-            marginTop: 16,
-            marginBottom: 8,
+            fontSize: '24px', fontWeight: 600, color: colors.charcoal, marginTop: 12, marginBottom: 4,
             fontFamily: "'Crimson Text', Georgia, serif",
           }}>
             Schedule Your Interview
           </h1>
-          
           {applicant && (
-            <p style={{ color: colors.charcoalLight, fontSize: '16px', marginBottom: 8 }}>
+            <p style={{ color: colors.charcoalLight, fontSize: '14px', marginBottom: 4 }}>
               Hi {applicant.firstName}! Choose a time that works for you.
             </p>
           )}
-          
           <div style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: 8,
-            padding: '8px 16px',
-            background: `${colors.white}90`,
-            borderRadius: 20,
-            fontSize: '14px',
-            color: colors.charcoalLight,
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '6px 12px', background: `${colors.white}90`, borderRadius: 16,
+            fontSize: '13px', color: colors.charcoalLight,
           }}>
             <span>🎥</span>
             <span>30-minute video call</span>
           </div>
         </motion.div>
       </header>
-      
-      {/* Error banner */}
+
+      {/* Error Banner */}
       <AnimatePresence>
         {error && (
           <motion.div
@@ -693,194 +476,152 @@ export default function ScheduleInterview() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             style={{
-              maxWidth: 600,
-              margin: '0 auto 16px',
-              padding: '12px 20px',
-              background: colors.errorLight,
-              borderRadius: 12,
-              color: colors.error,
-              fontSize: '14px',
-              marginLeft: 24,
-              marginRight: 24,
+              maxWidth: 500, margin: '0 auto 12px', padding: '10px 16px',
+              background: colors.errorLight, borderRadius: 10, color: colors.error,
+              fontSize: '13px', marginLeft: 16, marginRight: 16,
             }}
           >
             {error}
           </motion.div>
         )}
       </AnimatePresence>
-      
-      {/* Main content */}
-      <main style={{ 
-        maxWidth: 640, 
-        margin: '0 auto', 
-        padding: '0 24px',
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        {Object.keys(slotsByDate).length === 0 ? (
-          // No slots available
+
+      {/* Main Content */}
+      <main style={{ flex: 1, maxWidth: 500, margin: '0 auto', padding: '0 16px', width: '100%', position: 'relative', zIndex: 1 }}>
+        {dateKeys.length === 0 ? (
+          // No slots
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             style={{
-              background: colors.white,
-              borderRadius: 20,
-              padding: '48px 32px',
-              textAlign: 'center',
+              background: colors.white, borderRadius: 16, padding: '40px 24px', textAlign: 'center',
               boxShadow: '0 4px 20px rgba(122, 141, 122, 0.08)',
             }}
           >
             <div style={{
-              width: 72,
-              height: 72,
-              margin: '0 auto 24px',
-              borderRadius: '50%',
-              background: colors.creamDark,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              width: 56, height: 56, margin: '0 auto 20px', borderRadius: '50%',
+              background: colors.creamDark, display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <span style={{ fontSize: '32px' }}>🍃</span>
+              <span style={{ fontSize: '28px' }}>🍃</span>
             </div>
-            <h2 style={{ 
-              fontSize: '20px', 
-              fontWeight: 600, 
-              color: colors.charcoal, 
-              marginBottom: 12,
-              fontFamily: "'Crimson Text', Georgia, serif",
-            }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, color: colors.charcoal, marginBottom: 10, fontFamily: "'Crimson Text', Georgia, serif" }}>
               No Times Available
             </h2>
-            <p style={{ color: colors.charcoalLight, marginBottom: 20, lineHeight: 1.6 }}>
-              There are currently no available slots. Please check back soon or reach out to us.
+            <p style={{ color: colors.charcoalLight, marginBottom: 16, lineHeight: 1.5, fontSize: '14px' }}>
+              Please check back soon or reach out to us.
             </p>
-            <a
-              href="mailto:support@life-psychology.com.au"
-              style={{ color: colors.sage, textDecoration: 'underline', fontSize: '14px' }}
-            >
+            <a href="mailto:support@life-psychology.com.au" style={{ color: colors.sage, textDecoration: 'underline', fontSize: '13px' }}>
               Contact Support
             </a>
           </motion.div>
         ) : (
-          // Date cards with time slots
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {Object.entries(slotsByDate).map(([dateKey, dateSlots], index) => {
-              const { weekday, day, month } = formatDate(dateKey);
-              const isExpanded = hoveredDate === dateKey || !hoveredDate;
-              
-              return (
-                <motion.div
-                  key={dateKey}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  onMouseEnter={() => setHoveredDate(dateKey)}
-                  onMouseLeave={() => setHoveredDate(null)}
-                  style={{
-                    background: colors.white,
-                    borderRadius: 20,
-                    overflow: 'hidden',
-                    boxShadow: isExpanded 
-                      ? '0 8px 32px rgba(122, 141, 122, 0.12)'
-                      : '0 2px 12px rgba(122, 141, 122, 0.06)',
-                    transition: 'all 0.3s ease',
-                    transform: isExpanded ? 'scale(1)' : 'scale(0.98)',
-                  }}
-                >
-                  {/* Date header */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 16,
-                    padding: '20px 24px',
-                    borderBottom: `1px solid ${colors.sagePale}`,
-                    background: `linear-gradient(90deg, ${colors.warmWhite} 0%, ${colors.cream} 100%)`,
-                  }}>
-                    {/* Calendar icon */}
-                    <div style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 12,
-                      background: `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: colors.white,
-                      flexShrink: 0,
-                    }}>
-                      <span style={{ fontSize: '11px', fontWeight: 500, opacity: 0.9, textTransform: 'uppercase' }}>
-                        {month}
-                      </span>
-                      <span style={{ fontSize: '22px', fontWeight: 700, lineHeight: 1 }}>
-                        {day}
-                      </span>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              background: colors.white, borderRadius: 16, overflow: 'hidden',
+              boxShadow: '0 4px 24px rgba(122, 141, 122, 0.1)',
+            }}
+          >
+            {/* Date Tabs - Horizontal scrollable day picker */}
+            <div style={{
+              display: 'flex', gap: 6, padding: '12px', overflowX: 'auto',
+              background: `linear-gradient(180deg, ${colors.warmWhite} 0%, ${colors.cream} 100%)`,
+              borderBottom: `1px solid ${colors.sagePale}`,
+            }}>
+              {dateKeys.map((dateKey) => {
+                const { weekday, day, month } = formatDate(dateKey);
+                const isActive = dateKey === activeDateKey;
+                const slotCount = slotsByDate[dateKey].length;
+                
+                return (
+                  <button
+                    key={dateKey}
+                    onClick={() => setActiveDateKey(dateKey)}
+                    style={{
+                      flex: '0 0 auto',
+                      minWidth: 60,
+                      padding: '8px 12px',
+                      borderRadius: 10,
+                      border: isActive ? `2px solid ${colors.sage}` : `1px solid ${colors.sagePale}`,
+                      background: isActive 
+                        ? `linear-gradient(135deg, ${colors.sagePale} 0%, ${colors.lavenderLight} 100%)`
+                        : colors.white,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <div style={{ fontSize: '10px', fontWeight: 600, color: colors.charcoalLight, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                      {weekday}
                     </div>
-                    
-                    <div>
-                      <p style={{ 
-                        fontSize: '18px', 
-                        fontWeight: 600, 
-                        color: colors.charcoal,
-                        fontFamily: "'Crimson Text', Georgia, serif",
-                      }}>
-                        {weekday}
-                      </p>
-                      <p style={{ fontSize: '13px', color: colors.charcoalLight }}>
-                        {dateSlots.length} time{dateSlots.length !== 1 ? 's' : ''} available
-                      </p>
+                    <div style={{ fontSize: '20px', fontWeight: 700, color: isActive ? colors.sageDeep : colors.charcoal, lineHeight: 1.2 }}>
+                      {day}
                     </div>
-                  </div>
-                  
-                  {/* Time slots */}
-                  <div style={{ padding: '16px 20px 20px' }}>
+                    <div style={{ fontSize: '10px', color: colors.charcoalLight }}>
+                      {month}
+                    </div>
                     <div style={{ 
-                      display: 'flex', 
-                      flexWrap: 'wrap', 
-                      gap: 10,
+                      fontSize: '9px', 
+                      color: colors.sage, 
+                      marginTop: 2,
+                      fontWeight: 500,
                     }}>
-                      {dateSlots.map((slot) => {
-                        const isSelected = selectedSlot?.id === slot.id;
-                        const timeCategory = getTimeCategory(slot.start);
-                        const tColors = timeColors[timeCategory];
-                        
-                        return (
-                          <motion.button
-                            key={slot.id}
-                            onClick={() => setSelectedSlot(slot)}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.98 }}
-                            style={{
-                              padding: '12px 18px',
-                              borderRadius: 10,
-                              border: `2px solid ${isSelected ? colors.sage : tColors.border}`,
-                              background: isSelected 
-                                ? `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`
-                                : tColors.bg,
-                              color: isSelected ? colors.white : tColors.text,
-                              fontSize: '15px',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              transition: 'all 0.2s',
-                              boxShadow: isSelected 
-                                ? `0 4px 12px ${colors.sage}40`
-                                : 'none',
-                            }}
-                          >
-                            {formatTime(slot.start)}
-                          </motion.button>
-                        );
-                      })}
+                      {slotCount} slot{slotCount !== 1 ? 's' : ''}
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Time Slots Grid */}
+            <div style={{ padding: '16px' }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))',
+                gap: 8,
+              }}>
+                {activeSlots.map((slot) => {
+                  const isSelected = selectedSlot?.id === slot.id;
+                  
+                  return (
+                    <motion.button
+                      key={slot.id}
+                      onClick={() => setSelectedSlot(slot)}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      style={{
+                        padding: '12px 8px',
+                        borderRadius: 8,
+                        border: `2px solid ${isSelected ? colors.sage : colors.sagePale}`,
+                        background: isSelected 
+                          ? `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`
+                          : colors.white,
+                        color: isSelected ? colors.white : colors.charcoal,
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                        boxShadow: isSelected ? `0 4px 12px ${colors.sage}40` : 'none',
+                      }}
+                    >
+                      {formatTime(slot.start)}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {activeSlots.length === 0 && (
+                <p style={{ textAlign: 'center', color: colors.charcoalLight, fontSize: '14px', padding: '20px 0' }}>
+                  No times available for this day
+                </p>
+              )}
+            </div>
+          </motion.div>
         )}
       </main>
-      
-      {/* Fixed bottom bar when slot is selected */}
+
+      {/* Fixed Bottom Bar */}
       <AnimatePresence>
         {selectedSlot && (
           <motion.div
@@ -888,45 +629,19 @@ export default function ScheduleInterview() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 100 }}
             style={{
-              position: 'fixed',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              background: colors.white,
-              borderTop: `1px solid ${colors.sagePale}`,
-              padding: '16px 24px',
-              paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-              boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
-              zIndex: 100,
+              position: 'fixed', bottom: 0, left: 0, right: 0,
+              background: colors.white, borderTop: `1px solid ${colors.sagePale}`,
+              padding: '12px 16px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+              boxShadow: '0 -4px 20px rgba(0,0,0,0.08)', zIndex: 100,
             }}
           >
-            <div style={{ 
-              maxWidth: 600, 
-              margin: '0 auto',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 16,
-            }}>
-              <div style={{ minWidth: 0 }}>
-                <p style={{ 
-                  fontSize: '12px', 
-                  color: colors.charcoalLight, 
-                  marginBottom: 4,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                }}>
+            <div style={{ maxWidth: 500, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p style={{ fontSize: '11px', color: colors.charcoalLight, marginBottom: 2, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   Selected
                 </p>
-                <p style={{ 
-                  fontSize: '15px', 
-                  fontWeight: 600, 
-                  color: colors.charcoal,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}>
-                  {formatDateTime(selectedSlot.start)}
+                <p style={{ fontSize: '14px', fontWeight: 600, color: colors.charcoal, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {formatShortDateTime(selectedSlot.start)}
                 </p>
               </div>
               
@@ -936,32 +651,18 @@ export default function ScheduleInterview() {
                 whileHover={{ scale: booking ? 1 : 1.02 }}
                 whileTap={{ scale: booking ? 1 : 0.98 }}
                 style={{
-                  padding: '14px 28px',
-                  background: booking 
-                    ? colors.sageLighter 
-                    : `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageDark} 100%)`,
-                  color: colors.white,
-                  borderRadius: 12,
-                  fontWeight: 600,
-                  fontSize: '15px',
-                  border: 'none',
-                  cursor: booking ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
+                  padding: '12px 24px',
+                  background: booking ? colors.sageLighter : `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageDark} 100%)`,
+                  color: colors.white, borderRadius: 10, fontWeight: 600, fontSize: '14px',
+                  border: 'none', cursor: booking ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 6,
                   boxShadow: booking ? 'none' : `0 4px 12px ${colors.sage}40`,
-                  transition: 'all 0.2s',
-                  flexShrink: 0,
+                  transition: 'all 0.2s', flexShrink: 0,
                 }}
               >
                 {booking ? (
                   <>
-                    <motion.span
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    >
-                      ⏳
-                    </motion.span>
+                    <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>⏳</motion.span>
                     Booking...
                   </>
                 ) : (

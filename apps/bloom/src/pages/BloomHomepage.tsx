@@ -5,6 +5,7 @@ import { GhibliAnimationDebugger } from '@/components/bloom-tree/GhibliAnimation
 import { motion, useReducedMotion } from 'framer-motion';
 import { useDashboard } from '@/hooks/useDashboard';
 import { BloomHeader } from '@/components/layout/BloomHeader';
+import { PrepNotesModal } from '@/components/session/PrepNotesModal';
 import type { WeeklyStats, UpcomingStats, MonthlyStats } from '@/types/bloom';
 
 // ============================================================================
@@ -112,7 +113,7 @@ const ClockIcon = () => (
 // ============================================================================
 // ICONS - Feed-style icons
 // ============================================================================
-const HeartIcon = ({ filled = false }: { filled?: boolean }) => (
+const _HeartIcon = ({ filled = false }: { filled?: boolean }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill={filled ? colors.terracotta : 'none'} stroke={filled ? colors.terracotta : 'currentColor'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
   </svg>
@@ -225,8 +226,10 @@ const ClientStoryBubble: React.FC<{ session: Session; isNext?: boolean }> = ({ s
 // ============================================================================
 const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: number; onStartSession?: (id: string) => void }> = ({ session, isUpNext, index, onStartSession }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
+  const [isPrepComplete, setIsPrepComplete] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+  const navigate = useNavigate();
 
   // Handle optional fields - only calculate if we have the data
   const hasMhcpData = session.mhcpRemaining !== undefined && session.mhcpTotal !== undefined && session.mhcpTotal > 0;
@@ -237,6 +240,14 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
   const canStartSession = isTelehealth && !['completed', 'cancelled', 'no-show'].includes(session.status || '');
   const hasRelationshipData = session.relationshipMonths !== undefined;
   const hasPresentingIssues = session.presentingIssues && session.presentingIssues.length > 0;
+
+  const handlePrepComplete = () => {
+    setIsPrepComplete(true);
+  };
+
+  const handleOpenNotes = () => {
+    navigate(`/session/${session.id}?tab=notes`);
+  };
 
   const formatRelationship = (months?: number) => {
     if (months === undefined) return null;
@@ -545,32 +556,35 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
             </motion.button>
           )}
 
+          {/* Prep Notes Button - Opens modal */}
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.05, backgroundColor: isPrepComplete ? `${colors.sage}20` : colors.lavenderLight }}
             whileTap={{ scale: 0.95 }}
-            onClick={(e) => { e.stopPropagation(); setIsLiked(!isLiked); }}
+            onClick={(e) => { e.stopPropagation(); setIsPrepModalOpen(true); }}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
               padding: '8px 16px',
-              backgroundColor: isLiked ? `${colors.terracotta}15` : 'transparent',
+              backgroundColor: isPrepComplete ? `${colors.sage}15` : 'transparent',
               border: 'none',
               borderRadius: '20px',
               cursor: 'pointer',
-              color: isLiked ? colors.terracotta : colors.charcoalLight,
+              color: isPrepComplete ? colors.sage : colors.charcoalLight,
               fontSize: '13px',
               fontWeight: 500,
               transition: 'all 0.2s ease',
             }}
           >
-            <HeartIcon filled={isLiked} />
-            <span>Prep done</span>
+            <SparkleIcon />
+            <span>{isPrepComplete ? '✓ Prep Done' : 'Prep Notes'}</span>
           </motion.button>
 
+          {/* Notes Button - Opens session page to notes tab */}
           <motion.button
             whileHover={{ scale: 1.05, backgroundColor: colors.blueLight }}
             whileTap={{ scale: 0.95 }}
+            onClick={(e) => { e.stopPropagation(); handleOpenNotes(); }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -613,6 +627,20 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
           </motion.button>
         </div>
       </div>
+
+      {/* Prep Notes Modal */}
+      <PrepNotesModal
+        isOpen={isPrepModalOpen}
+        onClose={() => setIsPrepModalOpen(false)}
+        session={{
+          id: session.id,
+          clientName: session.clientName,
+          clientInitials: session.clientInitials,
+          sessionType: session.sessionType,
+          time: session.time,
+        }}
+        onPrepComplete={handlePrepComplete}
+      />
     </motion.article>
   );
 };
@@ -1157,7 +1185,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
   // Fetch dashboard data from API - NO FALLBACKS, only real data
   // Pass selected date for day navigation
   const selectedDateStr = selectedDate.toISOString().split('T')[0];
-  const { dashboard, loading, isUsingDemoData, authStatus, lastFetched, refetch, error } = useDashboard(practitionerId, { date: selectedDateStr });
+  const { dashboard, loading, refetch, error } = useDashboard(practitionerId, { date: selectedDateStr });
 
   // Transform dashboard data to local types - NO FALLBACKS, only real data
   const todaysSessions: Session[] = sessionsOverride || (dashboard ? 

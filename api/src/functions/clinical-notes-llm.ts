@@ -420,3 +420,178 @@ app.http('notes-generate-prep', {
   route: 'clinical-notes/generate-prep',
   handler: generatePrepSummary,
 });
+
+// ============================================================================
+// Prep Notes Chat - AI chat about patient
+// ============================================================================
+
+const CHAT_SYSTEM_PROMPT = `You are a clinical assistant helping a psychologist prepare for a therapy session. You have access to the patient's prep notes and context.
+
+GUIDELINES:
+- Be concise and clinically relevant
+- Focus on therapeutic insights and preparation
+- Use client initials only (never full names)
+- Reference patterns, themes, and therapeutic considerations
+- Be supportive but professional
+- If asked about something not in the context, acknowledge the limitation
+
+PRIVACY:
+- Never generate or assume personal details not provided
+- Maintain clinical objectivity`;
+
+async function handlePrepNotesChat(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  context.log('LLM: Prep notes chat');
+
+  try {
+    const auth = await validatePractitioner(request);
+    if (!auth) {
+      return { status: 401, jsonBody: { success: false, error: 'Unauthorized' } };
+    }
+
+    const body = await request.json() as {
+      appointmentId: string;
+      patientInitials: string;
+      patientName?: string;
+      message: string;
+      context?: string; // Current prep notes
+      conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
+    };
+
+    if (!body.message) {
+      return { status: 400, jsonBody: { success: false, error: 'Message required' } };
+    }
+
+    const client = getOpenAIClient();
+
+    // Build conversation
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: CHAT_SYSTEM_PROMPT },
+    ];
+
+    // Add context if available
+    if (body.context) {
+      messages.push({
+        role: 'system',
+        content: `CURRENT PREP NOTES FOR ${body.patientInitials}:\n${body.context}`,
+      });
+    }
+
+    // Add conversation history
+    if (body.conversationHistory) {
+      for (const msg of body.conversationHistory.slice(-10)) {
+        messages.push({ role: msg.role, content: msg.content });
+      }
+    }
+
+    // Add current message
+    messages.push({ role: 'user', content: body.message });
+
+    const completion = await client.chat.completions.create({
+      model: AZURE_OPENAI_DEPLOYMENT,
+      messages,
+      temperature: 0.5,
+      max_tokens: 800,
+    });
+
+    const response = completion.choices[0]?.message?.content;
+
+    return {
+      status: 200,
+      jsonBody: {
+        success: true,
+        data: { response: response || 'I apologize, I could not generate a response.' },
+      },
+    };
+  } catch (error) {
+    context.error('Error in prep notes chat:', error);
+    return {
+      status: 500,
+      jsonBody: { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
+    };
+  }
+}
+
+app.http('prep-notes-chat', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'clinical-notes/chat',
+  handler: handlePrepNotesChat,
+});
+
+// ============================================================================
+// Enhance Prep Notes - AI improves the notes
+// ============================================================================
+
+const ENHANCE_SYSTEM_PROMPT = `You are a clinical documentation assistant helping improve prep notes for a therapy session.
+
+When enhancing notes:
+- Improve clarity and structure
+- Add relevant clinical considerations
+- Suggest therapeutic angles to explore
+- Keep the same general content but make it more useful
+- Use bullet points and clear headings
+- Keep it concise - these are quick reference notes
+
+Return ONLY the enhanced notes, no explanations.`;
+
+async function handleEnhancePrepNotes(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  context.log('LLM: Enhance prep notes');
+
+  try {
+    const auth = await validatePractitioner(request);
+    if (!auth) {
+      return { status: 401, jsonBody: { success: false, error: 'Unauthorized' } };
+    }
+
+    const body = await request.json() as {
+      appointmentId: string;
+      patientInitials: string;
+      currentNotes: string;
+    };
+
+    if (!body.currentNotes) {
+      return { status: 400, jsonBody: { success: false, error: 'Current notes required' } };
+    }
+
+    const client = getOpenAIClient();
+
+    const completion = await client.chat.completions.create({
+      model: AZURE_OPENAI_DEPLOYMENT,
+      messages: [
+        { role: 'system', content: ENHANCE_SYSTEM_PROMPT },
+        { role: 'user', content: `Enhance these prep notes for client ${body.patientInitials}:\n\n${body.currentNotes}` },
+      ],
+      temperature: 0.4,
+      max_tokens: 1500,
+    });
+
+    const enhancedNotes = completion.choices[0]?.message?.content;
+
+    return {
+      status: 200,
+      jsonBody: {
+        success: true,
+        data: { enhancedNotes: enhancedNotes || body.currentNotes },
+      },
+    };
+  } catch (error) {
+    context.error('Error enhancing prep notes:', error);
+    return {
+      status: 500,
+      jsonBody: { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
+    };
+  }
+}
+
+app.http('prep-notes-enhance', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'clinical-notes/enhance-prep',
+  handler: handleEnhancePrepNotes,
+});

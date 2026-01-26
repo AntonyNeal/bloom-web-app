@@ -352,11 +352,12 @@ export function trackBookingConfirmed(params: Partial<ConfirmBookingParams> & {
 export function trackBookingComplete(params: Partial<CompleteBookingParams> & {
   bookingId?: string;
 } = {}): TrackingResult {
+  // Always log for troubleshooting (remove after fixing)
+  console.log('[Booking] 🎯 trackBookingComplete called with:', params);
+  
   // Prevent duplicate conversions
   if (hasConversionFired('complete_booking')) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Booking] Complete already fired, skipping duplicate');
-    }
+    console.log('[Booking] ⚠️ Complete already fired, skipping duplicate');
     return {
       success: true,
       event: 'complete_booking',
@@ -370,6 +371,14 @@ export function trackBookingComplete(params: Partial<CompleteBookingParams> & {
   const bookingValue = params.booking_value || DEFAULT_BOOKING_VALUE;
   const transactionId = params.transaction_id || `lpa_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
   const bookingId = params.bookingId || params.booking_id;
+  
+  console.log('[Booking] 📊 Conversion details:', {
+    bookingValue,
+    transactionId,
+    bookingId,
+    conversionId: GOOGLE_ADS_CONVERSION_ID,
+    conversionLabel: BOOKING_CONVERSION_LABEL,
+  });
 
   // Clear any previous ecommerce data
   clearEcommerceData();
@@ -416,16 +425,14 @@ export function trackBookingComplete(params: Partial<CompleteBookingParams> & {
   // Clear booking flow state
   clearBookingFlowState();
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Booking] ✅ Complete tracked', {
-      transactionId,
-      bookingValue,
-      dataLayerSuccess,
-      gtagSuccess,
-      ga4Success,
-      params,
-    });
-  }
+  // Always log results for troubleshooting
+  console.log('[Booking] ✅ Conversion tracking complete:', {
+    transactionId,
+    bookingValue,
+    dataLayerSuccess,
+    gtagSuccess,
+    ga4Success,
+  });
 
   return {
     success: dataLayerSuccess || gtagSuccess || ga4Success,

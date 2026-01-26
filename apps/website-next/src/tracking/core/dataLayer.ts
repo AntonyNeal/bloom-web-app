@@ -241,26 +241,46 @@ export function fireGtagConversion(
   value: number,
   transactionId: string
 ): boolean {
+  // Enhanced debugging for conversion troubleshooting
+  console.log('[Gtag] 🔍 Conversion attempt:', {
+    conversionId,
+    conversionLabel,
+    value,
+    transactionId,
+    windowExists: typeof window !== 'undefined',
+    gtagExists: typeof window !== 'undefined' && typeof window.gtag === 'function',
+    gtagType: typeof window !== 'undefined' ? typeof window.gtag : 'N/A',
+  });
+
   if (!isGtagAvailable() || !window.gtag) {
-    console.warn('[Gtag] gtag not available for conversion');
+    console.error('[Gtag] ❌ gtag NOT AVAILABLE for conversion - this is why conversions are not tracking!');
     return false;
   }
 
   try {
+    const sendTo = `${conversionId}/${conversionLabel}`;
+    
+    // Always log conversion attempts for debugging (remove after troubleshooting)
+    console.log('[Gtag] 🎯 Firing Google Ads conversion:', {
+      send_to: sendTo,
+      value,
+      currency: 'AUD',
+      transaction_id: transactionId,
+      gtag_type: typeof window.gtag,
+    });
+    
     window.gtag('event', 'conversion', {
-      send_to: `${conversionId}/${conversionLabel}`,
+      send_to: sendTo,
       value,
       currency: 'AUD',
       transaction_id: transactionId,
     });
     
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Gtag] Conversion fired:', { conversionId, conversionLabel, value, transactionId });
-    }
+    console.log('[Gtag] ✅ Conversion call completed');
     
     return true;
   } catch (error) {
-    console.error('[Gtag] Conversion failed:', error);
+    console.error('[Gtag] ❌ Conversion failed:', error);
     return false;
   }
 }

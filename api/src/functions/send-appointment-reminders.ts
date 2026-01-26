@@ -316,7 +316,7 @@ async function sendPatientReminder(
         
         if (tokenResult.recordset.length > 0) {
           const finalToken = tokenResult.recordset[0].token;
-          telehealthLink = `${process.env.BLOOM_URL || 'https://bloom.life-psychology.com.au'}/session?token=${finalToken}`;
+          telehealthLink = `${process.env.BLOOM_APP_URL || 'https://bloom.life-psychology.com.au'}/session?token=${finalToken}`;
           context.log(`[Reminders] Generated session link for appointment ${appointment.id}`);
         }
       }

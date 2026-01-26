@@ -1418,7 +1418,7 @@ interface WelcomeEmailContext {
 export async function sendWelcomeEmail(context: WelcomeEmailContext) {
   const { firstName, personalEmail, companyEmail } = context;
   
-  const bloomUrl = 'https://bloom.life-psychology.com.au';
+  const bloomUrl = process.env.BLOOM_APP_URL || 'https://bloom.life-psychology.com.au';
   const outlookUrl = 'https://outlook.office.com';
 
   const htmlContent = wrapInTemplate(`
@@ -1758,7 +1758,7 @@ export async function sendClinicianAppointmentReminder(context: ClinicianAppoint
     
     <p style="color: #666; font-size: 14px;">
       View full details in <a href="https://app.halaxy.com" style="color: #10b981;">Halaxy</a> 
-      or your <a href="https://bloom.life-psychology.com.au" style="color: #10b981;">Bloom dashboard</a>.
+      or your <a href="${process.env.BLOOM_APP_URL || 'https://bloom.life-psychology.com.au'}" style="color: #10b981;">Bloom dashboard</a>.
     </p>
     
     <p style="margin-top: 20px; color: #666;">

@@ -54,6 +54,37 @@ const PatientJoinSession = lazy(() =>
   import('./pages/session/PatientJoinSession').then((m) => ({ default: m.PatientJoinSession }))
 );
 
+/**
+ * Session Router - Handles /session route
+ * 
+ * If a token query param is present, renders the patient join page (public).
+ * Otherwise, renders the session lobby (protected, for clinicians).
+ */
+import { useSearchParams } from 'react-router-dom';
+
+function SessionRouter() {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+  
+  // If token is present, render the patient join session (public)
+  if (token) {
+    return (
+      <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Connecting to your session...</div>}>
+        <PatientJoinSession />
+      </Suspense>
+    );
+  }
+  
+  // Otherwise, require authentication and show the session lobby (clinician)
+  return (
+    <ProtectedRoute>
+      <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Preparing therapy room...</div>}>
+        <SessionLobby />
+      </Suspense>
+    </ProtectedRoute>
+  );
+}
+
 // Clinician dashboard (feed-style home page)
 const ClinicianDashboard = lazy(() =>
   import('./pages/dashboard/ClinicianDashboard').then((m) => ({ default: m.ClinicianDashboard }))
@@ -924,19 +955,13 @@ function AnimatedRoutes() {
           }
         />
 
-        {/* Session Lobby - Therapy Room entry point */}
+        {/* Session Lobby - Therapy Room entry point (or Patient Join if token present) */}
         <Route
           path="/session"
           element={
-            <ProtectedRoute>
-              <ErrorBoundary>
-                <Suspense
-                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Preparing therapy room...</div>}
-                >
-                  <SessionLobby />
-                </Suspense>
-              </ErrorBoundary>
-            </ProtectedRoute>
+            <ErrorBoundary>
+              <SessionRouter />
+            </ErrorBoundary>
           }
         />
 

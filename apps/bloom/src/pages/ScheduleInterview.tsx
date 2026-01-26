@@ -205,10 +205,12 @@ export default function ScheduleInterview() {
     }
   };
 
-  // Group slots by date
+  // Group slots by date (using local date, not UTC)
   const slotsByDate = useMemo(() => {
     const grouped = slots.reduce((acc, slot) => {
-      const dateKey = new Date(slot.start).toISOString().split('T')[0];
+      // Use local date for grouping (not UTC)
+      const date = new Date(slot.start);
+      const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       if (!acc[dateKey]) acc[dateKey] = [];
       acc[dateKey].push(slot);
       return acc;
@@ -227,21 +229,41 @@ export default function ScheduleInterview() {
   // Week navigation state
   const [weekOffset, setWeekOffset] = useState(0);
 
-  // Get unique hours from all slots for row headers
+  // Standard business hours for display (7am to 8pm)
   const timeRows = useMemo(() => {
-    const hours = new Set<number>();
+    // Show business hours range, but only include hours that have slots somewhere
+    const hoursWithSlots = new Set<number>();
     slots.forEach(slot => {
       const hour = new Date(slot.start).getHours();
-      hours.add(hour);
+      hoursWithSlots.add(hour);
     });
-    return Array.from(hours).sort((a, b) => a - b);
+    
+    if (hoursWithSlots.size === 0) return [];
+    
+    // Get min and max hours from actual slots
+    const minHour = Math.min(...hoursWithSlots);
+    const maxHour = Math.max(...hoursWithSlots);
+    
+    // Create array of all hours in range
+    const hours: number[] = [];
+    for (let h = minHour; h <= maxHour; h++) {
+      hours.push(h);
+    }
+    return hours;
   }, [slots]);
+
+  // Helper to format date as local YYYY-MM-DD
+  const toLocalDateKey = (date: Date): string => {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
 
   // Get the week's dates based on offset
   const weekDates = useMemo(() => {
     if (dateKeys.length === 0) return [];
     
-    const firstDate = new Date(dateKeys[0] + 'T12:00:00');
+    // Parse the first date key
+    const [year, month, day] = dateKeys[0].split('-').map(Number);
+    const firstDate = new Date(year, month - 1, day);
     const startOfWeek = new Date(firstDate);
     startOfWeek.setDate(startOfWeek.getDate() + (weekOffset * 7));
     
@@ -249,7 +271,7 @@ export default function ScheduleInterview() {
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
       date.setDate(date.getDate() + i);
-      dates.push(date.toISOString().split('T')[0]);
+      dates.push(toLocalDateKey(date));
     }
     return dates;
   }, [dateKeys, weekOffset]);
@@ -274,7 +296,9 @@ export default function ScheduleInterview() {
   }, [weekDates]);
 
   const formatDate = (dateKey: string) => {
-    const date = new Date(dateKey + 'T12:00:00');
+    // Parse YYYY-MM-DD as local date
+    const [year, month, day] = dateKey.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return {
       weekday: date.toLocaleDateString('en-AU', { weekday: 'short' }).toUpperCase(),
       day: date.getDate(),

@@ -214,88 +214,114 @@ async function clinicianDashboardHandler(
 
   try {
     // ========================================================================
-    // Get Azure User ID from header (set by frontend from MSAL)
+    // DEV OVERRIDE: Allow specifying a Halaxy ID directly for testing
+    // Only works when ALLOW_DEV_OVERRIDE=true (set in dev environment)
+    // Usage: ?devHalaxyId=1304541&devHalaxyRoleId=PR-3356645
     // ========================================================================
-    const azureUserId = req.headers.get('X-Azure-User-Id');
+    const allowDevOverride = process.env.ALLOW_DEV_OVERRIDE === 'true';
     
-    if (!azureUserId) {
-      return {
-        status: 401,
-        headers,
-        jsonBody: { 
-          success: false, 
-          error: 'Authentication required. Please log in.' 
-        },
-      };
-    }
-
-    // ========================================================================
-    // Look up practitioner from database first, then fall back to config file
-    // ========================================================================
-    // Look up practitioner from database - NO FALLBACKS
-    // ========================================================================
-    const dbPractitioner = await getPractitionerByAzureId(azureUserId);
+    const devHalaxyId = req.query.get('devHalaxyId');
+    const devHalaxyRoleId = req.query.get('devHalaxyRoleId');
     
-    if (!dbPractitioner) {
-      context.error(`Practitioner not found in database for Azure ID: ${azureUserId}`);
-      return {
-        status: 403,
-        headers,
-        jsonBody: { 
-          success: false, 
-          error: 'Access denied. Your account is not registered as a practitioner.',
-          debug: {
-            azureUserId,
-            message: 'Complete onboarding to register your account'
-          }
-        },
-      };
-    }
-
-    // Require valid Halaxy IDs - no placeholders
-    if (!dbPractitioner.halaxy_practitioner_id || dbPractitioner.halaxy_practitioner_id.startsWith('app-')) {
-      context.error(`Invalid Halaxy practitioner ID for ${dbPractitioner.email}: ${dbPractitioner.halaxy_practitioner_id}`);
-      return {
-        status: 500,
-        headers,
-        jsonBody: { 
-          success: false, 
-          error: 'Halaxy integration not configured. Please contact admin.',
-          debug: {
-            practitionerId: dbPractitioner.id,
-            halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
-            message: 'Practitioner needs valid Halaxy credentials'
-          }
-        },
-      };
-    }
-
-    if (!dbPractitioner.halaxy_practitioner_role_id) {
-      context.error(`Missing Halaxy practitioner role ID for ${dbPractitioner.email}`);
-      return {
-        status: 500,
-        headers,
-        jsonBody: { 
-          success: false, 
-          error: 'Halaxy role not configured. Please contact admin.',
-          debug: {
-            practitionerId: dbPractitioner.id,
-            halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
-            halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id,
-            message: 'Practitioner needs valid Halaxy PractitionerRole ID'
-          }
-        },
-      };
-    }
-
-    const practitionerConfig = {
-      halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
-      halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id,
-      displayName: dbPractitioner.display_name || `${dbPractitioner.first_name} ${dbPractitioner.last_name}`,
-      email: dbPractitioner.company_email || dbPractitioner.email,
+    let practitionerConfig: {
+      halaxyPractitionerId: string;
+      halaxyPractitionerRoleId: string;
+      displayName: string;
+      email: string;
     };
+    
+    if (allowDevOverride && devHalaxyId && devHalaxyRoleId) {
+      context.log(`[DEV MODE] Using override Halaxy IDs: ${devHalaxyId} / ${devHalaxyRoleId}`);
+      
+      practitionerConfig = {
+        halaxyPractitionerId: devHalaxyId,
+        halaxyPractitionerRoleId: devHalaxyRoleId,
+        displayName: 'Dev Test User (Viewing as Zoe)',
+        email: 'dev@test.local',
+      };
+    } else {
+      // ========================================================================
+      // Normal auth flow: Get Azure User ID from header (set by frontend from MSAL)
+      // ========================================================================
+      const azureUserId = req.headers.get('X-Azure-User-Id');
+      
+      if (!azureUserId) {
+        return {
+          status: 401,
+          headers,
+          jsonBody: { 
+            success: false, 
+            error: 'Authentication required. Please log in.' 
+          },
+        };
+      }
 
-    context.log(`Found practitioner: ${practitionerConfig.displayName} (Halaxy Role: ${practitionerConfig.halaxyPractitionerRoleId})`);
+      // ========================================================================
+      // Look up practitioner from database - NO FALLBACKS
+      // ========================================================================
+      const dbPractitioner = await getPractitionerByAzureId(azureUserId);
+      
+      if (!dbPractitioner) {
+        context.error(`Practitioner not found in database for Azure ID: ${azureUserId}`);
+        return {
+          status: 403,
+          headers,
+          jsonBody: { 
+            success: false, 
+            error: 'Access denied. Your account is not registered as a practitioner.',
+            debug: {
+              azureUserId,
+              message: 'Complete onboarding to register your account'
+            }
+          },
+        };
+      }
+
+      // Require valid Halaxy IDs - no placeholders
+      if (!dbPractitioner.halaxy_practitioner_id || dbPractitioner.halaxy_practitioner_id.startsWith('app-')) {
+        context.error(`Invalid Halaxy practitioner ID for ${dbPractitioner.email}: ${dbPractitioner.halaxy_practitioner_id}`);
+        return {
+          status: 500,
+          headers,
+          jsonBody: { 
+            success: false, 
+            error: 'Halaxy integration not configured. Please contact admin.',
+            debug: {
+              practitionerId: dbPractitioner.id,
+              halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
+              message: 'Practitioner needs valid Halaxy credentials'
+            }
+          },
+        };
+      }
+
+      if (!dbPractitioner.halaxy_practitioner_role_id) {
+        context.error(`Missing Halaxy practitioner role ID for ${dbPractitioner.email}`);
+        return {
+          status: 500,
+          headers,
+          jsonBody: { 
+            success: false, 
+            error: 'Halaxy role not configured. Please contact admin.',
+            debug: {
+              practitionerId: dbPractitioner.id,
+              halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
+              halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id,
+              message: 'Practitioner needs valid Halaxy PractitionerRole ID'
+            }
+          },
+        };
+      }
+
+      practitionerConfig = {
+        halaxyPractitionerId: dbPractitioner.halaxy_practitioner_id,
+        halaxyPractitionerRoleId: dbPractitioner.halaxy_practitioner_role_id,
+        displayName: dbPractitioner.display_name || `${dbPractitioner.first_name} ${dbPractitioner.last_name}`,
+        email: dbPractitioner.company_email || dbPractitioner.email,
+      };
+
+      context.log(`Found practitioner: ${practitionerConfig.displayName} (Halaxy Role: ${practitionerConfig.halaxyPractitionerRoleId})`);
+    }
 
     context.log(`Dashboard request for ${practitionerConfig.displayName} (${practitionerConfig.halaxyPractitionerId})`);
 

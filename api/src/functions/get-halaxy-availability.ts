@@ -263,13 +263,19 @@ async function getHalaxyAvailability(
     };
   } catch (error) {
     context.error('Error fetching availability:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Return 400 for known configuration errors, 500 for unexpected errors
+    const isConfigError = errorMessage.includes('not configured') || 
+                          errorMessage.includes('not found');
 
     return {
-      status: 500,
+      status: isConfigError ? 400 : 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       jsonBody: {
-        error: 'Failed to fetch availability',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        error: isConfigError ? 'Configuration error' : 'Failed to fetch availability',
+        message: errorMessage,
       },
     };
   }

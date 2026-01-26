@@ -197,6 +197,16 @@ export function useDashboard(
       if (date) {
         url.searchParams.set('date', date);
       }
+      
+      // DEV MODE: Check URL for dev override parameters
+      // Usage: Add ?devMode=zoe to the Bloom URL to view Zoe's dashboard
+      const urlParams = new URLSearchParams(window.location.search);
+      const devMode = urlParams.get('devMode');
+      if (devMode === 'zoe') {
+        console.log('[useDashboard] DEV MODE: Viewing as Zoe');
+        url.searchParams.set('devHalaxyId', '1304541');
+        url.searchParams.set('devHalaxyRoleId', 'PR-2442591');
+      }
 
       console.log('[useDashboard] Fetching from:', url.toString());
 

@@ -351,6 +351,100 @@ jobs:
         working-directory: apps/website-next
         run: npx tsc --noEmit
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # API Tests (Unit + Integration + Security)
+  # Optional in develop, Required in staging/production
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  api-tests:
+    name: 🧪 API Tests
+    runs-on: ubuntu-latest
+    needs: [determine-environment]
+    # Always run on staging/production, optional on develop (can fail)
+    continue-on-error: ${{ needs.determine-environment.outputs.environment == 'development' }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION_API }}
+          
+      - name: Install API Dependencies
+        working-directory: ./api
+        run: npm install
+
+      - name: Run Unit Tests
+        working-directory: ./api
+        run: npm run test:unit
+        
+      - name: Run Integration Tests
+        working-directory: ./api
+        # Skip integration tests if no real Azure credentials (local/preview)
+        env:
+          SKIP_INTEGRATION: ${{ needs.determine-environment.outputs.environment == 'development' || needs.determine-environment.outputs.environment == 'preview' }}
+        run: npm run test:integration
+        
+      - name: Run Security Audit
+        working-directory: ./api
+        # Strict mode on staging/production
+        run: |
+          if [ "${{ needs.determine-environment.outputs.environment }}" == "production" ] || [ "${{ needs.determine-environment.outputs.environment }}" == "staging" ]; then
+            echo "🔒 Running security audit in STRICT mode"
+            npm run test:security:strict
+          else
+            echo "🔒 Running security audit in standard mode"
+            npm run test:security || echo "⚠️ Security warnings (non-blocking in dev)"
+          fi
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Gate: Tests must pass for staging/production
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  test-gate:
+    name: 🚦 Test Gate
+    runs-on: ubuntu-latest
+    needs: [determine-environment, api-tests, lint, type-check]
+    if: always()
+    steps:
+      - name: Check Test Results
+        run: |
+          ENV="${{ needs.determine-environment.outputs.environment }}"
+          
+          echo "═══════════════════════════════════════════════════════"
+          echo "🚦 TEST GATE - Environment: $ENV"
+          echo "═══════════════════════════════════════════════════════"
+          echo "   Lint:       ${{ needs.lint.result }}"
+          echo "   Type-Check: ${{ needs.type-check.result }}"
+          echo "   API Tests:  ${{ needs.api-tests.result }}"
+          
+          # Lint and type-check must always pass
+          if [ "${{ needs.lint.result }}" != "success" ]; then
+            echo "❌ Lint failed - blocking deployment"
+            exit 1
+          fi
+          
+          if [ "${{ needs.type-check.result }}" != "success" ]; then
+            echo "❌ Type check failed - blocking deployment"
+            exit 1
+          fi
+          
+          # Tests are required in staging/production
+          if [ "$ENV" == "staging" ] || [ "$ENV" == "production" ]; then
+            if [ "${{ needs.api-tests.result }}" != "success" ]; then
+              echo "❌ API tests failed - BLOCKING deployment to $ENV"
+              echo "   Tests are required for staging and production deployments."
+              exit 1
+            fi
+            echo "✅ All tests passed - deployment to $ENV approved"
+          else
+            # Development - warn but allow
+            if [ "${{ needs.api-tests.result }}" != "success" ]; then
+              echo "⚠️ API tests failed (allowed in development)"
+            fi
+            echo "✅ Development deployment approved (tests optional)"
+          fi
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 2: DATABASE MIGRATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -422,12 +516,11 @@ jobs:
   run-migrations:
     name: 🗄️ Run Migrations (${{ needs.determine-environment.outputs.db-environment }})
     runs-on: ubuntu-latest
-    needs: [determine-environment, validate-migrations, lint, type-check]
+    needs: [determine-environment, validate-migrations, test-gate]
     if: |
       always() &&
       needs.validate-migrations.result == 'success' &&
-      needs.lint.result == 'success' &&
-      needs.type-check.result == 'success' &&
+      needs.test-gate.result == 'success' &&
       needs.determine-environment.outputs.should-deploy == 'true'
     environment: ${{ needs.determine-environment.outputs.db-environment == 'prod' && 'production' || needs.determine-environment.outputs.environment }}
     steps:
@@ -774,12 +867,11 @@ jobs:
   build-bloom-api:
     name: 🔌 Build Bloom API (incl. Halaxy Sync)
     runs-on: ubuntu-latest
-    needs: [determine-environment, lint, type-check]
+    needs: [determine-environment, test-gate]
     if: |
       always() &&
       needs.determine-environment.outputs.should-deploy == 'true' &&
-      needs.lint.result == 'success' &&
-      needs.type-check.result == 'success'
+      needs.test-gate.result == 'success'
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4

@@ -60,6 +60,8 @@ interface Session {
   mhcpRemaining?: number;
   mhcpTotal?: number;
   relationshipMonths?: number;
+  // Context for the clinician
+  lastSessionSummary?: string; // Brief context from previous session or intake
 }
 
 // WeeklyStats, UpcomingStats, MonthlyStats imported from @/types/bloom
@@ -294,11 +296,32 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
     }
   };
 
-  // Get display title - prefer session type from Halaxy
-  const getSessionTitle = () => {
-    if (session.sessionType) return session.sessionType;
-    if (session.sessionNumber) return `Session ${session.sessionNumber}`;
-    return 'Appointment';
+  // Get display title - use client name
+  const getClientDisplayName = () => {
+    if (session.clientName && session.clientName !== 'Unknown') {
+      return session.clientName;
+    }
+    return session.clientInitials || 'Client';
+  };
+
+  // Get context line - where they left off or who they are
+  const getContextLine = () => {
+    // If we have a summary from previous session, use it
+    if (session.lastSessionSummary) {
+      return session.lastSessionSummary;
+    }
+    // For new clients, show what they're coming in for
+    if (isNewClient && session.presentingIssues && session.presentingIssues.length > 0) {
+      return `New client · ${session.presentingIssues.slice(0, 2).join(', ')}`;
+    }
+    if (isNewClient) {
+      return 'New client · First session';
+    }
+    // For returning clients, show session type
+    if (session.sessionType) {
+      return session.sessionType;
+    }
+    return null;
   };
 
   const timeUntil = getTimeUntil();
@@ -383,9 +406,9 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
                 fontWeight: 600,
                 color: colors.charcoal,
               }}>
-                {getSessionTitle()}
+                {getClientDisplayName()}
               </span>
-              {hasRelationshipData && (
+              {hasRelationshipData && !isNewClient && (
                 <span style={{
                   fontSize: '12px',
                   color: colors.charcoalLight,
@@ -394,6 +417,20 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
                 </span>
               )}
             </div>
+            {/* Context line - where they left off or what they're coming for */}
+            {getContextLine() && (
+              <p style={{
+                fontSize: '14px',
+                color: colors.charcoalLight,
+                margin: '0 0 6px 0',
+                lineHeight: 1.4,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {getContextLine()}
+              </p>
+            )}
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -1173,6 +1210,9 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
       time: s.time,
       sessionNumber: s.sessionNumber,
       clientInitials: s.clientInitials,
+      clientName: s.clientName,
+      sessionType: s.sessionType,
+      duration: s.duration,
       presentingIssues: s.presentingIssues,
       mhcpRemaining: s.mhcpRemaining,
       mhcpTotal: s.mhcpTotal,
@@ -1180,6 +1220,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
       isUpNext: s.isUpNext,
       status: s.status,
       locationType: s.locationType,
+      lastSessionSummary: s.lastSessionSummary,
     })) : []);
 
   const weeklyStats: WeeklyStats = weeklyOverride || (dashboard 

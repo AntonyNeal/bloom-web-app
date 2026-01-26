@@ -35,6 +35,8 @@ export interface SessionFeedItem {
   mhcpRemaining?: number;
   mhcpTotal?: number;
   relationshipMonths?: number;
+  // Context for clinician prep
+  lastSessionSummary?: string;
 }
 
 // =============================================================================

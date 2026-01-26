@@ -5,3 +5,4 @@
  */
 
 export { PreSessionBrief } from './PreSessionBrief';
+export { RecordingConsentDialog, RecordingIndicator } from './RecordingConsent';

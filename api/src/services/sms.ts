@@ -1,13 +1,13 @@
 /**
  * SMS Service
  * 
- * Handles SMS notifications using Infobip Direct API.
- * This sends SMS directly through Infobip's REST API for reliable delivery.
+ * Handles SMS notifications using Twilio API.
+ * This sends SMS directly through Twilio's REST API for reliable delivery.
  * 
  * Configuration required:
- * - INFOBIP_API_KEY: Infobip API key
- * - INFOBIP_BASE_URL: Infobip API base URL (default: https://gg3ey3.api.infobip.com)
- * - SMS_FROM_NUMBER: Infobip phone number (E.164 format, e.g., +61480800867)
+ * - TWILIO_ACCOUNT_SID: Twilio Account SID
+ * - TWILIO_AUTH_TOKEN: Twilio Auth Token
+ * - TWILIO_PHONE_NUMBER: Twilio phone number (E.164 format, e.g., +61...)
  */
 
 interface SmsResult {
@@ -75,70 +75,66 @@ function normalizePhoneNumber(phone: string): string {
 }
 
 /**
- * Send an SMS message via Infobip Direct API
+ * Send an SMS message via Twilio API
  * 
- * Uses Infobip's REST API directly instead of ACS Messaging Connect
- * for simpler setup and immediate functionality.
+ * Uses Twilio's REST API for SMS delivery.
+ * https://www.twilio.com/docs/sms/api/message-resource#create-a-message-resource
  */
 async function sendSms(to: string, message: string): Promise<SmsResult> {
-  const infobipApiKey = process.env.INFOBIP_API_KEY;
-  const infobipBaseUrl = process.env.INFOBIP_BASE_URL || 'https://gg3ey3.api.infobip.com';
-  const fromNumber = process.env.SMS_FROM_NUMBER || '+61480800867';
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
-  if (!infobipApiKey) {
-    console.error('[SMS] INFOBIP_API_KEY not configured');
-    return { success: false, error: 'Infobip API key not configured' };
+  if (!accountSid || !authToken) {
+    console.error('[SMS] Twilio credentials not configured');
+    return { success: false, error: 'Twilio credentials not configured' };
+  }
+
+  if (!fromNumber) {
+    console.error('[SMS] TWILIO_PHONE_NUMBER not configured');
+    return { success: false, error: 'Twilio phone number not configured' };
   }
 
   const normalizedTo = normalizePhoneNumber(to);
   
-  console.log(`[SMS] Sending via Infobip Direct API to ${normalizedTo} from ${fromNumber}`);
+  console.log(`[SMS] Sending via Twilio to ${normalizedTo} from ${fromNumber}`);
   console.log(`[SMS] Message: ${message}`);
 
   try {
-    const response = await fetch(`${infobipBaseUrl}/sms/2/text/advanced`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `App ${infobipApiKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        messages: [
-          {
-            destinations: [{ to: normalizedTo }],
-            from: fromNumber,
-            text: message,
-          },
-        ],
-      }),
+    // Twilio uses Basic Auth with Account SID and Auth Token
+    const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
+    
+    // Twilio requires form-urlencoded body
+    const body = new URLSearchParams({
+      To: normalizedTo,
+      From: fromNumber,
+      Body: message,
     });
+
+    const response = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body.toString(),
+      }
+    );
 
     const data = await response.json();
     
-    if (response.ok && data.messages?.[0]) {
-      const result = data.messages[0];
-      const status = result.status?.groupName;
-      
-      if (status === 'PENDING' || status === 'SENT' || status === 'DELIVERED') {
-        console.log(`[SMS] Message sent successfully: ${result.messageId}`);
-        return {
-          success: true,
-          messageId: result.messageId,
-        };
-      } else {
-        console.error('[SMS] Failed to send:', result.status?.description);
-        return {
-          success: false,
-          error: result.status?.description || 'Unknown error',
-        };
-      }
+    if (response.ok && data.sid) {
+      console.log(`[SMS] Message sent successfully: ${data.sid}, status: ${data.status}`);
+      return {
+        success: true,
+        messageId: data.sid,
+      };
     } else {
-      const errorDesc = data.requestError?.serviceException?.text || 
-                        data.requestError?.serviceException?.messageId ||
-                        `HTTP ${response.status}`;
-      console.error('[SMS] API error:', errorDesc);
-      return { success: false, error: errorDesc };
+      const errorMessage = data.message || data.error_message || `HTTP ${response.status}`;
+      console.error('[SMS] Twilio API error:', errorMessage, data);
+      return { success: false, error: errorMessage };
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

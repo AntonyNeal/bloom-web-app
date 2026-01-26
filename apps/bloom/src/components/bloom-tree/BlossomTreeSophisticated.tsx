@@ -413,7 +413,74 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
   }, [stage.blossomCount, blossomOpenness, blossomSizeMultiplier, blossomVibrancy, blossomLuminosity, blossomFactor]);
   
   // ============================================================================
-  // FRUIT CLUSTERS - Similar to blossoms but for fruits (Tue-Fri)
+  // LEAF CLUSTERS - Driven by monthly revenue (tree structure)
+  // More leaves, larger, more vibrant as monthly revenue grows
+  // ============================================================================
+  const leafClusters = useMemo(() => {
+    const leaves: Array<{
+      x: number;
+      y: number;
+      size: number;
+      rotation: number;
+      vibrance: number;
+      type: 'small' | 'medium' | 'large';
+    }> = [];
+    
+    // Leaves only appear once tree has grown enough
+    if (growthFactor < 0.3) return leaves;
+    
+    // Leaf count scales with monthly revenue (tree growth)
+    const baseLeafCount = Math.floor(20 + growthFactor * 80); // 20-100 leaves
+    const leafVibrance = 0.4 + growthFactor * 0.6; // Greener with more growth
+    
+    // Leaf zones follow branch structure
+    const leafZones = [
+      { cx: 280, cy: 145, radius: 50, density: 0.9 },
+      { cx: 520, cy: 150, radius: 55, density: 1.0 },
+      { cx: 320, cy: 200, radius: 42, density: 0.85 },
+      { cx: 480, cy: 195, radius: 45, density: 0.9 },
+      { cx: 260, cy: 240, radius: 30, density: 0.6 },
+      { cx: 540, cy: 235, radius: 32, density: 0.7 },
+      { cx: 400, cy: 125, radius: 40, density: 1.1 },
+      { cx: 400, cy: 175, radius: 50, density: 1.2 },
+      // Additional zones for density
+      { cx: 350, cy: 160, radius: 35, density: 0.8 },
+      { cx: 450, cy: 165, radius: 38, density: 0.85 },
+    ];
+    
+    let leafId = 0;
+    const leavesPerZone = Math.ceil(baseLeafCount / leafZones.length);
+    
+    leafZones.forEach((zone) => {
+      const zoneCount = Math.floor(leavesPerZone * zone.density * growthFactor);
+      
+      for (let i = 0; i < zoneCount && leafId < baseLeafCount; i++) {
+        const distance = zone.radius * Math.sqrt(Math.random());
+        const angle = Math.random() * Math.PI * 2;
+        
+        const x = zone.cx + Math.cos(angle) * distance;
+        const y = zone.cy + Math.sin(angle) * distance;
+        
+        // Leaf size scales with monthly revenue
+        const sizeRand = Math.random();
+        const type: 'small' | 'medium' | 'large' = sizeRand < 0.4 ? 'small' : sizeRand < 0.8 ? 'medium' : 'large';
+        const baseSize = type === 'small' ? 3 : type === 'medium' ? 5 : 7;
+        const size = baseSize * (0.7 + growthFactor * 0.5);
+        
+        const rotation = Math.random() * 360;
+        const vibrance = leafVibrance * (0.8 + Math.random() * 0.4);
+        
+        leaves.push({ x, y, size, rotation, vibrance, type });
+        leafId++;
+      }
+    });
+    
+    return leaves;
+  }, [growthFactor]);
+  
+  // ============================================================================
+  // FRUIT CLUSTERS - Realistic cherry-like fruit (Tue-Fri)
+  // Based on BBCH scale: small buds -> developing fruit -> ripe cherries
   // ============================================================================
   const fruitClusters = useMemo(() => {
     const fruits: Array<{
@@ -422,24 +489,24 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
       size: number;
       ripeness: number;
       rotation: number;
-      fruitType: 'apple' | 'orange' | 'peach' | 'cherry';
+      stage: 'bud' | 'developing' | 'ripe';
+      paired: boolean; // Cherries often come in pairs
     }> = [];
     
     if (stage.fruitCount === 0) return fruits;
     
-    // Use same cluster zones as blossoms but place fewer, larger fruits
+    // Fruit zones - along branch tips
     const fruitZones = [
-      { cx: 280, cy: 155, radius: 35, density: 1.0 },
-      { cx: 520, cy: 160, radius: 40, density: 1.1 },
-      { cx: 320, cy: 210, radius: 30, density: 0.9 },
-      { cx: 480, cy: 205, radius: 35, density: 1.0 },
-      { cx: 260, cy: 255, radius: 20, density: 0.7 },
-      { cx: 540, cy: 250, radius: 22, density: 0.8 },
-      { cx: 400, cy: 135, radius: 30, density: 1.2 },
-      { cx: 400, cy: 195, radius: 40, density: 1.3 },
+      { cx: 265, cy: 165, radius: 25, density: 0.8 },
+      { cx: 535, cy: 170, radius: 28, density: 0.9 },
+      { cx: 300, cy: 195, radius: 22, density: 0.7 },
+      { cx: 500, cy: 190, radius: 24, density: 0.75 },
+      { cx: 275, cy: 225, radius: 18, density: 0.5 },
+      { cx: 525, cy: 220, radius: 20, density: 0.55 },
+      { cx: 400, cy: 140, radius: 22, density: 0.85 },
+      { cx: 400, cy: 185, radius: 30, density: 1.0 },
     ];
     
-    const fruitTypes: Array<'apple' | 'orange' | 'peach' | 'cherry'> = ['apple', 'orange', 'peach', 'cherry'];
     let fruitId = 0;
     const targetCount = stage.fruitCount;
     const fruitsPerZone = Math.ceil(targetCount / fruitZones.length);
@@ -454,16 +521,18 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
         const x = zone.cx + Math.cos(angle) * distance;
         const y = zone.cy + Math.sin(angle) * distance;
         
-        // Fruit size based on weekly revenue factor
-        const size = 4 + Math.random() * 3 + blossomFactor * 3; // 4-10px radius
+        // Fruit size - small and subtle (2-5px), grows with revenue
+        const size = 2 + Math.random() * 1.5 + blossomFactor * 1.5;
         
-        // Ripeness based on weekly revenue (affects color saturation)
-        const ripeness = 0.5 + blossomFactor * 0.5;
+        // Ripeness determines stage and color
+        const ripeness = 0.3 + blossomFactor * 0.7;
+        const fruitStage: 'bud' | 'developing' | 'ripe' = 
+          ripeness < 0.4 ? 'bud' : ripeness < 0.7 ? 'developing' : 'ripe';
         
         const rotation = Math.random() * 360;
-        const fruitType = fruitTypes[fruitId % fruitTypes.length];
+        const paired = Math.random() < 0.4; // 40% chance of paired cherries
         
-        fruits.push({ x, y, size, ripeness, rotation, fruitType });
+        fruits.push({ x, y, size, ripeness, rotation, stage: fruitStage, paired });
         fruitId++;
       }
     });
@@ -1216,7 +1285,169 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
               growth={Math.min((growthFactor - 0.6) * 2.5, 1)}
               variant="young"
             />
+            
+            {/* Additional spindly branches for more natural look */}
+            <TreeBranch
+              id="branch-left-4"
+              start={[320, 230 - growthFactor * 20]}
+              control1={[295, 225 - growthFactor * 15]}
+              control2={[270, 215 - growthFactor * 10]}
+              end={[250, 210 - growthFactor * 8]}
+              startThickness={5 + growthFactor}
+              endThickness={1.5}
+              growth={Math.min((growthFactor - 0.6) * 2.5, 1)}
+              variant="young"
+            />
+            
+            <TreeBranch
+              id="branch-right-4"
+              start={[480, 225 - growthFactor * 20]}
+              control1={[505, 220 - growthFactor * 15]}
+              control2={[530, 210 - growthFactor * 10]}
+              end={[550, 205 - growthFactor * 8]}
+              startThickness={5 + growthFactor}
+              endThickness={1.5}
+              growth={Math.min((growthFactor - 0.6) * 2.5, 1)}
+              variant="young"
+            />
           </>
+        )}
+        
+        {/* Quaternary branches (fine twigs) - after 75% for extra detail */}
+        {growthFactor > 0.75 && (
+          <>
+            {/* Left side twigs */}
+            <TreeBranch
+              id="twig-left-1"
+              start={[275, 185 - growthFactor * 12]}
+              control1={[260, 175 - growthFactor * 8]}
+              control2={[248, 165 - growthFactor * 5]}
+              end={[240, 158 - growthFactor * 5]}
+              startThickness={3}
+              endThickness={1}
+              growth={Math.min((growthFactor - 0.75) * 4, 1)}
+              variant="young"
+            />
+            <TreeBranch
+              id="twig-left-2"
+              start={[265, 195 - growthFactor * 10]}
+              control1={[250, 190 - growthFactor * 6]}
+              control2={[238, 185 - growthFactor * 4]}
+              end={[228, 180 - growthFactor * 3]}
+              startThickness={2.5}
+              endThickness={0.8}
+              growth={Math.min((growthFactor - 0.75) * 4, 1)}
+              variant="young"
+            />
+            <TreeBranch
+              id="twig-left-3"
+              start={[288, 172 - growthFactor * 14]}
+              control1={[275, 160 - growthFactor * 10]}
+              control2={[265, 148 - growthFactor * 6]}
+              end={[258, 140 - growthFactor * 5]}
+              startThickness={2.5}
+              endThickness={0.8}
+              growth={Math.min((growthFactor - 0.75) * 4, 1)}
+              variant="young"
+            />
+            
+            {/* Right side twigs */}
+            <TreeBranch
+              id="twig-right-1"
+              start={[525, 180 - growthFactor * 12]}
+              control1={[540, 170 - growthFactor * 8]}
+              control2={[552, 162 - growthFactor * 5]}
+              end={[560, 155 - growthFactor * 5]}
+              startThickness={3}
+              endThickness={1}
+              growth={Math.min((growthFactor - 0.75) * 4, 1)}
+              variant="young"
+            />
+            <TreeBranch
+              id="twig-right-2"
+              start={[535, 190 - growthFactor * 10]}
+              control1={[548, 185 - growthFactor * 6]}
+              control2={[560, 178 - growthFactor * 4]}
+              end={[570, 173 - growthFactor * 3]}
+              startThickness={2.5}
+              endThickness={0.8}
+              growth={Math.min((growthFactor - 0.75) * 4, 1)}
+              variant="young"
+            />
+            <TreeBranch
+              id="twig-right-3"
+              start={[512, 168 - growthFactor * 14]}
+              control1={[525, 156 - growthFactor * 10]}
+              control2={[535, 145 - growthFactor * 6]}
+              end={[542, 138 - growthFactor * 5]}
+              startThickness={2.5}
+              endThickness={0.8}
+              growth={Math.min((growthFactor - 0.75) * 4, 1)}
+              variant="young"
+            />
+            
+            {/* Center crown twigs */}
+            <TreeBranch
+              id="twig-center-1"
+              start={[395, 135 - growthFactor * 12]}
+              control1={[385, 120 - growthFactor * 8]}
+              control2={[378, 108 - growthFactor * 5]}
+              end={[372, 100 - growthFactor * 4]}
+              startThickness={2.5}
+              endThickness={0.8}
+              growth={Math.min((growthFactor - 0.75) * 4, 1)}
+              variant="young"
+            />
+            <TreeBranch
+              id="twig-center-2"
+              start={[405, 135 - growthFactor * 12]}
+              control1={[415, 120 - growthFactor * 8]}
+              control2={[422, 108 - growthFactor * 5]}
+              end={[428, 100 - growthFactor * 4]}
+              startThickness={2.5}
+              endThickness={0.8}
+              growth={Math.min((growthFactor - 0.75) * 4, 1)}
+              variant="young"
+            />
+          </>
+        )}
+        
+        {/* Leaves layer - rendered behind blossoms, scales with monthly revenue */}
+        {leafClusters.length > 0 && (
+          <g className="leaves-layer" opacity={0.9}>
+            {leafClusters.map((leaf, i) => {
+              // Leaf color based on vibrance (from monthly revenue)
+              const baseHue = 95 + (1 - leaf.vibrance) * 25; // 95-120 (yellow-green to green)
+              const saturation = 35 + leaf.vibrance * 40; // 35-75%
+              const lightness = 35 + leaf.vibrance * 15; // 35-50%
+              const fillColor = `hsl(${baseHue}, ${saturation}%, ${lightness}%)`;
+              const highlightColor = `hsl(${baseHue}, ${saturation - 10}%, ${lightness + 15}%)`;
+              
+              return (
+                <g key={`leaf-${i}`} transform={`translate(${leaf.x}, ${leaf.y}) rotate(${leaf.rotation})`}>
+                  {/* Leaf shape - simple ellipse with pointed ends */}
+                  <ellipse
+                    cx={0}
+                    cy={0}
+                    rx={leaf.size * 0.4}
+                    ry={leaf.size}
+                    fill={fillColor}
+                    opacity={0.85}
+                  />
+                  {/* Leaf vein/highlight */}
+                  <line
+                    x1={0}
+                    y1={-leaf.size * 0.7}
+                    x2={0}
+                    y2={leaf.size * 0.7}
+                    stroke={highlightColor}
+                    strokeWidth={0.5}
+                    opacity={0.4}
+                  />
+                </g>
+              );
+            })}
+          </g>
         )}
         
         {/* Blossoms - layered for depth */}
@@ -1287,60 +1518,103 @@ export const BlossomTreeSophisticated: React.FC<BlossomTreeProps> = ({
         </g>
         
         {/* Fruits - rendered when it's a fruiting day (Tue-Fri) */}
+        {/* Realistic cherry-like fruit based on BBCH growth stages */}
         {stage.isFruiting && fruitClusters.length > 0 && (
           <g className="fruits-layer">
             {fruitClusters.map((fruit, i) => {
-              const fruitColors = {
-                apple: { main: `hsl(0, ${60 + fruit.ripeness * 30}%, ${45 + fruit.ripeness * 10}%)`, highlight: '#ff9999', stem: '#5d4037' },
-                orange: { main: `hsl(30, ${70 + fruit.ripeness * 25}%, ${50 + fruit.ripeness * 8}%)`, highlight: '#ffd699', stem: '#6d4c41' },
-                peach: { main: `hsl(20, ${50 + fruit.ripeness * 35}%, ${65 + fruit.ripeness * 10}%)`, highlight: '#ffe4cc', stem: '#5d4037' },
-                cherry: { main: `hsl(350, ${70 + fruit.ripeness * 25}%, ${35 + fruit.ripeness * 10}%)`, highlight: '#ff6b6b', stem: '#4e342e' },
+              // Color based on ripeness stage - following real cherry development
+              // Bud: greenish-brown, Developing: green with red blush, Ripe: deep red
+              const getStageColors = () => {
+                switch (fruit.stage) {
+                  case 'bud':
+                    return {
+                      main: `hsl(80, 25%, ${35 + fruit.ripeness * 10}%)`, // Greenish brown
+                      highlight: 'rgba(180, 170, 140, 0.4)',
+                      stem: '#5d4540',
+                    };
+                  case 'developing':
+                    return {
+                      main: `hsl(${20 + fruit.ripeness * 15}, ${40 + fruit.ripeness * 20}%, ${40 + fruit.ripeness * 8}%)`, // Green transitioning to red
+                      highlight: 'rgba(200, 180, 150, 0.35)',
+                      stem: '#5a4035',
+                    };
+                  case 'ripe':
+                    return {
+                      main: `hsl(355, ${55 + fruit.ripeness * 25}%, ${28 + fruit.ripeness * 8}%)`, // Deep cherry red
+                      highlight: 'rgba(255, 120, 120, 0.4)',
+                      stem: '#4a352d',
+                    };
+                }
               };
-              const colors = fruitColors[fruit.fruitType];
+              const fruitColors = getStageColors();
               
               return (
                 <g key={`fruit-${i}`} transform={`translate(${fruit.x}, ${fruit.y})`}>
-                  {/* Fruit stem */}
-                  <line
-                    x1={0}
-                    y1={-fruit.size}
-                    x2={0}
-                    y2={-fruit.size - 4}
-                    stroke={colors.stem}
-                    strokeWidth={1.5}
+                  {/* Thin stem - cherries have distinctive long stems */}
+                  <path
+                    d={`M 0 ${-fruit.size * 0.8} Q ${fruit.size * 0.3} ${-fruit.size * 1.8}, ${fruit.size * 0.1} ${-fruit.size * 2.5}`}
+                    stroke={fruitColors.stem}
+                    strokeWidth={0.8}
+                    fill="none"
                     strokeLinecap="round"
                   />
-                  {/* Fruit body */}
+                  
+                  {/* Paired cherry - if this fruit is paired */}
+                  {fruit.paired && (
+                    <>
+                      <path
+                        d={`M ${fruit.size * 0.1} ${-fruit.size * 2.5} Q ${-fruit.size * 0.5} ${-fruit.size * 1.6}, ${-fruit.size * 1.2} ${-fruit.size * 0.3}`}
+                        stroke={fruitColors.stem}
+                        strokeWidth={0.8}
+                        fill="none"
+                        strokeLinecap="round"
+                      />
+                      {/* Second cherry */}
+                      <ellipse
+                        cx={-fruit.size * 1.2}
+                        cy={fruit.size * 0.1}
+                        rx={fruit.size * 0.85}
+                        ry={fruit.size * 0.9}
+                        fill={fruitColors.main}
+                      />
+                      <ellipse
+                        cx={-fruit.size * 1.4}
+                        cy={-fruit.size * 0.15}
+                        rx={fruit.size * 0.25}
+                        ry={fruit.size * 0.2}
+                        fill={fruitColors.highlight}
+                        opacity={0.6}
+                      />
+                    </>
+                  )}
+                  
+                  {/* Main cherry body - slightly oval */}
                   <ellipse
                     cx={0}
                     cy={0}
-                    rx={fruit.size * (fruit.fruitType === 'cherry' ? 0.85 : 1)}
-                    ry={fruit.size * (fruit.fruitType === 'peach' ? 1.1 : 1)}
-                    fill={colors.main}
-                    style={{
-                      filter: `drop-shadow(1px 2px 2px rgba(0,0,0,0.2))`,
-                    }}
+                    rx={fruit.size * 0.85}
+                    ry={fruit.size * 0.9}
+                    fill={fruitColors.main}
                   />
-                  {/* Highlight */}
+                  
+                  {/* Subtle highlight - top left */}
                   <ellipse
-                    cx={-fruit.size * 0.3}
-                    cy={-fruit.size * 0.3}
-                    rx={fruit.size * 0.3}
-                    ry={fruit.size * 0.25}
-                    fill={colors.highlight}
-                    opacity={0.5}
+                    cx={-fruit.size * 0.2}
+                    cy={-fruit.size * 0.25}
+                    rx={fruit.size * 0.25}
+                    ry={fruit.size * 0.2}
+                    fill={fruitColors.highlight}
+                    opacity={0.6}
                   />
-                  {/* Small leaf for apple/peach */}
-                  {(fruit.fruitType === 'apple' || fruit.fruitType === 'peach') && (
-                    <ellipse
-                      cx={3}
-                      cy={-fruit.size - 3}
-                      rx={3}
-                      ry={1.5}
-                      fill="#7cb342"
-                      transform={`rotate(30, 3, ${-fruit.size - 3})`}
-                    />
-                  )}
+                  
+                  {/* Bottom dimple characteristic of cherries - subtle */}
+                  <ellipse
+                    cx={0}
+                    cy={fruit.size * 0.6}
+                    rx={fruit.size * 0.15}
+                    ry={fruit.size * 0.08}
+                    fill="rgba(0, 0, 0, 0.15)"
+                  />
                 </g>
               );
             })}

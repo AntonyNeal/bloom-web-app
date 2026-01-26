@@ -134,7 +134,6 @@ export default function ScheduleInterview() {
   const [scheduledAt, setScheduledAt] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [interviewLink, setInterviewLink] = useState<string | null>(null);
-  const [activeDateKey, setActiveDateKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -225,20 +224,68 @@ export default function ScheduleInterview() {
 
   const dateKeys = Object.keys(slotsByDate).sort();
 
-  // Set initial active date
-  useEffect(() => {
-    if (dateKeys.length > 0 && !activeDateKey) {
-      setActiveDateKey(dateKeys[0]);
+  // Week navigation state
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  // Get unique hours from all slots for row headers
+  const timeRows = useMemo(() => {
+    const hours = new Set<number>();
+    slots.forEach(slot => {
+      const hour = new Date(slot.start).getHours();
+      hours.add(hour);
+    });
+    return Array.from(hours).sort((a, b) => a - b);
+  }, [slots]);
+
+  // Get the week's dates based on offset
+  const weekDates = useMemo(() => {
+    if (dateKeys.length === 0) return [];
+    
+    const firstDate = new Date(dateKeys[0] + 'T12:00:00');
+    const startOfWeek = new Date(firstDate);
+    startOfWeek.setDate(startOfWeek.getDate() + (weekOffset * 7));
+    
+    const dates: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(date.getDate() + i);
+      dates.push(date.toISOString().split('T')[0]);
     }
-  }, [dateKeys, activeDateKey]);
+    return dates;
+  }, [dateKeys, weekOffset]);
+
+  // Check if we can navigate to next/prev week
+  const canGoPrev = weekOffset > 0;
+  const canGoNext = useMemo(() => {
+    if (dateKeys.length === 0) return false;
+    const lastDateInData = dateKeys[dateKeys.length - 1];
+    const lastDateInWeek = weekDates[weekDates.length - 1];
+    return lastDateInWeek < lastDateInData;
+  }, [dateKeys, weekDates]);
+
+  // Format week range for header
+  const weekRangeLabel = useMemo(() => {
+    if (weekDates.length === 0) return '';
+    const start = new Date(weekDates[0] + 'T12:00:00');
+    const end = new Date(weekDates[6] + 'T12:00:00');
+    const startStr = start.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+    const endStr = end.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+    return `${startStr} - ${endStr}`;
+  }, [weekDates]);
 
   const formatDate = (dateKey: string) => {
     const date = new Date(dateKey + 'T12:00:00');
     return {
-      weekday: date.toLocaleDateString('en-AU', { weekday: 'short' }),
+      weekday: date.toLocaleDateString('en-AU', { weekday: 'short' }).toUpperCase(),
       day: date.getDate(),
       month: date.toLocaleDateString('en-AU', { month: 'short' }),
     };
+  };
+
+  const formatHour = (hour: number) => {
+    if (hour === 0) return '12am';
+    if (hour === 12) return '12pm';
+    return hour < 12 ? `${hour}am` : `${hour - 12}pm`;
   };
 
   const formatTime = (dateStr: string) => {
@@ -434,32 +481,43 @@ export default function ScheduleInterview() {
   }
 
   // ============================================================================
-  // MAIN SCHEDULING UI - Compact Grid Layout
+  // MAIN SCHEDULING UI - Week Grid Layout (Halaxy-inspired, Bloom aesthetic)
   // ============================================================================
-  const activeSlots = activeDateKey ? slotsByDate[activeDateKey] || [] : [];
+
+  // Helper to get slot for a specific date and hour
+  const getSlotsForDateHour = (dateKey: string, hour: number): TimeSlot[] => {
+    const dateSlots = slotsByDate[dateKey] || [];
+    return dateSlots.filter(slot => new Date(slot.start).getHours() === hour);
+  };
+
+  // Check if date is today
+  const isToday = (dateKey: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    return dateKey === today;
+  };
 
   return (
-    <div style={{ ...containerStyle, display: 'flex', flexDirection: 'column', paddingBottom: selectedSlot ? 100 : 20 }}>
+    <div style={{ ...containerStyle, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <FloatingPetals />
       
-      {/* Compact Header */}
-      <header style={{ padding: '20px 16px 12px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+      {/* Header */}
+      <header style={{ padding: '24px 16px 16px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <BloomLogo />
           <h1 style={{ 
-            fontSize: '24px', fontWeight: 600, color: colors.charcoal, marginTop: 12, marginBottom: 4,
+            fontSize: '26px', fontWeight: 600, color: colors.charcoal, marginTop: 14, marginBottom: 6,
             fontFamily: "'Crimson Text', Georgia, serif",
           }}>
             Schedule Your Interview
           </h1>
           {applicant && (
-            <p style={{ color: colors.charcoalLight, fontSize: '14px', marginBottom: 4 }}>
+            <p style={{ color: colors.charcoalLight, fontSize: '15px', marginBottom: 6 }}>
               Hi {applicant.firstName}! Choose a time that works for you.
             </p>
           )}
           <div style={{ 
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '6px 12px', background: `${colors.white}90`, borderRadius: 16,
+            padding: '6px 14px', background: `${colors.white}90`, borderRadius: 20,
             fontSize: '13px', color: colors.charcoalLight,
           }}>
             <span>🎥</span>
@@ -476,7 +534,7 @@ export default function ScheduleInterview() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             style={{
-              maxWidth: 500, margin: '0 auto 12px', padding: '10px 16px',
+              maxWidth: 700, margin: '0 auto 12px', padding: '10px 16px',
               background: colors.errorLight, borderRadius: 10, color: colors.error,
               fontSize: '13px', marginLeft: 16, marginRight: 16,
             }}
@@ -487,7 +545,7 @@ export default function ScheduleInterview() {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main style={{ flex: 1, maxWidth: 500, margin: '0 auto', padding: '0 16px', width: '100%', position: 'relative', zIndex: 1 }}>
+      <main style={{ flex: 1, maxWidth: 800, margin: '0 auto', padding: '0 16px', width: '100%', position: 'relative', zIndex: 1 }}>
         {dateKeys.length === 0 ? (
           // No slots
           <motion.div
@@ -523,124 +581,243 @@ export default function ScheduleInterview() {
               boxShadow: '0 4px 24px rgba(122, 141, 122, 0.1)',
             }}
           >
-            {/* Date Tabs - Horizontal scrollable day picker */}
+            {/* Week Navigation Header */}
             <div style={{
-              display: 'flex', gap: 6, padding: '12px', overflowX: 'auto',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '14px 16px',
               background: `linear-gradient(180deg, ${colors.warmWhite} 0%, ${colors.cream} 100%)`,
               borderBottom: `1px solid ${colors.sagePale}`,
             }}>
-              {dateKeys.map((dateKey) => {
-                const { weekday, day, month } = formatDate(dateKey);
-                const isActive = dateKey === activeDateKey;
-                const slotCount = slotsByDate[dateKey].length;
-                
-                return (
-                  <button
-                    key={dateKey}
-                    onClick={() => setActiveDateKey(dateKey)}
-                    style={{
-                      flex: '0 0 auto',
-                      minWidth: 60,
-                      padding: '8px 12px',
-                      borderRadius: 10,
-                      border: isActive ? `2px solid ${colors.sage}` : `1px solid ${colors.sagePale}`,
-                      background: isActive 
-                        ? `linear-gradient(135deg, ${colors.sagePale} 0%, ${colors.lavenderLight} 100%)`
-                        : colors.white,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      textAlign: 'center',
-                    }}
-                  >
-                    <div style={{ fontSize: '10px', fontWeight: 600, color: colors.charcoalLight, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
-                      {weekday}
-                    </div>
-                    <div style={{ fontSize: '20px', fontWeight: 700, color: isActive ? colors.sageDeep : colors.charcoal, lineHeight: 1.2 }}>
-                      {day}
-                    </div>
-                    <div style={{ fontSize: '10px', color: colors.charcoalLight }}>
-                      {month}
-                    </div>
-                    <div style={{ 
-                      fontSize: '9px', 
-                      color: colors.sage, 
-                      marginTop: 2,
-                      fontWeight: 500,
-                    }}>
-                      {slotCount} slot{slotCount !== 1 ? 's' : ''}
-                    </div>
-                  </button>
-                );
-              })}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  onClick={() => setWeekOffset(w => w - 1)}
+                  disabled={!canGoPrev}
+                  style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    border: `1px solid ${colors.sagePale}`,
+                    background: canGoPrev ? colors.white : colors.creamDark,
+                    color: canGoPrev ? colors.charcoal : colors.charcoalLight,
+                    cursor: canGoPrev ? 'pointer' : 'not-allowed',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '16px', opacity: canGoPrev ? 1 : 0.5,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  ‹
+                </button>
+                <span style={{ 
+                  fontWeight: 600, color: colors.charcoal, fontSize: '15px',
+                  minWidth: 130, textAlign: 'center',
+                }}>
+                  {weekRangeLabel}
+                </span>
+                <button
+                  onClick={() => setWeekOffset(w => w + 1)}
+                  disabled={!canGoNext}
+                  style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    border: `1px solid ${colors.sagePale}`,
+                    background: canGoNext ? colors.white : colors.creamDark,
+                    color: canGoNext ? colors.charcoal : colors.charcoalLight,
+                    cursor: canGoNext ? 'pointer' : 'not-allowed',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '16px', opacity: canGoNext ? 1 : 0.5,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  ›
+                </button>
+              </div>
             </div>
 
-            {/* Time Slots Grid */}
-            <div style={{ padding: '16px' }}>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))',
-                gap: 8,
-              }}>
-                {activeSlots.map((slot) => {
-                  const isSelected = selectedSlot?.id === slot.id;
-                  
-                  return (
-                    <motion.button
-                      key={slot.id}
-                      onClick={() => setSelectedSlot(slot)}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
+            {/* Week Grid */}
+            <div style={{ overflowX: 'auto' }}>
+              <div style={{ minWidth: 600 }}>
+                {/* Day Headers */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '60px repeat(7, 1fr)',
+                  borderBottom: `1px solid ${colors.sagePale}`,
+                }}>
+                  <div style={{ padding: '12px 8px' }} /> {/* Empty corner cell */}
+                  {weekDates.map((dateKey) => {
+                    const { weekday, day } = formatDate(dateKey);
+                    const hasSlots = slotsByDate[dateKey]?.length > 0;
+                    const today = isToday(dateKey);
+                    
+                    return (
+                      <div
+                        key={dateKey}
+                        style={{
+                          padding: '12px 4px',
+                          textAlign: 'center',
+                          background: today ? colors.sagePale : 'transparent',
+                          borderRadius: today ? '0' : '0',
+                        }}
+                      >
+                        <div style={{ 
+                          fontSize: '11px', 
+                          fontWeight: 600, 
+                          color: hasSlots ? colors.charcoal : colors.charcoalLight,
+                          letterSpacing: '0.5px',
+                          opacity: hasSlots ? 1 : 0.5,
+                        }}>
+                          {weekday}
+                        </div>
+                        <div style={{ 
+                          fontSize: '22px', 
+                          fontWeight: 700, 
+                          color: today ? colors.sage : (hasSlots ? colors.charcoal : colors.charcoalLight),
+                          lineHeight: 1.3,
+                          opacity: hasSlots ? 1 : 0.5,
+                        }}>
+                          {day}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Time Rows */}
+                <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+                  {timeRows.map((hour) => (
+                    <div
+                      key={hour}
                       style={{
-                        padding: '12px 8px',
-                        borderRadius: 8,
-                        border: `2px solid ${isSelected ? colors.sage : colors.sagePale}`,
-                        background: isSelected 
-                          ? `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`
-                          : colors.white,
-                        color: isSelected ? colors.white : colors.charcoal,
-                        fontSize: '14px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s',
-                        boxShadow: isSelected ? `0 4px 12px ${colors.sage}40` : 'none',
+                        display: 'grid',
+                        gridTemplateColumns: '60px repeat(7, 1fr)',
+                        borderBottom: `1px solid ${colors.creamDark}`,
+                        minHeight: 48,
                       }}
                     >
-                      {formatTime(slot.start)}
-                    </motion.button>
-                  );
-                })}
+                      {/* Hour label */}
+                      <div style={{
+                        padding: '8px',
+                        fontSize: '12px',
+                        color: colors.charcoalLight,
+                        fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'flex-end',
+                        paddingRight: 12,
+                      }}>
+                        {formatHour(hour)}
+                      </div>
+                      
+                      {/* Slots for each day */}
+                      {weekDates.map((dateKey) => {
+                        const slotsInCell = getSlotsForDateHour(dateKey, hour);
+                        const hasAnySlots = slotsByDate[dateKey]?.length > 0;
+                        
+                        return (
+                          <div
+                            key={`${dateKey}-${hour}`}
+                            style={{
+                              padding: '4px 2px',
+                              borderLeft: `1px solid ${colors.creamDark}`,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 2,
+                              alignItems: 'center',
+                              background: !hasAnySlots ? colors.creamDark + '40' : 'transparent',
+                            }}
+                          >
+                            {slotsInCell.length > 0 ? (
+                              slotsInCell.map((slot) => {
+                                const isSelected = selectedSlot?.id === slot.id;
+                                return (
+                                  <motion.button
+                                    key={slot.id}
+                                    onClick={() => setSelectedSlot(slot)}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    style={{
+                                      width: '90%',
+                                      padding: '6px 4px',
+                                      borderRadius: 6,
+                                      border: 'none',
+                                      background: isSelected 
+                                        ? `linear-gradient(135deg, ${colors.sage} 0%, ${colors.sageLight} 100%)`
+                                        : colors.sagePale,
+                                      color: isSelected ? colors.white : colors.sageDeep,
+                                      fontSize: '12px',
+                                      fontWeight: 600,
+                                      cursor: 'pointer',
+                                      transition: 'all 0.15s',
+                                      boxShadow: isSelected ? `0 2px 8px ${colors.sage}50` : 'none',
+                                    }}
+                                  >
+                                    {formatTime(slot.start)}
+                                  </motion.button>
+                                );
+                              })
+                            ) : (
+                              hasAnySlots && (
+                                <span style={{ color: colors.sageLighter, fontSize: '12px' }}>—</span>
+                              )
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
               </div>
-
-              {activeSlots.length === 0 && (
-                <p style={{ textAlign: 'center', color: colors.charcoalLight, fontSize: '14px', padding: '20px 0' }}>
-                  No times available for this day
-                </p>
-              )}
             </div>
           </motion.div>
         )}
       </main>
 
       {/* Fixed Bottom Bar */}
-      <AnimatePresence>
-        {selectedSlot && (
-          <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            style={{
-              position: 'fixed', bottom: 0, left: 0, right: 0,
-              background: colors.white, borderTop: `1px solid ${colors.sagePale}`,
-              padding: '12px 16px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
-              boxShadow: '0 -4px 20px rgba(0,0,0,0.08)', zIndex: 100,
-            }}
-          >
-            <div style={{ maxWidth: 500, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <div style={{ minWidth: 0, flex: 1 }}>
+      <div style={{ 
+        padding: selectedSlot ? '16px' : '24px 16px',
+        background: selectedSlot ? colors.white : 'transparent',
+        borderTop: selectedSlot ? `1px solid ${colors.sagePale}` : 'none',
+        position: selectedSlot ? 'sticky' : 'static',
+        bottom: 0,
+        marginTop: 'auto',
+        zIndex: 10,
+      }}>
+        <AnimatePresence mode="wait">
+          {selectedSlot ? (
+            <motion.div
+              key="selected"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              style={{ 
+                maxWidth: 800, 
+                margin: '0 auto', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                gap: 16,
+              }}
+            >
+              <button
+                onClick={() => setSelectedSlot(null)}
+                style={{
+                  padding: '10px 16px',
+                  background: 'transparent',
+                  border: `1px solid ${colors.sagePale}`,
+                  borderRadius: 8,
+                  color: colors.charcoal,
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                ← Back
+              </button>
+              
+              <div style={{ flex: 1, textAlign: 'center' }}>
                 <p style={{ fontSize: '11px', color: colors.charcoalLight, marginBottom: 2, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Selected
+                  Selected Time
                 </p>
-                <p style={{ fontSize: '14px', fontWeight: 600, color: colors.charcoal, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <p style={{ fontSize: '15px', fontWeight: 600, color: colors.charcoal }}>
                   {formatShortDateTime(selectedSlot.start)}
                 </p>
               </div>
@@ -657,7 +834,7 @@ export default function ScheduleInterview() {
                   border: 'none', cursor: booking ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', gap: 6,
                   boxShadow: booking ? 'none' : `0 4px 12px ${colors.sage}40`,
-                  transition: 'all 0.2s', flexShrink: 0,
+                  transition: 'all 0.2s',
                 }}
               >
                 {booking ? (
@@ -666,16 +843,29 @@ export default function ScheduleInterview() {
                     Booking...
                   </>
                 ) : (
-                  <>
-                    <span>✓</span>
-                    Confirm
-                  </>
+                  'Confirm →'
                 )}
               </motion.button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          ) : (
+            <motion.p
+              key="hint"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{ 
+                textAlign: 'center', 
+                color: colors.charcoalLight, 
+                fontSize: '13px',
+                maxWidth: 800,
+                margin: '0 auto',
+              }}
+            >
+              Select an available time slot to continue
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

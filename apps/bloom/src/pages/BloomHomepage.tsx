@@ -249,7 +249,9 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
   };
 
   const handleOpenNotes = () => {
-    navigate(`/session/${session.id}?tab=notes`);
+    // For MVP: Notes are taken during/after the session
+    // Just open the prep modal for now - notes editing will come later
+    setIsPrepModalOpen(true);
   };
 
   const formatRelationship = (months?: number) => {

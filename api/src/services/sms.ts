@@ -1,16 +1,14 @@
 /**
  * SMS Service
  * 
- * Handles SMS notifications using Azure Communication Services with Infobip Messaging Connect.
- * This routes SMS through ACS to Infobip for delivery, providing enterprise-grade
- * reliability with Infobip's carrier network.
+ * Handles SMS notifications using Infobip Direct API.
+ * This sends SMS directly through Infobip's REST API for reliable delivery.
  * 
  * Configuration required:
- * - ACS_CONNECTION_STRING: Azure Communication Services connection string
- * - INFOBIP_API_KEY: Infobip API key for Messaging Connect
+ * - INFOBIP_API_KEY: Infobip API key
+ * - INFOBIP_BASE_URL: Infobip API base URL (default: https://gg3ey3.api.infobip.com)
  * - SMS_FROM_NUMBER: Infobip phone number (E.164 format, e.g., +61480800867)
  */
-import { SmsClient, SmsSendRequest } from '@azure/communication-sms';
 
 interface SmsResult {
   success: boolean;
@@ -26,9 +24,6 @@ interface ClinicianBookingSmsContext {
   appointmentDateTime: Date;
   appointmentType?: string;
 }
-
-// Singleton SMS client instance
-let smsClient: SmsClient | null = null;
 
 /**
  * Get human-readable display name for appointment type
@@ -63,24 +58,6 @@ function getAppointmentTypeDisplay(appointmentType: string | undefined, forPatie
 }
 
 /**
- * Get or create the SMS client instance
- */
-function getSmsClient(): SmsClient | null {
-  if (smsClient) {
-    return smsClient;
-  }
-
-  const connectionString = process.env.ACS_CONNECTION_STRING;
-  if (!connectionString) {
-    console.error('[SMS] ACS_CONNECTION_STRING not configured');
-    return null;
-  }
-
-  smsClient = new SmsClient(connectionString);
-  return smsClient;
-}
-
-/**
  * Normalize phone number to E.164 format (with +)
  * Handles Australian phone numbers
  */
@@ -98,58 +75,70 @@ function normalizePhoneNumber(phone: string): string {
 }
 
 /**
- * Send an SMS message via Azure Communication Services with Infobip Messaging Connect
+ * Send an SMS message via Infobip Direct API
+ * 
+ * Uses Infobip's REST API directly instead of ACS Messaging Connect
+ * for simpler setup and immediate functionality.
  */
 async function sendSms(to: string, message: string): Promise<SmsResult> {
-  const client = getSmsClient();
   const infobipApiKey = process.env.INFOBIP_API_KEY;
+  const infobipBaseUrl = process.env.INFOBIP_BASE_URL || 'https://gg3ey3.api.infobip.com';
   const fromNumber = process.env.SMS_FROM_NUMBER || '+61480800867';
 
-  if (!client) {
-    return { success: false, error: 'Azure Communication Services not configured' };
-  }
-
   if (!infobipApiKey) {
-    console.error('[SMS] INFOBIP_API_KEY not configured for Messaging Connect');
+    console.error('[SMS] INFOBIP_API_KEY not configured');
     return { success: false, error: 'Infobip API key not configured' };
   }
 
   const normalizedTo = normalizePhoneNumber(to);
   
-  console.log(`[SMS] Sending via ACS Messaging Connect to ${normalizedTo} from ${fromNumber}`);
+  console.log(`[SMS] Sending via Infobip Direct API to ${normalizedTo} from ${fromNumber}`);
   console.log(`[SMS] Message: ${message}`);
 
   try {
-    const sendResults = await client.send(
-      {
-        from: fromNumber,
-        to: [normalizedTo],
-        message: message,
+    const response = await fetch(`${infobipBaseUrl}/sms/2/text/advanced`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `App ${infobipApiKey}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
-      {
-        enableDeliveryReport: true,
-        // Messaging Connect configuration - routes through Infobip
-        messagingConnect: {
-          apiKey: infobipApiKey,
-          partner: 'infobip',
-        },
-      }
-    );
+      body: JSON.stringify({
+        messages: [
+          {
+            destinations: [{ to: normalizedTo }],
+            from: fromNumber,
+            text: message,
+          },
+        ],
+      }),
+    });
 
-    const result = sendResults[0];
+    const data = await response.json();
     
-    if (result.successful) {
-      console.log(`[SMS] Message sent successfully: ${result.messageId}`);
-      return {
-        success: true,
-        messageId: result.messageId,
-      };
+    if (response.ok && data.messages?.[0]) {
+      const result = data.messages[0];
+      const status = result.status?.groupName;
+      
+      if (status === 'PENDING' || status === 'SENT' || status === 'DELIVERED') {
+        console.log(`[SMS] Message sent successfully: ${result.messageId}`);
+        return {
+          success: true,
+          messageId: result.messageId,
+        };
+      } else {
+        console.error('[SMS] Failed to send:', result.status?.description);
+        return {
+          success: false,
+          error: result.status?.description || 'Unknown error',
+        };
+      }
     } else {
-      console.error('[SMS] Failed to send:', result.errorMessage);
-      return {
-        success: false,
-        error: result.errorMessage || 'Unknown error',
-      };
+      const errorDesc = data.requestError?.serviceException?.text || 
+                        data.requestError?.serviceException?.messageId ||
+                        `HTTP ${response.status}`;
+      console.error('[SMS] API error:', errorDesc);
+      return { success: false, error: errorDesc };
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

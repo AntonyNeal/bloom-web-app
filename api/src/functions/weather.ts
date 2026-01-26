@@ -211,6 +211,43 @@ async function weatherHandler(
 
     context.log(`Weather fetched: ${weatherData.temperature}°C, ${weatherData.condition}`);
 
+    // Try to get actual location name via reverse geocoding (OpenStreetMap Nominatim)
+    let locationName: string | null = null;
+    try {
+      const geoUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=14`;
+      const geoResponse = await fetch(geoUrl, {
+        headers: {
+          'User-Agent': 'Bloom-Life-Psychology/1.0 (contact@life-psychology.com.au)',
+        },
+      });
+      
+      if (geoResponse.ok) {
+        const geoData = await geoResponse.json() as {
+          address?: {
+            suburb?: string;
+            city?: string;
+            town?: string;
+            village?: string;
+            municipality?: string;
+            county?: string;
+          };
+          display_name?: string;
+        };
+        
+        // Get the most specific location name available
+        locationName = geoData.address?.suburb 
+          || geoData.address?.city 
+          || geoData.address?.town 
+          || geoData.address?.village
+          || geoData.address?.municipality
+          || null;
+        
+        context.log(`Reverse geocoded location: ${locationName}`);
+      }
+    } catch (geoError) {
+      context.warn('Reverse geocoding failed, using timezone:', geoError);
+    }
+
     return {
       status: 200,
       headers,
@@ -218,6 +255,7 @@ async function weatherHandler(
         success: true,
         weather: weatherData,
         timezone: data.timezone,
+        locationName, // Actual suburb/city name from reverse geocoding
         timestamp: new Date().toISOString(),
       },
     };

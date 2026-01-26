@@ -114,8 +114,10 @@ export function useWeather(options: UseWeatherOptions = {}): UseWeatherResult {
         setWeather(data.weather);
         setError(null);
         
-        // Try to get location name from timezone
-        if (data.timezone) {
+        // Use locationName from reverse geocoding if available, otherwise fall back to timezone
+        if (data.locationName) {
+          setLocationName(data.locationName);
+        } else if (data.timezone) {
           const parts = data.timezone.split('/');
           setLocationName(parts[parts.length - 1].replace(/_/g, ' '));
         }

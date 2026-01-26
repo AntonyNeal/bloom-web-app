@@ -242,18 +242,8 @@ export default function ScheduleInterview() {
     return match ? parseInt(match[1], 10) : new Date(isoString).getHours();
   };
 
-  // Get hours that have slots (dynamically from actual availability)
-  const timeRows = useMemo(() => {
-    const hoursWithSlots = new Set<number>();
-    slots.forEach(slot => {
-      const hour = parseHourFromISO(slot.start);
-      hoursWithSlots.add(hour);
-    });
-    
-    if (hoursWithSlots.size === 0) return BUSINESS_HOURS; // Fallback to business hours if no slots
-    
-    return Array.from(hoursWithSlots).sort((a, b) => a - b);
-  }, [slots]);
+  // Always show business hours (8am-6pm) for clean grid like Halaxy
+  const timeRows = BUSINESS_HOURS;
 
   // Helper to format date as local YYYY-MM-DD
   const toLocalDateKey = (date: Date): string => {

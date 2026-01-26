@@ -126,7 +126,7 @@ const NoteIcon = () => (
   </svg>
 );
 
-const CheckCircleIcon = () => (
+const _CheckCircleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
     <polyline points="22 4 12 14.01 9 11.01" />
@@ -228,6 +228,7 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
   const [isHovered, setIsHovered] = useState(false);
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
   const [isPrepComplete, setIsPrepComplete] = useState(false);
+  const [isNotesComplete, setIsNotesComplete] = useState(session.status === 'completed');
   const prefersReducedMotion = useReducedMotion();
   const navigate = useNavigate();
 
@@ -582,7 +583,7 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
 
           {/* Notes Button - Opens session page to notes tab */}
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: colors.blueLight }}
+            whileHover={{ scale: 1.05, backgroundColor: isNotesComplete ? `${colors.sage}20` : colors.blueLight }}
             whileTap={{ scale: 0.95 }}
             onClick={(e) => { e.stopPropagation(); handleOpenNotes(); }}
             style={{
@@ -590,40 +591,18 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
               alignItems: 'center',
               gap: '6px',
               padding: '8px 16px',
-              backgroundColor: 'transparent',
+              backgroundColor: isNotesComplete ? `${colors.sage}15` : 'transparent',
               border: 'none',
               borderRadius: '20px',
               cursor: 'pointer',
-              color: colors.charcoalLight,
+              color: isNotesComplete ? colors.sage : colors.charcoalLight,
               fontSize: '13px',
               fontWeight: 500,
               transition: 'all 0.2s ease',
             }}
           >
             <NoteIcon />
-            <span>Notes</span>
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: colors.lavenderLight }}
-            whileTap={{ scale: 0.95 }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 16px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderRadius: '20px',
-              cursor: 'pointer',
-              color: colors.charcoalLight,
-              fontSize: '13px',
-              fontWeight: 500,
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <CheckCircleIcon />
-            <span>Complete</span>
+            <span>{isNotesComplete ? '✓ Notes Done' : 'Notes'}</span>
           </motion.button>
         </div>
       </div>

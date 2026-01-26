@@ -2,13 +2,12 @@
  * Prep Notes Modal
  * 
  * A modal for clinicians to view, edit, and enhance their prep notes
- * before a session. Includes AI assistance for generating insights
- * and editing notes based on patient history.
+ * before a session. Includes Bloom assistant for generating insights
+ * and answering questions about patient history.
  * 
  * Features:
  * - View/edit prep notes
- * - AI chat to ask questions about the patient
- * - AI-assisted note editing
+ * - Ask Bloom questions about the patient
  * - Mark prep as complete
  */
 
@@ -89,7 +88,7 @@ const CheckIcon = () => (
   </svg>
 );
 
-const RefreshIcon = () => (
+const _RefreshIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
     <path d="M21 3v5h-5"/>
@@ -287,7 +286,7 @@ export function PrepNotesModal({ isOpen, onClose, session, onPrepComplete }: Pre
     }
   };
 
-  const handleAIEditNotes = async () => {
+  const _handleAIEditNotes = async () => {
     setAiLoading(true);
     try {
       const token = await getAccessToken();
@@ -469,7 +468,7 @@ export function PrepNotesModal({ isOpen, onClose, session, onPrepComplete }: Pre
                 transition: 'all 0.2s',
               }}
             >
-              <SparkleIcon /> Ask AI
+              <SparkleIcon /> Ask Bloom
             </button>
           </div>
 
@@ -507,46 +506,6 @@ export function PrepNotesModal({ isOpen, onClose, session, onPrepComplete }: Pre
                   }}>
                     Session Preparation
                   </span>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={generatePrepNotes}
-                      disabled={aiLoading}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 12px',
-                        border: `1px solid ${colors.lavenderLight}`,
-                        borderRadius: '8px',
-                        background: colors.white,
-                        color: colors.charcoalLight,
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        opacity: aiLoading ? 0.5 : 1,
-                      }}
-                    >
-                      <RefreshIcon /> Regenerate
-                    </button>
-                    <button
-                      onClick={handleAIEditNotes}
-                      disabled={aiLoading}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 12px',
-                        border: 'none',
-                        borderRadius: '8px',
-                        background: `linear-gradient(135deg, ${colors.lavender}, ${colors.lavenderLight})`,
-                        color: colors.white,
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        opacity: aiLoading ? 0.5 : 1,
-                      }}
-                    >
-                      <SparkleIcon /> AI Enhance
-                    </button>
-                  </div>
                 </div>
 
                 {/* Notes Editor */}

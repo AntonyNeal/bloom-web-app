@@ -181,16 +181,6 @@ async function getInterviewSlots(
         const startTime = new Date(slot.startDateUserTime);
         const endTime = new Date(startTime.getTime() + INTERVIEW_DURATION_MINS * 60 * 1000);
         
-        // Filter to business hours only (8am-6pm in LOCAL timezone)
-        // Parse hour from ISO string directly to avoid UTC conversion issues
-        // Format: "2026-01-27T08:00:00+11:00" - extract the "08" part
-        const timeMatch = slot.startDateUserTime.match(/T(\d{2}):/);
-        const localHour = timeMatch ? parseInt(timeMatch[1], 10) : startTime.getHours();
-        
-        if (localHour < INTERVIEW_BUSINESS_HOURS.start || localHour >= INTERVIEW_BUSINESS_HOURS.end) {
-          continue; // Skip slots outside business hours
-        }
-        
         slots.push({
           id: slot.dateTimeKey,
           start: slot.startDateUserTime,

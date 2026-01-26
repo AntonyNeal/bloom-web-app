@@ -235,8 +235,18 @@ export default function ScheduleInterview() {
   // Week navigation state
   const [weekOffset, setWeekOffset] = useState(0);
 
-  // Use fixed business hours for display (8am to 6pm) - no scrolling needed
-  const timeRows = BUSINESS_HOURS;
+  // Get hours that have slots (dynamically from actual availability)
+  const timeRows = useMemo(() => {
+    const hoursWithSlots = new Set<number>();
+    slots.forEach(slot => {
+      const hour = new Date(slot.start).getHours();
+      hoursWithSlots.add(hour);
+    });
+    
+    if (hoursWithSlots.size === 0) return BUSINESS_HOURS; // Fallback to business hours if no slots
+    
+    return Array.from(hoursWithSlots).sort((a, b) => a - b);
+  }, [slots]);
 
   // Helper to format date as local YYYY-MM-DD
   const toLocalDateKey = (date: Date): string => {

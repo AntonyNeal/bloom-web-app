@@ -15,6 +15,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { ClinicianVideoCall } from './ClinicianVideoCall';
 import { NotesReview } from './NotesReview';
 import LoadingState from '../../components/common/LoadingState';
+import { PreSessionBrief } from '../../components/session/PreSessionBrief';
 import { API_BASE_URL } from '../../config/api';
 
 interface SessionData {
@@ -236,6 +237,15 @@ export function SessionPage() {
               </p>
             </div>
           </div>
+
+          {/* AI Pre-Session Brief */}
+          <PreSessionBrief
+            patientInitials={sessionData.patientInitials}
+            patientName={sessionData.patientName}
+            appointmentId={sessionData.appointmentId}
+            sessionType={sessionData.sessionType}
+            isExpanded={true}
+          />
 
           <div style={styles.checklistBox}>
             <h3 style={styles.checklistTitle}>Pre-session Checklist</h3>

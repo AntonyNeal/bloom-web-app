@@ -1081,6 +1081,54 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
   const [showTreeControls, setShowTreeControls] = useState(false);
   const [azureUserId, setAzureUserId] = useState<string | null>(null);
   
+  // Date navigation state
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  
+  const goToPreviousDay = useCallback(() => {
+    setSelectedDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setDate(newDate.getDate() - 1);
+      return newDate;
+    });
+  }, []);
+  
+  const goToNextDay = useCallback(() => {
+    setSelectedDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setDate(newDate.getDate() + 1);
+      return newDate;
+    });
+  }, []);
+  
+  const goToToday = useCallback(() => {
+    setSelectedDate(new Date());
+  }, []);
+  
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
+  
+  // Format date for display
+  const formatDisplayDate = (date: Date): string => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return 'Tomorrow';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en-AU', { 
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long'
+      });
+    }
+  };
+  
   // Handler for starting a telehealth session
   const handleStartSession = useCallback((sessionId: string) => {
     navigate(`/session/${sessionId}`);
@@ -1107,7 +1155,9 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
   }, []);
   
   // Fetch dashboard data from API - NO FALLBACKS, only real data
-  const { dashboard, loading, isUsingDemoData, authStatus, lastFetched, refetch, error } = useDashboard(practitionerId);
+  // Pass selected date for day navigation
+  const selectedDateStr = selectedDate.toISOString().split('T')[0];
+  const { dashboard, loading, isUsingDemoData, authStatus, lastFetched, refetch, error } = useDashboard(practitionerId, { date: selectedDateStr });
 
   // Transform dashboard data to local types - NO FALLBACKS, only real data
   const todaysSessions: Session[] = sessionsOverride || (dashboard ? 
@@ -1452,7 +1502,7 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
         {/* Stories Bar - Quick glance at today's clients */}
         <ClientStoriesBar sessions={todaysSessions} />
 
-        {/* Feed Section Header */}
+        {/* Feed Section Header with Date Navigation */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -1460,20 +1510,110 @@ const BloomHomepage: React.FC<BloomHomepageProps> = ({
           marginBottom: '16px',
           paddingLeft: '4px',
         }}>
-          <h2 style={{
-            fontFamily: "'Crimson Text', Georgia, serif",
-            fontSize: '24px',
-            fontWeight: 500,
-            color: colors.charcoal,
-            margin: 0,
-          }}>
-            Your Day
-          </h2>
+          {/* Previous Day Button */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={goToPreviousDay}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              backgroundColor: colors.white,
+              border: `1px solid ${colors.lavender}`,
+              borderRadius: '50%',
+              cursor: 'pointer',
+              color: colors.charcoalLight,
+              transition: 'all 0.2s ease',
+            }}
+            aria-label="Previous day"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </motion.button>
+          
+          {/* Date Display */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '160px' }}>
+            <h2 style={{
+              fontFamily: "'Crimson Text', Georgia, serif",
+              fontSize: '24px',
+              fontWeight: 500,
+              color: colors.charcoal,
+              margin: 0,
+              textAlign: 'center',
+            }}>
+              {formatDisplayDate(selectedDate)}
+            </h2>
+            {!isToday && (
+              <span style={{
+                fontSize: '12px',
+                color: colors.charcoalLight,
+                marginTop: '2px',
+              }}>
+                {selectedDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
+            )}
+          </div>
+          
+          {/* Next Day Button */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={goToNextDay}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              backgroundColor: colors.white,
+              border: `1px solid ${colors.lavender}`,
+              borderRadius: '50%',
+              cursor: 'pointer',
+              color: colors.charcoalLight,
+              transition: 'all 0.2s ease',
+            }}
+            aria-label="Next day"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </motion.button>
+          
           <div style={{
             flex: 1,
             height: '1px',
             background: `linear-gradient(90deg, ${colors.lavender}, transparent)`,
           }} />
+          
+          {/* Today Button - only show when not on today */}
+          {!isToday && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={goToToday}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                backgroundColor: colors.sage,
+                border: 'none',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                color: colors.white,
+                fontSize: '13px',
+                fontWeight: 500,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span>Today</span>
+            </motion.button>
+          )}
+          
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

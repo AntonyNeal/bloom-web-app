@@ -349,38 +349,53 @@ async function clinicianDashboardHandler(
     }
 
     // ========================================================================
-    // Get today's date range (Australia/Sydney timezone)
+    // Get selected date range (supports date query param for day navigation)
     // ========================================================================
+    const dateParam = req.query.get('date');
+    const selectedDate = dateParam ? new Date(dateParam + 'T00:00:00') : new Date();
+    
+    // Validate date
+    if (isNaN(selectedDate.getTime())) {
+      return {
+        status: 400,
+        headers,
+        jsonBody: {
+          success: false,
+          error: 'Invalid date format. Use YYYY-MM-DD.',
+        },
+      };
+    }
+    
     const now = new Date();
     const _sydneyOffset = getSydneyOffset(now);
-    const todayStart = new Date(now);
+    const todayStart = new Date(selectedDate);
     todayStart.setHours(0, 0, 0, 0);
     
-    const todayEnd = new Date(now);
+    const todayEnd = new Date(selectedDate);
     todayEnd.setHours(23, 59, 59, 999);
 
-    // Calculate week boundaries (Monday to Sunday)
-    const dayOfWeek = now.getDay();
+    // Calculate week boundaries (Monday to Sunday) based on selected date
+    const dayOfWeek = selectedDate.getDay();
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() + mondayOffset);
+    const weekStart = new Date(selectedDate);
+    weekStart.setDate(selectedDate.getDate() + mondayOffset);
     weekStart.setHours(0, 0, 0, 0);
     
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
     weekEnd.setHours(23, 59, 59, 999);
 
-    // Calculate tomorrow
-    const tomorrowStart = new Date(now);
-    tomorrowStart.setDate(now.getDate() + 1);
+    // Calculate tomorrow (relative to selected date)
+    const tomorrowStart = new Date(selectedDate);
+    tomorrowStart.setDate(selectedDate.getDate() + 1);
     tomorrowStart.setHours(0, 0, 0, 0);
     
     const tomorrowEnd = new Date(tomorrowStart);
     tomorrowEnd.setHours(23, 59, 59, 999);
 
-    // Calculate month boundaries
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    // Calculate month boundaries (relative to selected date)
+    const monthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    const monthEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0, 23, 59, 59, 999);
 
     // ========================================================================
     // Fetch appointments from Halaxy (with patient details)

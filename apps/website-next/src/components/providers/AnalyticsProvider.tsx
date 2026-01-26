@@ -67,11 +67,19 @@ export function AnalyticsProvider() {
 
   return (
     <>
-      {/* Google Ads - load IMMEDIATELY for conversion tracking */}
+      {/* Google Ads - load with HIGH priority for conversion tracking */}
       {/* This is critical - conversions won't track without it */}
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
-        strategy="afterInteractive"
+        strategy="beforeInteractive"
+        onLoad={() => {
+          console.log('[Analytics] ✅ Google Ads script loaded');
+          // Ensure Google Ads is configured after script loads
+          if (window.gtag) {
+            window.gtag('config', GOOGLE_ADS_ID, { send_page_view: false });
+            console.log('[Analytics] ✅ Google Ads configured:', GOOGLE_ADS_ID);
+          }
+        }}
       />
       
       {/* GA4 - load after user interaction for performance */}

@@ -235,7 +235,7 @@ export default function InterviewRoom() {
           </div>
           <h1 className="text-2xl font-semibold text-white mb-3">Interview Room Not Open Yet</h1>
           <p className="text-gray-400 mb-6">
-            The interview room will open 30 minutes before your scheduled time.
+            The interview room will open 15 minutes before your scheduled time.
           </p>
           {interview?.scheduledAt && (
             <div className="bg-gray-700/50 rounded-lg p-4 mb-6">
@@ -294,7 +294,7 @@ export default function InterviewRoom() {
             </div>
             <div className="flex items-center gap-3 text-gray-300">
               <span className="text-xl">⏱️</span>
-              <span>The interview will take about 30 minutes</span>
+              <span>The interview will take about 1 hour</span>
             </div>
           </div>
 

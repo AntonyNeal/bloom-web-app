@@ -426,7 +426,7 @@ export async function sendInterviewEmail(context: EmailContext) {
     
     ${contractSection}
     
-    <p>The interview will be a friendly conversation (approximately 30 minutes) where we'll discuss:</p>
+    <p>The interview will be a friendly conversation (approximately 1 hour) where we'll discuss:</p>
     <ul style="color: #555;">
       <li>Your clinical experience and specializations</li>
       <li>Your approach to client care</li>
@@ -464,7 +464,7 @@ ${contractUrl}
 
 Please read through this document carefully. We'll be happy to answer any questions during the interview.
 
-` : ''}The interview will be a friendly conversation (approximately 30 minutes) where we'll discuss:
+` : ''}The interview will be a friendly conversation (approximately 1 hour) where we'll discuss:
 - Your clinical experience and specializations
 - Your approach to client care
 - How we can support your telehealth practice${contractUrl ? '\n- Any questions about the Practitioner Agreement' : ''}
@@ -532,7 +532,7 @@ export async function sendInterviewScheduledConfirmation(context: InterviewSched
         </tr>
         <tr>
           <td style="padding: 8px 0; font-weight: bold;">Duration:</td>
-          <td style="padding: 8px 0;">30 minutes</td>
+          <td style="padding: 8px 0;">1 hour</td>
         </tr>
         <tr>
           <td style="padding: 8px 0; font-weight: bold;">With:</td>
@@ -551,7 +551,7 @@ export async function sendInterviewScheduledConfirmation(context: InterviewSched
         📹 Join Interview
       </a>
       <p style="margin: 10px 0 0; color: #6b7280; font-size: 14px;">
-        The room will open 30 minutes before the scheduled time
+        The room will open 15 minutes before the scheduled time
       </p>
     </div>
     
@@ -586,7 +586,7 @@ Great news! Your interview with ${COMPANY_NAME} has been confirmed.
 INTERVIEW DETAILS
 -----------------
 📅 Date & Time: ${formattedDate}
-⏱️ Duration: 30 minutes
+⏱️ Duration: 1 hour
 👥 With: ${interviewerNames}
 💻 Format: Video call (online)
 
@@ -594,7 +594,7 @@ JOIN YOUR INTERVIEW
 -------------------
 ${interviewLink}
 
-The room will open 30 minutes before the scheduled time.
+The room will open 15 minutes before the scheduled time.
 
 BEFORE THE INTERVIEW:
 - ✅ Test your camera and microphone
@@ -645,7 +645,7 @@ export async function sendApplicationReceivedWithScheduling(context: Application
     <div style="background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 100%); padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #8b5cf6;">
       <h3 style="margin: 0 0 12px; color: #7c3aed;">🗓️ Next Step: Schedule Your Interview</h3>
       <p style="margin: 0 0 20px; color: #6b21a8; line-height: 1.6;">
-        We'd love to meet you! Please choose a time that works best for your 30-minute interview with our team.
+        We'd love to meet you! Please choose a time that works best for your 1-hour interview with our team.
       </p>
       <div style="text-align: center;">
         <a href="${schedulingLink}" 
@@ -657,7 +657,7 @@ export async function sendApplicationReceivedWithScheduling(context: Application
     
     <p><strong>What to expect:</strong></p>
     <ul style="color: #555; line-height: 1.8;">
-      <li>💬 A friendly 30-minute video conversation</li>
+      <li>💬 A friendly 1-hour video conversation</li>
       <li>👥 You'll meet with Zoe and Julian from our team</li>
       <li>🏥 We'll discuss your experience and how you might fit with our telehealth practice</li>
       <li>❓ Plenty of time for your questions about joining us</li>
@@ -684,12 +684,12 @@ Thank you for applying to join the ${COMPANY_NAME} team. We've received your app
 
 NEXT STEP: SCHEDULE YOUR INTERVIEW
 -----------------------------------
-We'd love to meet you! Please choose a time that works best for your 30-minute interview:
+We'd love to meet you! Please choose a time that works best for your 1-hour interview:
 
 ${schedulingLink}
 
 WHAT TO EXPECT:
-- 💬 A friendly 30-minute video conversation
+- 💬 A friendly 1-hour video conversation
 - 👥 You'll meet with Zoe and Julian from our team
 - 🏥 We'll discuss your experience and how you might fit with our telehealth practice
 - ❓ Plenty of time for your questions about joining us

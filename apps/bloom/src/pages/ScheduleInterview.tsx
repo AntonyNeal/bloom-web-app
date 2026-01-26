@@ -521,7 +521,7 @@ export default function ScheduleInterview() {
             fontSize: '13px', color: colors.charcoalLight,
           }}>
             <span>🎥</span>
-            <span>30-minute video call</span>
+            <span>1-hour video call</span>
           </div>
         </motion.div>
       </header>

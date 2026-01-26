@@ -29,7 +29,7 @@ const INTERVIEWER_PRACTITIONER_IDS = {
 const INTERVIEW_PRACTITIONER_ID = INTERVIEWER_PRACTITIONER_IDS.ZOE;
 const _INTERVIEW_PRACTITIONER_ROLE_ID = process.env.INTERVIEW_PRACTITIONER_ROLE_ID || 'PR-2442591';
 const _INTERVIEW_HEALTHCARE_SERVICE_ID = process.env.INTERVIEW_HEALTHCARE_SERVICE_ID || '567387';
-const INTERVIEW_DURATION_MINS = 30;
+const INTERVIEW_DURATION_MINS = 60;
 
 // CORS headers
 const corsHeaders = {
@@ -335,7 +335,7 @@ async function bookInterviewSlot(
 
     // Create ACS room for the interview
     const { createAcsRoom } = await import('./telehealth-room');
-    const validFrom = new Date(interviewTime.getTime() - 30 * 60 * 1000);  // 30 min before
+    const validFrom = new Date(interviewTime.getTime() - 15 * 60 * 1000);  // 15 min before
     const validUntil = new Date(interviewTime.getTime() + 2 * 60 * 60 * 1000);  // 2 hours after
     
     const acsRoom = await createAcsRoom(validFrom, validUntil);

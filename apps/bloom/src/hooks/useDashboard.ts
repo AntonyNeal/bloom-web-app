@@ -385,11 +385,11 @@ export function useDashboard(
           updatedAt: new Date().toISOString(),
           lastSyncedAt: clinicianData.fetchedAt,
         },
-        todaysSessions: clinicianData.today.sessions.map((s: { id: string; time: string; clientInitials: string; clientName?: string; sessionType?: string; duration?: number; status: string; isUpNext: boolean; locationType: string }) => ({
+        todaysSessions: clinicianData.today.sessions.map((s: { id: string; time: string; clientInitials: string; clientId?: string; clientName?: string; sessionType?: string; duration?: number; status: string; isUpNext: boolean; locationType: string }) => ({
           id: s.id,
           time: s.time,
           clientInitials: s.clientInitials,
-          clientId: s.id,
+          clientId: s.clientId || s.id,
           clientName: s.clientName,
           sessionType: s.sessionType,
           duration: s.duration,

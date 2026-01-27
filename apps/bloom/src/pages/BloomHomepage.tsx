@@ -49,6 +49,7 @@ interface Session {
   time: string;
   clientInitials: string;
   clientName?: string; // Full name from Halaxy
+  clientId?: string; // Halaxy client ID for navigation
   sessionType?: string; // From Halaxy appointment type
   duration?: number; // Minutes
   status?: string;
@@ -374,24 +375,34 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
           gap: '14px',
           marginBottom: '16px',
         }}>
-          {/* Avatar */}
-          <div style={{
-            width: '52px',
-            height: '52px',
-            borderRadius: '50%',
-            background: isNewClient 
-              ? `linear-gradient(135deg, ${colors.terracotta}, ${colors.amber})`
-              : `linear-gradient(135deg, ${colors.sage}, ${colors.sageLight})`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: "'Crimson Text', Georgia, serif",
-            fontSize: '20px',
-            fontWeight: 600,
-            color: colors.white,
-            flexShrink: 0,
-            boxShadow: `0 2px 8px ${isNewClient ? colors.terracotta : colors.sage}30`,
-          }}>
+          {/* Avatar - Clickable to go to client profile */}
+          <div 
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              if (session.clientId) navigate(`/client/${session.clientId}`);
+            }}
+            style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '50%',
+              background: isNewClient 
+                ? `linear-gradient(135deg, ${colors.terracotta}, ${colors.amber})`
+                : `linear-gradient(135deg, ${colors.sage}, ${colors.sageLight})`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: "'Crimson Text', Georgia, serif",
+              fontSize: '20px',
+              fontWeight: 600,
+              color: colors.white,
+              flexShrink: 0,
+              boxShadow: `0 2px 8px ${isNewClient ? colors.terracotta : colors.sage}30`,
+              cursor: session.clientId ? 'pointer' : 'default',
+              transition: 'transform 0.2s ease',
+            }}
+            onMouseEnter={(e) => session.clientId && (e.currentTarget.style.transform = 'scale(1.05)')}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
             {session.clientInitials}
           </div>
 
@@ -403,12 +414,22 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
               gap: '8px',
               marginBottom: '4px',
             }}>
-              <span style={{
-                fontFamily: "'Crimson Text', Georgia, serif",
-                fontSize: '18px',
-                fontWeight: 600,
-                color: colors.charcoal,
-              }}>
+              <span 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  if (session.clientId) navigate(`/client/${session.clientId}`);
+                }}
+                style={{
+                  fontFamily: "'Crimson Text', Georgia, serif",
+                  fontSize: '18px',
+                  fontWeight: 600,
+                  color: colors.charcoal,
+                  cursor: session.clientId ? 'pointer' : 'default',
+                  transition: 'color 0.2s ease',
+                }}
+                onMouseEnter={(e) => session.clientId && (e.currentTarget.style.color = colors.sage)}
+                onMouseLeave={(e) => e.currentTarget.style.color = colors.charcoal}
+              >
                 {getClientDisplayName()}
               </span>
               {hasRelationshipData && !isNewClient && (

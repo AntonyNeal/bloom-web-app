@@ -39,6 +39,7 @@ const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
 const BusinessCoach = lazy(() => import('./pages/BusinessCoach'));
 const NotesHistory = lazy(() => import('./pages/notes/NotesHistory'));
 const NoteDetail = lazy(() => import('./pages/notes/NoteDetail'));
+const ClientProfile = lazy(() => import('./pages/clients/ClientProfile'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const AcceptOffer = lazy(() => import('./pages/AcceptOffer'));
 const ScheduleInterview = lazy(() => import('./pages/ScheduleInterview'));
@@ -768,6 +769,22 @@ function AnimatedRoutes() {
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading note...</div>}
                 >
                   <NoteDetail />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Client Profile - View client details and history */}
+        <Route
+          path="/client/:clientId"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading client...</div>}
+                >
+                  <ClientProfile />
                 </Suspense>
               </ErrorBoundary>
             </ProtectedRoute>

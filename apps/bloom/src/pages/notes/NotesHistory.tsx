@@ -239,6 +239,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     fontSize: '1rem',
     flexShrink: 0,
+    cursor: 'pointer',
+    transition: 'transform 0.2s ease',
   },
   noteInfo: {
     flex: 1,
@@ -250,6 +252,8 @@ const styles: Record<string, React.CSSProperties> = {
     color: colors.charcoal,
     margin: 0,
     marginBottom: '0.25rem',
+    cursor: 'pointer',
+    transition: 'color 0.2s ease',
   },
   noteMeta: {
     display: 'flex',
@@ -610,14 +614,32 @@ export function NotesHistory() {
                   onMouseEnter={() => setHoveredId(note.id)}
                   onMouseLeave={() => setHoveredId(null)}
                 >
-                  {/* Avatar */}
-                  <div style={styles.avatar}>
+                  {/* Avatar - Click to go to client profile */}
+                  <div 
+                    style={styles.avatar}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/client/${note.patientHalaxyId}`);
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                    title="View client profile"
+                  >
                     {note.patientInitials}
                   </div>
                   
                   {/* Note Info */}
                   <div style={styles.noteInfo}>
-                    <h3 style={styles.noteName}>
+                    <h3 
+                      style={styles.noteName}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/client/${note.patientHalaxyId}`);
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = colors.sage}
+                      onMouseLeave={(e) => e.currentTarget.style.color = colors.charcoal}
+                      title="View client profile"
+                    >
                       {note.patientName || note.patientInitials}
                     </h3>
                     <div style={styles.noteMeta}>

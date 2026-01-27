@@ -37,6 +37,8 @@ const InterviewManagement = lazy(() =>
 // Bloom Homepage (main authenticated home)
 const BloomHomepage = lazy(() => import('./pages/BloomHomepage'));
 const BusinessCoach = lazy(() => import('./pages/BusinessCoach'));
+const NotesHistory = lazy(() => import('./pages/notes/NotesHistory'));
+const NoteDetail = lazy(() => import('./pages/notes/NoteDetail'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const AcceptOffer = lazy(() => import('./pages/AcceptOffer'));
 const ScheduleInterview = lazy(() => import('./pages/ScheduleInterview'));
@@ -734,6 +736,38 @@ function AnimatedRoutes() {
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
                 >
                   <BusinessCoach />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Notes History - Past session notes viewer */}
+        <Route
+          path="/notes"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading notes...</div>}
+                >
+                  <NotesHistory />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Note Detail - View single note */}
+        <Route
+          path="/notes/:id"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading note...</div>}
+                >
+                  <NoteDetail />
                 </Suspense>
               </ErrorBoundary>
             </ProtectedRoute>

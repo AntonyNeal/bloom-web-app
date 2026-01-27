@@ -43,6 +43,7 @@ interface PrepNotesModalProps {
     clientInitials: string;
     sessionType?: string;
     time: string;
+    status?: string;
   };
   onPrepComplete?: (sessionId: string, notes: string) => void;
 }
@@ -123,6 +124,75 @@ export function PrepNotesModal({ isOpen, onClose, session, onPrepComplete }: Pre
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Mock AI-generated notes for local development
+  const getMockNotes = (clientName: string, clientInitials: string, status?: string) => {
+    const isCompleted = status === 'completed';
+    
+    if (isCompleted) {
+      // Session notes for completed sessions
+      return `## Session Summary - ${clientName || clientInitials}
+
+### Presenting Concerns
+Client presented with ongoing anxiety related to work-life balance and relationship stress. Reports difficulty sleeping (4-5 hours/night) and increased irritability over the past two weeks.
+
+### Session Content
+- Explored cognitive patterns around perfectionism and fear of failure
+- Introduced cognitive restructuring techniques for catastrophic thinking
+- Practiced grounding exercise (5-4-3-2-1 sensory technique)
+- Discussed boundaries with partner regarding household responsibilities
+
+### Clinical Observations
+Client demonstrated good insight into anxiety triggers. Affect was congruent with content discussed. Engaged actively in exercises and reported feeling "lighter" by session end.
+
+### Treatment Progress
+- Goal 1 (Reduce anxiety symptoms): Moderate progress - PHQ-9 decreased from 14 to 11
+- Goal 2 (Improve sleep): Early stages - Sleep hygiene plan established
+- Goal 3 (Communication skills): Good progress - Successfully used "I" statements in recent conversation
+
+### Plan & Homework
+1. Continue daily thought record (minimum 1 entry)
+2. Practice grounding exercise when noticing anxiety rising
+3. Implement 10pm "wind down" routine for sleep
+4. Schedule one boundary-setting conversation before next session
+
+### Risk Assessment
+No current suicidal ideation or self-harm thoughts. Protective factors include supportive friend network and meaningful work.
+
+**Next Session:** Continue cognitive restructuring work, review thought records, check-in on sleep improvements.`;
+    } else {
+      // Prep notes for upcoming sessions
+      return `## Session Preparation - ${clientName || clientInitials}
+
+### Quick Overview
+**Sessions to date:** 8 sessions over 4 months
+**Primary focus:** Anxiety management, work-life balance
+**Last session:** Worked on cognitive restructuring for catastrophic thinking
+
+### Key Points to Follow Up
+- [ ] Check progress on thought record homework
+- [ ] Review sleep diary entries from past week
+- [ ] Ask about boundary conversation with partner
+
+### Recent Themes
+- Perfectionism patterns at work
+- Difficulty delegating tasks
+- Fear of disappointing others
+
+### Treatment Goals Progress
+| Goal | Status |
+|------|--------|
+| Reduce anxiety (PHQ-9) | 14 → 11 ✓ |
+| Improve sleep quality | In progress |
+| Assertive communication | Good progress |
+
+### Session Approach
+Consider starting with grounding exercise if client presents as activated. May be helpful to review cognitive model diagram to reinforce learning from last session.
+
+### Notes from AI Analysis
+*Based on session history, ${clientInitials} responds well to structured approaches and appreciates having tangible tools to practice. Consider introducing the "worry time" technique this session.*`;
+    }
+  };
+
   // Fetch existing prep notes when modal opens
   useEffect(() => {
     if (isOpen && session.id) {
@@ -139,6 +209,18 @@ export function PrepNotesModal({ isOpen, onClose, session, onPrepComplete }: Pre
   const fetchPrepNotes = async () => {
     setLoading(true);
     try {
+      // Use mock data in local development
+      const isLocalDev = window.location.hostname === 'localhost';
+      if (isLocalDev) {
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const mockNotes = getMockNotes(session.clientName || '', session.clientInitials, session.status);
+        setPrepNotes(mockNotes);
+        setOriginalNotes(mockNotes);
+        setLoading(false);
+        return;
+      }
+
       const token = await getAccessToken();
       const azureUserId = user?.localAccountId || (user?.homeAccountId?.split('.')[0]) || '';
 
@@ -161,6 +243,13 @@ export function PrepNotesModal({ isOpen, onClose, session, onPrepComplete }: Pre
       }
     } catch (err) {
       console.error('Error fetching prep notes:', err);
+      // Fall back to mock data on error
+      const isLocalDev = window.location.hostname === 'localhost';
+      if (isLocalDev) {
+        const mockNotes = getMockNotes(session.clientName || '', session.clientInitials, session.status);
+        setPrepNotes(mockNotes);
+        setOriginalNotes(mockNotes);
+      }
     } finally {
       setLoading(false);
     }
@@ -537,17 +626,52 @@ export function PrepNotesModal({ isOpen, onClose, session, onPrepComplete }: Pre
                     />
                   ) : (
                     <div
-                      onClick={() => setIsEditing(true)}
+                      onClick={() => !session.status || session.status !== 'completed' ? setIsEditing(true) : null}
                       style={{
                         minHeight: '250px',
                         fontSize: '15px',
-                        lineHeight: 1.6,
+                        lineHeight: 1.7,
                         color: prepNotes ? colors.charcoal : colors.charcoalLight,
-                        whiteSpace: 'pre-wrap',
-                        cursor: 'text',
+                        cursor: session.status === 'completed' ? 'default' : 'text',
                       }}
                     >
-                      {prepNotes || 'Click to add prep notes...'}
+                      {prepNotes ? (
+                        <div 
+                          dangerouslySetInnerHTML={{ 
+                            __html: prepNotes
+                              // Headers
+                              .replace(/^### (.+)$/gm, '<h4 style="margin: 1rem 0 0.5rem; font-size: 14px; font-weight: 600; color: #6B8E7F;">$1</h4>')
+                              .replace(/^## (.+)$/gm, '<h3 style="margin: 1.25rem 0 0.75rem; font-size: 16px; font-weight: 600; color: #3A3A3A;">$1</h3>')
+                              // Bold
+                              .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                              // Italic
+                              .replace(/\*(.+?)\*/g, '<em style="color: #636e72;">$1</em>')
+                              // Checkboxes
+                              .replace(/- \[ \] (.+)/g, '<div style="display: flex; align-items: flex-start; gap: 8px; margin: 4px 0;"><span style="color: #a8c5bb;">☐</span><span>$1</span></div>')
+                              .replace(/- \[x\] (.+)/gi, '<div style="display: flex; align-items: flex-start; gap: 8px; margin: 4px 0;"><span style="color: #6B8E7F;">☑</span><span style="text-decoration: line-through; color: #636e72;">$1</span></div>')
+                              // Bullet lists
+                              .replace(/^- (.+)$/gm, '<div style="display: flex; align-items: flex-start; gap: 8px; margin: 4px 0;"><span style="color: #9B8BC4;">•</span><span>$1</span></div>')
+                              // Numbered lists
+                              .replace(/^(\d+)\. (.+)$/gm, '<div style="display: flex; align-items: flex-start; gap: 8px; margin: 4px 0;"><span style="color: #6B8E7F; font-weight: 500;">$1.</span><span>$2</span></div>')
+                              // Tables (simple)
+                              .replace(/\|(.+)\|/g, (match) => {
+                                const cells = match.split('|').filter(c => c.trim());
+                                if (cells.every(c => c.trim().match(/^-+$/))) return ''; // Skip separator row
+                                const cellStyle = 'padding: 6px 12px; border-bottom: 1px solid #E8E4F0;';
+                                return '<div style="display: flex; margin: 2px 0;">' + 
+                                  cells.map(c => `<span style="${cellStyle}">${c.trim()}</span>`).join('') + 
+                                  '</div>';
+                              })
+                              // Horizontal rules
+                              .replace(/^---$/gm, '<hr style="border: none; border-top: 1px solid #E8E4F0; margin: 1rem 0;" />')
+                              // Line breaks
+                              .replace(/\n\n/g, '<br/><br/>')
+                              .replace(/\n/g, '<br/>')
+                          }} 
+                        />
+                      ) : (
+                        'Click to add prep notes...'
+                      )}
                     </div>
                   )}
                 </div>
@@ -780,6 +904,24 @@ export function PrepNotesModal({ isOpen, onClose, session, onPrepComplete }: Pre
               >
                 Close
               </button>
+              {session.status === 'completed' ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 24px',
+                    borderRadius: '10px',
+                    background: `${colors.sage}15`,
+                    color: colors.sage,
+                    fontSize: '14px',
+                    fontWeight: 600,
+                  }}
+                >
+                  <CheckIcon />
+                  Session Complete
+                </div>
+              ) : (
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -802,6 +944,7 @@ export function PrepNotesModal({ isOpen, onClose, session, onPrepComplete }: Pre
                 <CheckIcon />
                 Prep Complete
               </motion.button>
+              )}
             </div>
           </div>
         </motion.div>

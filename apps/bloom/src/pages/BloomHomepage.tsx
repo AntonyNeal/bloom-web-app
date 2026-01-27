@@ -229,7 +229,8 @@ const ClientStoryBubble: React.FC<{ session: Session; isNext?: boolean }> = ({ s
 const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: number; onStartSession?: (id: string) => void }> = ({ session, isUpNext, index, onStartSession }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
-  const [isPrepComplete, setIsPrepComplete] = useState(false);
+  // Completed sessions should show prep as done
+  const [isPrepComplete, setIsPrepComplete] = useState(session.status === 'completed');
   const [isNotesComplete, setIsNotesComplete] = useState(session.status === 'completed');
   const prefersReducedMotion = useReducedMotion();
   const navigate = useNavigate();
@@ -656,6 +657,7 @@ const SessionFeedCard: React.FC<{ session: Session; isUpNext?: boolean; index: n
           clientInitials: session.clientInitials,
           sessionType: session.sessionType,
           time: session.time,
+          status: session.status,
         }}
         onPrepComplete={handlePrepComplete}
       />

@@ -71,6 +71,108 @@ function getAustralianDate(): string {
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 // ============================================================================
+// Mock Data for Local Development (when Azure is unavailable)
+// ============================================================================
+
+const MOCK_DASHBOARD: PractitionerDashboard = {
+  practitioner: {
+    id: 'dev-user',
+    externalPractitionerId: '1304541',
+    externalPractitionerRoleId: 'PR-2442591',
+    firstName: 'Zoe',
+    lastName: 'Developer',
+    displayName: 'Zoe Developer',
+    email: 'zoe@bloom.dev',
+    specializations: ['Clinical Psychology'],
+    qualificationType: 'clinical',
+    timezone: 'Australia/Sydney',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    lastSyncedAt: new Date().toISOString(),
+  },
+  todaysSessions: [
+    {
+      id: 'mock-1',
+      time: '09:00',
+      clientInitials: 'JD',
+      clientId: '12345',
+      clientName: 'John Doe',
+      sessionType: 'Individual Therapy',
+      duration: 50,
+      status: 'completed',
+      isUpNext: false,
+      locationType: 'telehealth',
+    },
+    {
+      id: 'mock-2',
+      time: '10:00',
+      clientInitials: 'SM',
+      clientId: '12346',
+      clientName: 'Sarah Mitchell',
+      sessionType: 'Individual Therapy',
+      duration: 50,
+      status: 'completed',
+      isUpNext: false,
+      locationType: 'in-person',
+    },
+    {
+      id: 'mock-3',
+      time: '14:00',
+      clientInitials: 'RK',
+      clientId: '12347',
+      clientName: 'Robert Kim',
+      sessionType: 'Individual Therapy',
+      duration: 50,
+      status: 'scheduled',
+      isUpNext: true,
+      locationType: 'telehealth',
+    },
+    {
+      id: 'mock-4',
+      time: '15:00',
+      clientInitials: 'EW',
+      clientId: '12348',
+      clientName: 'Emma Wilson',
+      sessionType: 'Individual Therapy',
+      duration: 50,
+      status: 'scheduled',
+      isUpNext: false,
+      locationType: 'telehealth',
+    },
+  ],
+  weeklyStats: {
+    totalAppointments: 22,
+    completedSessions: 8,
+    cancelledSessions: 1,
+    noShowSessions: 0,
+    revenue: 1850,
+  },
+  upcomingStats: {
+    todaySessions: 4,
+    tomorrowSessions: 5,
+    remainingThisWeek: 14,
+    nextWeekSessions: 20,
+    mhcpEndingSoon: 2,
+    clientsNeedingFollowUp: 3,
+    unbookedRegulars: 1,
+  },
+  monthlyStats: {
+    currentRevenue: 14250,
+    monthName: 'January',
+    targetRevenue: 22000,
+    completedSessions: 62,
+  },
+  lastUpdated: new Date().toISOString(),
+  syncStatus: {
+    isConnected: false,
+    lastSuccessfulSync: null,
+    lastSyncAttempt: new Date().toISOString(),
+    syncErrors: ['Azure subscription disabled - using mock data'],
+    pendingChanges: 0,
+  },
+};
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -205,7 +307,11 @@ export function useDashboard(
       setAuthStatus('authenticated');
 
       // Use the clinician-dashboard endpoint (fetches live Halaxy data)
-      const url = new URL(`${API_BASE_URL}/clinician/dashboard`);
+      // Build URL with proper base for relative paths (dev mode uses /api proxy)
+      const baseUrl = API_BASE_URL.startsWith('http') 
+        ? API_BASE_URL 
+        : `${window.location.origin}${API_BASE_URL}`;
+      const url = new URL(`${baseUrl}/clinician/dashboard`);
       if (date) {
         url.searchParams.set('date', date);
       }
@@ -233,8 +339,19 @@ export function useDashboard(
       console.log('[useDashboard] Response status:', response.status);
 
       if (!response.ok) {
-        // API failed - show error, no fallback
+        // API failed - fall back to mock data in development
         console.error('[useDashboard] Dashboard API failed:', response.status);
+        
+        const isLocalDev = window.location.hostname === 'localhost';
+        if (isLocalDev) {
+          console.log('[useDashboard] Using mock data for local development');
+          setDashboard(MOCK_DASHBOARD);
+          setIsUsingDemoData(true);
+          setError(null);
+          setLastFetched(new Date());
+          return;
+        }
+        
         setDashboard(null);
         setIsUsingDemoData(false);
         setError(`Failed to load appointments (${response.status})`);
@@ -333,10 +450,20 @@ export function useDashboard(
       setLastFetched(new Date());
     } catch (err) {
       console.error('Dashboard fetch error:', err);
-      // Show error - no fallback to sample data
-      setDashboard(null);
-      setIsUsingDemoData(false);
-      setError(err instanceof Error ? err.message : 'Failed to load dashboard');
+      
+      // Fall back to mock data in development
+      const isLocalDev = window.location.hostname === 'localhost';
+      if (isLocalDev) {
+        console.log('[useDashboard] Network error - using mock data for local development');
+        setDashboard(MOCK_DASHBOARD);
+        setIsUsingDemoData(true);
+        setError(null);
+        setLastFetched(new Date());
+      } else {
+        setDashboard(null);
+        setIsUsingDemoData(false);
+        setError(err instanceof Error ? err.message : 'Failed to load dashboard');
+      }
     } finally {
       setLoading(false);
     }

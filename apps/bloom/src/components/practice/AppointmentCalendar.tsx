@@ -68,8 +68,11 @@ export function AppointmentCalendar({
     }
   }, [practitionerId, weekDays, toast]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
+    const controller = new AbortController();
     loadAppointments();
+    return () => controller.abort();
   }, [loadAppointments]);
 
   const getAppointmentsForDay = (date: Date) => {

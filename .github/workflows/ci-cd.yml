@@ -1146,8 +1146,17 @@ jobs:
           tar -xzf bloom-frontend-dist.tar.gz
           cp -r dist ../dist
 
+      - name: Report Dist Size
+        run: |
+          echo "📦 Dist folder size:"
+          du -sh dist
+          find dist -type f | wc -l | xargs -I {} echo "📄 Total files: {}"
+
       - name: Deploy to Azure Static Web Apps
+        id: deploy-swa
         uses: Azure/static-web-apps-deploy@v1
+        timeout-minutes: 15
+        continue-on-error: true
         with:
           azure_static_web_apps_api_token: ${{ secrets[needs.determine-environment.outputs.bloom-frontend-secret] }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -1156,6 +1165,23 @@ jobs:
           skip_app_build: true
           skip_api_build: true
           production_branch: ${{ github.ref_name }}
+        env:
+          VERBOSE: true
+
+      - name: Retry Deploy on Timeout
+        if: steps.deploy-swa.outcome == 'failure'
+        uses: Azure/static-web-apps-deploy@v1
+        timeout-minutes: 15
+        with:
+          azure_static_web_apps_api_token: ${{ secrets[needs.determine-environment.outputs.bloom-frontend-secret] }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: 'upload'
+          app_location: 'dist'
+          skip_app_build: true
+          skip_api_build: true
+          production_branch: ${{ github.ref_name }}
+        env:
+          VERBOSE: true
 
       - name: Deployment Summary
         run: |

@@ -209,7 +209,7 @@ async function createAppointment(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    const body: CreateAppointmentRequest = await req.json();
+    const body = await req.json() as CreateAppointmentRequest;
     const {
       client_id,
       appointment_date,

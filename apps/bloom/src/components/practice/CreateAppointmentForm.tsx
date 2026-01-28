@@ -57,7 +57,7 @@ export function CreateAppointmentForm({
       const { data } = await api.get<{ clients: Client[] }>(
         `/clients?practitioner_id=${practitionerId}`
       );
-      setClients(data.clients);
+      setClients(data?.clients || []);
     } catch (err) {
       toast({
         variant: 'destructive',

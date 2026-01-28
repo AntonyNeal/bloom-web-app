@@ -43,7 +43,7 @@ export function ClientsList({ practitionerId, onSelectClient, onCreateClient }: 
       const { data } = await api.get<{ clients: Client[] }>(
         `/clients?practitioner_id=${practitionerId}${searchTerm ? `&search=${searchTerm}` : ''}`
       );
-      setClients(data.clients);
+      setClients(data?.clients || []);
     } catch (err) {
       toast({
         variant: 'destructive',

@@ -57,7 +57,7 @@ export function AppointmentCalendar({
       const { data } = await api.get<{ appointments: Appointment[] }>(
         `/appointments?practitioner_id=${practitionerId}&date_from=${dateFrom}&date_to=${dateTo}`
       );
-      setAppointments(data.appointments);
+      setAppointments(data?.appointments || []);
     } catch (err) {
       toast({
         variant: 'destructive',
@@ -77,7 +77,7 @@ export function AppointmentCalendar({
 
   const getAppointmentsForDay = (date: Date) => {
     const dateStr = formatDate(date);
-    return appointments.filter((apt) => apt.appointment_date === dateStr);
+    return (appointments || []).filter((apt) => apt.appointment_date === dateStr);
   };
 
   const formatTime = (timeStr: string) => {

@@ -3,12 +3,12 @@
  * Miyazaki-inspired appointment creation with gentle animations
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, User, Video, FileText, Loader2 } from 'lucide-react';
 import { Card, Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
 import { useToast } from '@/hooks';
-import { apiRequest } from '@/services/api';
+import api from '@/services/api';
 
 interface Client {
   id: string;
@@ -58,10 +58,10 @@ export function CreateAppointmentForm({
   const loadClients = async () => {
     try {
       setLoadingClients(true);
-      const response = await apiRequest<{ clients: Client[] }>(
+      const { data } = await api.get<{ clients: Client[] }>(
         `/clients?practitioner_id=${practitionerId}`
       );
-      setClients(response.clients);
+      setClients(data.clients);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -80,7 +80,7 @@ export function CreateAppointmentForm({
     return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formData.client_id || !formData.appointment_date || !formData.start_time) {
@@ -96,21 +96,18 @@ export function CreateAppointmentForm({
       setLoading(true);
       const endTime = calculateEndTime(formData.start_time, formData.duration_minutes);
 
-      const response = await apiRequest<{ appointment_id: string }>(
+      const { data } = await api.post<{ appointment_id: string }>(
         '/appointments',
         {
-          method: 'POST',
-          body: JSON.stringify({
-            practitioner_id: practitionerId,
-            client_id: formData.client_id,
-            appointment_date: formData.appointment_date,
-            start_time: formData.start_time,
-            end_time: endTime,
-            duration_minutes: formData.duration_minutes,
-            appointment_type: formData.appointment_type,
-            is_telehealth: formData.is_telehealth,
-            notes: formData.notes || null,
-          }),
+          practitioner_id: practitionerId,
+          client_id: formData.client_id,
+          appointment_date: formData.appointment_date,
+          start_time: formData.start_time,
+          end_time: endTime,
+          duration_minutes: formData.duration_minutes,
+          appointment_type: formData.appointment_type,
+          is_telehealth: formData.is_telehealth,
+          notes: formData.notes || null,
         }
       );
 
@@ -121,7 +118,7 @@ export function CreateAppointmentForm({
           : 'Client will receive confirmation',
       });
 
-      onSuccess?.(response.appointment_id);
+      onSuccess?.(data.appointment_id);
     } catch (error) {
       toast({
         variant: 'destructive',

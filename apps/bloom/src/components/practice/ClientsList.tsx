@@ -3,14 +3,14 @@
  * Miyazaki-inspired client management for practitioners
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, UserPlus, Mail, Phone, Calendar } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { Input } from '@/components/ui';
 import { Button } from '@/components/ui';
 import { useToast } from '@/hooks';
-import { apiRequest } from '@/services/api';
+import api from '@/services/api';
 
 interface Client {
   id: string;
@@ -44,10 +44,10 @@ export function ClientsList({ practitionerId, onSelectClient, onCreateClient }: 
   const loadClients = async () => {
     try {
       setLoading(true);
-      const response = await apiRequest<{ clients: Client[] }>(
+      const { data } = await api.get<{ clients: Client[] }>(
         `/clients?practitioner_id=${practitionerId}${searchTerm ? `&search=${searchTerm}` : ''}`
       );
-      setClients(response.clients);
+      setClients(data.clients);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -118,7 +118,7 @@ export function ClientsList({ practitionerId, onSelectClient, onCreateClient }: 
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-bloom-moss" />
         <Input
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           placeholder="Search by name, email, or phone..."
           className="pl-10 bg-bloom-cream border-bloom-stone focus:border-bloom-sage transition-colors"
         />
@@ -153,7 +153,7 @@ export function ClientsList({ practitionerId, onSelectClient, onCreateClient }: 
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {clients.map((client, index) => (
+            {clients.map((client: Client, index: number) => (
               <motion.div
                 key={client.id}
                 initial={{ opacity: 0, y: 20 }}

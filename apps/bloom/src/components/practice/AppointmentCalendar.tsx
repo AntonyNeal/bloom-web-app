@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Video, User
 import { Card } from '@/components/ui';
 import { Button } from '@/components/ui';
 import { useToast } from '@/hooks';
-import { apiRequest } from '@/services/api';
+import api from '@/services/api';
 
 interface Appointment {
   id: string;
@@ -58,10 +58,10 @@ export function AppointmentCalendar({
       const dateFrom = formatDate(weekDays[0]);
       const dateTo = formatDate(weekDays[6]);
       
-      const response = await apiRequest<{ appointments: Appointment[] }>(
+      const { data } = await api.get<{ appointments: Appointment[] }>(
         `/appointments?practitioner_id=${practitionerId}&date_from=${dateFrom}&date_to=${dateTo}`
       );
-      setAppointments(response.appointments);
+      setAppointments(data.appointments);
     } catch (error) {
       toast({
         variant: 'destructive',

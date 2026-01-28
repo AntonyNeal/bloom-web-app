@@ -341,13 +341,6 @@ export function useDashboard(
       console.log('[useDashboard] Response status:', response.status);
 
       if (!response.ok) {
-        // If 403, user doesn't have a practitioner record - redirect to practice management
-        if (response.status === 403) {
-          console.log('[useDashboard] No practitioner record found, redirecting to Practice Management');
-          navigate('/practice');
-          return;
-        }
-        
         // API failed - fall back to mock data in development
         console.error('[useDashboard] Dashboard API failed:', response.status);
         

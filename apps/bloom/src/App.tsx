@@ -641,7 +641,7 @@ function AnimatedRoutes() {
       <GardenGateButton />
 
       <Routes>
-        {/* Home page - Dashboard (protected, redirects to login if not authenticated) */}
+        {/* Home page - Dashboard (protected) */}
         <Route
           path="/"
           element={

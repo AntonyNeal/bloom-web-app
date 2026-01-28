@@ -1,0 +1,12 @@
+# .gitignore for reports folder
+
+# These are generated reports and should not be committed
+# They are moved here to clean up the root directory
+
+# Lighthouse audit files are generated during performance testing
+# Run `npm run lighthouse` to generate new reports
+*.json
+*.html
+
+# Keep the README
+!README.md

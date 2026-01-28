@@ -17,20 +17,24 @@ module.exports = {
     },
     extend: {
       colors: {
-        // BLOOM DESIGN SYSTEM - Warm Professional Palette
+        // ============================================
+        // BLOOM DESIGN SYSTEM - Miyazaki/Botanical Aesthetic
+        // For Practitioners - "Craft Guild" Feel
+        // See: docs/epics/DESIGN_SYSTEM_RESEARCH_FINDINGS.md
+        // ============================================
         
-        // Primary: Sage Green (60% of interface)
+        // Primary: Eucalyptus Sage (60% of interface)
         sage: {
           50: '#F5F7F5',
           100: '#E8EDE8',
           200: '#D1DCD1',
           300: '#A8B5A1',
-          400: '#8B9E87',
-          500: '#89A894',
-          600: '#6B8066',
-          700: '#4A5D4C',
-          800: '#3D4D3F',
-          900: '#2E3B2F',
+          400: '#8FA892',   // softFern
+          500: '#6B8E7F',   // eucalyptusSage - PRIMARY BRAND
+          600: '#4A6B5C',   // deepSage - TEXT (4.5:1 contrast)
+          700: '#3D5A4C',   // forestShadow - HEADERS (7:1 AAA)
+          800: '#2E4A3D',
+          900: '#1F3A2E',
         },
         
         // Secondary: Lavender (30% - care & empathy)
@@ -46,52 +50,60 @@ module.exports = {
         
         // Backgrounds: Warm Cream
         cream: {
-          50: '#FDFCFB',
-          100: '#F5F3EE',
-          200: '#EFEBE5',
-          300: '#E6DDD2',
+          50: '#FFFFFE',    // warmWhite - card surfaces
+          100: '#FAF7F2',   // warmCream - PRIMARY BACKGROUND
+          200: '#F5F3EE',
+          300: '#EFEBE5',
+          400: '#E8E4DF',   // softStone - borders
         },
         
-        // Accent: Sunset Blush
+        // Accent: Sunset Blush (terracotta warmth)
         blush: {
           100: '#FFF5F2',
           200: '#FFE8E0',
           300: '#FFD4BC',
-          400: '#F5B89E',
-          500: '#E8C5B5',
+          400: '#D4A28F',   // softTerracotta
+          500: '#C49080',
         },
         
-        // Accent: Muted Teal
+        // Accent: Healing Teal (shared with NEXT-WEBSITE)
         teal: {
           100: '#E8F2F1',
           200: '#D0E5E3',
           300: '#A3C4C0',
           400: '#7FA9A3',
+          500: '#0D9488',   // healingTeal - SUCCESS/GROWTH
+          600: '#059669',   // SHARED wellness green
         },
         
-        // Text Colors (warm, not gray)
+        // Text Colors (warm, accessible)
         text: {
-          primary: '#3D3D3A',
-          secondary: '#5A5A57',
-          tertiary: '#8A8A87',
+          primary: '#3D5A4C',    // forestShadow - 7:1 AAA
+          secondary: '#4A6B5C',  // deepSage - 4.5:1 AA
+          tertiary: '#6B8E7F',   // eucalyptusSage - decorative only
+          muted: '#8A8A87',
         },
         
-        // Semantic Colors (Bloom-styled)
+        // Semantic Colors (Research-validated)
         success: {
-          DEFAULT: '#88C399',
-          bg: '#F0F9F3',
+          DEFAULT: '#059669',    // SHARED wellness green
+          light: '#D1FAE5',
+          bg: '#ECFDF5',
         },
         warning: {
-          DEFAULT: '#F4C27F',
-          bg: '#FFF9ED',
+          DEFAULT: '#D97706',    // SHARED across platforms
+          light: '#FEF3C7',
+          bg: '#FFFBEB',
         },
         error: {
-          DEFAULT: '#F5A097',
-          bg: '#FFF5F4',
+          DEFAULT: '#DC2626',    // SHARED across platforms
+          light: '#FEE2E2',
+          bg: '#FEF2F2',
         },
         info: {
-          DEFAULT: '#9BB0A8',
-          bg: '#F2F6F5',
+          DEFAULT: '#0284C7',
+          light: '#E0F2FE',
+          bg: '#F0F9FF',
         },
         
         // Legacy mappings for backward compatibility

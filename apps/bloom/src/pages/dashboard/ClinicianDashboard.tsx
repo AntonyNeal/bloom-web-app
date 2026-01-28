@@ -349,8 +349,12 @@ export function ClinicianDashboard() {
             {isConfigError && (
               <div style={styles.configHint}>
                 <p style={styles.hintText}>
-                  Please contact your administrator to complete your Halaxy integration.
+                  In the meantime, you can manage your practice directly:
                 </p>
+                <button onClick={() => navigate('/practice')} style={styles.retryButton}>
+                  <span style={{ marginRight: '8px' }}>📋</span>
+                  Go to Practice Management
+                </button>
               </div>
             )}
           </div>

@@ -116,6 +116,12 @@ export function ClinicianDashboard() {
       const res = await fetch(`${API_BASE_URL}/clinician/dashboard`, { headers });
 
       if (!res.ok) {
+        // If 403, user doesn't have a practitioner record yet - redirect to practice management
+        if (res.status === 403) {
+          console.log('[Dashboard] No practitioner record found, redirecting to Practice Management');
+          navigate('/practice');
+          return;
+        }
         const errorData = await res.json();
         throw new Error(errorData.error || 'Failed to load dashboard');
       }

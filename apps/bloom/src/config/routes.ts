@@ -26,8 +26,11 @@ export const ROUTES = {
   // Public Routes (no auth required)
   // ─────────────────────────────────────────────────────────────────────────
   
-  /** Landing page - Garden Gate */
+  /** Home page - Dashboard (protected) */
   HOME: '/',
+  
+  /** Garden Gate - Original landing page */
+  GARDEN: '/garden',
   
   /** Join Us - Application form for practitioners */
   JOIN_US: '/join-us',

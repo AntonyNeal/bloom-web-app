@@ -122,11 +122,11 @@ function LandingPage() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Auto-redirect to bloom home if already authenticated
+  // Auto-redirect to home if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      console.log('[LandingPage] User already authenticated, redirecting to bloom-home');
-      navigate('/bloom-home', { replace: true });
+      console.log('[LandingPage] User already authenticated, redirecting to home');
+      navigate('/', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
 
@@ -641,8 +641,25 @@ function AnimatedRoutes() {
       <GardenGateButton />
 
       <Routes>
-        {/* Landing page - Garden Gate (no lazy loading, immediate) */}
-        <Route path="/" element={<LandingPage />} />
+        {/* Home page - Dashboard (protected, redirects to login if not authenticated) */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading dashboard...</div>}
+                >
+                  <ClinicianDashboard />
+                </Suspense>
+                <Toaster />
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Garden Gate - Original landing page (public) */}
+        <Route path="/garden" element={<LandingPage />} />
 
         {/* Auth callback route - handles Azure AD redirect */}
         <Route path="/auth/callback" element={<AuthCallback />} />

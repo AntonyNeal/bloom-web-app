@@ -49,6 +49,7 @@ interface _Appointment {
 }
 
 interface CreateAppointmentRequest {
+  practitioner_id?: string;
   client_id: string;
   appointment_date: string;
   start_time: string;
@@ -335,13 +336,20 @@ async function createAppointment(
 // PUT /api/appointments/:id - Update appointment
 // ============================================================================
 
+interface UpdateAppointmentBody {
+  status?: string;
+  notes?: string;
+  start_time?: string;
+  end_time?: string;
+}
+
 async function updateAppointment(
   req: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
     const id = req.params.id;
-    const body = await req.json();
+    const body = await req.json() as UpdateAppointmentBody;
 
     if (!id) {
       return {

@@ -165,6 +165,15 @@ async function createClient(req: HttpRequest, context: InvocationContext): Promi
       phone?: string;
       date_of_birth?: string;
       gender?: string;
+      address_street?: string;
+      address_suburb?: string;
+      address_state?: string;
+      address_postcode?: string;
+      medicare_number?: string;
+      ndis_number?: string;
+      emergency_contact_name?: string;
+      emergency_contact_phone?: string;
+      notes?: string;
     }
     const body = await req.json() as CreateClientBody;
     const {
@@ -270,13 +279,15 @@ async function updateClient(req: HttpRequest, context: InvocationContext): Promi
       phone?: string;
       date_of_birth?: string;
       gender?: string;
-      address?: string;
-      suburb?: string;
-      state?: string;
-      postcode?: string;
-      country?: string;
+      address_street?: string;
+      address_suburb?: string;
+      address_state?: string;
+      address_postcode?: string;
+      medicare_number?: string;
+      ndis_number?: string;
       emergency_contact_name?: string;
       emergency_contact_phone?: string;
+      notes?: string;
     }
     const clientId = req.params.id;
     const body = await req.json() as UpdateClientBody;

@@ -82,6 +82,9 @@ export const ROUTES = {
   /** Clinician Calendar - Week view schedule */
   CALENDAR: '/calendar',
   
+  /** Practice Management - Standalone clinic dashboard */
+  PRACTICE: '/practice',
+  
   /** Session Router - Entry point for telehealth */
   SESSION: '/session',
   

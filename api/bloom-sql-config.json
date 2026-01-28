@@ -1,0 +1,7 @@
+{
+    "SqlPassword":  "BloomPlatform2025!Secure",
+    "SqlServer":  "lpa-sql-server.database.windows.net",
+    "SavedAt":  "2026-01-28 18:38:15",
+    "SqlUser":  "lpaadmin",
+    "SqlDatabase":  "lpa-bloom-db-prod"
+}

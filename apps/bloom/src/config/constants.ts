@@ -56,12 +56,22 @@ export type SessionStatus = typeof SESSION_STATUS[keyof typeof SESSION_STATUS];
 
 /**
  * Bloom design system color palette
- * Based on natural, botanical theme
+ * Based on natural, botanical theme (Miyazaki/Studio Ghibli inspired)
  */
 export const BLOOM_COLORS = {
   // Primary greens (sage family)
   eucalyptusSage: '#6B8E7F',
   softFern: '#8FA892',
+  sage: '#6B8E7F',
+  fern: '#8FA892',
+  
+  // Extended palette
+  deepSage: '#4A6B5C',
+  forestShadow: '#3D5A4C',
+  forest: '#3D5A4C',
+  softStone: '#E8E4DF',
+  stone: '#E8E4DF',
+  moss: '#6A6A6A',
   
   // Warm accents
   paleAmber: '#F5E6D3',
@@ -71,12 +81,18 @@ export const BLOOM_COLORS = {
   
   // Neutrals
   warmCream: '#FAF7F2',
+  cream: '#FAF7F2',
   paperWhite: '#FEFDFB',
   
   // Text colors
   textPrimary: '#3A3A3A',
   textSecondary: '#4A4A4A',
   textTertiary: '#6A6A6A',
+  
+  // Semantic colors (shared with NEXT-WEBSITE)
+  success: '#059669',
+  warning: '#D97706',
+  error: '#DC2626',
 } as const;
 
 // =============================================================================

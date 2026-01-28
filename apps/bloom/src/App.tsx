@@ -56,6 +56,10 @@ const SessionLobby = lazy(() =>
 const PatientJoinSession = lazy(() =>
   import('./pages/session/PatientJoinSession').then((m) => ({ default: m.PatientJoinSession }))
 );
+// Practice management - standalone clinic dashboard
+const PracticePage = lazy(() =>
+  import('./pages/PracticePage').then((m) => ({ default: m.PracticePage }))
+);
 
 /**
  * Session Router - Handles /session route
@@ -1027,6 +1031,23 @@ function AnimatedRoutes() {
                 >
                   <SessionPage />
                 </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Practice Management - Standalone clinic dashboard */}
+        <Route
+          path="/practice"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading practice...</div>}
+                >
+                  <PracticePage />
+                </Suspense>
+                <Toaster />
               </ErrorBoundary>
             </ProtectedRoute>
           }

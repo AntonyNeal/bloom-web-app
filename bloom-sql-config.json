@@ -1,0 +1,7 @@
+{
+    "SqlPassword":  "# Get SQL Server info from Azure",
+    "SqlServer":  "lpa-sql-server.database.windows.net",
+    "SavedAt":  "2026-01-28 18:37:07",
+    "SqlUser":  "",
+    "SqlDatabase":  "lpa-bloom-db-prod"
+}

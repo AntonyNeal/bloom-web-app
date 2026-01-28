@@ -55,6 +55,9 @@ import './functions/interview-scheduling';
 import './functions/interview-analysis';
 import './functions/video-recordings';
 import './functions/weather';
+import './functions/appointments';
+import './functions/clients';
+import './functions/availability';
 
 export * from './functions/health';
 export * from './functions/applications';

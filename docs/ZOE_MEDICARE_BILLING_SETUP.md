@@ -2,249 +2,237 @@
 
 **Hi Zoe!** Thanks for helping set up automated Medicare billing for Life Psychology Australia. This guide walks you through everything we need from your side.
 
-**Time Required:** ~2-3 hours  
-**What You Need:** Access to Halaxy Admin, PRODA login, practitioner Medicare details
+**Time Required:** ~1-2 hours  
+**What You Need:** PRODA login, practitioner Medicare details
 
 ---
 
-## 📋 Overview: What We're Setting Up
+## 📋 Overview: What We're Building
 
-Automated Medicare billing means:
-1. ✅ After a session, Bloom creates the invoice automatically
-2. ✅ Medicare claim is submitted electronically (no manual entry)
-3. ✅ Rebate goes directly to client or practice (depending on setup)
-4. ✅ Gap payment collected via Stripe
+We're building **Bloom** as a complete replacement for Halaxy. Automated Medicare billing will work like this:
 
-**Current State:** Halaxy integration is connected (Client ID: `6596938477cda9626813ca7454526177`)  
-**What's Missing:** Medicare claiming credentials and practitioner billing details
+1. ✅ Practitioner completes session in Bloom
+2. ✅ Bloom generates invoice automatically  
+3. ✅ Medicare claim submitted electronically (via Tyro/Medicare Online)
+4. ✅ Rebate goes directly to client (bulk bill) or practice (private bill)
+5. ✅ Gap payment collected via Stripe
+
+**No more Halaxy!** Everything happens in Bloom.
 
 ---
 
 ## 🔑 Part 1: PRODA Setup (Practice Level)
 
-PRODA (Provider Digital Access) is Services Australia's system for submitting Medicare claims.
+PRODA (Provider Digital Access) is Services Australia's system for submitting Medicare claims electronically.
 
 ### Step 1.1: Log into PRODA
 1. Go to: **https://proda.humanservices.gov.au**
 2. Sign in with Life Psychology Australia's PRODA account
-3. If you don't have one, you'll need to register the practice first
+3. If you don't have one yet, register the practice first
 
 ### Step 1.2: Link Practice to Medicare Online
 1. In PRODA, go to **Organisation Management**
 2. Find "Life Psychology Australia" 
 3. Ensure **Medicare Online** is linked as a service
-4. Note down the **Location ID** (we'll need this)
+4. Note down:
+   - **Minor ID** (practice identifier)
+   - **Location ID** (physical location)
 
 ### Step 1.3: Get API Credentials for Claiming
+
+We have two options for electronic claiming:
+
+**Option A: Direct Medicare Online (B2B)**
 1. Go to **B2B Claiming** or **Software Provider Access**
-2. Generate credentials for "Halaxy" as your software provider
-3. You'll get:
+2. Register Bloom as your claiming software
+3. Generate credentials:
    - **Software ID** 
    - **Device/Software Token**
-   - **Location ID**
-   
-📝 **Send these to Julian:** (securely - don't put in email)
+
+**Option B: Tyro Health (Recommended - Simpler)**
+1. Sign up at **https://www.tyrohealth.com**
+2. Link your PRODA account
+3. Tyro handles the Medicare submission for us
+4. We just send claims to Tyro's API
+
+📝 **Send to Julian (securely):**
 ```
-Software ID: _______________
-Device Token: _______________
+Minor ID: _______________
 Location ID: _______________
+Claiming method: [ ] Direct B2B  [ ] Tyro Health
+If Tyro: Tyro Merchant ID: _______________
+If B2B: Software ID: _______________
+If B2B: Device Token: _______________
 ```
 
 ---
 
 ## 👩‍⚕️ Part 2: Practitioner Medicare Details
 
-We need the following for **each practitioner** who will be billing Medicare:
+We need this for **every practitioner** who will bill Medicare through Bloom.
 
-### Step 2.1: Gather Practitioner Details
+### Step 2.1: Information Needed Per Practitioner
 
-For each clinician, we need:
+| Field | Example | Notes |
+|-------|---------|-------|
+| **Full Legal Name** | Dr Zoe Smith | Must match Medicare exactly |
+| **Medicare Provider Number** | 1234567A | 7 digits + letter |
+| **AHPRA Registration** | PSY0001234567 | For verification |
+| **Qualification Type** | Clinical Psychologist / Registered Psychologist | Determines item numbers |
+| **ABN** (if contractor) | 12 345 678 901 | For invoicing |
+| **Bank Details** | BSB + Account | For practitioner payments |
 
-| Field | Example | Your Details |
-|-------|---------|--------------|
-| **Full Legal Name** | Zoe Smith | ___________ |
-| **Medicare Provider Number** | 1234567A | ___________ |
-| **AHPRA Registration** | PSY0001234567 | ___________ |
-| **Practice Location ID** | (from PRODA) | ___________ |
-| **Prescriber Number** (if applicable) | 1234567 | ___________ |
+### Step 2.2: Current Practitioners to Set Up
 
-### Step 2.2: Enter in Halaxy
+Please fill out for each clinician:
 
-1. Log into Halaxy Admin: **https://app.halaxy.com/admin**
-2. Go to **Settings → Practitioners**
-3. For each practitioner:
-   - Click **Edit**
-   - Go to **Billing** tab
-   - Enter **Medicare Provider Number**
-   - Set **Default Item Numbers** (see below)
-   - Enable **Online Claiming**
-4. Save changes
+**Practitioner 1: Zoe**
+- Full Name: _______________
+- Medicare Provider #: _______________
+- AHPRA: _______________
+- Type: [ ] Clinical Psych [ ] Registered Psych [ ] Other
+- Standard Session Fee: $_______________
 
-### Step 2.3: Common Medicare Item Numbers
+**Practitioner 2: _______________**
+- Full Name: _______________
+- Medicare Provider #: _______________
+- AHPRA: _______________
+- Type: [ ] Clinical Psych [ ] Registered Psych [ ] Other
+- Standard Session Fee: $_______________
 
-| Item Code | Description | Standard Fee | Medicare Rebate |
-|-----------|-------------|--------------|-----------------|
-| **80010** | Initial consultation (30-50min) | ~$180-220 | $90.35 |
-| **80110** | Initial consultation (50+ min) | ~$250-300 | $131.45 |
-| **80000** | Subsequent consultation (30-50min) | ~$180-220 | $90.35 |
-| **80100** | Subsequent consultation (50+ min) | ~$250-300 | $131.45 |
-| **91167** | Telehealth clinical psych | ~$250-300 | $131.65 |
-
-For **Clinical Psychologists** (like you), item numbers start with **8XXXX**  
-For **Registered Psychologists**, item numbers are different (usually lower rebate)
+(Copy for additional practitioners)
 
 ---
 
-## 💳 Part 3: Halaxy Billing Configuration
+## 💰 Part 3: Fee Schedule & Item Numbers
 
-### Step 3.1: Practice-Wide Settings
+### Medicare Item Numbers for Psychology
 
-In Halaxy Admin:
+**Clinical Psychologists (AHPRA registered):**
+| Item Code | Description | Duration | Medicare Rebate |
+|-----------|-------------|----------|-----------------|
+| **80010** | Initial consultation | 30-50 min | $90.35 |
+| **80110** | Initial consultation | 50+ min | $131.45 |
+| **80000** | Subsequent session | 30-50 min | $90.35 |
+| **80100** | Subsequent session | 50+ min | $131.45 |
 
-1. Go to **Settings → Billing**
-2. Under **Medicare Settings**:
-   - ✅ Enable "Online Medicare Claiming"
-   - Enter **Minor ID** (from PRODA setup)
-   - Enter **Location ID**
-   - Set **Claiming Software Provider** to your software details
-   
-3. Under **Default Invoice Settings**:
-   - Set **GST**: No (Medicare services are GST-free)
-   - Set **Payment Terms**: Due immediately / 7 days
-   - Enable **Auto-generate invoices after appointments**
+**Telehealth (Clinical Psych):**
+| Item Code | Description | Duration | Medicare Rebate |
+|-----------|-------------|----------|-----------------|
+| **91167** | Video consultation | 50+ min | $131.65 |
+| **91168** | Video consultation | 30-50 min | $90.45 |
 
-### Step 3.2: Service Types Setup
+**Registered Psychologists:**
+| Item Code | Description | Duration | Medicare Rebate |
+|-----------|-------------|----------|-----------------|
+| **80010** | Session | 30-50 min | $70.60 |
+| **80110** | Session | 50+ min | $102.55 |
 
-For each appointment type, configure billing:
+### Your Fee Structure
 
-1. Go to **Settings → Appointment Types**
-2. For each type (e.g., "Medicare Psychology Session"):
-   - Set default **Item Number**
-   - Set default **Fee**
-   - Enable **Auto-create invoice**
-   - Link to correct **Payment method** (Medicare + Stripe for gap)
+What are your standard fees? This helps us set up the default pricing:
 
----
-
-## 🔗 Part 4: Connect Halaxy to Bloom
-
-### Step 4.1: Verify API Connection
-
-The Halaxy API is already connected. Let's verify it's working:
-
-1. In Halaxy, go to **Settings → Integrations → API Access**
-2. Confirm you see an active connection for:
-   - Client ID: `6596938477cda9626813ca7454526177`
-   - Permissions: Appointments, Patients, Billing, Practitioners
-
-### Step 4.2: Enable Webhooks
-
-For real-time sync, enable webhooks:
-
-1. In Halaxy Admin, go to **Settings → Integrations → Webhooks**
-2. Add a new webhook:
-   - **URL**: `https://bloom-functions-dev.azurewebsites.net/api/halaxy-webhook`
-   - **Events**: 
-     - ✅ appointment.created
-     - ✅ appointment.updated
-     - ✅ appointment.cancelled
-     - ✅ patient.created
-     - ✅ invoice.created
-     - ✅ payment.received
-3. Copy the **Webhook Secret** and send to Julian
-
-### Step 4.3: Map Practitioners
-
-Each practitioner needs their Halaxy ID linked in Bloom. Current mapping:
-
-| Practitioner | Bloom ID | Halaxy Practitioner ID | Halaxy Role ID |
-|--------------|----------|------------------------|----------------|
-| Zoe | (primary) | 1304541 | PR-2442591 |
-| ___________ | ________ | ________ | ________ |
-| ___________ | ________ | ________ | ________ |
-
-To find Halaxy IDs:
-1. In Halaxy Admin → Settings → Practitioners
-2. Click on each practitioner
-3. Look at the URL - it contains the ID (e.g., `/practitioner/1304541`)
+| Service Type | Your Fee | Medicare Rebate | Gap (Client Pays) |
+|--------------|----------|-----------------|-------------------|
+| Initial Assessment (50min) | $_______ | $131.45 | $_______ |
+| Standard Session (50min) | $_______ | $131.45 | $_______ |
+| Telehealth Session (50min) | $_______ | $131.65 | $_______ |
+| Couples Session (50min) | $_______ | N/A | $_______ |
 
 ---
 
-## 📝 Part 5: Testing Checklist
+## 🏦 Part 4: Payment Processing Setup
 
-Before going live, test with a fake/test appointment:
+### Stripe (Already Connected)
+Bloom uses Stripe for card payments. Confirm:
+- [ ] Stripe account is set up for Life Psychology Australia
+- [ ] Bank account linked for payouts
+- [ ] Business verified
 
-### Test 1: Appointment Sync
-- [ ] Create appointment in Halaxy
-- [ ] Verify it appears in Bloom dashboard
-- [ ] Verify client details sync correctly
+### Bulk Billing vs Private Billing
 
-### Test 2: Invoice Generation
-- [ ] Complete an appointment in Halaxy
-- [ ] Verify invoice auto-generates
-- [ ] Check item number is correct
-- [ ] Check fee amount is correct
+**Bulk Billing** (Medicare pays practice, client pays nothing):
+- [ ] Do you offer bulk billing? For which clients?
+- [ ] Bulk bill item numbers are different - same number with "BB" suffix
 
-### Test 3: Medicare Claim (use test mode)
-- [ ] Submit a test claim
-- [ ] Verify claim status updates
-- [ ] Confirm rebate amount is correct
+**Private Billing** (Client pays, claims rebate):
+- [ ] Client pays full fee upfront (via Stripe)
+- [ ] We submit Medicare claim on their behalf
+- [ ] Rebate goes to client's bank account
 
-### Test 4: Gap Payment
-- [ ] Trigger gap payment in Stripe
-- [ ] Verify receipt is sent to client
-- [ ] Confirm payment recorded in Halaxy
+**Which model do you use?**
+- [ ] Private billing only (most common)
+- [ ] Bulk billing for some (concession card holders)
+- [ ] Mix depending on client
 
 ---
 
-## 📞 What Julian Needs From You
-
-Please collect and securely send:
+## 📝 Part 5: What Julian Needs From You
 
 ### Practice Level (One-time):
+- [ ] PRODA Minor ID
 - [ ] PRODA Location ID
-- [ ] Medicare Minor ID  
-- [ ] Software/Device Token for claiming
-- [ ] Webhook secret from Halaxy
+- [ ] Tyro Health credentials OR B2B claiming credentials
+- [ ] Stripe account confirmation
+- [ ] Bulk billing policy decision
 
 ### Per Practitioner:
-- [ ] Full legal name
+- [ ] Full legal name (as registered with Medicare)
 - [ ] Medicare Provider Number
-- [ ] Halaxy Practitioner ID
-- [ ] Halaxy PractitionerRole ID
-- [ ] Default item numbers they use
-- [ ] Standard fee per session type
+- [ ] AHPRA Registration Number  
+- [ ] Qualification type (Clinical/Registered/Other)
+- [ ] Standard session fees
+- [ ] Bank details for practitioner payments (if contractor)
 
-### Halaxy Access (if needed):
-- [ ] Can Julian have read-only admin access to verify settings?
-
----
-
-## ❓ Common Questions
-
-**Q: What if a client doesn't have a Mental Health Treatment Plan?**  
-A: Medicare claims will be rejected. The system should flag this before claiming.
-
-**Q: What about DVA clients?**  
-A: Different item numbers and claiming process. Let's set up Medicare first, then DVA.
-
-**Q: What about NDIS?**  
-A: NDIS uses a different invoicing flow through the NDIS portal. That's Phase 2.
-
-**Q: What about private (non-Medicare) clients?**  
-A: They just pay full fee via Stripe. No claiming involved.
+### Fee Schedule:
+- [ ] Your fee for each session type
+- [ ] Which item numbers you commonly use
+- [ ] Any special pricing (sliding scale, student rates, etc.)
 
 ---
 
-## 🎯 Next Steps
+## 🎯 What Bloom Will Do
 
-1. **Today**: Complete Parts 1-3 (PRODA and practitioner setup)
-2. **Send to Julian**: Credentials and IDs listed above
-3. **Schedule**: 30-min call to test the integration together
-4. **Go Live**: After successful testing
+Once we have the above, Bloom will:
+
+1. **Auto-generate invoices** after each completed session
+2. **Submit Medicare claims** electronically (within 2 business days)
+3. **Collect gap payments** via Stripe (card on file or invoice)
+4. **Track claim status** and alert if rejected
+5. **Generate reports** for BAS/tax time
+6. **Pay practitioners** their share (if split arrangement)
+
+### Bloom Practice Management Features:
+- ✅ Client management (already built)
+- ✅ Appointment scheduling (already built)
+- ✅ Telehealth sessions (already built)
+- 🔜 Invoicing & Medicare claiming (building now)
+- 🔜 Financial reporting
+- 🔜 Practitioner payouts
+
+---
+
+## ❓ Questions to Discuss
+
+1. **Claiming timing:** Submit claims same-day or batch weekly?
+2. **Client notifications:** Email receipt immediately or next day?
+3. **Failed claims:** Who handles rejections - admin or practitioner?
+4. **Cancellation fees:** Do you charge for late cancellations? Medicare or private only?
+5. **Practitioner payments:** How do you split revenue with contractors?
+
+---
+
+## 📞 Next Steps
+
+1. **Today**: Gather PRODA credentials and practitioner details
+2. **Send to Julian**: Use secure method (not email) for credentials
+3. **This week**: Julian builds Medicare claiming integration
+4. **Next week**: Test with real (small) claims
+5. **Go live**: Full automated billing!
 
 ---
 
 **Questions?** Call Julian or message in the team chat.
 
-*Document created: January 29, 2026*
+*Document created: January 29, 2026*  
+*Bloom Practice Management - Replacing Halaxy*

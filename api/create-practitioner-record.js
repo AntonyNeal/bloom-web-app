@@ -3,18 +3,16 @@
  * Run with: node create-practitioner-record.js
  */
 
-require('dotenv').config({ path: './local.settings.json' });
 const sql = require('mssql');
 
 async function createPractitioner() {
-  const settings = require('./local.settings.json');
-  const env = settings.Values;
+  const settings = require('./bloom-sql-config.json');
   
   const config = {
-    server: env.SQL_SERVER,
-    database: env.SQL_DATABASE,
-    user: env.SQL_USER,
-    password: env.SQL_PASSWORD,
+    server: settings.SqlServer,
+    database: settings.SqlDatabase,
+    user: settings.SqlUser,
+    password: settings.SqlPassword,
     options: {
       encrypt: true,
       trustServerCertificate: false,

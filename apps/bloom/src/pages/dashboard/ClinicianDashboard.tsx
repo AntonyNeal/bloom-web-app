@@ -472,6 +472,10 @@ export function ClinicianDashboard() {
         <aside style={styles.rightSidebar}>
           <div style={styles.actionsCard}>
             <h3 style={styles.actionsTitle}>Quick Actions</h3>
+            <button onClick={() => navigate('/practice')} style={styles.actionButton}>
+              <span style={styles.actionIcon}>🏥</span>
+              <span>Practice Management</span>
+            </button>
             <button onClick={() => navigate('/calendar')} style={styles.actionButton}>
               <span style={styles.actionIcon}>📅</span>
               <span>View Full Calendar</span>

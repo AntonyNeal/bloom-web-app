@@ -5,8 +5,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, Plus } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Calendar, Users } from 'lucide-react';
 import { ClientsList } from './ClientsList';
 import { AppointmentCalendar } from './AppointmentCalendar';
 import { CreateAppointmentForm } from './CreateAppointmentForm';

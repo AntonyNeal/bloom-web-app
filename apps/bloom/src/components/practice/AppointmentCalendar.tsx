@@ -3,7 +3,7 @@
  * Week view calendar with organic animations
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Video, User } from 'lucide-react';
 import { Card } from '@/components/ui';
@@ -41,11 +41,13 @@ export function AppointmentCalendar({
   const { toast } = useToast();
 
   const weekStart = getWeekStart(currentDate);
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(weekStart);
-    date.setDate(weekStart.getDate() + i);
-    return date;
-  });
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
+      return date;
+    });
+  }, [weekStart]);
 
   const loadAppointments = useCallback(async () => {
     try {

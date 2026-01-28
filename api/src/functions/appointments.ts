@@ -33,7 +33,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-interface Appointment {
+interface _Appointment {
   id: string;
   practitioner_id: string;
   client_id: string;

@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users } from 'lucide-react';
+import { BloomHeader } from '@/components/layout/BloomHeader';
 import { ClientsList } from './ClientsList';
 import { AppointmentCalendar } from './AppointmentCalendar';
 import { CreateAppointmentForm } from './CreateAppointmentForm';
@@ -36,7 +37,10 @@ export function PracticeDashboard({ practitionerId, practitionerName }: Practice
 
   return (
     <div className="min-h-screen bg-bloom-cream">
-      {/* Header */}
+      {/* Bloom Header */}
+      <BloomHeader />
+
+      {/* Page Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -46,10 +50,10 @@ export function PracticeDashboard({ practitionerId, practitionerName }: Practice
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-semibold text-bloom-forest">
-                Welcome back, {practitionerName}
+                Practice Management
               </h1>
               <p className="text-sm text-bloom-moss mt-1">
-                Your practice at a glance
+                Manage your clients and appointments
               </p>
             </div>
 

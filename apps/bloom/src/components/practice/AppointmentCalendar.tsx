@@ -68,9 +68,9 @@ export function AppointmentCalendar({
     }
   }, [practitionerId, weekDays, toast]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     const controller = new AbortController();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAppointments();
     return () => controller.abort();
   }, [loadAppointments]);

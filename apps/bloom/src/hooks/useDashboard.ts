@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type {
   PractitionerDashboard,
   SessionFeedItem,
@@ -257,6 +258,7 @@ export function useDashboard(
   _practitionerId?: string,
   options: UseDashboardOptions = {}
 ): UseDashboardResult {
+  const navigate = useNavigate();
   const {
     refreshInterval = REFRESH_INTERVAL_MS,
     date,
@@ -339,6 +341,13 @@ export function useDashboard(
       console.log('[useDashboard] Response status:', response.status);
 
       if (!response.ok) {
+        // If 403, user doesn't have a practitioner record - redirect to practice management
+        if (response.status === 403) {
+          console.log('[useDashboard] No practitioner record found, redirecting to Practice Management');
+          navigate('/practice');
+          return;
+        }
+        
         // API failed - fall back to mock data in development
         console.error('[useDashboard] Dashboard API failed:', response.status);
         

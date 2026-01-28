@@ -495,14 +495,7 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
       to: '/admin/dashboard', 
       icon: <WrenchIcon />, 
       label: 'Admin Tools', 
-      description: 'Practice management',
-      section: 'admin',
-    },
-    { 
-      to: '/admin/practitioners', 
-      icon: <UsersIcon />, 
-      label: 'Practitioners', 
-      description: 'Team management',
+      description: 'Practice & team management',
       section: 'admin',
     },
   ];

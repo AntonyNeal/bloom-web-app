@@ -13,6 +13,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as sql from 'mssql';
 import { v4 as uuidv4 } from 'uuid';
+import { randomBytes } from 'crypto';
 
 const getDbConfig = () => {
   const connectionString = process.env.SQL_CONNECTION_STRING;
@@ -260,7 +261,7 @@ async function createAppointment(
 
     // Create appointment
     const appointmentId = uuidv4();
-    const sessionToken = require('crypto').randomBytes(32).toString('hex');
+    const sessionToken = randomBytes(32).toString('hex');
 
     await pool
       .request()

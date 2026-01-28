@@ -3,7 +3,7 @@
  * Week view calendar with organic animations
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Video, User } from 'lucide-react';
 import { Card } from '@/components/ui';
@@ -38,7 +38,6 @@ export function AppointmentCalendar({
 }: AppointmentCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const weekStart = getWeekStart(currentDate);
@@ -48,13 +47,8 @@ export function AppointmentCalendar({
     return date;
   });
 
-  useEffect(() => {
-    loadAppointments();
-  }, [practitionerId, currentDate]);
-
-  const loadAppointments = async () => {
+  const loadAppointments = useCallback(async () => {
     try {
-      setLoading(true);
       const dateFrom = formatDate(weekDays[0]);
       const dateTo = formatDate(weekDays[6]);
       
@@ -62,16 +56,19 @@ export function AppointmentCalendar({
         `/appointments?practitioner_id=${practitionerId}&date_from=${dateFrom}&date_to=${dateTo}`
       );
       setAppointments(data.appointments);
-    } catch (error) {
+    } catch (err) {
       toast({
         variant: 'destructive',
         title: 'Failed to load appointments',
         description: 'Please try again',
       });
-    } finally {
-      setLoading(false);
+      console.error('Failed to load appointments:', err);
     }
-  };
+  }, [practitionerId, weekDays, toast]);
+
+  useEffect(() => {
+    loadAppointments();
+  }, [loadAppointments]);
 
   const getAppointmentsForDay = (date: Date) => {
     const dateStr = formatDate(date);

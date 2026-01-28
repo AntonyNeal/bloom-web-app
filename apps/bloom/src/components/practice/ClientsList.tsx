@@ -3,7 +3,7 @@
  * Miyazaki-inspired client management for practitioners
  */
 
-import { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, UserPlus, Mail, Phone, Calendar } from 'lucide-react';
 import { Card } from '@/components/ui';
@@ -37,27 +37,28 @@ export function ClientsList({ practitionerId, onSelectClient, onCreateClient }: 
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadClients();
-  }, [practitionerId]);
-
-  const loadClients = async () => {
+  const loadClients = useCallback(async () => {
     try {
       setLoading(true);
       const { data } = await api.get<{ clients: Client[] }>(
         `/clients?practitioner_id=${practitionerId}${searchTerm ? `&search=${searchTerm}` : ''}`
       );
       setClients(data.clients);
-    } catch (error) {
+    } catch (err) {
       toast({
         variant: 'destructive',
         title: 'Failed to load clients',
         description: 'Please try again',
       });
+      console.error('Failed to load clients:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [practitionerId, searchTerm, toast]);
+
+  useEffect(() => {
+    loadClients();
+  }, [loadClients]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -66,7 +67,7 @@ export function ClientsList({ practitionerId, onSelectClient, onCreateClient }: 
       }
     }, 300);
     return () => clearTimeout(debounce);
-  }, [searchTerm]);
+  }, [searchTerm, loadClients]);
 
   const getDisplayName = (client: Client) => {
     if (client.preferred_name) return client.preferred_name;

@@ -80,7 +80,14 @@ async function createAvailability(req: HttpRequest, context: InvocationContext):
   if (req.method === 'OPTIONS') return { status: 204, headers: corsHeaders };
 
   try {
-    const body = await req.json() as any;
+    interface CreateAvailabilityBody {
+      practitioner_id: string;
+      day_of_week: number;
+      start_time: string;
+      end_time: string;
+      duration_minutes: number;
+    }
+    const body = await req.json() as CreateAvailabilityBody;
     const {
       practitioner_id,
       day_of_week,
@@ -152,8 +159,15 @@ async function updateAvailability(req: HttpRequest, context: InvocationContext):
   if (req.method === 'OPTIONS') return { status: 204, headers: corsHeaders };
 
   try {
+    interface UpdateAvailabilityBody {
+      day_of_week?: number;
+      start_time?: string;
+      end_time?: string;
+      duration_minutes?: number;
+      is_active?: boolean;
+    }
     const slotId = req.params.id;
-    const body = await req.json() as any;
+    const body = await req.json() as UpdateAvailabilityBody;
 
     if (!slotId) {
       return {

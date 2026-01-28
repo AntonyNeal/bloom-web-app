@@ -3,7 +3,7 @@
  * Miyazaki-inspired appointment creation with gentle animations
  */
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, User, Video, FileText, Loader2 } from 'lucide-react';
 import { Card, Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
@@ -51,26 +51,27 @@ export function CreateAppointmentForm({
     notes: '',
   });
 
-  useEffect(() => {
-    loadClients();
-  }, [practitionerId]);
-
-  const loadClients = async () => {
+  const loadClients = useCallback(async () => {
     try {
       setLoadingClients(true);
       const { data } = await api.get<{ clients: Client[] }>(
         `/clients?practitioner_id=${practitionerId}`
       );
       setClients(data.clients);
-    } catch (error) {
+    } catch (err) {
       toast({
         variant: 'destructive',
         title: 'Failed to load clients',
       });
+      console.error('Failed to load clients:', err);
     } finally {
       setLoadingClients(false);
     }
-  };
+  }, [practitionerId, toast]);
+
+  useEffect(() => {
+    loadClients();
+  }, [loadClients]);
 
   const calculateEndTime = (startTime: string, durationMinutes: number) => {
     const [hours, minutes] = startTime.split(':').map(Number);
@@ -119,12 +120,13 @@ export function CreateAppointmentForm({
       });
 
       onSuccess?.(data.appointment_id);
-    } catch (error) {
+    } catch (err) {
       toast({
         variant: 'destructive',
         title: 'Failed to create appointment',
         description: 'Please try again',
       });
+      console.error('Failed to create appointment:', err);
     } finally {
       setLoading(false);
     }

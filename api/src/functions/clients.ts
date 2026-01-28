@@ -156,7 +156,17 @@ async function createClient(req: HttpRequest, context: InvocationContext): Promi
   if (req.method === 'OPTIONS') return { status: 204, headers: corsHeaders };
 
   try {
-    const body = await req.json() as any;
+    interface CreateClientBody {
+      practitioner_id: string;
+      first_name: string;
+      last_name: string;
+      preferred_name?: string;
+      email?: string;
+      phone?: string;
+      date_of_birth?: string;
+      gender?: string;
+    }
+    const body = await req.json() as CreateClientBody;
     const {
       practitioner_id,
       first_name,
@@ -252,8 +262,24 @@ async function updateClient(req: HttpRequest, context: InvocationContext): Promi
   if (req.method === 'OPTIONS') return { status: 204, headers: corsHeaders };
 
   try {
+    interface UpdateClientBody {
+      first_name?: string;
+      last_name?: string;
+      preferred_name?: string;
+      email?: string;
+      phone?: string;
+      date_of_birth?: string;
+      gender?: string;
+      address?: string;
+      suburb?: string;
+      state?: string;
+      postcode?: string;
+      country?: string;
+      emergency_contact_name?: string;
+      emergency_contact_phone?: string;
+    }
     const clientId = req.params.id;
-    const body = await req.json() as any;
+    const body = await req.json() as UpdateClientBody;
 
     if (!clientId) {
       return {

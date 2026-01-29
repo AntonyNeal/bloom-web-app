@@ -501,19 +501,18 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
       section: 'main',
     },
     { 
-      to: '/sessions', 
-      icon: <CalendarIcon />, 
-      label: "Today's Sessions", 
-      description: 'Focused session list',
-      accentColor: colors.sage,
-      section: 'main',
-    },
-    { 
       to: '/session', 
       icon: <VideoIcon />, 
       label: 'Therapy Room', 
       description: 'Start a session',
       accentColor: colors.sage,
+      section: 'main',
+    },
+    { 
+      to: '/calendar', 
+      icon: <CalendarIcon />, 
+      label: 'Calendar', 
+      description: 'Full schedule view',
       section: 'main',
     },
   ];
@@ -564,13 +563,6 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
       label: 'Business', 
       description: 'Finances & admin',
       accentColor: colors.terracotta,
-      section: 'main',
-    },
-    { 
-      to: '/calendar', 
-      icon: <CalendarIcon />, 
-      label: 'Calendar', 
-      description: 'Full schedule view',
       section: 'main',
     },
   ];

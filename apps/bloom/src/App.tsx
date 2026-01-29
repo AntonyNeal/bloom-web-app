@@ -46,9 +46,6 @@ const ScheduleInterview = lazy(() => import('./pages/ScheduleInterview'));
 const InterviewRoom = lazy(() => import('./pages/InterviewRoom'));
 
 // New navigation structure pages
-const TodaySessions = lazy(() =>
-  import('./pages/sessions/TodaySessions').then((m) => ({ default: m.TodaySessions }))
-);
 const ClinicalNotes = lazy(() =>
   import('./pages/clinical/ClinicalNotes').then((m) => ({ default: m.ClinicalNotes }))
 );
@@ -1093,20 +1090,10 @@ function AnimatedRoutes() {
             NEW NAVIGATION STRUCTURE ROUTES
             ═══════════════════════════════════════════════════════════════════ */}
         
-        {/* Today's Sessions - Focused session list */}
+        {/* /sessions - Legacy route, redirect to home (sessions are in feed) */}
         <Route
           path="/sessions"
-          element={
-            <ProtectedRoute>
-              <ErrorBoundary>
-                <Suspense
-                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading sessions...</div>}
-                >
-                  <TodaySessions />
-                </Suspense>
-              </ErrorBoundary>
-            </ProtectedRoute>
-          }
+          element={<Navigate to="/" replace />}
         />
 
         {/* Clinical Notes - Documentation workspace */}

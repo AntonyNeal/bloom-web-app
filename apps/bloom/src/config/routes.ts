@@ -74,9 +74,6 @@ export const ROUTES = {
   // Daily Work
   // ─────────────────────────────────────────────────────────────────────────
   
-  /** Today's Sessions - Focused session list for running your day */
-  SESSIONS: '/sessions',
-  
   /** Session Router - Entry point for telehealth */
   SESSION: '/session',
   

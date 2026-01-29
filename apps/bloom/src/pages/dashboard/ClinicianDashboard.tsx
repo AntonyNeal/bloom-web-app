@@ -30,11 +30,20 @@ interface Session {
 }
 
 interface DashboardData {
-  practitioner: {
+  // Practitioner dashboard (when user has Halaxy credentials)
+  practitioner?: {
     displayName: string;
     email: string;
     halaxyId: string;
   };
+  // Admin dashboard (when user is admin/staff without practitioner record)
+  user?: {
+    displayName: string;
+    email: string;
+    role: string;
+    permissions: string[];
+  };
+  dashboardType?: 'admin' | 'practitioner';
   today: {
     date: string;
     sessions: Session[];
@@ -375,10 +384,10 @@ export function ClinicianDashboard() {
         <aside style={styles.sidebar}>
           <div style={styles.profileCard}>
             <div style={styles.profileAvatar}>
-              {dashboard.practitioner.displayName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              {(dashboard.practitioner?.displayName || dashboard.user?.displayName || 'User').split(' ').map(n => n[0]).join('').slice(0, 2)}
             </div>
-            <h2 style={styles.profileName}>{dashboard.practitioner.displayName}</h2>
-            <p style={styles.profileRole}>Psychologist</p>
+            <h2 style={styles.profileName}>{dashboard.practitioner?.displayName || dashboard.user?.displayName || 'User'}</h2>
+            <p style={styles.profileRole}>{dashboard.dashboardType === 'admin' ? (dashboard.user?.role || 'Admin') : 'Psychologist'}</p>
           </div>
 
           <div style={styles.statsCard}>

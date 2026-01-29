@@ -1180,20 +1180,10 @@ function AnimatedRoutes() {
             LEGACY ROUTES (kept for backward compatibility)
             ═══════════════════════════════════════════════════════════════════ */}
 
-        {/* Practice Management - Legacy route, now shows TodaySessions */}
+        {/* Practice Management - Legacy route, redirect to home */}
         <Route
           path="/practice"
-          element={
-            <ProtectedRoute>
-              <ErrorBoundary>
-                <Suspense
-                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading sessions...</div>}
-                >
-                  <TodaySessions />
-                </Suspense>
-              </ErrorBoundary>
-            </ProtectedRoute>
-          }
+          element={<Navigate to="/" replace />}
         />
 
         {/* Design system test route */}

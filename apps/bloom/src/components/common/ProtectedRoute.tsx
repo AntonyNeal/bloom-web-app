@@ -2,6 +2,7 @@ import { useIsAuthenticated } from '@azure/msal-react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect } from 'react';
+import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 
 /**
  * ProtectedRoute - Secures admin routes with Azure AD authentication
@@ -11,6 +12,7 @@ import { useEffect } from 'react';
  * - Shows loading state during auth initialization
  * - Redirects to landing page if not authenticated
  * - Preserves attempted URL in location state for post-login redirect
+ * - Optionally wraps content in AuthenticatedLayout with BloomHeader
  * 
  * Usage:
  * <Route path="/admin/dashboard" element={
@@ -18,8 +20,22 @@ import { useEffect } from 'react';
  *     <AdminDashboard />
  *   </ProtectedRoute>
  * } />
+ * 
+ * // For pages that need no header (video calls, etc.):
+ * <Route path="/session/:id" element={
+ *   <ProtectedRoute withLayout={false}>
+ *     <SessionPage />
+ *   </ProtectedRoute>
+ * } />
  */
-export const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+
+interface ProtectedRouteProps {
+  children: JSX.Element;
+  /** Wrap content in AuthenticatedLayout with BloomHeader (default: false to avoid double headers on pages that already have BloomHeader) */
+  withLayout?: boolean;
+}
+
+export const ProtectedRoute = ({ children, withLayout = false }: ProtectedRouteProps) => {
   const isAuthenticated = useIsAuthenticated();
   const { isLoading } = useAuth();
   const location = useLocation();
@@ -83,5 +99,10 @@ export const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   }
 
   // User is authenticated - render protected content
+  // Wrap in layout unless explicitly disabled
+  if (withLayout) {
+    return <AuthenticatedLayout>{children}</AuthenticatedLayout>;
+  }
+  
   return children;
 };

@@ -101,7 +101,7 @@ function SessionRouter() {
   
   // Otherwise, require authentication and show the session lobby (clinician)
   return (
-    <ProtectedRoute>
+    <ProtectedRoute withLayout={true}>
       <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Preparing therapy room...</div>}>
         <SessionLobby />
       </Suspense>
@@ -785,7 +785,7 @@ function AnimatedRoutes() {
         <Route
           path="/business-coach"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute withLayout={true}>
               <ErrorBoundary>
                 <Suspense
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
@@ -937,7 +937,7 @@ function AnimatedRoutes() {
         <Route
           path="/admin/applications"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute withLayout={true}>
               <ErrorBoundary>
                 <Suspense
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
@@ -969,7 +969,7 @@ function AnimatedRoutes() {
         <Route
           path="/admin/applications/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute withLayout={true}>
               <ErrorBoundary>
                 <Suspense
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
@@ -986,7 +986,7 @@ function AnimatedRoutes() {
         <Route
           path="/admin/ab-tests"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute withLayout={true}>
               <ErrorBoundary>
                 <Suspense
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
@@ -1003,7 +1003,7 @@ function AnimatedRoutes() {
         <Route
           path="/admin/smoke-tests"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute withLayout={true}>
               <ErrorBoundary>
                 <Suspense
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
@@ -1020,7 +1020,7 @@ function AnimatedRoutes() {
         <Route
           path="/admin/practitioners"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute withLayout={true}>
               <ErrorBoundary>
                 <Suspense
                   fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}

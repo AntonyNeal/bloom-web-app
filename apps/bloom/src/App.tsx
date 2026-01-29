@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
 import { GardenGateButton } from './components/common/GardenGateButton';
 import { ProtectedRoute } from './components/common/ProtectedRoute';

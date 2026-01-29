@@ -6,7 +6,13 @@
 -- Replaces dependency on Halaxy for patient records.
 -- ============================================================================
 
-IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'clients')
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'clients')
+BEGIN
+    PRINT 'V035: Clients table already exists, skipping';
+END
+ELSE
+BEGIN
+
 CREATE TABLE clients (
     id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     
@@ -63,28 +69,35 @@ CREATE TABLE clients (
 );
 
 -- Index for practitioner lookup (most common query)
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_clients_practitioner')
 CREATE INDEX IX_clients_practitioner 
     ON clients(practitioner_id, is_deleted, is_active)
     INCLUDE (first_name, last_name, email);
 
 -- Index for email lookup (unique per practitioner)
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_clients_email')
 CREATE INDEX IX_clients_email 
     ON clients(practitioner_id, email)
     WHERE email IS NOT NULL AND is_deleted = 0;
 
 -- Index for phone lookup
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_clients_phone')
 CREATE INDEX IX_clients_phone 
     ON clients(practitioner_id, phone)
     WHERE phone IS NOT NULL AND is_deleted = 0;
 
 -- Index for Halaxy import tracking
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_clients_halaxy_id')
 CREATE INDEX IX_clients_halaxy_id 
     ON clients(halaxy_patient_id)
     WHERE halaxy_patient_id IS NOT NULL;
 
 -- Index for name search
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_clients_name')
 CREATE INDEX IX_clients_name 
     ON clients(practitioner_id, last_name, first_name)
     WHERE is_deleted = 0;
+
+END -- End of IF NOT EXISTS block
 
 PRINT 'V035: Clients table created successfully';

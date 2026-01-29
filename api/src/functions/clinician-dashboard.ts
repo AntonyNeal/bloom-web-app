@@ -20,6 +20,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { getHalaxyClient } from '../services/halaxy';
 import { getPractitionerByAzureId } from '../services/practitioner';
+import { getUserByAzureId, canAccessAdminDashboard, canAccessPractitionerDashboard } from '../services/user';
 import type { FHIRAppointment } from '../services/halaxy/types';
 
 // ============================================================================
@@ -252,6 +253,62 @@ async function clinicianDashboardHandler(
           jsonBody: { 
             success: false, 
             error: 'Authentication required. Please log in.' 
+          },
+        };
+      }
+
+      // ========================================================================
+      // Check users table first for role-based access
+      // ========================================================================
+      const user = await getUserByAzureId(azureUserId);
+      
+      // If user is admin/staff without practitioner record, return admin dashboard
+      if (user && canAccessAdminDashboard(user) && !canAccessPractitionerDashboard(user)) {
+        context.log(`Admin user ${user.display_name} (${user.role}) accessing dashboard`);
+        return {
+          status: 200,
+          headers,
+          jsonBody: {
+            success: true,
+            data: {
+              user: {
+                displayName: user.display_name || `${user.first_name} ${user.last_name}`,
+                email: user.email,
+                role: user.role,
+                permissions: user.permissions || [],
+              },
+              dashboardType: 'admin',
+              message: 'Admin dashboard - no practitioner schedule',
+              today: {
+                date: new Date().toISOString().split('T')[0],
+                sessions: [],
+                summary: {
+                  date: new Date().toISOString().split('T')[0],
+                  totalSessions: 0,
+                  completedSessions: 0,
+                  upcomingSessions: 0,
+                  cancelledSessions: 0,
+                },
+              },
+              weekStats: {
+                weekStartDate: new Date().toISOString().split('T')[0],
+                weekEndDate: new Date().toISOString().split('T')[0],
+                totalSessions: 0,
+                completedSessions: 0,
+                scheduledSessions: 0,
+                cancelledSessions: 0,
+                tomorrowSessions: 0,
+                remainingThisWeek: 0,
+              },
+              monthStats: {
+                monthName: new Date().toLocaleString('default', { month: 'long' }),
+                completedSessions: 0,
+                totalRevenue: 0,
+                targetRevenue: 0,
+              },
+              dataSource: 'bloom-admin',
+              fetchedAt: new Date().toISOString(),
+            },
           },
         };
       }

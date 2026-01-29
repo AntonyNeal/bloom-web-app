@@ -45,6 +45,26 @@ const AcceptOffer = lazy(() => import('./pages/AcceptOffer'));
 const ScheduleInterview = lazy(() => import('./pages/ScheduleInterview'));
 const InterviewRoom = lazy(() => import('./pages/InterviewRoom'));
 
+// New navigation structure pages
+const TodaySessions = lazy(() =>
+  import('./pages/sessions/TodaySessions').then((m) => ({ default: m.TodaySessions }))
+);
+const ClinicalNotes = lazy(() =>
+  import('./pages/clinical/ClinicalNotes').then((m) => ({ default: m.ClinicalNotes }))
+);
+const MyClients = lazy(() =>
+  import('./pages/clients/MyClients').then((m) => ({ default: m.MyClients }))
+);
+const Billabong = lazy(() =>
+  import('./pages/billabong/Billabong').then((m) => ({ default: m.Billabong }))
+);
+const Growth = lazy(() =>
+  import('./pages/growth/Growth').then((m) => ({ default: m.Growth }))
+);
+const Business = lazy(() =>
+  import('./pages/business/Business').then((m) => ({ default: m.Business }))
+);
+
 // Session page for telehealth video calls
 const SessionPage = lazy(() =>
   import('./pages/session/SessionPage').then((m) => ({ default: m.SessionPage }))
@@ -56,7 +76,7 @@ const SessionLobby = lazy(() =>
 const PatientJoinSession = lazy(() =>
   import('./pages/session/PatientJoinSession').then((m) => ({ default: m.PatientJoinSession }))
 );
-// Practice management - standalone clinic dashboard
+// Practice management - standalone clinic dashboard (legacy, redirects to /sessions)
 const PracticePage = lazy(() =>
   import('./pages/PracticePage').then((m) => ({ default: m.PracticePage }))
 );
@@ -92,7 +112,7 @@ function SessionRouter() {
   );
 }
 
-// Clinician dashboard (feed-style home page)
+// Clinician dashboard (feed-style home page) - used for legacy /practice route
 const ClinicianDashboard = lazy(() =>
   import('./pages/dashboard/ClinicianDashboard').then((m) => ({ default: m.ClinicianDashboard }))
 );
@@ -1069,18 +1089,121 @@ function AnimatedRoutes() {
           }
         />
 
-        {/* Practice Management - Standalone clinic dashboard */}
+        {/* ═══════════════════════════════════════════════════════════════════
+            NEW NAVIGATION STRUCTURE ROUTES
+            ═══════════════════════════════════════════════════════════════════ */}
+        
+        {/* Today's Sessions - Focused session list */}
+        <Route
+          path="/sessions"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading sessions...</div>}
+                >
+                  <TodaySessions />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Clinical Notes - Documentation workspace */}
+        <Route
+          path="/clinical-notes"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading notes...</div>}
+                >
+                  <ClinicalNotes />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* My Clients - Caseload overview */}
+        <Route
+          path="/my-clients"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading clients...</div>}
+                >
+                  <MyClients />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* The Billabong - Community space */}
+        <Route
+          path="/billabong"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading community...</div>}
+                >
+                  <Billabong />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Growth - Supervision & CPD */}
+        <Route
+          path="/growth"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading growth...</div>}
+                >
+                  <Growth />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Business - Finances & admin */}
+        <Route
+          path="/business"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading business...</div>}
+                >
+                  <Business />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            LEGACY ROUTES (kept for backward compatibility)
+            ═══════════════════════════════════════════════════════════════════ */}
+
+        {/* Practice Management - Legacy route, now shows TodaySessions */}
         <Route
           path="/practice"
           element={
             <ProtectedRoute>
               <ErrorBoundary>
                 <Suspense
-                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading practice...</div>}
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading sessions...</div>}
                 >
-                  <PracticePage />
+                  <TodaySessions />
                 </Suspense>
-                <Toaster />
               </ErrorBoundary>
             </ProtectedRoute>
           }

@@ -70,11 +70,25 @@ export const ROUTES = {
   /** Bloom Homepage - Main authenticated home (alias for HOME) */
   BLOOM_HOME: '/bloom-home',
   
-  /** Practice - Sessions, schedule, and daily work */
-  PRACTICE: '/practice',
+  // ─────────────────────────────────────────────────────────────────────────
+  // Daily Work
+  // ─────────────────────────────────────────────────────────────────────────
   
-  /** Business Coach - AI-assisted business guidance */
-  BUSINESS_COACH: '/business-coach',
+  /** Today's Sessions - Focused session list for running your day */
+  SESSIONS: '/sessions',
+  
+  /** Session Router - Entry point for telehealth */
+  SESSION: '/session',
+  
+  /** Telehealth Session - Active video call */
+  SESSION_ACTIVE: '/session/:appointmentId',
+  
+  // ─────────────────────────────────────────────────────────────────────────
+  // Clinical Work
+  // ─────────────────────────────────────────────────────────────────────────
+  
+  /** Clinical Notes - Deep documentation workspace */
+  CLINICAL_NOTES: '/clinical-notes',
   
   /** Notes History - Past session notes */
   NOTES: '/notes',
@@ -82,20 +96,41 @@ export const ROUTES = {
   /** Note Detail - Single note view */
   NOTE_DETAIL: '/notes/:id',
   
+  /** My Clients - Caseload overview */
+  MY_CLIENTS: '/my-clients',
+  
   /** Client Profile - Client details and history */
   CLIENT_PROFILE: '/client/:clientId',
+  
+  // ─────────────────────────────────────────────────────────────────────────
+  // Community & Growth
+  // ─────────────────────────────────────────────────────────────────────────
+  
+  /** The Billabong - Community, peer wisdom, consultation */
+  BILLABONG: '/billabong',
+  
+  /** Growth - Supervision, CPD, professional development */
+  GROWTH: '/growth',
+  
+  // ─────────────────────────────────────────────────────────────────────────
+  // Business
+  // ─────────────────────────────────────────────────────────────────────────
+  
+  /** Business - Earnings, invoicing, practice admin */
+  BUSINESS: '/business',
+  
+  /** Business Coach - AI-assisted business guidance */
+  BUSINESS_COACH: '/business-coach',
   
   /** Clinician Calendar - Week view schedule */
   CALENDAR: '/calendar',
   
-  /** Practice Management - Standalone clinic dashboard */
+  // ─────────────────────────────────────────────────────────────────────────
+  // Legacy Routes (kept for backward compatibility)
+  // ─────────────────────────────────────────────────────────────────────────
+  
+  /** Practice - Legacy route, redirects to /sessions */
   PRACTICE: '/practice',
-  
-  /** Session Router - Entry point for telehealth */
-  SESSION: '/session',
-  
-  /** Telehealth Session - Active video call */
-  SESSION_ACTIVE: '/session/:appointmentId',
   
   // ─────────────────────────────────────────────────────────────────────────
   // Admin Routes (require admin role)

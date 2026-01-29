@@ -263,6 +263,7 @@ async function clinicianDashboardHandler(
       let user = null;
       try {
         user = await getUserByAzureId(azureUserId);
+        context.log(`[Dashboard] User lookup result: ${JSON.stringify(user)}`);
       } catch (err) {
         // Users table might not exist yet - continue with practitioner lookup
         context.log(`[Dashboard] Users table lookup failed (table may not exist): ${err.message}`);
@@ -270,7 +271,7 @@ async function clinicianDashboardHandler(
       
       // If user is admin/staff without practitioner record, return admin dashboard
       if (user && canAccessAdminDashboard(user) && !canAccessPractitionerDashboard(user)) {
-        context.log(`Admin user ${user.display_name} (${user.role}) accessing dashboard`);
+        context.log(`[Dashboard] Admin user detected: ${user.display_name} (${user.role})`);
         return {
           status: 200,
           headers,

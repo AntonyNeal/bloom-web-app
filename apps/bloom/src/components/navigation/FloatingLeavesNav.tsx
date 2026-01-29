@@ -320,6 +320,31 @@ const VideoIcon = () => (
   </svg>
 );
 
+const FileTextIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <line x1="10" y1="9" x2="8" y2="9" />
+  </svg>
+);
+
+const WaterDropIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+  </svg>
+);
+
+const SproutIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7 20h10" />
+    <path d="M12 20v-8" />
+    <path d="M12 12c-3 0-6-3-6-6 3 0 6 3 6 6z" />
+    <path d="M12 12c3 0 6-3 6-6-3 0-6 3-6 6z" />
+  </svg>
+);
+
 const SettingsIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="3" />
@@ -463,20 +488,23 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
 
-  // Default navigation items
+  // Default navigation items - organized by practitioner workflows
   const defaultItems: NavItem[] = [
+    // ─────────────────────────────────────────────────────────────────────────
+    // DAILY WORK
+    // ─────────────────────────────────────────────────────────────────────────
     { 
       to: '/', 
       icon: <HomeIcon />, 
       label: 'Home', 
-      description: 'Your garden overview',
+      description: 'Your garden feed',
       section: 'main',
     },
     { 
-      to: '/practice', 
-      icon: <BriefcaseIcon />, 
-      label: 'Practice', 
-      description: "Today's sessions & schedule",
+      to: '/sessions', 
+      icon: <CalendarIcon />, 
+      label: "Today's Sessions", 
+      description: 'Focused session list',
       accentColor: colors.sage,
       section: 'main',
     },
@@ -488,11 +516,53 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
       accentColor: colors.sage,
       section: 'main',
     },
+  ];
+
+  // Clinical work items
+  const clinicalItems: NavItem[] = [
     { 
-      to: '/business-coach', 
-      icon: <ChartIcon />, 
-      label: 'Business Coach', 
-      description: 'Revenue & insights',
+      to: '/clinical-notes', 
+      icon: <FileTextIcon />, 
+      label: 'Clinical Notes', 
+      description: 'Documentation workspace',
+      section: 'main',
+    },
+    { 
+      to: '/my-clients', 
+      icon: <UsersIcon />, 
+      label: 'My Clients', 
+      description: 'Caseload overview',
+      section: 'main',
+    },
+  ];
+
+  // Community & Growth items
+  const communityItems: NavItem[] = [
+    { 
+      to: '/billabong', 
+      icon: <WaterDropIcon />, 
+      label: 'The Billabong', 
+      description: 'Community & peer support',
+      accentColor: '#4A8FA8', // Water blue
+      section: 'main',
+    },
+    { 
+      to: '/growth', 
+      icon: <SproutIcon />, 
+      label: 'Growth', 
+      description: 'Supervision & CPD',
+      accentColor: '#4A7C59', // Sprout green
+      section: 'main',
+    },
+  ];
+
+  // Business items
+  const businessItems: NavItem[] = [
+    { 
+      to: '/business', 
+      icon: <BriefcaseIcon />, 
+      label: 'Business', 
+      description: 'Finances & admin',
       accentColor: colors.terracotta,
       section: 'main',
     },
@@ -500,7 +570,7 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
       to: '/calendar', 
       icon: <CalendarIcon />, 
       label: 'Calendar', 
-      description: 'Schedule overview',
+      description: 'Full schedule view',
       section: 'main',
     },
   ];
@@ -514,9 +584,6 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
       section: 'admin',
     },
   ];
-
-  const navItems = items || defaultItems;
-  const allItems = showAdmin ? [...navItems, ...adminItems] : navItems;
 
   // Close on click outside
   useEffect(() => {
@@ -665,9 +732,11 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
               padding: '8px 8px',
               position: 'relative',
               zIndex: 1,
+              maxHeight: '60vh',
+              overflowY: 'auto',
             }}>
-              {/* Main section */}
-              {navItems.map((item, index) => (
+              {/* Daily Work section */}
+              {defaultItems.map((item, index) => (
                 <LeafItem
                   key={item.to}
                   to={item.to}
@@ -675,6 +744,54 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
                   label={item.label}
                   description={item.description}
                   index={index}
+                  isActive={location.pathname === item.to}
+                  onClick={handleItemClick}
+                  accentColor={item.accentColor}
+                />
+              ))}
+
+              {/* Clinical Work section */}
+              <VineDivider />
+              {clinicalItems.map((item, index) => (
+                <LeafItem
+                  key={item.to}
+                  to={item.to}
+                  icon={item.icon}
+                  label={item.label}
+                  description={item.description}
+                  index={defaultItems.length + index}
+                  isActive={location.pathname === item.to}
+                  onClick={handleItemClick}
+                  accentColor={item.accentColor}
+                />
+              ))}
+
+              {/* Community & Growth section */}
+              <VineDivider />
+              {communityItems.map((item, index) => (
+                <LeafItem
+                  key={item.to}
+                  to={item.to}
+                  icon={item.icon}
+                  label={item.label}
+                  description={item.description}
+                  index={defaultItems.length + clinicalItems.length + index}
+                  isActive={location.pathname === item.to}
+                  onClick={handleItemClick}
+                  accentColor={item.accentColor}
+                />
+              ))}
+
+              {/* Business section */}
+              <VineDivider />
+              {businessItems.map((item, index) => (
+                <LeafItem
+                  key={item.to}
+                  to={item.to}
+                  icon={item.icon}
+                  label={item.label}
+                  description={item.description}
+                  index={defaultItems.length + clinicalItems.length + communityItems.length + index}
                   isActive={location.pathname === item.to}
                   onClick={handleItemClick}
                   accentColor={item.accentColor}
@@ -692,7 +809,7 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
                       icon={item.icon}
                       label={item.label}
                       description={item.description}
-                      index={navItems.length + index}
+                      index={defaultItems.length + clinicalItems.length + communityItems.length + businessItems.length + index}
                       isActive={location.pathname.startsWith(item.to)}
                       onClick={handleItemClick}
                       accentColor={item.accentColor}

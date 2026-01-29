@@ -371,17 +371,22 @@ export function useDashboard(
       // Transform clinician-dashboard response to PractitionerDashboard format
       const clinicianData = apiResponse.data;
       
+      // Handle both practitioner and admin dashboard responses
+      const displayName = clinicianData.practitioner?.displayName || clinicianData.user?.displayName || 'User';
+      const email = clinicianData.practitioner?.email || clinicianData.user?.email || '';
+      const halaxyId = clinicianData.practitioner?.halaxyId || 'admin';
+      
       const transformedDashboard: PractitionerDashboard = {
         practitioner: {
           id: 'current-user',
-          externalPractitionerId: clinicianData.practitioner.halaxyId,
-          externalPractitionerRoleId: clinicianData.practitioner.halaxyId,
-          firstName: clinicianData.practitioner.displayName.split(' ')[0] || '',
-          lastName: clinicianData.practitioner.displayName.split(' ').slice(1).join(' ') || '',
-          displayName: clinicianData.practitioner.displayName,
-          email: clinicianData.practitioner.email,
+          externalPractitionerId: halaxyId,
+          externalPractitionerRoleId: halaxyId,
+          firstName: displayName.split(' ')[0] || '',
+          lastName: displayName.split(' ').slice(1).join(' ') || '',
+          displayName: displayName,
+          email: email,
           specializations: [],
-          qualificationType: 'clinical',
+          qualificationType: clinicianData.dashboardType === 'admin' ? 'admin' : 'clinical',
           timezone: 'Australia/Sydney',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),

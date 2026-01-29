@@ -316,13 +316,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
       - name: Install Root Dependencies
-        run: npm install
+        run: npm ci
       - name: Run Root ESLint
         run: npm run lint
       - name: Install Website-Next Dependencies
         working-directory: apps/website-next
-        run: npm install
+        run: npm ci
       - name: Run Website-Next ESLint
         working-directory: apps/website-next
         run: npm run lint
@@ -336,17 +337,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
       - name: Install Root Dependencies
-        run: npm install
+        run: npm ci
       - name: Install Bloom Dependencies
         working-directory: apps/bloom
-        run: npm install
+        run: npm ci
       - name: Bloom Type Check
         working-directory: apps/bloom
         run: npx tsc --noEmit
       - name: Install Website-Next Dependencies
         working-directory: apps/website-next
-        run: npm install
+        run: npm ci
       - name: Website-Next Type Check
         working-directory: apps/website-next
         run: npx tsc --noEmit
@@ -369,10 +371,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION_API }}
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
           
       - name: Install API Dependencies
         working-directory: ./api
-        run: npm install
+        run: npm ci
 
       - name: Run Unit Tests
         working-directory: ./api
@@ -746,13 +750,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: apps/bloom/package-lock.json
 
       - name: Install Bloom Dependencies
         working-directory: apps/bloom
-        run: |
-          npm ci
-          echo "📦 Verifying vite installation..."
-          ls -la node_modules/.bin/vite || echo "vite not found!"
+        run: npm ci
 
       - name: Build Bloom Application
         working-directory: apps/bloom
@@ -819,10 +822,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: apps/website-next/package-lock.json
 
       - name: Install Website Dependencies
         working-directory: apps/website-next
-        run: npm install
+        run: npm ci
 
       - name: Build Next.js Application
         working-directory: apps/website-next

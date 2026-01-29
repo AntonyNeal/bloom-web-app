@@ -260,7 +260,13 @@ async function clinicianDashboardHandler(
       // ========================================================================
       // Check users table first for role-based access
       // ========================================================================
-      const user = await getUserByAzureId(azureUserId);
+      let user = null;
+      try {
+        user = await getUserByAzureId(azureUserId);
+      } catch (err) {
+        // Users table might not exist yet - continue with practitioner lookup
+        context.log(`[Dashboard] Users table lookup failed (table may not exist): ${err.message}`);
+      }
       
       // If user is admin/staff without practitioner record, return admin dashboard
       if (user && canAccessAdminDashboard(user) && !canAccessPractitionerDashboard(user)) {

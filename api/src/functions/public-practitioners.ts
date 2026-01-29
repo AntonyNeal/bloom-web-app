@@ -35,6 +35,7 @@ interface PublicPractitioner {
   halaxyPractitionerId: string | null; // For booking API
   halaxyClinicId: string | null; // For booking API
   halaxyFeeId: string | null; // For booking API
+  bookingEnabled: boolean; // Whether online booking is configured
   slug: string;
   displayName: string;
   firstName: string;
@@ -94,11 +95,13 @@ async function publicPractitionersHandler(
         ? `p.id,
             p.halaxy_practitioner_id,
             p.halaxy_clinic_id,
-            p.halaxy_fee_id,`
+            p.halaxy_fee_id,
+            COALESCE(p.booking_enabled, 0) as booking_enabled,`
         : `p.id,
             p.halaxy_practitioner_id,
             NULL as halaxy_clinic_id,
-            NULL as halaxy_fee_id,`;
+            NULL as halaxy_fee_id,
+            0 as booking_enabled,`;
       
       const result = await pool.request()
         .input('slug', sql.NVarChar, slug)
@@ -155,11 +158,13 @@ async function publicPractitionersHandler(
       ? `p.id,
         p.halaxy_practitioner_id,
         p.halaxy_clinic_id,
-        p.halaxy_fee_id,`
+        p.halaxy_fee_id,
+        COALESCE(p.booking_enabled, 0) as booking_enabled,`
       : `p.id,
         p.halaxy_practitioner_id,
         NULL as halaxy_clinic_id,
-        NULL as halaxy_fee_id,`;
+        NULL as halaxy_fee_id,
+        0 as booking_enabled,`;
     
     const result = await pool.request().query(`
       SELECT 
@@ -230,6 +235,7 @@ function mapRowToPractitioner(row: Record<string, unknown>): PublicPractitioner 
     halaxyPractitionerId: (row.halaxy_practitioner_id as string | null) || null,
     halaxyClinicId: (row.halaxy_clinic_id as string | null) || null,
     halaxyFeeId: (row.halaxy_fee_id as string | null) || null,
+    bookingEnabled: Boolean(row.booking_enabled),
     slug: row.url_slug as string,
     displayName: row.display_name as string,
     firstName: row.first_name as string,

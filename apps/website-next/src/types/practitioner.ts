@@ -10,6 +10,7 @@ export interface PublicPractitioner {
   halaxyPractitionerId: string | null;
   halaxyClinicId: string | null;
   halaxyFeeId: string | null;
+  bookingEnabled: boolean; // Whether online booking is configured in Halaxy
   slug: string;
   displayName: string;
   firstName: string;

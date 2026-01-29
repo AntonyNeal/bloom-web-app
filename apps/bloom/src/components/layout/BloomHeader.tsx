@@ -69,7 +69,7 @@ export function BloomHeader({ showAdminTools = true, showHomeLink = false }: Blo
     >
       {/* Left: Branding - links to home */}
       <Link
-        to="/bloom-home"
+        to="/"
         style={{
           display: 'flex',
           alignItems: 'center',

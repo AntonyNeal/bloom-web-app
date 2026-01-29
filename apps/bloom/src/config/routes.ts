@@ -26,7 +26,7 @@ export const ROUTES = {
   // Public Routes (no auth required)
   // ─────────────────────────────────────────────────────────────────────────
   
-  /** Home page - Dashboard (protected) */
+  /** Home page - BloomHomepage (protected) */
   HOME: '/',
   
   /** Garden Gate - Original landing page */
@@ -67,8 +67,11 @@ export const ROUTES = {
   // Authenticated Routes (require Azure AD login)
   // ─────────────────────────────────────────────────────────────────────────
   
-  /** Bloom Homepage - Main authenticated home */
+  /** Bloom Homepage - Main authenticated home (alias for HOME) */
   BLOOM_HOME: '/bloom-home',
+  
+  /** Practice - Sessions, schedule, and daily work */
+  PRACTICE: '/practice',
   
   /** Business Coach - AI-assisted business guidance */
   BUSINESS_COACH: '/business-coach',

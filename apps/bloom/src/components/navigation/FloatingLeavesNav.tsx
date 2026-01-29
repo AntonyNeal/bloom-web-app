@@ -306,6 +306,13 @@ const WrenchIcon = () => (
   </svg>
 );
 
+const BriefcaseIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+  </svg>
+);
+
 const VideoIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="23 7 16 12 23 17 23 7" />
@@ -459,10 +466,18 @@ export const FloatingLeavesNav: React.FC<FloatingLeavesNavProps> = ({
   // Default navigation items
   const defaultItems: NavItem[] = [
     { 
-      to: '/bloom-home', 
+      to: '/', 
       icon: <HomeIcon />, 
       label: 'Home', 
-      description: "Today's sessions",
+      description: 'Your garden overview',
+      section: 'main',
+    },
+    { 
+      to: '/practice', 
+      icon: <BriefcaseIcon />, 
+      label: 'Practice', 
+      description: "Today's sessions & schedule",
+      accentColor: colors.sage,
       section: 'main',
     },
     { 

@@ -641,14 +641,30 @@ function AnimatedRoutes() {
       <GardenGateButton />
 
       <Routes>
-        {/* Home page - Dashboard (protected) */}
+        {/* Home page - BloomHomepage (the garden tree view) */}
         <Route
           path="/"
           element={
             <ProtectedRoute>
               <ErrorBoundary>
                 <Suspense
-                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading dashboard...</div>}
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}
+                >
+                  <BloomHomepage />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Practice - Sessions & Dashboard (formerly root) */}
+        <Route
+          path="/practice"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <Suspense
+                  fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading practice...</div>}
                 >
                   <ClinicianDashboard />
                 </Suspense>
@@ -732,7 +748,7 @@ function AnimatedRoutes() {
           }
         />
 
-        {/* Bloom Homepage - main authenticated home */}
+        {/* Bloom Homepage - alias for root (legacy URL support) */}
         <Route
           path="/bloom-home"
           element={

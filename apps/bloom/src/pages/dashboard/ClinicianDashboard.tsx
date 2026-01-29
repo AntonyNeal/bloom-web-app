@@ -58,13 +58,22 @@ interface DashboardData {
 }
 
 // Feed item types
-type FeedItemType = 'appointment' | 'announcement' | 'reminder' | 'insight';
+type FeedItemType = 'appointment' | 'announcement' | 'reminder' | 'insight' | 'tip';
 
 interface FeedItem {
   id: string;
   type: FeedItemType;
   timestamp: Date;
-  data: Session | AnnouncementData | ReminderData | InsightData;
+  data: Session | AnnouncementData | ReminderData | InsightData | TipData;
+}
+
+interface TipData {
+  title: string;
+  message: string;
+  icon: string;
+  category: 'telehealth' | 'wellbeing' | 'business' | 'clinical' | 'productivity';
+  action?: string;
+  actionPath?: string;
 }
 
 interface AnnouncementData {
@@ -85,6 +94,211 @@ interface InsightData {
   stat: string;
   trend?: 'up' | 'down' | 'neutral';
   message: string;
+}
+
+// ============================================================================
+// CONTEXTUAL TIP GENERATOR
+// Generates personalized tips based on practitioner's current situation
+// ============================================================================
+
+interface TipContext {
+  hour: number;
+  dayOfWeek: number;
+  isWeekend: boolean;
+  isFriday: boolean;
+  isMonday: boolean;
+  totalSessions: number;
+  upcomingSessions: number;
+  completedSessions: number;
+  hasTelehealthToday: boolean;
+  hasInPersonToday: boolean;
+  sessionsRemaining: number;
+  displayName: string;
+}
+
+function generateContextualTip(ctx: TipContext): TipData | null {
+  const tips: TipData[] = [];
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // TIME-OF-DAY TIPS
+  // ─────────────────────────────────────────────────────────────────────────
+  
+  // Early morning (before 8am)
+  if (ctx.hour < 8) {
+    tips.push({
+      title: 'Early Start',
+      message: 'Starting early? Remember to take a moment for yourself before your first session. A 5-minute mindfulness practice can help you be more present with clients.',
+      icon: '🌅',
+      category: 'wellbeing',
+    });
+  }
+
+  // Late afternoon energy dip (3-5pm)
+  if (ctx.hour >= 15 && ctx.hour < 17 && ctx.sessionsRemaining > 0) {
+    tips.push({
+      title: 'Afternoon Reset',
+      message: `You have ${ctx.sessionsRemaining} session${ctx.sessionsRemaining !== 1 ? 's' : ''} remaining. Consider a short walk or stretch between sessions to maintain your therapeutic presence.`,
+      icon: '🚶',
+      category: 'wellbeing',
+    });
+  }
+
+  // End of day (after 5pm)
+  if (ctx.hour >= 17 && ctx.completedSessions > 0) {
+    tips.push({
+      title: 'Day\'s End',
+      message: 'As you wrap up, take a moment to note any patterns or themes from today\'s sessions. This reflection can inform your clinical approach tomorrow.',
+      icon: '📝',
+      category: 'clinical',
+      action: 'Review Notes',
+      actionPath: '/notes',
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // DAY-OF-WEEK TIPS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  if (ctx.isMonday && ctx.hour < 12) {
+    tips.push({
+      title: 'Monday Planning',
+      message: 'Start of the week! Review your calendar for any client prep needed. Clients often bring weekend events to Monday sessions.',
+      icon: '📅',
+      category: 'productivity',
+      action: 'View Calendar',
+      actionPath: '/calendar',
+    });
+  }
+
+  if (ctx.isFriday && ctx.hour >= 14) {
+    tips.push({
+      title: 'Weekend Prep',
+      message: 'Before the weekend, consider scheduling any follow-up calls or check-ins for clients who may need additional support.',
+      icon: '🗓️',
+      category: 'clinical',
+    });
+  }
+
+  if (ctx.isWeekend) {
+    tips.push({
+      title: 'Weekend Practice',
+      message: 'Working weekends requires extra self-care. Ensure you\'re scheduling adequate rest and maintaining boundaries.',
+      icon: '🌿',
+      category: 'wellbeing',
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // WORKLOAD TIPS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Light day
+  if (ctx.totalSessions === 0) {
+    tips.push({
+      title: 'Admin Day',
+      message: 'No sessions today? This is a great time to catch up on clinical notes, professional development, or business planning.',
+      icon: '💼',
+      category: 'productivity',
+      action: 'Business Coach',
+      actionPath: '/business-coach',
+    });
+  }
+
+  // Heavy day (6+ sessions)
+  if (ctx.totalSessions >= 6) {
+    tips.push({
+      title: 'Busy Day Ahead',
+      message: `With ${ctx.totalSessions} sessions today, pace yourself. Consider scheduling brief breaks and having water and snacks ready.`,
+      icon: '⚡',
+      category: 'wellbeing',
+    });
+  }
+
+  // Back-to-back sessions
+  if (ctx.totalSessions >= 4 && ctx.upcomingSessions >= 3) {
+    tips.push({
+      title: 'Session Spacing',
+      message: 'Multiple sessions ahead. Even 5-minute breaks between clients can help you reset and maintain therapeutic presence.',
+      icon: '⏱️',
+      category: 'wellbeing',
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // TELEHEALTH-SPECIFIC TIPS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  if (ctx.hasTelehealthToday) {
+    const telehealthTips: TipData[] = [
+      {
+        title: 'Telehealth Tip',
+        message: 'Click "Start Session" on any telehealth appointment to join the video call. AI-powered note-taking captures key themes automatically.',
+        icon: '📹',
+        category: 'telehealth',
+      },
+      {
+        title: 'Video Presence',
+        message: 'For telehealth: position your camera at eye level, ensure good lighting on your face, and minimize background distractions.',
+        icon: '💡',
+        category: 'telehealth',
+      },
+      {
+        title: 'Connection Check',
+        message: 'Before your first telehealth session, test your internet connection and audio. Have a phone number ready as backup.',
+        icon: '📶',
+        category: 'telehealth',
+      },
+    ];
+    // Add one random telehealth tip
+    tips.push(telehealthTips[Math.floor(Math.random() * telehealthTips.length)]);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CLINICAL TIPS (general, always available)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const clinicalTips: TipData[] = [
+    {
+      title: 'Therapeutic Alliance',
+      message: 'Research shows the therapeutic relationship accounts for 30% of therapy outcomes. Check in on the alliance with at least one client today.',
+      icon: '🤝',
+      category: 'clinical',
+    },
+    {
+      title: 'Client Progress',
+      message: 'Consider reviewing treatment goals with long-term clients. Celebrating progress, however small, reinforces therapeutic gains.',
+      icon: '📈',
+      category: 'clinical',
+    },
+    {
+      title: 'Supervision Reflection',
+      message: 'What case would you bring to supervision this week? Noting challenging moments helps maximize peer consultation.',
+      icon: '🔍',
+      category: 'clinical',
+    },
+  ];
+
+  // Add a clinical tip on some occasions
+  if (tips.length < 2 && Math.random() > 0.5) {
+    tips.push(clinicalTips[Math.floor(Math.random() * clinicalTips.length)]);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SELECT THE MOST RELEVANT TIP
+  // ─────────────────────────────────────────────────────────────────────────
+
+  if (tips.length === 0) {
+    // Fallback tip
+    return {
+      title: 'Daily Reflection',
+      message: 'Taking brief notes after each session helps consolidate your clinical thinking and improves continuity of care.',
+      icon: '💭',
+      category: 'clinical',
+    };
+  }
+
+  // Return the first (most contextually relevant) tip
+  return tips[0];
 }
 
 export function ClinicianDashboard() {
@@ -145,6 +359,11 @@ export function ClinicianDashboard() {
   const buildFeed = (data: DashboardData) => {
     const items: FeedItem[] = [];
     const now = new Date();
+    const hour = now.getHours();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isFriday = dayOfWeek === 5;
+    const isMonday = dayOfWeek === 1;
 
     // Add today's sessions as feed items
     data.today.sessions
@@ -159,7 +378,7 @@ export function ClinicianDashboard() {
       });
 
     // Add a morning greeting/summary if it's before noon
-    if (now.getHours() < 12) {
+    if (hour < 12) {
       items.push({
         id: 'greeting',
         type: 'announcement',
@@ -201,6 +420,33 @@ export function ClinicianDashboard() {
           action: 'View Calendar',
           actionPath: '/calendar',
         },
+      });
+    }
+
+    // ========================================================================
+    // CONTEXTUAL TIP - Smart tip based on practitioner's situation
+    // ========================================================================
+    const tip = generateContextualTip({
+      hour,
+      dayOfWeek,
+      isWeekend,
+      isFriday,
+      isMonday,
+      totalSessions: data.today.summary.totalSessions,
+      upcomingSessions: data.today.summary.upcomingSessions,
+      completedSessions: data.today.summary.completedSessions,
+      hasTelehealthToday: data.today.sessions.some(s => s.locationType === 'telehealth'),
+      hasInPersonToday: data.today.sessions.some(s => s.locationType === 'in-person'),
+      sessionsRemaining: data.today.summary.upcomingSessions,
+      displayName: data.practitioner?.displayName || data.user?.displayName || 'there',
+    });
+
+    if (tip) {
+      items.push({
+        id: 'contextual-tip',
+        type: 'tip',
+        timestamp: new Date(now.getTime() - 1000 * 60 * 45), // Show after insights
+        data: tip,
       });
     }
 
@@ -502,13 +748,6 @@ export function ClinicianDashboard() {
               <span>Refresh Feed</span>
             </button>
           </div>
-
-          <div style={styles.tipsCard}>
-            <h3 style={styles.tipsTitle}>💡 Tip of the Day</h3>
-            <p style={styles.tipText}>
-              Click "Start Session" on any telehealth appointment to join the video call and auto-generate AI notes.
-            </p>
-          </div>
         </aside>
       </div>
     </div>
@@ -638,6 +877,63 @@ function FeedCard({ item, onStartSession, onNavigate, getTimeAgo, getSessionTime
             <p style={styles.insightMessage}>{insight.message}</p>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Tip card - contextual tips based on practitioner situation
+  if (item.type === 'tip') {
+    const tip = item.data as TipData;
+    const categoryColors: Record<string, { bg: string; border: string; icon: string }> = {
+      telehealth: { bg: '#E8F4F8', border: '#5B9BD5', icon: '📹' },
+      wellbeing: { bg: '#F0F7F4', border: '#6B8E7F', icon: '🌿' },
+      business: { bg: '#FEF7ED', border: '#E8B77D', icon: '💼' },
+      clinical: { bg: '#F3F0F7', border: '#9B8DC4', icon: '🧠' },
+      productivity: { bg: '#FFF9E6', border: '#D4A574', icon: '⚡' },
+    };
+    const colors = categoryColors[tip.category] || categoryColors.clinical;
+
+    return (
+      <div style={{ 
+        ...styles.feedCard, 
+        background: colors.bg,
+        borderLeft: `4px solid ${colors.border}`,
+      }}>
+        <div style={styles.cardHeader}>
+          <div style={styles.cardType}>
+            <span style={styles.cardTypeIcon}>{tip.icon}</span>
+            <span style={{ fontWeight: 600, color: colors.border }}>{tip.title}</span>
+          </div>
+          <span style={{
+            fontSize: '11px',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            background: `${colors.border}20`,
+            color: colors.border,
+            fontWeight: 500,
+            textTransform: 'capitalize',
+          }}>
+            {tip.category}
+          </span>
+        </div>
+        <p style={{
+          ...styles.reminderMessage,
+          marginTop: '8px',
+          lineHeight: 1.6,
+        }}>
+          {tip.message}
+        </p>
+        {tip.action && tip.actionPath && (
+          <button
+            onClick={() => onNavigate(tip.actionPath!)}
+            style={{
+              ...styles.reminderAction,
+              background: colors.border,
+            }}
+          >
+            {tip.action}
+          </button>
+        )}
       </div>
     );
   }
